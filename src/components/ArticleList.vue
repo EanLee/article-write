@@ -78,7 +78,7 @@
             <span>{{ formatDate(article.lastModified) }}</span>
           </div>
 
-          <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags.length > 0">
+          <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags && article.frontmatter.tags.length > 0">
             <div
               v-for="tag in article.frontmatter.tags.slice(0, 3)"
               :key="tag"
@@ -197,12 +197,16 @@ async function createArticle() {
   }
 }
 
-function formatDate(date: Date): string {
+function formatDate(date: Date | string): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return '無效日期'
+  }
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
-  }).format(date)
+  }).format(dateObj)
 }
 
 onMounted(() => {
