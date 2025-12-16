@@ -35,6 +35,18 @@ export interface ImageValidationResult {
 }
 
 /**
+ * 圖片驗證詳細結果介面
+ */
+export interface ImageValidationDetails {
+  imageName: string
+  exists: boolean
+  isUsed: boolean
+  referencedIn: string[]
+  filePath?: string
+  errorMessage?: string
+}
+
+/**
  * 圖片服務類別
  * 負責管理圖片檔案、驗證圖片引用，以及提供圖片相關功能
  */
@@ -166,19 +178,35 @@ export class ImageService {
     const lines = article.content.split('\n')
     
     lines.forEach((line, index) => {
-      const imageRegex = /!\[\[([^\]]+)\]\]/g
+      // Obsidian 格式圖片: ![[image.png]]
+      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g
       let match
       
-      while ((match = imageRegex.exec(line)) !== null) {
+      while ((match = obsidianImageRegex.exec(line)) !== null) {
         const imageName = match[1]
-        const imageExists = this.checkImageExists(imageName)
         
         references.push({
           imageName,
           articleId: article.id,
           articleTitle: article.title,
           line: index + 1,
-          exists: imageExists
+          exists: false // Will be updated by validation methods
+        })
+      }
+
+      // 標準 Markdown 格式圖片: ![alt](path)
+      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g
+      while ((match = standardImageRegex.exec(line)) !== null) {
+        const imagePath = match[1]
+        // 提取檔名（如果是相對路徑）
+        const imageName = imagePath.includes('/') ? imagePath.split('/').pop() || imagePath : imagePath
+        
+        references.push({
+          imageName,
+          articleId: article.id,
+          articleTitle: article.title,
+          line: index + 1,
+          exists: false // Will be updated by validation methods
         })
       }
     })
@@ -188,13 +216,38 @@ export class ImageService {
 
   /**
    * 檢查圖片檔案是否存在
-   * @param {string} _imageName - 圖片檔名
-   * @returns {boolean} 檔案是否存在
+   * @param {string} imageName - 圖片檔名
+   * @returns {Promise<boolean>} 檔案是否存在
    */
-  checkImageExists(_imageName: string): boolean {
-    // This would need to be implemented with actual file system check
-    // For now, we'll assume images exist if they're in our loaded list
-    return true
+  async checkImageExists(imageName: string): Promise<boolean> {
+    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+      return false
+    }
+
+    try {
+      const filePath = `${this.getImagesPath()}/${imageName}`
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const stats = await (window.electronAPI as any).getFileStats(filePath)
+      return stats && stats.isFile
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * 批量檢查多個圖片檔案是否存在
+   * @param {string[]} imageNames - 圖片檔名陣列
+   * @returns {Promise<Map<string, boolean>>} 圖片存在性對照表
+   */
+  async checkMultipleImagesExist(imageNames: string[]): Promise<Map<string, boolean>> {
+    const results = new Map<string, boolean>()
+    
+    for (const imageName of imageNames) {
+      const exists = await this.checkImageExists(imageName)
+      results.set(imageName, exists)
+    }
+    
+    return results
   }
 
   /**
@@ -236,6 +289,86 @@ export class ImageService {
       unusedImages,
       totalImages: allImages.length
     }
+  }
+
+  /**
+   * 取得詳細的圖片驗證結果
+   * @returns {Promise<ImageValidationDetails[]>} 詳細驗證結果
+   */
+  async getDetailedImageValidation(): Promise<ImageValidationDetails[]> {
+    const results: ImageValidationDetails[] = []
+    const referencedImages = new Set<string>()
+    const imageReferences = new Map<string, string[]>()
+
+    // 收集所有被引用的圖片
+    for (const article of this.articles) {
+      const references = this.getArticleImageReferences(article)
+      for (const ref of references) {
+        referencedImages.add(ref.imageName)
+        
+        if (!imageReferences.has(ref.imageName)) {
+          imageReferences.set(ref.imageName, [])
+        }
+        imageReferences.get(ref.imageName)!.push(article.title)
+      }
+    }
+
+    // 檢查所有被引用的圖片
+    for (const imageName of referencedImages) {
+      const exists = await this.checkImageExists(imageName)
+      const referencedIn = imageReferences.get(imageName) || []
+      
+      results.push({
+        imageName,
+        exists,
+        isUsed: true,
+        referencedIn,
+        filePath: exists ? `${this.getImagesPath()}/${imageName}` : undefined,
+        errorMessage: exists ? undefined : '圖片檔案不存在'
+      })
+    }
+
+    // 檢查未被引用的圖片
+    const allImages = await this.loadImages()
+    for (const image of allImages) {
+      if (!referencedImages.has(image.name)) {
+        results.push({
+          imageName: image.name,
+          exists: image.exists,
+          isUsed: false,
+          referencedIn: [],
+          filePath: image.path,
+          errorMessage: undefined
+        })
+      }
+    }
+
+    return results.sort((a, b) => a.imageName.localeCompare(b.imageName))
+  }
+
+  /**
+   * 驗證特定文章中的圖片引用
+   * @param {Article} article - 要驗證的文章
+   * @returns {Promise<ImageValidationDetails[]>} 該文章的圖片驗證結果
+   */
+  async validateArticleImages(article: Article): Promise<ImageValidationDetails[]> {
+    const references = this.getArticleImageReferences(article)
+    const results: ImageValidationDetails[] = []
+
+    for (const ref of references) {
+      const exists = await this.checkImageExists(ref.imageName)
+      
+      results.push({
+        imageName: ref.imageName,
+        exists,
+        isUsed: true,
+        referencedIn: [article.title],
+        filePath: exists ? `${this.getImagesPath()}/${ref.imageName}` : undefined,
+        errorMessage: exists ? undefined : '圖片檔案不存在'
+      })
+    }
+
+    return results
   }
 
   /**

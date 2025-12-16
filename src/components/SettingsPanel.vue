@@ -334,11 +334,9 @@ async function validatePaths() {
 async function handleSave() {
   try {
     await configStore.saveConfig(localConfig.value)
-    console.log('設定已儲存')
     
     // 如果設定了 Obsidian Vault 路徑，重新載入文章
     if (localConfig.value.paths.obsidianVault) {
-      console.log('重新載入文章...')
       await articleStore.loadArticles()
     }
     

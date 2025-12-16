@@ -176,14 +176,7 @@ function updateFilters() {
 }
 
 function selectArticle(article: Article) {
-  console.log('ArticleList: selectArticle called', {
-    title: article.title,
-    hasContent: !!article.content,
-    contentLength: article.content?.length,
-    contentPreview: article.content?.substring(0, 100)
-  })
   articleStore.setCurrentArticle(article)
-  console.log('ArticleList: setCurrentArticle called, currentArticle:', articleStore.currentArticle?.title)
 }
 
 async function createArticle() {
