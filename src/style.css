@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
+
+@theme {
+  --color-base-100: #fff;
+  --color-base-200: #f2f2f2;
+}
 
 /* 自定義樣式 */
 .editor-container {
