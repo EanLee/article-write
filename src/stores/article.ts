@@ -82,9 +82,10 @@ export const useArticleStore = defineStore('article', () => {
       }
 
       // Check if we're running in Electron environment
-      if (!window.electronAPI) {
+      if (typeof window === 'undefined' || !window.electronAPI) {
         console.warn('Running in browser mode - using mock articles')
         articles.value = []
+        loading.value = false
         return
       }
 
@@ -160,6 +161,10 @@ export const useArticleStore = defineStore('article', () => {
 
   async function createArticle(title: string, category: 'Software' | 'growth' | 'management'): Promise<Article> {
     try {
+      if (typeof window === 'undefined' || !window.electronAPI) {
+        throw new Error('Electron API not available')
+      }
+      
       const vaultPath = configStore.config.paths.obsidianVault
       if (!vaultPath) {
         throw new Error('Obsidian vault path not configured')
@@ -208,6 +213,10 @@ export const useArticleStore = defineStore('article', () => {
 
   async function updateArticle(updatedArticle: Article) {
     try {
+      if (typeof window === 'undefined' || !window.electronAPI) {
+        throw new Error('Electron API not available')
+      }
+      
       // Update lastModified timestamp
       updatedArticle.lastModified = new Date()
       
@@ -233,6 +242,10 @@ export const useArticleStore = defineStore('article', () => {
 
   async function deleteArticle(id: string) {
     try {
+      if (typeof window === 'undefined' || !window.electronAPI) {
+        throw new Error('Electron API not available')
+      }
+      
       const article = articles.value.find(a => a.id === id)
       if (!article) {
         throw new Error('Article not found')
@@ -257,6 +270,10 @@ export const useArticleStore = defineStore('article', () => {
 
   async function moveToPublished(id: string) {
     try {
+      if (typeof window === 'undefined' || !window.electronAPI) {
+        throw new Error('Electron API not available')
+      }
+      
       const article = articles.value.find(a => a.id === id)
       if (!article) {
         throw new Error('Article not found')
@@ -311,8 +328,7 @@ export const useArticleStore = defineStore('article', () => {
     if (!vaultPath || watchingFiles.value) { return }
 
     // Check if we're running in Electron environment
-    if (!window.electronAPI) {
-      
+    if (typeof window === 'undefined' || !window.electronAPI) {
       return
     }
 
