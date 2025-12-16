@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Article, ArticleFilter } from '@/types'
 import { MarkdownService } from '@/services/MarkdownService'
+import { autoSaveService } from '@/services/AutoSaveService'
 import { useConfigStore } from './config'
 
 export const useArticleStore = defineStore('article', () => {
@@ -322,7 +323,16 @@ export const useArticleStore = defineStore('article', () => {
   }
 
   function setCurrentArticle(article: Article | null) {
+    // 在切換文章前自動儲存前一篇文章
+    const previousArticle = currentArticle.value
+    if (previousArticle && previousArticle !== article) {
+      autoSaveService.saveOnArticleSwitch(previousArticle)
+    }
+    
     currentArticle.value = article
+    
+    // 設定新的當前文章到自動儲存服務
+    autoSaveService.setCurrentArticle(article)
   }
 
   function updateFilter(newFilter: Partial<ArticleFilter>) {
@@ -400,6 +410,36 @@ export const useArticleStore = defineStore('article', () => {
     return Date.now().toString(36) + Math.random().toString(36).substring(2)
   }
 
+  // 初始化自動儲存服務
+  function initializeAutoSave() {
+    const config = configStore.config
+    const interval = config.editorConfig.autoSaveInterval || 30000
+    
+    autoSaveService.initialize(
+      updateArticle,
+      () => currentArticle.value,
+      interval
+    )
+    
+    // 根據設定啟用或停用自動儲存
+    autoSaveService.setEnabled(config.editorConfig.autoSave)
+  }
+
+  // 監聽設定變更以更新自動儲存
+  watch(
+    () => configStore.config.editorConfig,
+    (newConfig) => {
+      autoSaveService.setEnabled(newConfig.autoSave)
+      autoSaveService.setInterval(newConfig.autoSaveInterval || 30000)
+    },
+    { deep: true }
+  )
+
+  // 初始化自動儲存（延遲執行以確保 configStore 已載入）
+  setTimeout(() => {
+    initializeAutoSave()
+  }, 100)
+
   return {
     // State
     articles,
@@ -425,6 +465,7 @@ export const useArticleStore = defineStore('article', () => {
     startFileWatching,
     stopFileWatching,
     reloadArticle,
-    saveCurrentArticle
+    saveCurrentArticle,
+    initializeAutoSave
   }
 })
