@@ -20,8 +20,6 @@
     "esModuleInterop": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "composite": true,
-    "rootDir": "src/main",
     "outDir": "dist/main",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types"],
