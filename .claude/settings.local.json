@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(npm run build:main:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm run build:main:*)",
+      "Bash(pnpm run build:renderer:*)",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(mcp query:*)",
+      "Bash(where:*)"
+    ]
+  }
+}

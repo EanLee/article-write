@@ -1,10 +1,10 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
-import { FileService } from './services/FileService'
-import { ConfigService } from './services/ConfigService'
-import { ProcessService } from './services/ProcessService'
+import { FileService } from './services/FileService.js'
+import { ConfigService } from './services/ConfigService.js'
+import { ProcessService } from './services/ProcessService.js'
 
-const isDev = process.env.NODE_ENV === 'development'
+const isDev = !app.isPackaged
 
 let mainWindow: BrowserWindow
 
@@ -20,7 +20,7 @@ function createWindow() {
   })
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:3000')
+    mainWindow.loadURL('http://localhost:3002')
     mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))

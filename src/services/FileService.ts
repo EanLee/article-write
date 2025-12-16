@@ -88,6 +88,30 @@ export class FileService {
   }
 
   /**
+   * 掃描 Images 資料夾中的所有圖片檔案
+   * @param {string} vaultPath - Vault 路徑
+   * @returns {Promise<string[]>} 圖片檔案名稱陣列
+   */
+  async scanImageFiles(vaultPath: string): Promise<string[]> {
+    try {
+      const imagesPath = this.joinPath(vaultPath, 'images')
+      const files = await this.readDirectory(imagesPath)
+      
+      // 過濾出圖片檔案
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp']
+      const imageFiles = files.filter(file => {
+        const ext = this.getExtname(file).toLowerCase()
+        return imageExtensions.includes(ext)
+      })
+      
+      return imageFiles
+    } catch (error) {
+      console.error('Failed to scan image files:', error)
+      return []
+    }
+  }
+
+  /**
    * 儲存文章到檔案系統
    * @param {Article} article - 要儲存的文章
    */
@@ -182,8 +206,7 @@ export class FileService {
   async deleteArticle(article: Article): Promise<void> {
     try {
       await this.deleteFile(article.filePath)
-    } catch (error) {
-      console.error('Failed to delete article:', error)
+    } catch {
       throw new Error(`Failed to delete article: ${article.title}`)
     }
   }
