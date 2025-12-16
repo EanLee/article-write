@@ -47,6 +47,19 @@ export interface ImageValidationDetails {
 }
 
 /**
+ * 圖片驗證警告介面
+ */
+export interface ImageValidationWarning {
+  imageName: string
+  line: number
+  column: number
+  type: 'missing-file' | 'invalid-format' | 'broken-reference'
+  message: string
+  suggestion: string
+  severity: 'error' | 'warning'
+}
+
+/**
  * 圖片服務類別
  * 負責管理圖片檔案、驗證圖片引用，以及提供圖片相關功能
  */
@@ -372,6 +385,87 @@ export class ImageService {
   }
 
   /**
+   * 取得文章內容中的圖片驗證警告
+   * @param {string} content - 文章內容
+   * @returns {Promise<ImageValidationWarning[]>} 圖片驗證警告陣列
+   */
+  async getImageValidationWarnings(content: string): Promise<ImageValidationWarning[]> {
+    const warnings: ImageValidationWarning[] = []
+    const lines = content.split('\n')
+    
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const line = lines[lineIndex]
+      
+      // 檢查 Obsidian 格式圖片: ![[image.png]]
+      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g
+      let match
+      
+      while ((match = obsidianImageRegex.exec(line)) !== null) {
+        const imageName = match[1]
+        const exists = await this.checkImageExists(imageName)
+        
+        if (!exists) {
+          warnings.push({
+            imageName,
+            line: lineIndex + 1,
+            column: match.index + 1,
+            type: 'missing-file',
+            message: `圖片檔案 "${imageName}" 不存在`,
+            suggestion: `請檢查圖片檔案是否存在於 images 資料夾中`,
+            severity: 'error'
+          })
+        } else if (!this.isImageFile(imageName)) {
+          warnings.push({
+            imageName,
+            line: lineIndex + 1,
+            column: match.index + 1,
+            type: 'invalid-format',
+            message: `"${imageName}" 不是有效的圖片格式`,
+            suggestion: `支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp`,
+            severity: 'warning'
+          })
+        }
+      }
+
+      // 檢查標準 Markdown 格式圖片: ![alt](path)
+      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g
+      while ((match = standardImageRegex.exec(line)) !== null) {
+        const imagePath = match[1]
+        // 如果是相對路徑且指向 images 目錄，進行驗證
+        if (imagePath.includes('images/') || imagePath.startsWith('./images/')) {
+          const imageName = imagePath.split('/').pop() || imagePath
+          const exists = await this.checkImageExists(imageName)
+          
+          if (!exists) {
+            warnings.push({
+              imageName,
+              line: lineIndex + 1,
+              column: match.index + 1,
+              type: 'missing-file',
+              message: `圖片檔案 "${imageName}" 不存在`,
+              suggestion: `請檢查圖片檔案是否存在於 images 資料夾中`,
+              severity: 'error'
+            })
+          }
+        }
+      }
+    }
+    
+    return warnings
+  }
+
+  /**
+   * 檢查檔案名稱是否為有效的圖片格式
+   * @param {string} filename - 檔案名稱
+   * @returns {boolean} 是否為有效的圖片格式
+   */
+  private isImageFile(filename: string): boolean {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.avif']
+    const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'))
+    return imageExtensions.includes(ext)
+  }
+
+  /**
    * 刪除未使用的圖片
    * @param {string} imageName - 圖片檔名
    * @returns {Promise<boolean>} 是否成功刪除
@@ -399,26 +493,142 @@ export class ImageService {
 
   /**
    * 複製圖片到 images 目錄
-   * @param {string} _sourcePath - 來源檔案路徑
-   * @param {string} _fileName - 目標檔案名稱
+   * @param {string} sourcePath - 來源檔案路徑
+   * @param {string} fileName - 目標檔案名稱
    * @returns {Promise<boolean>} 是否成功複製
    */
-  async copyImageToVault(_sourcePath: string, _fileName: string): Promise<boolean> {
+  async copyImageToVault(sourcePath: string, fileName: string): Promise<boolean> {
     if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
       return false
     }
 
     try {
-      // This would need to be implemented with proper file copying
-      // For now, we'll return false as the current API doesn't support file copying
-      // eslint-disable-next-line no-console
-      console.warn('Image copying not implemented in current API')
-      return false
+      const targetPath = `${this.getImagesPath()}/${fileName}`
+      
+      // Use Electron API to copy file
+      await (window.electronAPI as any).copyFile(sourcePath, targetPath)
+      return true
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to copy image:', error)
       return false
     }
+  }
+
+  /**
+   * 上傳圖片檔案到 images 目錄
+   * @param {File} file - 要上傳的檔案
+   * @param {string} customName - 自訂檔案名稱（可選）
+   * @returns {Promise<string>} 上傳後的檔案名稱
+   */
+  async uploadImageFile(file: File, customName?: string): Promise<string> {
+    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+      throw new Error('Vault path not set or Electron API not available')
+    }
+
+    // Validate file type
+    if (!this.isImageFile(file.name)) {
+      throw new Error('Invalid image file format')
+    }
+
+    // Generate unique filename
+    const fileName = customName || this.generateUniqueFileName(file.name)
+    const targetPath = `${this.getImagesPath()}/${fileName}`
+
+    try {
+      // Convert file to buffer
+      const arrayBuffer = await file.arrayBuffer()
+      const buffer = new Uint8Array(arrayBuffer)
+
+      // Write file using Electron API
+      await (window.electronAPI as any).writeFileBuffer(targetPath, buffer)
+      
+      return fileName
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to upload image:', error)
+      throw new Error(`Failed to upload image: ${(error as Error).message}`)
+    }
+  }
+
+  /**
+   * 產生唯一的檔案名稱
+   * @param {string} originalName - 原始檔案名稱
+   * @returns {string} 唯一的檔案名稱
+   */
+  private generateUniqueFileName(originalName: string): string {
+    const timestamp = Date.now()
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const extension = originalName.substring(originalName.lastIndexOf('.'))
+    const baseName = originalName.substring(0, originalName.lastIndexOf('.'))
+    
+    return `${baseName}-${timestamp}-${randomSuffix}${extension}`
+  }
+
+  /**
+   * 清理未使用的圖片檔案
+   * @returns {Promise<string[]>} 被清理的檔案名稱陣列
+   */
+  async cleanupUnusedImages(): Promise<string[]> {
+    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+      return []
+    }
+
+    try {
+      const allImages = await this.loadImages()
+      const unusedImages = allImages.filter(image => !image.isUsed)
+      const cleanedFiles: string[] = []
+
+      for (const image of unusedImages) {
+        try {
+          await window.electronAPI.deleteFile(image.path)
+          cleanedFiles.push(image.name)
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn(`Failed to delete unused image ${image.name}:`, error)
+        }
+      }
+
+      return cleanedFiles
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to cleanup unused images:', error)
+      return []
+    }
+  }
+
+  /**
+   * 取得未使用的圖片清單
+   * @returns {Promise<ImageInfo[]>} 未使用的圖片陣列
+   */
+  async getUnusedImages(): Promise<ImageInfo[]> {
+    const allImages = await this.loadImages()
+    return allImages.filter(image => !image.isUsed)
+  }
+
+  /**
+   * 批量刪除圖片檔案
+   * @param {string[]} imageNames - 要刪除的圖片檔案名稱陣列
+   * @returns {Promise<{ success: string[], failed: string[] }>} 刪除結果
+   */
+  async batchDeleteImages(imageNames: string[]): Promise<{ success: string[], failed: string[] }> {
+    const success: string[] = []
+    const failed: string[] = []
+
+    for (const imageName of imageNames) {
+      try {
+        const deleteSuccess = await this.deleteUnusedImage(imageName)
+        if (deleteSuccess) {
+          success.push(imageName)
+        } else {
+          failed.push(imageName)
+        }
+      } catch (error) {
+        failed.push(imageName)
+      }
+    }
+
+    return { success, failed }
   }
 
   /**
