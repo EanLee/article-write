@@ -31,20 +31,50 @@ src/
 
 ```bash
 # 安裝依賴
-npm install
+pnpm install
+
+# 首次安裝或遇到 Electron 問題時，需手動執行
+node node_modules\.pnpm\electron@39.2.7\node_modules\electron\install.js
 
 # 開發模式
-npm run dev
+pnpm run dev
 
 # 建置應用程式
-npm run build
+pnpm run build
 
 # 執行測試
-npm test
+pnpm run test
 
 # 監控測試
-npm run test:watch
+pnpm run test:watch
+
+# Lint 檢查
+pnpm run lint
+
+# Lint 自動修復
+pnpm run lint:fix
 ```
+
+## 常見問題
+
+### Electron 安裝問題
+
+如果遇到 `Electron failed to install correctly` 錯誤：
+
+```bash
+# 手動執行 Electron 安裝腳本
+node node_modules\.pnpm\electron@39.2.7\node_modules\electron\install.js
+```
+
+或建立 `.npmrc` 檔案啟用建置腳本：
+
+```
+enable-pre-post-scripts=true
+```
+
+### Port 占用問題
+
+如果開發時 port 3002 被占用，Vite 會自動切換到其他 port（如 3003）。請確保 Electron 主程序也使用相同的 port。
 
 ## 功能特色
 
