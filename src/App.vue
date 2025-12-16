@@ -74,9 +74,21 @@ const articleStore = useArticleStore()
 const showSettings = ref(false)
 
 onMounted(async () => {
+  console.log('App mounted - 載入設定...')
   await configStore.loadConfig()
-  if (configStore.isConfigured) {
+  console.log('設定載入完成:', {
+    isConfigured: configStore.isConfigured,
+    obsidianVault: configStore.config.paths.obsidianVault,
+    targetBlog: configStore.config.paths.targetBlog
+  })
+  
+  // 只要有 obsidianVault 就載入文章（targetBlog 是發布用的，不影響文章載入）
+  if (configStore.config.paths.obsidianVault) {
+    console.log('開始載入文章...')
     await articleStore.loadArticles()
+    console.log('文章載入完成:', articleStore.articles.length)
+  } else {
+    console.log('未設定 Obsidian Vault，跳過載入文章')
   }
 })
 </script>
