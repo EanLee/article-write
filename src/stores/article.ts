@@ -78,8 +78,11 @@ export const useArticleStore = defineStore('article', () => {
       if (!vaultPath) {
         console.warn('Obsidian vault path not configured')
         articles.value = []
+        loading.value = false
         return
       }
+
+      console.log('開始載入文章，Vault 路徑:', vaultPath)
 
       // Check if we're running in Electron environment
       if (typeof window === 'undefined' || !window.electronAPI) {
@@ -99,12 +102,17 @@ export const useArticleStore = defineStore('article', () => {
       
       for (const folder of folders) {
         try {
+          console.log(`檢查資料夾: ${folder.path}`)
           // Check if folder exists
           const stats = await window.electronAPI.getFileStats(folder.path)
-          if (!stats?.isDirectory) continue
+          if (!stats?.isDirectory) {
+            console.log(`資料夾不存在或不是目錄: ${folder.path}`)
+            continue
+          }
           
           // Read categories (Software, growth, management)
           const categories = await window.electronAPI.readDirectory(folder.path)
+          console.log(`找到 ${categories.length} 個分類:`, categories)
           
           for (const category of categories) {
             const categoryPath = `${folder.path}/${category}`
@@ -144,6 +152,7 @@ export const useArticleStore = defineStore('article', () => {
         }
       }
       
+      console.log(`總共載入了 ${loadedArticles.length} 篇文章`)
       articles.value = loadedArticles
       
       // Start watching for file changes if not already watching

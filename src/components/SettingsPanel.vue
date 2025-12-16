@@ -194,6 +194,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
+import { useArticleStore } from '@/stores/article'
 import type { AppConfig } from '@/types'
 
 interface Props {
@@ -208,6 +209,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const configStore = useConfigStore()
+const articleStore = useArticleStore()
 const activeTab = ref('paths')
 const localConfig = ref<AppConfig>({
   paths: {
@@ -333,6 +335,13 @@ async function handleSave() {
   try {
     await configStore.saveConfig(localConfig.value)
     console.log('設定已儲存')
+    
+    // 如果設定了 Obsidian Vault 路徑，重新載入文章
+    if (localConfig.value.paths.obsidianVault) {
+      console.log('重新載入文章...')
+      await articleStore.loadArticles()
+    }
+    
     emit('update:modelValue', false)
   } catch (error) {
     console.error('儲存設定失敗', error)
