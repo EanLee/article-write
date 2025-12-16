@@ -24,6 +24,16 @@
             </svg>
             重新整理
           </button>
+          <button 
+            class="btn btn-sm btn-warning"
+            @click="cleanupUnusedImages"
+            :disabled="loading || unusedImagesCount === 0"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            清理未使用 ({{ unusedImagesCount }})
+          </button>
         </div>
       </div>
       
@@ -201,7 +211,13 @@
         <h3 class="font-bold text-lg mb-4">選擇圖片</h3>
         
         <!-- Upload Area -->
-        <div class="border-2 border-dashed border-base-300 rounded-lg p-6 mb-4 text-center">
+        <div 
+          class="border-2 border-dashed border-base-300 rounded-lg p-6 mb-4 text-center transition-colors"
+          :class="{ 'border-primary bg-primary/5': isDragOver }"
+          @dragover.prevent="handleDragOver"
+          @dragleave.prevent="handleDragLeave"
+          @drop.prevent="handleDrop"
+        >
           <input
             ref="fileInput"
             type="file"
@@ -213,8 +229,11 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-base-content/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p class="text-base-content/70 mb-2">拖放圖片到此處或</p>
+          <p class="text-base-content/70 mb-2">
+            {{ isDragOver ? '放開以上傳圖片' : '拖放圖片到此處或' }}
+          </p>
           <button
+            v-if="!isDragOver"
             class="btn btn-outline btn-sm"
             @click="fileInput?.click()"
           >
@@ -289,10 +308,16 @@ const selectedImageForBrowser = ref<string>('')
 const searchQuery = ref('')
 const filterType = ref<'all' | 'used' | 'unused' | 'invalid'>('all')
 const fileInput = ref<HTMLInputElement>()
+const isDragOver = ref(false)
 
 // Image data
 const allImages = ref<ImageInfo[]>([])
 const filteredImages = ref<ImageInfo[]>([])
+
+// Computed properties for image statistics
+const unusedImagesCount = computed(() => 
+  allImages.value.filter(image => !image.isUsed).length
+)
 
 // Computed properties
 interface CurrentArticleImage {
@@ -307,22 +332,27 @@ const currentArticleImages = computed(() => {
   }
   
   const content = articleStore.currentArticle.content
-  const imageRegex = /!\[\[([^\]]+)\]\]/g
   const images: CurrentArticleImage[] = []
-  let match
   
-  while ((match = imageRegex.exec(content)) !== null) {
-    const imageName = match[1]
-    const imageInfo = allImages.value.find(img => img.name === imageName)
+  // Use ImageService to get image references for better accuracy
+  const references = imageService.getArticleImageReferences(articleStore.currentArticle)
+  
+  references.forEach(ref => {
+    const imageInfo = allImages.value.find(img => img.name === ref.imageName)
     
     images.push({
-      name: imageName,
+      name: ref.imageName,
       exists: !!imageInfo,
       preview: imageInfo?.preview
     })
-  }
+  })
   
-  return images
+  // Remove duplicates (same image referenced multiple times)
+  const uniqueImages = images.filter((image, index, self) => 
+    index === self.findIndex(img => img.name === image.name)
+  )
+  
+  return uniqueImages
 })
 
 // Methods
@@ -436,42 +466,52 @@ async function handleFileUpload(event: Event) {
     return
   }
   
+  loading.value = true
+  
   try {
     const vaultPath = configStore.config.paths.obsidianVault
-    if (!vaultPath || !window.electronAPI) {
+    if (!vaultPath) {
+      alert('請先設定 Obsidian Vault 路徑')
       return
     }
     
+    const uploadResults: { success: string[], failed: string[] } = { success: [], failed: [] }
+    
     for (const file of files) {
-      // Read file as base64
-      const reader = new FileReader()
-      reader.onload = async (_e) => {
-        try {
-          // const base64Data = e.target?.result as string
-          // Remove data:image/...;base64, prefix - not used in current implementation
-          // const base64Content = base64Data.split(',')[1]
-          
-          // For now, we'll just add it to the list without actually uploading
-          // This would need proper implementation in the Electron main process
-          // eslint-disable-next-line no-console
-          console.warn('File upload not fully implemented - would upload:', file.name)
-          
-          // Refresh the image list
-          await loadImages()
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Failed to upload image:', error)
-        }
+      try {
+        const fileName = await imageService.uploadImageFile(file)
+        uploadResults.success.push(fileName)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to upload image:', error)
+        uploadResults.failed.push(file.name)
       }
-      reader.readAsDataURL(file)
     }
+    
+    // Show results
+    if (uploadResults.success.length > 0) {
+      const successMessage = `成功上傳 ${uploadResults.success.length} 個圖片檔案`
+      if (uploadResults.failed.length > 0) {
+        alert(`${successMessage}\n失敗: ${uploadResults.failed.join(', ')}`)
+      } else {
+        // Could show a toast notification here instead of alert
+        // For now, we'll just refresh the list
+      }
+    } else if (uploadResults.failed.length > 0) {
+      alert(`上傳失敗: ${uploadResults.failed.join(', ')}`)
+    }
+    
+    // Refresh the image list
+    await loadImages()
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to handle file upload:', error)
+    alert('上傳圖片時發生錯誤')
+  } finally {
+    loading.value = false
+    // Clear the input
+    target.value = ''
   }
-  
-  // Clear the input
-  target.value = ''
 }
 
 function copyImagePath(imageName: string) {
@@ -490,6 +530,42 @@ function handleImageError(image: ImageInfo | CurrentArticleImage) {
 
 function refreshImages() {
   loadImages()
+}
+
+async function cleanupUnusedImages() {
+  const unusedImages = allImages.value.filter(image => !image.isUsed)
+  
+  if (unusedImages.length === 0) {
+    return
+  }
+  
+  const confirmMessage = `確定要刪除 ${unusedImages.length} 個未使用的圖片嗎？\n\n${unusedImages.map(img => img.name).join('\n')}\n\n此操作無法復原。`
+  
+  if (!confirm(confirmMessage)) {
+    return
+  }
+  
+  loading.value = true
+  
+  try {
+    const cleanedFiles = await imageService.cleanupUnusedImages()
+    
+    if (cleanedFiles.length > 0) {
+      alert(`成功清理 ${cleanedFiles.length} 個未使用的圖片檔案`)
+      
+      // Remove cleaned files from local array
+      allImages.value = allImages.value.filter(img => !cleanedFiles.includes(img.name))
+      filterImages()
+    } else {
+      alert('沒有圖片被清理')
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to cleanup unused images:', error)
+    alert('清理圖片時發生錯誤: ' + (error as Error).message)
+  } finally {
+    loading.value = false
+  }
 }
 
 function formatFileSize(bytes: number): string {
@@ -515,6 +591,46 @@ function formatDate(date: Date): string {
 function getStorageInfo(): string {
   const totalSize = allImages.value.reduce((sum, img) => sum + img.size, 0)
   return `總計 ${formatFileSize(totalSize)}`
+}
+
+function handleDragOver(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = true
+}
+
+function handleDragLeave(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = false
+}
+
+async function handleDrop(event: DragEvent) {
+  event.preventDefault()
+  isDragOver.value = false
+  
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) {
+    return
+  }
+  
+  // Filter for image files only
+  const imageFiles = Array.from(files).filter(file => 
+    file.type.startsWith('image/')
+  )
+  
+  if (imageFiles.length === 0) {
+    alert('請拖放圖片檔案')
+    return
+  }
+  
+  // Create a fake event to reuse the existing upload logic
+  const fakeEvent = {
+    target: {
+      files: imageFiles,
+      value: ''
+    }
+  } as unknown as Event
+  
+  await handleFileUpload(fakeEvent)
 }
 
 // Watchers
