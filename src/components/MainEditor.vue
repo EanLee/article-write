@@ -51,6 +51,131 @@
     <div class="flex flex-1 overflow-hidden">
       <!-- Markdown Editor -->
       <div :class="showPreview ? 'w-1/2' : 'w-full'" class="flex flex-col">
+        <!-- Formatting Toolbar -->
+        <div class="bg-base-100 border-b border-base-300 p-2 flex items-center gap-1 flex-wrap">
+          <div class="tooltip" data-tip="粗體 (Ctrl+B)">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('**', '**', '粗體文字')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 011-1h4.5a3.5 3.5 0 013.5 3.5v.5a3 3 0 01-1.5 2.6A3 3 0 0112 12v.5a3.5 3.5 0 01-3.5 3.5H4a1 1 0 01-1-1V4zm2 1v4h3.5a1.5 1.5 0 000-3H5zm0 6v4h4.5a1.5 1.5 0 000-3H5z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="斜體 (Ctrl+I)">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('*', '*', '斜體文字')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M8 1a1 1 0 011 1v1h2a1 1 0 110 2h-.5l-1 8H11a1 1 0 110 2H7a1 1 0 110-2h.5l1-8H8a1 1 0 110-2h2V2a1 1 0 011-1z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="高亮 (Ctrl+E)">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('==', '==', '高亮文字')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
+                <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="divider divider-horizontal"></div>
+          
+          <div class="tooltip" data-tip="Wiki 連結 (Ctrl+K)">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('[[', ']]', '連結文字')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5z" clip-rule="evenodd"/>
+                <path fill-rule="evenodd" d="M7.414 15.414a2 2 0 01-2.828-2.828l3-3a2 2 0 012.828 0 1 1 0 001.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="圖片">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('![[', ']]', '圖片名稱.png')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="程式碼">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('`', '`', '程式碼')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="程式碼區塊">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('```\n', '\n```', '程式碼區塊')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="divider divider-horizontal"></div>
+          
+          <div class="tooltip" data-tip="標題 1">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('# ', '', '標題 1')">
+              H1
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="標題 2">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('## ', '', '標題 2')">
+              H2
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="標題 3">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('### ', '', '標題 3')">
+              H3
+            </button>
+          </div>
+          
+          <div class="divider divider-horizontal"></div>
+          
+          <div class="tooltip" data-tip="清單">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('- ', '', '清單項目')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="編號清單">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('1. ', '', '編號項目')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3 4a1 1 0 000 2h.01a1 1 0 100-2H3zM8 5a1 1 0 011-1h8a1 1 0 110 2H9a1 1 0 01-1-1zM3 8a1 1 0 000 2h.01a1 1 0 000-2H3zM9 9a1 1 0 011-1h7a1 1 0 110 2h-7a1 1 0 01-1-1zM3 12a1 1 0 100 2h.01a1 1 0 100-2H3zM9 13a1 1 0 011-1h7a1 1 0 110 2h-7a1 1 0 01-1-1z"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="任務清單">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('- [ ] ', '', '任務項目')">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="divider divider-horizontal"></div>
+          
+          <div class="tooltip" data-tip="表格">
+            <button class="btn btn-xs btn-ghost" @click="insertTable">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="tooltip" data-tip="目錄">
+            <button class="btn btn-xs btn-ghost" @click="insertMarkdownSyntax('[[toc]]\n\n', '', '')">
+              TOC
+            </button>
+          </div>
+        </div>
+        
         <div class="flex-1 p-4 relative">
           <textarea
             ref="editorRef"
@@ -123,11 +248,75 @@
       </div>
 
       <!-- Preview Pane -->
-      <div v-if="showPreview" class="w-1/2 border-l border-base-300 bg-base-50">
+      <div v-if="showPreview" class="w-1/2 border-l border-base-300 bg-base-50 flex flex-col">
+        <!-- Preview Header with Stats -->
         <div class="bg-base-200 p-3 border-b border-base-300">
-          <h3 class="text-sm font-semibold">預覽</h3>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-semibold">預覽</h3>
+            <div class="flex gap-2 text-xs">
+              <span class="badge badge-outline">{{ previewStats.wordCount }} 字</span>
+              <span class="badge badge-outline">{{ previewStats.readingTime }} 分鐘</span>
+            </div>
+          </div>
+          
+          <!-- Validation Status -->
+          <div v-if="previewValidation.invalidImages.length > 0 || previewValidation.invalidLinks.length > 0" class="flex gap-2 text-xs">
+            <div v-if="previewValidation.invalidImages.length > 0" class="badge badge-error badge-sm">
+              {{ previewValidation.invalidImages.length }} 無效圖片
+            </div>
+            <div v-if="previewValidation.invalidLinks.length > 0" class="badge badge-warning badge-sm">
+              {{ previewValidation.invalidLinks.length }} 無效連結
+            </div>
+          </div>
         </div>
-        <div class="p-4 h-full overflow-y-auto prose prose-sm max-w-none" v-html="renderedContent"></div>
+
+        <!-- Preview Content -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="p-4 prose prose-sm max-w-none markdown-preview obsidian-preview" v-html="renderedContent"></div>
+        </div>
+
+        <!-- Preview Footer with Detailed Stats -->
+        <div class="bg-base-200 border-t border-base-300 p-2 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-base-content/70">字符: </span>
+              <span>{{ previewStats.characterCount }}</span>
+            </div>
+            <div>
+              <span class="text-base-content/70">圖片: </span>
+              <span>{{ previewStats.imageCount }}</span>
+            </div>
+            <div>
+              <span class="text-base-content/70">連結: </span>
+              <span>{{ previewStats.linkCount }}</span>
+            </div>
+            <div>
+              <span class="text-base-content/70">閱讀: </span>
+              <span>~{{ previewStats.readingTime }}min</span>
+            </div>
+          </div>
+          
+          <!-- Validation Details (Collapsible) -->
+          <div v-if="previewValidation.invalidImages.length > 0 || previewValidation.invalidLinks.length > 0" class="mt-2">
+            <details class="collapse collapse-arrow bg-base-100">
+              <summary class="collapse-title text-xs font-medium">驗證詳情</summary>
+              <div class="collapse-content text-xs">
+                <div v-if="previewValidation.invalidImages.length > 0" class="mb-2">
+                  <div class="font-medium text-error">無效圖片:</div>
+                  <ul class="list-disc list-inside ml-2">
+                    <li v-for="img in previewValidation.invalidImages" :key="img" class="text-error">{{ img }}</li>
+                  </ul>
+                </div>
+                <div v-if="previewValidation.invalidLinks.length > 0">
+                  <div class="font-medium text-warning">無效連結:</div>
+                  <ul class="list-disc list-inside ml-2">
+                    <li v-for="link in previewValidation.invalidLinks" :key="link" class="text-warning">{{ link }}</li>
+                  </ul>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -146,14 +335,18 @@ import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
 import FrontmatterEditor from './FrontmatterEditor.vue'
 import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService'
+import { MarkdownService } from '@/services/MarkdownService'
+import { PreviewService } from '@/services/PreviewService'
 import type { Article } from '@/types'
 import type { SuggestionItem, SyntaxError, AutocompleteContext } from '@/services/ObsidianSyntaxService'
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
 
-// Initialize Obsidian syntax service
+// Initialize services
 const obsidianSyntax = new ObsidianSyntaxService()
+const markdownService = new MarkdownService()
+const previewService = new PreviewService()
 
 // Reactive data
 const content = ref('')
@@ -171,6 +364,21 @@ const syntaxErrors = ref<SyntaxError[]>([])
 const dropdownPosition = ref({ top: 0, left: 0 })
 const imageFiles = ref<string[]>([])
 const allTags = ref<string[]>([])
+
+// Preview statistics and validation
+const previewStats = ref({
+  wordCount: 0,
+  characterCount: 0,
+  readingTime: 0,
+  imageCount: 0,
+  linkCount: 0
+})
+const previewValidation = ref({
+  validImages: [] as string[],
+  invalidImages: [] as string[],
+  validLinks: [] as string[],
+  invalidLinks: [] as string[]
+})
 
 // Validation timer
 let validationTimeout: number | null = null
@@ -246,14 +454,58 @@ function togglePreview() {
 }
 
 function updatePreview() {
-  // Basic markdown rendering - will be enhanced later
-  renderedContent.value = content.value
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-    .replace(/\*(.*)\*/gim, '<em>$1</em>')
-    .replace(/\n/gim, '<br>')
+  // Use enhanced PreviewService for rendering Obsidian format content
+  try {
+    const vaultPath = configStore.config.paths.obsidianVault
+    const imageBasePath = vaultPath ? `${vaultPath}/images` : './images'
+    
+    // Update preview service with current context
+    previewService.updateArticles(articleStore.articles)
+    previewService.setImageBasePath(imageBasePath)
+    
+    // Render with full Obsidian syntax support
+    renderedContent.value = previewService.renderPreview(content.value, {
+      enableObsidianSyntax: true,
+      enableImagePreview: true,
+      enableWikiLinks: true,
+      baseImagePath: imageBasePath,
+      articleList: articleStore.articles
+    })
+
+    // Update preview statistics and validation
+    previewStats.value = previewService.getPreviewStats(content.value)
+    previewValidation.value = previewService.validatePreviewContent(content.value)
+  } catch (error) {
+    
+    // Fallback to basic MarkdownService rendering
+    try {
+      renderedContent.value = markdownService.renderForPreview(content.value, true)
+    } catch {
+      // Final fallback to simple HTML conversion
+      renderedContent.value = content.value
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\*(.*)\*/gim, '<em>$1</em>')
+        .replace(/\n/gim, '<br>')
+    }
+    
+    // Reset stats on error
+    previewStats.value = {
+      wordCount: 0,
+      characterCount: 0,
+      readingTime: 0,
+      imageCount: 0,
+      linkCount: 0
+    }
+    previewValidation.value = {
+      validImages: [],
+      invalidImages: [],
+      validLinks: [],
+      invalidLinks: []
+    }
+  }
 }
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
@@ -271,8 +523,9 @@ function formatDate(date?: Date): string {
   }).format(date)
 }
 
-// Obsidian syntax support methods
+// Enhanced keyboard handling with shortcuts
 function handleKeydown(event: KeyboardEvent) {
+  // Handle autocomplete suggestions first
   if (showSuggestions.value && suggestions.value.length > 0) {
     switch (event.key) {
       case 'ArrowDown':
@@ -293,6 +546,72 @@ function handleKeydown(event: KeyboardEvent) {
         break
       case 'Escape':
         hideSuggestions()
+        break
+    }
+    return
+  }
+
+  // Enhanced keyboard shortcuts
+  if (event.ctrlKey || event.metaKey) {
+    switch (event.key) {
+      case 's':
+        event.preventDefault()
+        saveArticle()
+        break
+      case 'b':
+        event.preventDefault()
+        insertMarkdownSyntax('**', '**', '粗體文字')
+        break
+      case 'i':
+        event.preventDefault()
+        insertMarkdownSyntax('*', '*', '斜體文字')
+        break
+      case 'k':
+        event.preventDefault()
+        insertMarkdownSyntax('[[', ']]', '連結文字')
+        break
+      case 'e':
+        event.preventDefault()
+        insertMarkdownSyntax('==', '==', '高亮文字')
+        break
+      case '/':
+        event.preventDefault()
+        togglePreview()
+        break
+    }
+  }
+
+  // Auto-pairing for brackets and quotes
+  if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+    const textarea = event.target as HTMLTextAreaElement
+    const { selectionStart } = textarea
+    
+    switch (event.key) {
+      case '[':
+        if (textarea.value[selectionStart - 1] === '[') {
+          event.preventDefault()
+          insertMarkdownSyntax('', ']]', '')
+        }
+        break
+      case '(':
+        event.preventDefault()
+        insertMarkdownSyntax('(', ')', '')
+        break
+      case '"':
+        event.preventDefault()
+        insertMarkdownSyntax('"', '"', '')
+        break
+      case "'":
+        event.preventDefault()
+        insertMarkdownSyntax("'", "'", '')
+        break
+      case '`':
+        event.preventDefault()
+        if (selectionStart > 0 && textarea.value[selectionStart - 1] === '`') {
+          insertMarkdownSyntax('`', '```', '')
+        } else {
+          insertMarkdownSyntax('`', '`', '')
+        }
         break
     }
   }
@@ -366,6 +685,46 @@ function hideSuggestions() {
   selectedSuggestionIndex.value = 0
 }
 
+function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
+  if (!editorRef.value) {return}
+
+  const textarea = editorRef.value
+  const { selectionStart, selectionEnd } = textarea
+  const selectedText = textarea.value.substring(selectionStart, selectionEnd)
+  const textToInsert = selectedText || placeholder
+  
+  const beforeText = textarea.value.substring(0, selectionStart)
+  const afterText = textarea.value.substring(selectionEnd)
+  
+  const newText = beforeText + before + textToInsert + after + afterText
+  content.value = newText
+  
+  if (articleStore.currentArticle) {
+    articleStore.currentArticle.content = newText
+  }
+  
+  // Set cursor position
+  const newCursorStart = selectionStart + before.length
+  const newCursorEnd = newCursorStart + textToInsert.length
+  
+  setTimeout(() => {
+    textarea.setSelectionRange(newCursorStart, newCursorEnd)
+    textarea.focus()
+  }, 0)
+  
+  handleContentChange()
+}
+
+function insertTable() {
+  const tableTemplate = `| 標題1 | 標題2 | 標題3 |
+|-------|-------|-------|
+| 內容1 | 內容2 | 內容3 |
+| 內容4 | 內容5 | 內容6 |
+
+`
+  insertMarkdownSyntax('', '', tableTemplate)
+}
+
 function debounceValidation() {
   if (validationTimeout) {
     clearTimeout(validationTimeout)
@@ -377,8 +736,21 @@ function debounceValidation() {
 }
 
 function validateSyntax() {
-  // 使用 ObsidianSyntaxService 進行語法驗證
-  syntaxErrors.value = obsidianSyntax.validateSyntax(content.value)
+  // 使用 ObsidianSyntaxService 和 MarkdownService 進行語法驗證
+  const obsidianErrors = obsidianSyntax.validateSyntax(content.value)
+  const markdownErrors = markdownService.validateMarkdownSyntax(content.value)
+  
+  // 合併兩種驗證結果
+  syntaxErrors.value = [
+    ...obsidianErrors,
+    ...markdownErrors.map(error => ({
+      line: error.line,
+      column: 0, // MarkdownService doesn't provide column info
+      message: error.message,
+      type: error.type as 'error' | 'warning',
+      suggestion: ''
+    }))
+  ]
 }
 
 async function initializeObsidianSupport() {
@@ -495,5 +867,304 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Custom styles if needed */
+/* Enhanced Markdown Editor Styles */
+
+/* Syntax highlighting for code blocks */
+.markdown-preview :deep(pre) {
+  background-color: #f2f2f2;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.markdown-preview :deep(code) {
+  background-color: #f2f2f2;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.markdown-preview :deep(pre code) {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Enhanced Obsidian-style elements */
+.obsidian-preview :deep(.obsidian-wikilink) {
+  color: #3b82f6;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.obsidian-preview :deep(.obsidian-wikilink:hover) {
+  text-decoration-style: solid;
+  background-color: rgba(59, 130, 246, 0.1);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.obsidian-preview :deep(.obsidian-wikilink-valid) {
+  color: #059669;
+  border-bottom: 1px solid #059669;
+}
+
+.obsidian-preview :deep(.obsidian-wikilink-invalid) {
+  color: #dc2626;
+  border-bottom: 1px dashed #dc2626;
+}
+
+.obsidian-preview :deep(.obsidian-image) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.obsidian-preview :deep(.obsidian-image:hover) {
+  transform: scale(1.02);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.obsidian-preview :deep(.obsidian-tag) {
+  display: inline-block;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0.125rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.obsidian-preview :deep(.obsidian-highlight) {
+  background-color: rgba(251, 191, 36, 0.3);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  box-decoration-break: clone;
+}
+
+/* Obsidian embed blocks */
+.obsidian-preview :deep(.obsidian-embed) {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow: hidden;
+  background-color: #f9fafb;
+}
+
+.obsidian-preview :deep(.obsidian-embed-header) {
+  background-color: #f3f4f6;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.obsidian-preview :deep(.obsidian-embed-content) {
+  padding: 0.75rem;
+  font-style: italic;
+  color: #6b7280;
+}
+
+/* Obsidian callouts */
+.obsidian-preview :deep(.obsidian-callout) {
+  border-left: 4px solid #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.obsidian-preview :deep(.obsidian-callout-note) {
+  border-left-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.obsidian-preview :deep(.obsidian-callout-warning) {
+  border-left-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.05);
+}
+
+.obsidian-preview :deep(.obsidian-callout-error) {
+  border-left-color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.05);
+}
+
+.obsidian-preview :deep(.obsidian-callout-success) {
+  border-left-color: #059669;
+  background-color: rgba(5, 150, 105, 0.05);
+}
+
+/* Enhanced task lists */
+.obsidian-preview :deep(.obsidian-task) {
+  margin-right: 0.5rem;
+  transform: scale(1.1);
+}
+
+/* Code block enhancements */
+.obsidian-preview :deep(.code-block-wrapper) {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.obsidian-preview :deep(.code-block-header) {
+  background-color: #374151;
+  padding: 0.5rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.obsidian-preview :deep(.code-copy-btn) {
+  background-color: #4b5563;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.obsidian-preview :deep(.code-copy-btn:hover) {
+  background-color: #6b7280;
+}
+
+/* Table enhancements */
+.obsidian-preview :deep(.table-wrapper) {
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.obsidian-preview :deep(.table-wrapper table) {
+  margin: 0;
+  border-radius: 0;
+}
+
+/* External links */
+.obsidian-preview :deep(.external-link) {
+  color: #059669;
+  text-decoration: none;
+}
+
+.obsidian-preview :deep(.external-link:hover) {
+  text-decoration: underline;
+}
+
+/* Task lists */
+.markdown-preview :deep(.task-list-item) {
+  list-style: none;
+}
+
+.markdown-preview :deep(.task-list-item input) {
+  margin-right: 0.5rem;
+}
+
+/* Table of contents */
+.markdown-preview :deep(.table-of-contents) {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-preview :deep(.table-of-contents ul) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown-preview :deep(.table-of-contents li) {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-preview :deep(.table-of-contents a) {
+  color: inherit;
+}
+
+.markdown-preview :deep(.table-of-contents a:hover) {
+  color: #3b82f6;
+}
+
+/* Footnotes */
+.markdown-preview :deep(.footnote-ref) {
+  color: #3b82f6;
+  font-size: 0.75rem;
+  vertical-align: super;
+}
+
+.markdown-preview :deep(.footnotes) {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+/* Headers with anchors */
+.markdown-preview :deep(h1),
+.markdown-preview :deep(h2),
+.markdown-preview :deep(h3),
+.markdown-preview :deep(h4),
+.markdown-preview :deep(h5),
+.markdown-preview :deep(h6) {
+  position: relative;
+}
+
+.markdown-preview :deep(.header-anchor) {
+  position: absolute;
+  left: -1.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.markdown-preview :deep(h1:hover .header-anchor),
+.markdown-preview :deep(h2:hover .header-anchor),
+.markdown-preview :deep(h3:hover .header-anchor),
+.markdown-preview :deep(h4:hover .header-anchor),
+.markdown-preview :deep(h5:hover .header-anchor),
+.markdown-preview :deep(h6:hover .header-anchor) {
+  opacity: 1;
+}
+
+/* Enhanced editor textarea */
+.textarea {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  line-height: 1.6;
+}
+
+/* Autocomplete dropdown enhancements */
+.autocomplete-dropdown {
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Syntax error panel */
+.syntax-errors {
+  backdrop-filter: blur(4px);
+}
+
+/* Loading states */
+.preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .markdown-preview {
+    font-size: 14px;
+  }
+  
+  .markdown-preview :deep(pre) {
+    font-size: 12px;
+  }
+}
 </style>
