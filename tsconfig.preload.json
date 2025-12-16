@@ -1,13 +1,7 @@
 {
-  "include": [
-    "src/main/**/*"
-  ],
-  "exclude": [
-    "src/main/preload.ts"
-  ],
   "compilerOptions": {
     "target": "ES2020",
-    "module": "NodeNext",
+    "module": "CommonJS",
     "lib": ["ES2020"],
     "declaration": true,
     "strict": true,
@@ -15,19 +9,18 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
     "skipLibCheck": true,
-    "composite": true,
     "rootDir": "src/main",
     "outDir": "dist/main",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "types": ["node"]
+  },
+  "include": [
+    "src/main/preload.ts"
+  ]
 }
