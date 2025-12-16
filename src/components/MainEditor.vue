@@ -795,8 +795,15 @@ async function initializeObsidianSupport() {
 watch(
   () => articleStore.currentArticle,
   (newArticle) => {
+    console.log('MainEditor: currentArticle changed', {
+      hasArticle: !!newArticle,
+      title: newArticle?.title,
+      contentLength: newArticle?.content?.length,
+      content: newArticle?.content?.substring(0, 100)
+    })
     if (newArticle) {
       content.value = newArticle.content
+      console.log('MainEditor: content.value set to', content.value?.substring(0, 100))
       if (showPreview.value) {
         updatePreview()
       }
