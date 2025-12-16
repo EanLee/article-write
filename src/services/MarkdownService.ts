@@ -1,5 +1,15 @@
 import MarkdownIt from 'markdown-it'
 import * as yaml from 'js-yaml'
+import hljs from 'highlight.js'
+import markdownItHighlightjs from 'markdown-it-highlightjs'
+// @ts-ignore - Using custom type declarations
+import markdownItToc from 'markdown-it-table-of-contents'
+// @ts-ignore - Using custom type declarations  
+import markdownItTaskLists from 'markdown-it-task-lists'
+// @ts-ignore - Using custom type declarations
+import markdownItMark from 'markdown-it-mark'
+// @ts-ignore - Using custom type declarations
+import markdownItFootnote from 'markdown-it-footnote'
 import type { Frontmatter } from '@/types'
 
 /**
@@ -26,8 +36,39 @@ export class MarkdownService {
     this.md = new MarkdownIt({
       html: true,
       linkify: true,
-      typographer: true
+      typographer: true,
+      breaks: true
     })
+
+    // 配置語法高亮
+    this.md.use(markdownItHighlightjs, {
+      hljs,
+      auto: true,
+      code: true
+    })
+
+    // 配置目錄
+    this.md.use(markdownItToc, {
+      includeLevel: [1, 2, 3, 4],
+      containerClass: 'table-of-contents',
+      markerPattern: /^\[\[toc\]\]/im
+    })
+
+    // 配置任務清單
+    this.md.use(markdownItTaskLists, {
+      enabled: true,
+      label: true,
+      labelAfter: true
+    })
+
+    // 配置標記（高亮）語法
+    this.md.use(markdownItMark)
+
+    // 配置腳註
+    this.md.use(markdownItFootnote)
+
+    // 自定義 Obsidian 語法規則
+    this.addObsidianRules()
   }
 
   /**
@@ -36,7 +77,26 @@ export class MarkdownService {
    * @returns {string} 渲染後的 HTML
    */
   render(content: string): string {
-    return this.md.render(content)
+    // 預處理 Obsidian 語法
+    const processedContent = this.preprocessObsidianSyntax(content)
+    return this.md.render(processedContent)
+  }
+
+  /**
+   * 渲染 Markdown 內容為 HTML，包含預覽模式的特殊處理
+   * @param {string} content - Markdown 內容
+   * @param {boolean} isPreview - 是否為預覽模式
+   * @returns {string} 渲染後的 HTML
+   */
+  renderForPreview(content: string, isPreview: boolean = true): string {
+    let processedContent = content
+
+    if (isPreview) {
+      // 在預覽模式中處理 Obsidian 特殊語法
+      processedContent = this.preprocessObsidianSyntax(content)
+    }
+
+    return this.md.render(processedContent)
   }
 
   /**
@@ -133,9 +193,9 @@ export class MarkdownService {
     if (data.tags !== undefined) {
       if (Array.isArray(data.tags)) {
         frontmatter.tags = data.tags
-          .filter(tag => typeof tag === 'string')
-          .map(tag => tag.trim())
-          .filter(tag => tag.length > 0)
+          .filter((tag: any) => typeof tag === 'string')
+          .map((tag: any) => tag.trim())
+          .filter((tag: any) => tag.length > 0)
         
         if (data.tags.length !== frontmatter.tags.length) {
           errors.push('Some tags are invalid - tags must be non-empty strings')
@@ -152,7 +212,7 @@ export class MarkdownService {
       if (Array.isArray(data.categories)) {
         const validCategories = ['Software', 'growth', 'management']
         frontmatter.categories = data.categories
-          .filter(cat => typeof cat === 'string' && validCategories.includes(cat))
+          .filter((cat: any) => typeof cat === 'string' && validCategories.includes(cat))
         
         if (data.categories.length !== frontmatter.categories.length) {
           errors.push('Some categories are invalid - must be one of: Software, growth, management')
@@ -182,9 +242,9 @@ export class MarkdownService {
     if (data.keywords !== undefined) {
       if (Array.isArray(data.keywords)) {
         frontmatter.keywords = data.keywords
-          .filter(keyword => typeof keyword === 'string')
-          .map(keyword => keyword.trim())
-          .filter(keyword => keyword.length > 0)
+          .filter((keyword: any) => typeof keyword === 'string')
+          .map((keyword: any) => keyword.trim())
+          .filter((keyword: unknown) => keyword.length > 0)
         
         if (data.keywords.length !== frontmatter.keywords.length) {
           errors.push('Some keywords are invalid - keywords must be non-empty strings')
@@ -207,16 +267,16 @@ export class MarkdownService {
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
       // Create a clean object with only defined values
-      const cleanData: any = {}
+      const cleanData: unknown = {}
       
       if (data.title) {cleanData.title = data.title}
       if (data.description) {cleanData.description = data.description}
       if (data.date) {cleanData.date = data.date}
       if (data.lastmod) {cleanData.lastmod = data.lastmod}
-      if (data.tags && data.tags.length > 0) {cleanData.tags = data.tags}
-      if (data.categories && data.categories.length > 0) {cleanData.categories = data.categories}
-      if (data.slug) {cleanData.slug = data.slug}
-      if (data.keywords && data.keywords.length > 0) {cleanData.keywords = data.keywords}
+      if (data.tags && data.tags.length > 0) { cleanData.tags = data.tags }
+      if (data.categories && data.categories.length > 0) { cleanData.categories = data.categories }
+      if (data.slug) { cleanData.slug = data.slug }
+      if (data.keywords && data.keywords.length > 0) { cleanData.keywords = data.keywords }
 
       const yamlString = yaml.dump(cleanData, {
         indent: 2,
@@ -244,13 +304,36 @@ export class MarkdownService {
   }
 
   /**
+   * 解析 Markdown 文件（包含前置資料和內容）
+   * @param {string} markdown - 完整的 Markdown 內容
+   * @returns {{ frontmatter: Partial<Frontmatter>, content: string }} 解析結果
+   */
+  parseMarkdown(markdown: string): { frontmatter: Partial<Frontmatter>, content: string } {
+    const parsed = this.parseFrontmatter(markdown)
+    return {
+      frontmatter: parsed.frontmatter,
+      content: parsed.body
+    }
+  }
+
+  /**
+   * 產生 Markdown 文件（包含前置資料和內容）
+   * @param {Partial<Frontmatter>} frontmatter - 前置資料
+   * @param {string} content - 文章內容
+   * @returns {string} 完整的 Markdown 內容
+   */
+  generateMarkdown(frontmatter: Partial<Frontmatter>, content: string): string {
+    return this.combineContent(frontmatter, content)
+  }
+
+  /**
    * 驗證日期字串格式 (YYYY-MM-DD)
    * @param {string} dateStr - 日期字串
    * @returns {boolean} 是否為有效日期格式
    */
   private isValidDateString(dateStr: string): boolean {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(dateStr)) {return false}
+    if (!dateRegex.test(dateStr)) { return false }
     
     const date = new Date(dateStr)
     return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().startsWith(dateStr)
@@ -323,5 +406,204 @@ export class MarkdownService {
     }
     
     return links
+  }
+
+  /**
+   * 添加 Obsidian 特殊語法規則
+   */
+  private addObsidianRules(): void {
+    // Wiki 連結規則 [[link]] 或 [[link|alias]]
+    this.md.inline.ruler.before('link', 'wikilink', (state, silent) => {
+      const start = state.pos
+      const max = state.posMax
+
+      if (start + 4 >= max) { return false }
+      if (state.src.charCodeAt(start) !== 0x5B /* [ */) { return false }
+      if (state.src.charCodeAt(start + 1) !== 0x5B /* [ */) { return false }
+
+      let pos = start + 2
+      let found = false
+      let content = ''
+
+      while (pos < max) {
+        if (state.src.charCodeAt(pos) === 0x5D /* ] */ && 
+            state.src.charCodeAt(pos + 1) === 0x5D /* ] */) {
+          found = true
+          break
+        }
+        content += state.src[pos]
+        pos++
+      }
+
+      if (!found) { return false }
+
+      state.pos = start + 2
+      state.posMax = pos
+
+      if (!silent) {
+        const parts = content.split('|')
+        const link = parts[0].trim()
+        const alias = parts[1] ? parts[1].trim() : link
+
+        const token = state.push('wikilink', '', 0)
+        token.content = content
+        token.meta = { link, alias }
+      }
+
+      state.pos = pos + 2
+      return true
+    })
+
+    // 渲染 Wiki 連結
+    this.md.renderer.rules.wikilink = (tokens, idx) => {
+      const token = tokens[idx]
+      const { link, alias } = token.meta
+      return `<a href="#" class="wikilink" data-link="${this.escapeHtml(link)}">${this.escapeHtml(alias)}</a>`
+    }
+
+    // Obsidian 圖片語法 ![[image.png]]
+    this.md.inline.ruler.before('image', 'obsidian_image', (state, silent) => {
+      const start = state.pos
+      const max = state.posMax
+
+      if (start + 5 >= max) { return false }
+      if (state.src.charCodeAt(start) !== 0x21 /* ! */) { return false }
+      if (state.src.charCodeAt(start + 1) !== 0x5B /* [ */) { return false }
+      if (state.src.charCodeAt(start + 2) !== 0x5B /* [ */) { return false }
+
+      let pos = start + 3
+      let found = false
+      let content = ''
+
+      while (pos < max) {
+        if (state.src.charCodeAt(pos) === 0x5D /* ] */ && 
+            state.src.charCodeAt(pos + 1) === 0x5D /* ] */) {
+          found = true
+          break
+        }
+        content += state.src[pos]
+        pos++
+      }
+
+      if (!found) { return false }
+
+      if (!silent) {
+        const token = state.push('obsidian_image', 'img', 0)
+        token.content = content.trim()
+        token.attrSet('src', `./images/${content.trim()}`)
+        token.attrSet('alt', content.trim())
+      }
+
+      state.pos = pos + 2
+      return true
+    })
+
+    // 渲染 Obsidian 圖片
+    this.md.renderer.rules.obsidian_image = (tokens, idx) => {
+      const token = tokens[idx]
+      const src = token.attrGet('src')
+      const alt = token.attrGet('alt')
+      return `<img src="${this.escapeHtml(src || '')}" alt="${this.escapeHtml(alt || '')}" class="obsidian-image" />`
+    }
+  }
+
+  /**
+   * 預處理 Obsidian 語法
+   * @param {string} content - 原始內容
+   * @returns {string} 處理後的內容
+   */
+  private preprocessObsidianSyntax(content: string): string {
+    let processed = content
+
+    // 處理 Obsidian 高亮語法 ==text== 轉換為 <mark>text</mark>
+    processed = processed.replace(/==(.*?)==/g, '<mark>$1</mark>')
+
+    // 處理 Obsidian 註釋 %%comment%% （在預覽中隱藏）
+    processed = processed.replace(/%%.*?%%/g, '')
+
+    // 處理 Obsidian 標籤 #tag (支援中文)
+    processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="tag">#$1</span>')
+
+    return processed
+  }
+
+  /**
+   * 轉義 HTML 特殊字符
+   * @param {string} text - 要轉義的文字
+   * @returns {string} 轉義後的文字
+   */
+  private escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }
+    return text.replace(/[&<>"']/g, (m) => map[m])
+  }
+
+  /**
+   * 取得語法高亮支援的語言清單
+   * @returns {string[]} 支援的語言清單
+   */
+  getSupportedLanguages(): string[] {
+    return hljs.listLanguages()
+  }
+
+  /**
+   * 檢查內容中的語法錯誤
+   * @param {string} content - Markdown 內容
+   * @returns {Array<{line: number, message: string, type: 'error' | 'warning'}>} 語法錯誤清單
+   */
+  validateMarkdownSyntax(content: string): Array<{line: number, message: string, type: 'error' | 'warning'}> {
+    const errors: Array<{line: number, message: string, type: 'error' | 'warning'}> = []
+    const lines = content.split('\n')
+
+    lines.forEach((line, index) => {
+      const lineNumber = index + 1
+
+      // 檢查未閉合的 Wiki 連結
+      const openWikiLinks = (line.match(/\[\[/g) || []).length
+      const closeWikiLinks = (line.match(/\]\]/g) || []).length
+      if (openWikiLinks !== closeWikiLinks) {
+        errors.push({
+          line: lineNumber,
+          message: '未閉合的 Wiki 連結',
+          type: 'error'
+        })
+      }
+
+      // 檢查未閉合的高亮語法
+      const highlightMarks = (line.match(/==/g) || []).length
+      if (highlightMarks % 2 !== 0) {
+        errors.push({
+          line: lineNumber,
+          message: '未閉合的高亮語法 ==',
+          type: 'error'
+        })
+      }
+
+      // 檢查未閉合的註釋
+      const commentStart = (line.match(/%%/g) || []).length
+      if (commentStart % 2 !== 0) {
+        errors.push({
+          line: lineNumber,
+          message: '未閉合的註釋 %%',
+          type: 'warning'
+        })
+      }
+
+      // 檢查圖片語法
+      if (line.includes('![[') && !line.includes(']]')) {
+        errors.push({
+          line: lineNumber,
+          message: '未閉合的圖片語法',
+          type: 'error'
+        })
+      }
+    })
+
+    return errors
   }
 }

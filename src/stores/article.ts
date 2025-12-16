@@ -76,12 +76,74 @@ export const useArticleStore = defineStore('article', () => {
     try {
       const vaultPath = configStore.config.paths.obsidianVault
       if (!vaultPath) {
-        throw new Error('Obsidian vault path not configured')
+        console.warn('Obsidian vault path not configured')
+        articles.value = []
+        return
       }
 
-      // TODO: Implement article scanning using Electron API
-      // For now, initialize with empty array to prevent crashes
-      articles.value = []
+      // Check if we're running in Electron environment
+      if (!window.electronAPI) {
+        console.warn('Running in browser mode - using mock articles')
+        articles.value = []
+        return
+      }
+
+      const loadedArticles: Article[] = []
+      
+      // Scan both Drafts and Publish folders
+      const folders = [
+        { path: `${vaultPath}/Drafts`, status: 'draft' as const },
+        { path: `${vaultPath}/Publish`, status: 'published' as const }
+      ]
+      
+      for (const folder of folders) {
+        try {
+          // Check if folder exists
+          const stats = await window.electronAPI.getFileStats(folder.path)
+          if (!stats?.isDirectory) continue
+          
+          // Read categories (Software, growth, management)
+          const categories = await window.electronAPI.readDirectory(folder.path)
+          
+          for (const category of categories) {
+            const categoryPath = `${folder.path}/${category}`
+            const catStats = await window.electronAPI.getFileStats(categoryPath)
+            if (!catStats?.isDirectory) continue
+            
+            // Read markdown files in category
+            const files = await window.electronAPI.readDirectory(categoryPath)
+            const mdFiles = files.filter(f => f.endsWith('.md'))
+            
+            for (const file of mdFiles) {
+              const filePath = `${categoryPath}/${file}`
+              try {
+                const content = await window.electronAPI.readFile(filePath)
+                const { frontmatter, content: articleContent } = _markdownService.parseMarkdown(content)
+                
+                const article: Article = {
+                  id: generateId(),
+                  title: frontmatter.title || file.replace('.md', ''),
+                  slug: file.replace('.md', ''),
+                  filePath,
+                  status: folder.status,
+                  category: category as 'Software' | 'growth' | 'management',
+                  lastModified: new Date(catStats.mtime),
+                  content: articleContent,
+                  frontmatter
+                }
+                
+                loadedArticles.push(article)
+              } catch (err) {
+                console.warn(`Failed to load article ${filePath}:`, err)
+              }
+            }
+          }
+        } catch (err) {
+          console.warn(`Failed to scan ${folder.path}:`, err)
+        }
+      }
+      
+      articles.value = loadedArticles
       
       // Start watching for file changes if not already watching
       if (!watchingFiles.value) {
@@ -89,7 +151,8 @@ export const useArticleStore = defineStore('article', () => {
       }
     } catch (error) {
       console.error('Failed to load articles:', error)
-      throw error
+      // Don't throw error, just log it and continue with empty articles
+      articles.value = []
     } finally {
       loading.value = false
     }
@@ -122,10 +185,19 @@ export const useArticleStore = defineStore('article', () => {
         }
       }
 
-      // TODO: Implement file creation using Electron API
-      // For now, set a placeholder file path
-      article.filePath = `${vaultPath}/${article.status}/${article.category}/${article.slug}.md`
-
+      // Create directory structure
+      const categoryPath = `${vaultPath}/Drafts/${article.category}`
+      article.filePath = `${categoryPath}/${article.slug}.md`
+      
+      // Ensure directory exists
+      await window.electronAPI.createDirectory(categoryPath)
+      
+      // Generate initial markdown content
+      const markdownContent = _markdownService.generateMarkdown(article.frontmatter, article.content)
+      
+      // Write file
+      await window.electronAPI.writeFile(article.filePath, markdownContent)
+      
       articles.value.push(article)
       return article
     } catch (error) {
@@ -139,8 +211,14 @@ export const useArticleStore = defineStore('article', () => {
       // Update lastModified timestamp
       updatedArticle.lastModified = new Date()
       
-      // TODO: Implement file saving using Electron API
-      // For now, skip file system operations
+      // Generate markdown content
+      const markdownContent = _markdownService.generateMarkdown(
+        updatedArticle.frontmatter,
+        updatedArticle.content
+      )
+      
+      // Save to file
+      await window.electronAPI.writeFile(updatedArticle.filePath, markdownContent)
       
       // Update in store
       const index = articles.value.findIndex(a => a.id === updatedArticle.id)
@@ -160,8 +238,8 @@ export const useArticleStore = defineStore('article', () => {
         throw new Error('Article not found')
       }
 
-      // TODO: Implement file deletion using Electron API
-      // For now, skip file system operations
+      // Delete file from file system
+      await window.electronAPI.deleteFile(article.filePath)
       
       // Remove from store
       const index = articles.value.findIndex(a => a.id === id)
@@ -190,9 +268,21 @@ export const useArticleStore = defineStore('article', () => {
           throw new Error('Obsidian vault path not configured')
         }
 
-        // TODO: Implement file moving using Electron API
-        // For now, update the file path manually
-        const newFilePath = `${vaultPath}/publish/${article.category}/${article.slug}.md`
+        // Create new path
+        const publishPath = `${vaultPath}/Publish/${article.category}`
+        const newFilePath = `${publishPath}/${article.slug}.md`
+        
+        // Ensure publish directory exists
+        await window.electronAPI.createDirectory(publishPath)
+        
+        // Read current content
+        const content = await window.electronAPI.readFile(article.filePath)
+        
+        // Write to new location
+        await window.electronAPI.writeFile(newFilePath, content)
+        
+        // Delete old file
+        await window.electronAPI.deleteFile(article.filePath)
         
         // Update article in store
         article.status = 'published'
@@ -218,7 +308,13 @@ export const useArticleStore = defineStore('article', () => {
    */
   function startFileWatching() {
     const vaultPath = configStore.config.paths.obsidianVault
-    if (!vaultPath || watchingFiles.value) {return}
+    if (!vaultPath || watchingFiles.value) { return }
+
+    // Check if we're running in Electron environment
+    if (!window.electronAPI) {
+      
+      return
+    }
 
     // TODO: Implement file watching using Electron API
     // For now, skip file watching to prevent crashes
