@@ -27,8 +27,15 @@ export interface ElectronAPI {
   selectDirectory: (options?: { title?: string; defaultPath?: string }) => Promise<string | null>
 }
 
+/**
+ * Extended Electron API with additional methods
+ */
+export interface ExtendedElectronAPI extends ElectronAPI {
+  getFileStats: (path: string) => Promise<{ isDirectory: boolean; mtime: string } | null>
+}
+
 declare global {
   interface Window {
-    electronAPI: ElectronAPI
+    electronAPI: ExtendedElectronAPI
   }
 }
