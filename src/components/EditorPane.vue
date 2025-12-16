@@ -123,7 +123,11 @@
         ref="editorRef"
         :value="modelValue"
         class="textarea textarea-bordered w-full h-full resize-none font-mono text-sm leading-relaxed"
-        :class="{ 'border-error': hasErrors }"
+        :class="{ 
+          'border-error': hasErrors,
+          'border-warning': hasWarnings && !hasErrors,
+          'editor-with-problems': problemLines.size > 0
+        }"
         placeholder="開始撰寫您的文章..."
         @input="handleInput"
         @keydown="handleKeydown"
@@ -165,23 +169,77 @@
         </div>
       </div>
 
-      <!-- Syntax Errors Panel -->
+      <!-- Syntax Errors and Image Validation Panel -->
       <div
-        v-if="syntaxErrors.length > 0"
-        class="absolute bottom-0 left-0 right-0 bg-error/10 border-t border-error/20 max-h-32 overflow-y-auto"
+        v-if="syntaxErrors.length > 0 || imageValidationWarnings.length > 0"
+        class="absolute bottom-0 left-0 right-0 bg-base-200 border-t border-base-300 max-h-40 overflow-y-auto"
       >
         <div class="p-2">
-          <div class="text-xs font-semibold text-error mb-1">語法問題</div>
-          <div
-            v-for="(error, index) in syntaxErrors"
-            :key="index"
-            class="text-xs mb-1 p-1 rounded"
-            :class="error.type === 'error' ? 'bg-error/20 text-error' : 'bg-warning/20 text-warning'"
-          >
-            <span class="font-mono">第 {{ error.line }} 行:</span>
-            {{ error.message }}
-            <div v-if="error.suggestion" class="text-xs opacity-70 mt-1">
-              💡 {{ error.suggestion }}
+          <!-- Syntax Errors -->
+          <div v-if="syntaxErrors.length > 0" class="mb-2">
+            <div class="text-xs font-semibold text-error mb-1 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              語法問題 ({{ syntaxErrors.length }})
+            </div>
+            <div
+              v-for="(error, index) in syntaxErrors"
+              :key="index"
+              class="text-xs mb-1 p-2 rounded border-l-2"
+              :class="error.type === 'error' ? 'bg-error/10 border-error text-error' : 'bg-warning/10 border-warning text-warning'"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <span class="font-mono font-semibold">第 {{ error.line }} 行:</span>
+                  <span class="ml-1">{{ error.message }}</span>
+                </div>
+                <div class="ml-2">
+                  <div class="badge badge-xs" :class="error.type === 'error' ? 'badge-error' : 'badge-warning'">
+                    {{ error.type === 'error' ? '錯誤' : '警告' }}
+                  </div>
+                </div>
+              </div>
+              <div v-if="error.suggestion" class="text-xs opacity-70 mt-1 pl-2 border-l border-current/20">
+                💡 {{ error.suggestion }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Validation Warnings -->
+          <div v-if="imageValidationWarnings.length > 0">
+            <div class="text-xs font-semibold text-warning mb-1 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              圖片驗證 ({{ imageValidationWarnings.length }})
+            </div>
+            <div
+              v-for="(warning, index) in imageValidationWarnings"
+              :key="index"
+              class="text-xs mb-1 p-2 rounded border-l-2"
+              :class="warning.severity === 'error' ? 'bg-error/10 border-error text-error' : 'bg-warning/10 border-warning text-warning'"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <span class="font-mono font-semibold">第 {{ warning.line }} 行:</span>
+                  <span class="ml-1">{{ warning.message }}</span>
+                </div>
+                <div class="ml-2 flex items-center gap-1">
+                  <div class="badge badge-xs" :class="warning.type === 'missing-file' ? 'badge-error' : 'badge-warning'">
+                    {{ warning.type === 'missing-file' ? '缺失' : '格式' }}
+                  </div>
+                  <div class="badge badge-xs" :class="warning.severity === 'error' ? 'badge-error' : 'badge-warning'">
+                    {{ warning.severity === 'error' ? '錯誤' : '警告' }}
+                  </div>
+                </div>
+              </div>
+              <div class="text-xs opacity-70 mt-1 pl-2 border-l border-current/20">
+                🖼️ {{ warning.imageName }}
+              </div>
+              <div v-if="warning.suggestion" class="text-xs opacity-70 mt-1 pl-2 border-l border-current/20">
+                💡 {{ warning.suggestion }}
+              </div>
             </div>
           </div>
         </div>
@@ -193,6 +251,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { SuggestionItem, SyntaxError } from '@/services/ObsidianSyntaxService'
+import type { ImageValidationWarning } from '@/services/ImageService'
 
 interface Props {
   modelValue: string
@@ -201,6 +260,7 @@ interface Props {
   showSuggestions: boolean
   selectedSuggestionIndex: number
   syntaxErrors: SyntaxError[]
+  imageValidationWarnings: ImageValidationWarning[]
   dropdownPosition: { top: number; left: number }
 }
 
@@ -217,12 +277,36 @@ const emit = defineEmits<{
 
 const editorRef = ref<HTMLTextAreaElement>()
 
-const hasErrors = computed(() => props.syntaxErrors.some(error => error.type === 'error'))
+const hasErrors = computed(() => 
+  props.syntaxErrors.some(error => error.type === 'error') ||
+  props.imageValidationWarnings.some(warning => warning.severity === 'error')
+)
+
+const hasWarnings = computed(() => 
+  props.syntaxErrors.some(error => error.type === 'warning') ||
+  props.imageValidationWarnings.some(warning => warning.severity === 'warning')
+)
 
 const dropdownStyle = computed(() => ({
   top: `${props.dropdownPosition.top}px`,
   left: `${props.dropdownPosition.left}px`
 }))
+
+const problemLines = computed(() => {
+  const lines = new Set<number>()
+  
+  // Add syntax error lines
+  props.syntaxErrors.forEach(error => {
+    lines.add(error.line)
+  })
+  
+  // Add image validation warning lines
+  props.imageValidationWarnings.forEach(warning => {
+    lines.add(warning.line)
+  })
+  
+  return lines
+})
 
 function handleInput(event: Event) {
   const target = event.target as HTMLTextAreaElement
@@ -258,5 +342,49 @@ defineExpose({
 .textarea {
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   line-height: 1.6;
+}
+
+.editor-with-problems {
+  position: relative;
+}
+
+/* Add subtle background highlighting for problematic lines */
+.editor-with-problems::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Custom scrollbar for validation panel */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced validation panel styling */
+.border-l-2 {
+  transition: all 0.2s ease;
+}
+
+.border-l-2:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>
