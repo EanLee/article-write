@@ -129,6 +129,10 @@ export const useArticleStore = defineStore('article', () => {
                 const content = await window.electronAPI.readFile(filePath)
                 const { frontmatter, content: articleContent } = _markdownService.parseMarkdown(content)
                 
+                // Get file stats for accurate lastModified time
+                const fileStats = await window.electronAPI.getFileStats(filePath)
+                const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
+                
                 const article: Article = {
                   id: generateId(),
                   title: frontmatter.title || file.replace('.md', ''),
@@ -136,7 +140,7 @@ export const useArticleStore = defineStore('article', () => {
                   filePath,
                   status: folder.status,
                   category: category as 'Software' | 'growth' | 'management',
-                  lastModified: new Date(catStats.mtime),
+                  lastModified,
                   content: articleContent,
                   frontmatter
                 }
