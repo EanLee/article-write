@@ -58,6 +58,89 @@ export class ObsidianSyntaxService {
   }
 
   /**
+   * 計算游標位置的下拉選單位置
+   * @param {HTMLTextAreaElement} textarea - 文字區域元素
+   * @param {number} cursorPosition - 游標位置
+   * @returns {{ top: number; left: number }} 下拉選單位置
+   */
+  calculateDropdownPosition(textarea: HTMLTextAreaElement, cursorPosition: number): { top: number; left: number } {
+    // 建立臨時元素來測量文字尺寸
+    const tempDiv = document.createElement('div')
+    tempDiv.style.position = 'absolute'
+    tempDiv.style.visibility = 'hidden'
+    tempDiv.style.whiteSpace = 'pre-wrap'
+    tempDiv.style.font = window.getComputedStyle(textarea).font
+    tempDiv.style.padding = window.getComputedStyle(textarea).padding
+    tempDiv.style.border = window.getComputedStyle(textarea).border
+    tempDiv.style.width = textarea.clientWidth + 'px'
+    
+    const textBeforeCursor = textarea.value.substring(0, cursorPosition)
+    tempDiv.textContent = textBeforeCursor
+    
+    document.body.appendChild(tempDiv)
+    
+    const textRect = tempDiv.getBoundingClientRect()
+    
+    document.body.removeChild(tempDiv)
+    
+    // 計算相對於 textarea 的位置
+    const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20
+    return {
+      top: textRect.height + lineHeight,
+      left: 0
+    }
+  }
+
+  /**
+   * 應用建議到文字區域
+   * @param {HTMLTextAreaElement} textarea - 文字區域元素
+   * @param {SuggestionItem} suggestion - 建議項目
+   * @param {number} cursorPosition - 游標位置
+   * @returns {string} 更新後的文字內容
+   */
+  applySuggestionToText(textarea: HTMLTextAreaElement, suggestion: SuggestionItem, cursorPosition: number): string {
+    const text = textarea.value
+    const beforeCursor = text.substring(0, cursorPosition)
+    const afterCursor = text.substring(cursorPosition)
+
+    // 找到當前輸入模式的開始位置
+    let startPos = cursorPosition
+    
+    // 檢查不同的模式 (圖片模式要先檢查，因為它包含 [[)
+    if (beforeCursor.match(/!\[\[([^\]]*?)$/)) {
+      // 圖片模式
+      const match = beforeCursor.match(/!\[\[([^\]]*?)$/)
+      if (match && match.index !== undefined) {
+        startPos = match.index
+      }
+    } else if (beforeCursor.match(/\[\[([^\]]*?)$/)) {
+      // Wiki 連結模式
+      const match = beforeCursor.match(/\[\[([^\]]*?)$/)
+      if (match && match.index !== undefined) {
+        startPos = match.index
+      }
+    } else if (beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)) {
+      // 標籤模式
+      const match = beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)
+      if (match && match.index !== undefined) {
+        startPos = match.index
+      }
+    }
+
+    // 替換文字
+    const newText = text.substring(0, startPos) + suggestion.text + afterCursor
+    
+    // 設定新的游標位置
+    const newCursorPos = startPos + suggestion.text.length
+    setTimeout(() => {
+      textarea.setSelectionRange(newCursorPos, newCursorPos)
+      textarea.focus()
+    }, 0)
+
+    return newText
+  }
+
+  /**
    * 取得自動完成建議
    * @param {AutocompleteContext} context - 自動完成上下文
    * @returns {SuggestionItem[]} 建議項目陣列
@@ -66,18 +149,18 @@ export class ObsidianSyntaxService {
     const { text, cursorPosition } = context
     const beforeCursor = text.substring(0, cursorPosition)
     
+    // 檢查圖片引用模式 ![[  (移到前面，因為它包含 [[)
+    const imageMatch = beforeCursor.match(/!\[\[([^\]]*?)$/)
+    if (imageMatch) {
+      const query = imageMatch[1].toLowerCase()
+      return this.getImageSuggestions(query)
+    }
+    
     // 檢查 Wiki 連結模式 [[
     const wikiLinkMatch = beforeCursor.match(/\[\[([^\]]*?)$/)
     if (wikiLinkMatch) {
       const query = wikiLinkMatch[1].toLowerCase()
       return this.getWikiLinkSuggestions(query)
-    }
-
-    // 檢查圖片引用模式 ![[
-    const imageMatch = beforeCursor.match(/!\[\[([^\]]*?)$/)
-    if (imageMatch) {
-      const query = imageMatch[1].toLowerCase()
-      return this.getImageSuggestions(query)
     }
 
     // 檢查標籤模式 #

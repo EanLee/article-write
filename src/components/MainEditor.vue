@@ -141,37 +141,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
 import FrontmatterEditor from './FrontmatterEditor.vue'
+import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService'
 import type { Article } from '@/types'
-
-// Obsidian syntax support interfaces (inline to avoid import issues)
-interface SuggestionItem {
-  text: string
-  displayText: string
-  type: 'wikilink' | 'image' | 'tag'
-  description?: string
-}
-
-interface SyntaxError {
-  line: number
-  column: number
-  message: string
-  type: 'warning' | 'error'
-  suggestion?: string
-}
+import type { SuggestionItem, SyntaxError, AutocompleteContext } from '@/services/ObsidianSyntaxService'
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
+
+// Initialize Obsidian syntax service
+const obsidianSyntax = new ObsidianSyntaxService()
 
 // Reactive data
 const content = ref('')
 const showPreview = ref(false)
 const showFrontmatterEditor = ref(false)
 const renderedContent = ref('')
-const autoSaveTimer = ref<NodeJS.Timeout | null>(null)
+const autoSaveTimer = ref<number | null>(null)
 
 // Obsidian syntax support data
 const editorRef = ref<HTMLTextAreaElement>()
@@ -184,7 +173,7 @@ const imageFiles = ref<string[]>([])
 const allTags = ref<string[]>([])
 
 // Validation timer
-let validationTimeout: NodeJS.Timeout | null = null
+let validationTimeout: number | null = null
 
 // Computed properties
 const statusText = computed(() => {
@@ -317,88 +306,28 @@ function updateAutocomplete() {
   const textarea = editorRef.value
   const cursorPosition = textarea.selectionStart
   const text = textarea.value
-  const beforeCursor = text.substring(0, cursorPosition)
-
-  // Check for Wiki link pattern [[
-  const wikiLinkMatch = beforeCursor.match(/\[\[([^\]]*?)$/)
-  if (wikiLinkMatch) {
-    const query = wikiLinkMatch[1].toLowerCase()
-    suggestions.value = getWikiLinkSuggestions(query)
-    if (suggestions.value.length > 0) {
-      selectedSuggestionIndex.value = 0
-      showSuggestions.value = true
-      updateDropdownPosition()
-      return
-    }
+  
+  // 建立自動完成上下文
+  const context: AutocompleteContext = {
+    text,
+    cursorPosition,
+    lineNumber: text.substring(0, cursorPosition).split('\n').length,
+    columnNumber: cursorPosition - text.lastIndexOf('\n', cursorPosition - 1)
   }
 
-  // Check for image pattern ![[
-  const imageMatch = beforeCursor.match(/!\[\[([^\]]*?)$/)
-  if (imageMatch) {
-    const query = imageMatch[1].toLowerCase()
-    suggestions.value = getImageSuggestions(query)
-    if (suggestions.value.length > 0) {
-      selectedSuggestionIndex.value = 0
-      showSuggestions.value = true
-      updateDropdownPosition()
-      return
-    }
+  // 使用 ObsidianSyntaxService 取得建議
+  suggestions.value = obsidianSyntax.getAutocompleteSuggestions(context)
+  
+  if (suggestions.value.length > 0) {
+    selectedSuggestionIndex.value = 0
+    showSuggestions.value = true
+    updateDropdownPosition()
+  } else {
+    hideSuggestions()
   }
-
-  // Check for tag pattern #
-  const tagMatch = beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)
-  if (tagMatch) {
-    const query = tagMatch[1].toLowerCase()
-    suggestions.value = getTagSuggestions(query)
-    if (suggestions.value.length > 0) {
-      selectedSuggestionIndex.value = 0
-      showSuggestions.value = true
-      updateDropdownPosition()
-      return
-    }
-  }
-
-  hideSuggestions()
 }
 
-function getWikiLinkSuggestions(query: string): SuggestionItem[] {
-  return articleStore.articles
-    .filter(article => 
-      article.title.toLowerCase().includes(query) ||
-      article.slug.toLowerCase().includes(query)
-    )
-    .map(article => ({
-      text: `[[${article.title}]]`,
-      displayText: article.title,
-      type: 'wikilink' as const,
-      description: `${article.category} - ${article.status}`
-    }))
-    .slice(0, 10)
-}
-
-function getImageSuggestions(query: string): SuggestionItem[] {
-  return imageFiles.value
-    .filter(filename => filename.toLowerCase().includes(query))
-    .map(filename => ({
-      text: `![[${filename}]]`,
-      displayText: filename,
-      type: 'image' as const,
-      description: '圖片檔案'
-    }))
-    .slice(0, 10)
-}
-
-function getTagSuggestions(query: string): SuggestionItem[] {
-  return allTags.value
-    .filter(tag => tag.toLowerCase().includes(query))
-    .map(tag => ({
-      text: `#${tag}`,
-      displayText: tag,
-      type: 'tag' as const,
-      description: '標籤'
-    }))
-    .slice(0, 10)
-}
+// These functions are now handled by ObsidianSyntaxService
 
 function updateDropdownPosition() {
   if (!editorRef.value) {
@@ -408,31 +337,8 @@ function updateDropdownPosition() {
   const textarea = editorRef.value
   const cursorPosition = textarea.selectionStart
   
-  // Create a temporary element to measure text dimensions
-  const tempDiv = document.createElement('div')
-  tempDiv.style.position = 'absolute'
-  tempDiv.style.visibility = 'hidden'
-  tempDiv.style.whiteSpace = 'pre-wrap'
-  tempDiv.style.font = window.getComputedStyle(textarea).font
-  tempDiv.style.padding = window.getComputedStyle(textarea).padding
-  tempDiv.style.border = window.getComputedStyle(textarea).border
-  tempDiv.style.width = textarea.clientWidth + 'px'
-  
-  const textBeforeCursor = textarea.value.substring(0, cursorPosition)
-  tempDiv.textContent = textBeforeCursor
-  
-  document.body.appendChild(tempDiv)
-  
-  const textRect = tempDiv.getBoundingClientRect()
-  
-  document.body.removeChild(tempDiv)
-  
-  // Calculate position relative to textarea
-  const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20
-  dropdownPosition.value = {
-    top: textRect.height + lineHeight,
-    left: 0
-  }
+  // 使用 ObsidianSyntaxService 計算下拉選單位置
+  dropdownPosition.value = obsidianSyntax.calculateDropdownPosition(textarea, cursorPosition)
 }
 
 function applySuggestion(suggestion: SuggestionItem) {
@@ -442,48 +348,14 @@ function applySuggestion(suggestion: SuggestionItem) {
 
   const textarea = editorRef.value
   const cursorPosition = textarea.selectionStart
-  const text = textarea.value
-  const beforeCursor = text.substring(0, cursorPosition)
-  const afterCursor = text.substring(cursorPosition)
-
-  // Find the start of the current input pattern
-  let startPos = cursorPosition
   
-  // Check for different patterns
-  if (beforeCursor.match(/\[\[([^\]]*?)$/)) {
-    // Wiki link pattern
-    const match = beforeCursor.match(/\[\[([^\]]*?)$/)
-    if (match) {
-      startPos = cursorPosition - match[0].length
-    }
-  } else if (beforeCursor.match(/!\[\[([^\]]*?)$/)) {
-    // Image pattern
-    const match = beforeCursor.match(/!\[\[([^\]]*?)$/)
-    if (match) {
-      startPos = cursorPosition - match[0].length
-    }
-  } else if (beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)) {
-    // Tag pattern
-    const match = beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)
-    if (match) {
-      startPos = cursorPosition - match[0].length
-    }
-  }
-
-  // Replace the text
-  const newText = text.substring(0, startPos) + suggestion.text + afterCursor
+  // 使用 ObsidianSyntaxService 應用建議
+  const newText = obsidianSyntax.applySuggestionToText(textarea, suggestion, cursorPosition)
   content.value = newText
   
   if (articleStore.currentArticle) {
     articleStore.currentArticle.content = newText
   }
-
-  // Set cursor position after the inserted text
-  nextTick(() => {
-    const newCursorPos = startPos + suggestion.text.length
-    textarea.setSelectionRange(newCursorPos, newCursorPos)
-    textarea.focus()
-  })
 
   hideSuggestions()
 }
@@ -505,64 +377,19 @@ function debounceValidation() {
 }
 
 function validateSyntax() {
-  const errors: SyntaxError[] = []
-  const lines = content.value.split('\n')
-
-  lines.forEach((line, lineIndex) => {
-    // Check invalid Wiki links
-    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g
-    let match
-    while ((match = wikiLinkRegex.exec(line)) !== null) {
-      const linkText = match[1]
-      const linkTitle = linkText.split('|')[0] // Handle alias format [[title|alias]]
-      
-      // Check if article exists
-      const articleExists = articleStore.articles.some(article => 
-        article.title === linkTitle || article.slug === linkTitle
-      )
-
-      if (!articleExists) {
-        errors.push({
-          line: lineIndex + 1,
-          column: match.index! + 1,
-          message: `找不到文章: "${linkTitle}"`,
-          type: 'warning',
-          suggestion: `建議檢查文章標題是否正確，或建立新文章`
-        })
-      }
-    }
-
-    // Check invalid image references
-    const imageRegex = /!\[\[([^\]]+)\]\]/g
-    while ((match = imageRegex.exec(line)) !== null) {
-      const imageName = match[1]
-      
-      // Check if image file exists
-      const imageExists = imageFiles.value.some(filename => 
-        filename === imageName || filename.includes(imageName)
-      )
-
-      if (!imageExists) {
-        errors.push({
-          line: lineIndex + 1,
-          column: match.index! + 1,
-          message: `找不到圖片檔案: "${imageName}"`,
-          type: 'error',
-          suggestion: `請確認圖片檔案存在於 Images 資料夾中`
-        })
-      }
-    }
-  })
-
-  syntaxErrors.value = errors
+  // 使用 ObsidianSyntaxService 進行語法驗證
+  syntaxErrors.value = obsidianSyntax.validateSyntax(content.value)
 }
 
 async function initializeObsidianSupport() {
   try {
+    // 更新 ObsidianSyntaxService 的文章清單
+    obsidianSyntax.updateArticles(articleStore.articles)
+    
     // Update tags from articles
     const tagSet = new Set<string>()
-    articleStore.articles.forEach(article => {
-      article.frontmatter.tags.forEach(tag => tagSet.add(tag))
+    articleStore.articles.forEach((article: Article) => {
+      article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag))
     })
     allTags.value = Array.from(tagSet)
     
@@ -578,9 +405,13 @@ async function initializeObsidianSupport() {
           const ext = file.toLowerCase().substring(file.lastIndexOf('.'))
           return imageExtensions.includes(ext)
         })
+        
+        // 更新 ObsidianSyntaxService 的圖片檔案清單
+        obsidianSyntax.updateImageFiles(imageFiles.value)
       } catch {
         // Images directory might not exist
         imageFiles.value = []
+        obsidianSyntax.updateImageFiles([])
       }
     }
   } catch {
@@ -602,11 +433,14 @@ watch(
   { immediate: true }
 )
 
-// Watch for articles changes to update tags
+// Watch for articles changes to update tags and ObsidianSyntaxService
 watch(() => articleStore.articles, () => {
+  // 更新 ObsidianSyntaxService 的文章清單
+  obsidianSyntax.updateArticles(articleStore.articles)
+  
   const tagSet = new Set<string>()
-  articleStore.articles.forEach(article => {
-    article.frontmatter.tags.forEach(tag => tagSet.add(tag))
+  articleStore.articles.forEach((article: Article) => {
+    article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag))
   })
   allTags.value = Array.from(tagSet)
 }, { deep: true })
@@ -623,9 +457,13 @@ watch(() => configStore.config.paths.obsidianVault, async (newPath) => {
         const ext = file.toLowerCase().substring(file.lastIndexOf('.'))
         return imageExtensions.includes(ext)
       })
+      
+      // 更新 ObsidianSyntaxService 的圖片檔案清單
+      obsidianSyntax.updateImageFiles(imageFiles.value)
     } catch {
       // Images directory might not exist or failed to read
       imageFiles.value = []
+      obsidianSyntax.updateImageFiles([])
     }
   }
 })
