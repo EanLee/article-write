@@ -5,7 +5,9 @@ export interface ElectronAPI {
   // 檔案操作
   readFile: (path: string) => Promise<string>
   writeFile: (path: string, content: string) => Promise<void>
+  writeFileBuffer: (path: string, buffer: Uint8Array) => Promise<void>
   deleteFile: (path: string) => Promise<void>
+  copyFile: (sourcePath: string, targetPath: string) => Promise<void>
   
   // 目錄操作
   readDirectory: (path: string) => Promise<string[]>
