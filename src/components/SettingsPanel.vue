@@ -77,23 +77,26 @@
 
             <!-- Path Validation -->
             <div class="bg-base-200 p-4 rounded-lg">
-              <h4 class="font-semibold mb-3">路徑驗證</h4>
+              <h4 class="font-semibold mb-3">路徑驗證（選填）</h4>
               <div class="space-y-2">
                 <div class="flex items-center gap-2">
                   <div 
                     class="w-4 h-4 rounded-full"
-                    :class="obsidianValidation.valid ? 'bg-success' : 'bg-error'"
+                    :class="obsidianValidation.valid ? 'bg-success' : (localConfig.paths.obsidianVault ? 'bg-warning' : 'bg-base-300')"
                   ></div>
                   <span class="text-sm">Obsidian Vault: {{ obsidianValidation.message }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <div 
                     class="w-4 h-4 rounded-full"
-                    :class="blogValidation.valid ? 'bg-success' : 'bg-error'"
+                    :class="blogValidation.valid ? 'bg-success' : (localConfig.paths.targetBlog ? 'bg-warning' : 'bg-base-300')"
                   ></div>
                   <span class="text-sm">Astro 部落格: {{ blogValidation.message }}</span>
                 </div>
               </div>
+              <p class="text-xs text-base-content/60 mt-2">
+                提示：可以先儲存部分設定，之後再補充其他路徑
+              </p>
             </div>
           </div>
         </div>
@@ -180,7 +183,6 @@
         <button 
           class="btn btn-primary"
           @click="handleSave"
-          :disabled="!isConfigValid"
         >
           儲存設定
         </button>
@@ -239,11 +241,16 @@ const isConfigValid = computed(() => {
 // Methods
 async function selectObsidianPath() {
   try {
-    const selectedPath = await (window.electronAPI as any).selectDirectory({
+    if (!window.electronAPI) {
+      console.warn('瀏覽器模式下無法選擇資料夾')
+      return
+    }
+
+    const selectedPath = await window.electronAPI.selectDirectory({
       title: '選擇 Obsidian Vault 資料夾',
       defaultPath: localConfig.value.paths.obsidianVault
     })
-    
+
     if (selectedPath) {
       localConfig.value.paths.obsidianVault = selectedPath
       // Auto-set images directory if not already set
@@ -258,11 +265,16 @@ async function selectObsidianPath() {
 
 async function selectBlogPath() {
   try {
-    const selectedPath = await (window.electronAPI as any).selectDirectory({
+    if (!window.electronAPI) {
+      console.warn('瀏覽器模式下無法選擇資料夾')
+      return
+    }
+
+    const selectedPath = await window.electronAPI.selectDirectory({
       title: '選擇 Astro 部落格專案資料夾',
       defaultPath: localConfig.value.paths.targetBlog
     })
-    
+
     if (selectedPath) {
       localConfig.value.paths.targetBlog = selectedPath
     }
@@ -273,11 +285,16 @@ async function selectBlogPath() {
 
 async function selectImagesPath() {
   try {
-    const selectedPath = await (window.electronAPI as any).selectDirectory({
+    if (!window.electronAPI) {
+      console.warn('瀏覽器模式下無法選擇資料夾')
+      return
+    }
+
+    const selectedPath = await window.electronAPI.selectDirectory({
       title: '選擇圖片資料夾',
       defaultPath: localConfig.value.paths.imagesDir
     })
-    
+
     if (selectedPath) {
       localConfig.value.paths.imagesDir = selectedPath
     }
@@ -313,11 +330,6 @@ async function validatePaths() {
 }
 
 async function handleSave() {
-  if (!isConfigValid.value) {
-    console.error('請修正路徑設定錯誤')
-    return
-  }
-
   try {
     await configStore.saveConfig(localConfig.value)
     console.log('設定已儲存')

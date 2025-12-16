@@ -58,7 +58,9 @@ export const useConfigStore = defineStore('config', () => {
         return
       }
 
-      await window.electronAPI.setConfig(newConfig)
+      // Create a plain object copy to avoid cloning issues
+      const plainConfig = JSON.parse(JSON.stringify(newConfig))
+      await window.electronAPI.setConfig(plainConfig)
       config.value = newConfig
       isConfigured.value = !!(newConfig.paths.obsidianVault && newConfig.paths.targetBlog)
     } catch (error) {
