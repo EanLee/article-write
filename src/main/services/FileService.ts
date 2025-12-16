@@ -5,7 +5,7 @@ export class FileService {
   async readFile(filePath: string): Promise<string> {
     try {
       return await fs.readFile(filePath, 'utf-8')
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to read file: ${filePath}`)
     }
   }
@@ -15,7 +15,7 @@ export class FileService {
       // Ensure directory exists
       await fs.mkdir(dirname(filePath), { recursive: true })
       await fs.writeFile(filePath, content, 'utf-8')
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to write file: ${filePath}`)
     }
   }
@@ -23,7 +23,7 @@ export class FileService {
   async deleteFile(filePath: string): Promise<void> {
     try {
       await fs.unlink(filePath)
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to delete file: ${filePath}`)
     }
   }
@@ -31,7 +31,7 @@ export class FileService {
   async readDirectory(dirPath: string): Promise<string[]> {
     try {
       return await fs.readdir(dirPath)
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to read directory: ${dirPath}`)
     }
   }
@@ -39,7 +39,7 @@ export class FileService {
   async createDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true })
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to create directory: ${dirPath}`)
     }
   }
@@ -60,7 +60,7 @@ export class FileService {
         isDirectory: stats.isDirectory(),
         mtime: stats.mtime.toISOString()
       }
-    } catch (error) {
+    } catch {
       return null
     }
   }

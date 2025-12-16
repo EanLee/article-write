@@ -236,7 +236,7 @@ function removeKeyword(keyword: string) {
 }
 
 function handleSave() {
-  if (!localArticle.value) return
+  if (!localArticle.value) {return}
 
   // Update the article title if frontmatter title changed
   localArticle.value.title = localArticle.value.frontmatter.title

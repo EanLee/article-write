@@ -39,7 +39,7 @@ export const useArticleStore = defineStore('article', () => {
         const hasMatchingTag = filter.value.tags.some(tag => 
           article.frontmatter.tags.includes(tag)
         )
-        if (!hasMatchingTag) return false
+        if (!hasMatchingTag) {return false}
       }
 
       // Search text filter
@@ -47,7 +47,7 @@ export const useArticleStore = defineStore('article', () => {
         const searchLower = filter.value.searchText.toLowerCase()
         const titleMatch = article.title.toLowerCase().includes(searchLower)
         const contentMatch = article.content.toLowerCase().includes(searchLower)
-        if (!titleMatch && !contentMatch) return false
+        if (!titleMatch && !contentMatch) {return false}
       }
 
       return true
@@ -215,13 +215,13 @@ export const useArticleStore = defineStore('article', () => {
    */
   function startFileWatching() {
     const vaultPath = configStore.config.paths.obsidianVault
-    if (!vaultPath || watchingFiles.value) return
+    if (!vaultPath || watchingFiles.value) {return}
 
     fileService.startWatching(vaultPath, async (filePath, event) => {
       try {
         switch (event) {
           case 'add':
-          case 'change':
+          case 'change': {
             // Reload the specific article
             const updatedArticle = await fileService.loadArticle(filePath)
             if (updatedArticle) {
@@ -235,7 +235,8 @@ export const useArticleStore = defineStore('article', () => {
               }
             }
             break
-          case 'unlink':
+          }
+          case 'unlink': {
             // Remove article from store
             const removedIndex = articles.value.findIndex(a => a.filePath === filePath)
             if (removedIndex !== -1) {
@@ -246,6 +247,7 @@ export const useArticleStore = defineStore('article', () => {
               }
             }
             break
+          }
         }
       } catch (error) {
         console.error('Error handling file change:', error)
@@ -272,7 +274,7 @@ export const useArticleStore = defineStore('article', () => {
   async function reloadArticle(id: string) {
     try {
       const article = articles.value.find(a => a.id === id)
-      if (!article) return
+      if (!article) {return}
 
       const reloadedArticle = await fileService.loadArticle(article.filePath)
       if (reloadedArticle) {

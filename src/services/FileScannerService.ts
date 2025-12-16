@@ -134,9 +134,9 @@ export class FileScannerService {
   private extractCategoryFromPath(filePath: string): 'Software' | 'growth' | 'management' {
     const normalizedPath = filePath.replace(/\\/g, '/')
     
-    if (normalizedPath.includes('/Software/')) return 'Software'
-    if (normalizedPath.includes('/growth/')) return 'growth'
-    if (normalizedPath.includes('/management/')) return 'management'
+    if (normalizedPath.includes('/Software/')) {return 'Software'}
+    if (normalizedPath.includes('/growth/')) {return 'growth'}
+    if (normalizedPath.includes('/management/')) {return 'management'}
     
     // Default to Software if no category found
     return 'Software'
@@ -179,7 +179,7 @@ export class FileScannerService {
     this.stopWatching(directoryPath)
 
     const watcher = chokidar.watch(this.joinPath(directoryPath, '**/*.md'), {
-      ignored: /(^|[\/\\])\../, // ignore dotfiles
+      ignored: /(^|[/\\])\../, // ignore dotfiles
       persistent: true,
       ignoreInitial: true
     })
@@ -240,8 +240,8 @@ export class FileScannerService {
 
       return structure.sort((a, b) => {
         // Directories first, then files
-        if (a.isDirectory && !b.isDirectory) return -1
-        if (!a.isDirectory && b.isDirectory) return 1
+        if (a.isDirectory && !b.isDirectory) {return -1}
+        if (!a.isDirectory && b.isDirectory) {return 1}
         return a.name.localeCompare(b.name)
       })
     } catch (error) {

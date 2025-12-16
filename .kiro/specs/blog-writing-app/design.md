@@ -38,12 +38,22 @@
 - **前端框架**: Vue 3 (Composition API)
 - **類型系統**: TypeScript
 - **桌面框架**: Electron
-- **UI 框架**: Element Plus / Naive UI
+- **UI 框架**: DaisyUI + Tailwind CSS
 - **狀態管理**: Pinia
 - **Markdown 處理**: markdown-it + 擴充套件
 - **程式碼高亮**: Prism.js / highlight.js
 - **檔案監控**: chokidar
-- **AI API**: OpenAI API / Claude API
+- **YAML 處理**: js-yaml
+- **套件管理**: pnpm
+
+### 開發工具與規範
+
+- **程式碼品質**: ESLint 9 (最新版本)
+- **程式碼註解**: JSDoc (繁體中文)
+- **測試框架**: Vitest + @vue/test-utils
+- **構建工具**: Vite
+- **版本控制**: Git with Conventional Commits (繁體中文)
+- **開發流程**: test → build → lint → commit
 
 ## 元件和介面
 
@@ -284,3 +294,179 @@ export const useConfigStore = defineStore('config', {
 - 使用 Playwright 進行完整使用者流程測試
 - 跨平台相容性測試（Windows、macOS、Linux）
 - 效能測試（大量文章處理）
+
+## 開發規範與工具配置
+
+### 程式碼品質控制
+
+#### ESLint 配置
+使用 ESLint 9 最新版本進行程式碼品質檢查：
+
+```javascript
+// eslint.config.js
+import js from '@eslint/js'
+import typescript from '@typescript-eslint/eslint-plugin'
+import typescriptParser from '@typescript-eslint/parser'
+import vue from 'eslint-plugin-vue'
+import vueParser from 'vue-eslint-parser'
+
+export default [
+  js.configs.recommended,
+  {
+    files: ['**/*.{js,ts,vue}'],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        parser: typescriptParser,
+        ecmaVersion: 2022,
+        sourceType: 'module'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': typescript,
+      vue
+    },
+    rules: {
+      // TypeScript 規則
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      
+      // Vue 規則
+      'vue/multi-word-component-names': 'off',
+      
+      // 一般規則
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      'eqeqeq': 'error',
+      'curly': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error'
+    }
+  }
+]
+```
+
+#### JSDoc 註解規範
+所有公開的類別、方法和函數必須包含 JSDoc 註解，使用繁體中文：
+
+```typescript
+/**
+ * 檔案掃描服務類別
+ * 負責掃描 Markdown 檔案、解析文章內容，以及監控檔案系統變更
+ */
+export class FileScannerService {
+  /**
+   * 掃描目錄中的 Markdown 檔案並解析為 Article 物件
+   * @param {string} directoryPath - 要掃描的目錄路徑
+   * @param {'draft' | 'published'} status - 文章狀態（草稿或已發布）
+   * @returns {Promise<Article[]>} 解析後的文章陣列
+   */
+  async scanMarkdownFiles(directoryPath: string, status: 'draft' | 'published'): Promise<Article[]> {
+    // 實作內容
+  }
+}
+```
+
+### 開發工作流程
+
+#### 必要步驟順序
+每次程式碼修改後必須按照以下順序執行：
+
+1. **測試**: `pnpm test`
+2. **構建**: `pnpm build`  
+3. **程式碼檢查**: `pnpm lint`
+4. **提交**: 使用 Conventional Commits 格式
+
+#### Conventional Commits 規範
+使用繁體中文的 Conventional Commits 格式：
+
+```bash
+# 格式
+<類型>(<範圍>): <描述>
+
+[可選的正文]
+
+[可選的頁腳]
+
+# 範例
+feat(檔案系統): 實作檔案掃描服務和前置資料解析器
+
+- 新增 FileScannerService 類別，支援 Markdown 檔案掃描和解析
+- 實作 MarkdownService 的 YAML frontmatter 解析功能
+- 整合 FileService 與 ArticleStore，提供完整的檔案系統管理
+
+測試: ✅ 所有測試通過
+構建: ✅ 構建成功
+需求: 12.1, 12.3, 12.4, 12.5
+```
+
+#### 提交類型
+- `feat`: 新功能
+- `fix`: 錯誤修復
+- `docs`: 文件更新
+- `style`: 程式碼格式調整
+- `refactor`: 程式碼重構
+- `test`: 測試相關
+- `chore`: 建置或輔助工具變動
+
+### 套件管理
+
+#### pnpm 使用規範
+專案統一使用 pnpm 作為套件管理工具：
+
+```bash
+# 安裝依賴
+pnpm install
+
+# 新增依賴
+pnpm add <package-name>
+pnpm add -D <package-name>  # 開發依賴
+
+# 執行腳本
+pnpm dev
+pnpm build
+pnpm test
+pnpm lint
+```
+
+#### 依賴管理原則
+- 生產依賴：應用程式運行必需的套件
+- 開發依賴：開發和構建過程中使用的工具
+- 定期更新依賴以獲得安全性修復和新功能
+- 使用 `pnpm-lock.yaml` 鎖定版本確保一致性
+
+### 程式碼組織
+
+#### 檔案命名規範
+- 元件檔案：PascalCase (例：`ArticleList.vue`)
+- 服務檔案：PascalCase + Service 後綴 (例：`FileService.ts`)
+- 工具函數：camelCase (例：`pathUtils.ts`)
+- 類型定義：camelCase (例：`index.ts`)
+
+#### 目錄結構規範
+```text
+src/
+├── components/          # Vue 元件
+├── services/           # 業務邏輯服務
+├── stores/            # Pinia 狀態管理
+├── types/             # TypeScript 類型定義
+├── utils/             # 工具函數
+└── __tests__/         # 測試檔案
+```
+
+### 效能與最佳化
+
+#### 程式碼分割
+- 使用動態 import 進行路由層級的程式碼分割
+- 大型元件使用 defineAsyncComponent 延遲載入
+- 第三方庫按需載入
+
+#### 記憶體管理
+- 及時清理事件監聽器和定時器
+- 使用 WeakMap 和 WeakSet 避免記憶體洩漏
+- 檔案監控器在元件銷毀時正確清理
+
+#### 錯誤邊界
+- 實作全域錯誤處理機制
+- 關鍵操作提供降級方案
+- 使用者友善的錯誤訊息顯示

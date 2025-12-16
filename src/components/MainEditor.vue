@@ -164,7 +164,7 @@ function handleFrontmatterUpdate(updatedArticle: Article) {
 }
 
 function formatDate(date?: Date): string {
-  if (!date) return ''
+  if (!date) {return ''}
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',
     month: 'short',

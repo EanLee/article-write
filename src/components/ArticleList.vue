@@ -180,7 +180,7 @@ function selectArticle(article: Article) {
 }
 
 async function createArticle() {
-  if (!newArticle.value.title || !newArticle.value.category) return
+  if (!newArticle.value.title || !newArticle.value.category) {return}
 
   try {
     const article = await articleStore.createArticle(

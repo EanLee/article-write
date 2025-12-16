@@ -32,7 +32,7 @@ export class ConfigService {
     try {
       const configData = await fs.readFile(this.configPath, 'utf-8')
       return JSON.parse(configData)
-    } catch (error) {
+    } catch {
       // Return default config if file doesn't exist
       return this.getDefaultConfig()
     }
@@ -41,7 +41,7 @@ export class ConfigService {
   async setConfig(config: AppConfig): Promise<void> {
     try {
       await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), 'utf-8')
-    } catch (error) {
+    } catch {
       throw new Error('Failed to save configuration')
     }
   }
@@ -77,7 +77,7 @@ export class ConfigService {
       }
 
       return { valid: true, message: '有效的 Obsidian Vault' }
-    } catch (error) {
+    } catch {
       return { valid: false, message: '無法存取路徑' }
     }
   }
@@ -115,7 +115,7 @@ export class ConfigService {
       }
 
       return { valid: true, message: '有效的 Astro 部落格專案' }
-    } catch (error) {
+    } catch {
       return { valid: false, message: '無法存取路徑' }
     }
   }

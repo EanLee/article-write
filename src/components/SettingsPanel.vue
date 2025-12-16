@@ -292,7 +292,7 @@ async function validatePaths() {
     try {
       const result = await configStore.validateObsidianVault(localConfig.value.paths.obsidianVault)
       obsidianValidation.value = result
-    } catch (error) {
+    } catch {
       obsidianValidation.value = { valid: false, message: '驗證失敗' }
     }
   } else {
@@ -304,7 +304,7 @@ async function validatePaths() {
     try {
       const result = await configStore.validateAstroBlog(localConfig.value.paths.targetBlog)
       blogValidation.value = result
-    } catch (error) {
+    } catch {
       blogValidation.value = { valid: false, message: '驗證失敗' }
     }
   } else {

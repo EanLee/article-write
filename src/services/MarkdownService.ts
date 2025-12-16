@@ -209,14 +209,14 @@ export class MarkdownService {
       // Create a clean object with only defined values
       const cleanData: any = {}
       
-      if (data.title) cleanData.title = data.title
-      if (data.description) cleanData.description = data.description
-      if (data.date) cleanData.date = data.date
-      if (data.lastmod) cleanData.lastmod = data.lastmod
-      if (data.tags && data.tags.length > 0) cleanData.tags = data.tags
-      if (data.categories && data.categories.length > 0) cleanData.categories = data.categories
-      if (data.slug) cleanData.slug = data.slug
-      if (data.keywords && data.keywords.length > 0) cleanData.keywords = data.keywords
+      if (data.title) {cleanData.title = data.title}
+      if (data.description) {cleanData.description = data.description}
+      if (data.date) {cleanData.date = data.date}
+      if (data.lastmod) {cleanData.lastmod = data.lastmod}
+      if (data.tags && data.tags.length > 0) {cleanData.tags = data.tags}
+      if (data.categories && data.categories.length > 0) {cleanData.categories = data.categories}
+      if (data.slug) {cleanData.slug = data.slug}
+      if (data.keywords && data.keywords.length > 0) {cleanData.keywords = data.keywords}
 
       const yamlString = yaml.dump(cleanData, {
         indent: 2,
@@ -250,7 +250,7 @@ export class MarkdownService {
    */
   private isValidDateString(dateStr: string): boolean {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(dateStr)) return false
+    if (!dateRegex.test(dateStr)) {return false}
     
     const date = new Date(dateStr)
     return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().startsWith(dateStr)
