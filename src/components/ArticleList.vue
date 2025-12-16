@@ -1,0 +1,218 @@
+<template>
+  <div class="h-full flex flex-col">
+    <!-- Search and Filter -->
+    <div class="p-4 border-b border-base-300">
+      <div class="form-control mb-3">
+        <div class="input-group">
+          <input
+            v-model="searchText"
+            type="text"
+            placeholder="搜尋文章..."
+            class="input input-bordered input-sm flex-1"
+            @input="updateSearch"
+          />
+          <button class="btn btn-square btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex gap-2 mb-3">
+        <select
+          v-model="statusFilter"
+          class="select select-bordered select-sm flex-1"
+          @change="updateFilters"
+        >
+          <option value="all">全部狀態</option>
+          <option value="draft">草稿</option>
+          <option value="published">已發布</option>
+        </select>
+
+        <select
+          v-model="categoryFilter"
+          class="select select-bordered select-sm flex-1"
+          @change="updateFilters"
+        >
+          <option value="all">全部分類</option>
+          <option value="Software">Software</option>
+          <option value="growth">Growth</option>
+          <option value="management">Management</option>
+        </select>
+      </div>
+
+      <button
+        class="btn btn-primary btn-sm w-full"
+        @click="showCreateDialog = true"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        新增文章
+      </button>
+    </div>
+
+    <!-- Article List -->
+    <div class="flex-1 overflow-y-auto p-2">
+      <div
+        v-for="article in articleStore.filteredArticles"
+        :key="article.id"
+        class="card bg-base-100 shadow-sm mb-2 cursor-pointer transition-all hover:shadow-md"
+        :class="{ 'ring-2 ring-primary': article.id === articleStore.currentArticle?.id }"
+        @click="selectArticle(article)"
+      >
+        <div class="card-body p-3">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="card-title text-sm">{{ article.title }}</h3>
+            <div 
+              class="badge badge-sm"
+              :class="article.status === 'published' ? 'badge-success' : 'badge-info'"
+            >
+              {{ article.status === 'published' ? '已發布' : '草稿' }}
+            </div>
+          </div>
+          
+          <div class="flex justify-between text-xs text-base-content/70 mb-2">
+            <span class="badge badge-outline badge-xs">{{ article.category }}</span>
+            <span>{{ formatDate(article.lastModified) }}</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags.length > 0">
+            <div
+              v-for="tag in article.frontmatter.tags.slice(0, 3)"
+              :key="tag"
+              class="badge badge-ghost badge-xs"
+            >
+              {{ tag }}
+            </div>
+            <span v-if="article.frontmatter.tags.length > 3" class="text-xs text-base-content/50">
+              +{{ article.frontmatter.tags.length - 3 }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="articleStore.filteredArticles.length === 0"
+        class="flex flex-col items-center justify-center h-32 text-base-content/50"
+      >
+        <div class="text-4xl mb-2">📄</div>
+        <p>沒有找到文章</p>
+      </div>
+    </div>
+
+    <!-- Create Article Modal -->
+    <div v-if="showCreateDialog" class="modal modal-open">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">建立新文章</h3>
+        
+        <div class="form-control mb-4">
+          <label class="label">
+            <span class="label-text">標題 *</span>
+          </label>
+          <input
+            v-model="newArticle.title"
+            type="text"
+            placeholder="輸入文章標題"
+            class="input input-bordered"
+          />
+        </div>
+        
+        <div class="form-control mb-6">
+          <label class="label">
+            <span class="label-text">分類 *</span>
+          </label>
+          <select v-model="newArticle.category" class="select select-bordered">
+            <option value="">選擇分類</option>
+            <option value="Software">Software</option>
+            <option value="growth">Growth</option>
+            <option value="management">Management</option>
+          </select>
+        </div>
+
+        <div class="modal-action">
+          <button class="btn" @click="showCreateDialog = false">取消</button>
+          <button
+            class="btn btn-primary"
+            @click="createArticle"
+            :disabled="!newArticle.title || !newArticle.category"
+          >
+            建立
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useArticleStore } from '@/stores/article'
+import type { Article } from '@/types'
+
+const articleStore = useArticleStore()
+
+// Reactive data
+const searchText = ref('')
+const statusFilter = ref('all')
+const categoryFilter = ref('all')
+const showCreateDialog = ref(false)
+const newArticle = ref({
+  title: '',
+  category: '' as 'Software' | 'growth' | 'management' | ''
+})
+
+// Methods
+function updateSearch() {
+  articleStore.updateFilter({ searchText: searchText.value })
+}
+
+function updateFilters() {
+  articleStore.updateFilter({
+    status: statusFilter.value as any,
+    category: categoryFilter.value as any
+  })
+}
+
+function selectArticle(article: Article) {
+  articleStore.setCurrentArticle(article)
+}
+
+async function createArticle() {
+  if (!newArticle.value.title || !newArticle.value.category) return
+
+  try {
+    const article = await articleStore.createArticle(
+      newArticle.value.title,
+      newArticle.value.category
+    )
+    articleStore.setCurrentArticle(article)
+    
+    // Reset form
+    newArticle.value = { title: '', category: '' }
+    showCreateDialog.value = false
+  } catch (error) {
+    console.error('Failed to create article:', error)
+  }
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('zh-TW', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }).format(date)
+}
+
+onMounted(() => {
+  // Initialize filters from store
+  searchText.value = articleStore.filter.searchText
+  statusFilter.value = articleStore.filter.status
+  categoryFilter.value = articleStore.filter.category
+})
+</script>
+
+<style scoped>
+/* Custom styles if needed */
+</style>

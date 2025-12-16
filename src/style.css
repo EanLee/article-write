@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定義樣式 */
+.editor-container {
+  @apply h-full flex flex-col;
+}
+
+.markdown-editor {
+  @apply flex-1 p-4 font-mono text-sm;
+}
+
+.preview-pane {
+  @apply flex-1 p-4 max-w-none;
+}
+
+.article-list-item {
+  @apply p-3 border-b border-base-200 hover:bg-base-100 cursor-pointer transition-colors;
+}
+
+.frontmatter-form {
+  @apply space-y-4 p-4;
+}
