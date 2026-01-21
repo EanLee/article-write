@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { Article, ArticleFilter } from '@/types'
-import { MarkdownService } from '@/services/MarkdownService'
+import { useMarkdownService } from '@/composables/useServices'
 import { autoSaveService } from '@/services/AutoSaveService'
 import { backupService } from '@/services/BackupService'
 import { notify } from '@/services/NotificationService'
 import { useConfigStore } from './config'
 
 export const useArticleStore = defineStore('article', () => {
-  // Services
-  const _markdownService = new MarkdownService()
+  // 使用服務單例
+  const _markdownService = useMarkdownService()
   const configStore = useConfigStore()
 
   // State
@@ -377,7 +377,9 @@ export const useArticleStore = defineStore('article', () => {
   /**
    * Start watching for file system changes
    */
-  function startFileWatching() {
+  let unsubscribeFileChange: (() => void) | null = null
+
+  async function startFileWatching() {
     const vaultPath = configStore.config.paths.obsidianVault
     if (!vaultPath || watchingFiles.value) { return }
 
@@ -386,19 +388,132 @@ export const useArticleStore = defineStore('article', () => {
       return
     }
 
-    // TODO: Implement file watching using Electron API
-    // For now, skip file watching to prevent crashes
-
-    watchingFiles.value = true
+    try {
+      // 開始監聽 vault 資料夾
+      await window.electronAPI.startFileWatching(vaultPath)
+      
+      // 訂閱檔案變更事件
+      unsubscribeFileChange = window.electronAPI.onFileChange(async (data) => {
+        await handleFileChange(data.event, data.path)
+      })
+      
+      watchingFiles.value = true
+    } catch (error) {
+      console.error('Failed to start file watching:', error)
+    }
+  }
+  
+  async function handleFileChange(event: string, filePath: string) {
+    const vaultPath = configStore.config.paths.obsidianVault
+    if (!vaultPath) return
+    
+    // 解析檔案路徑以取得狀態和分類
+    const relativePath = filePath.replace(vaultPath, '').replace(/\\/g, '/')
+    const parts = relativePath.split('/').filter(Boolean)
+    
+    // 預期格式：/Drafts|Publish/category/filename.md
+    if (parts.length < 3) return
+    
+    const [statusFolder, category, filename] = parts
+    const status = statusFolder === 'Publish' ? 'published' : 'draft'
+    
+    if (!['Software', 'growth', 'management'].includes(category)) return
+    
+    switch (event) {
+      case 'add':
+      case 'change':
+        await reloadArticleByPath(filePath, status as 'draft' | 'published', category as 'Software' | 'growth' | 'management')
+        break
+      case 'unlink':
+        removeArticleByPath(filePath)
+        break
+    }
+  }
+  
+  async function reloadArticleByPath(
+    filePath: string,
+    status: 'draft' | 'published',
+    category: 'Software' | 'growth' | 'management'
+  ) {
+    if (typeof window === 'undefined' || !window.electronAPI) return
+    
+    try {
+      const content = await window.electronAPI.readFile(filePath)
+      const { frontmatter, content: articleContent } = _markdownService.parseMarkdown(content)
+      const fileStats = await window.electronAPI.getFileStats(filePath)
+      const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
+      
+      const filename = filePath.split(/[/\\]/).pop()?.replace('.md', '') || ''
+      
+      // 檢查是否已存在
+      const existingIndex = articles.value.findIndex(a => a.filePath === filePath)
+      
+      const article: Article = {
+        id: existingIndex !== -1 ? articles.value[existingIndex].id : generateId(),
+        title: frontmatter.title || filename,
+        slug: filename,
+        filePath,
+        status,
+        category,
+        lastModified,
+        content: articleContent,
+        frontmatter
+      }
+      
+      if (existingIndex !== -1) {
+        // 更新現有文章
+        articles.value[existingIndex] = article
+        if (currentArticle.value?.filePath === filePath) {
+          // 只在內容真正變更時通知（避免自己儲存觸發的變更）
+          const timeDiff = Date.now() - lastModified.getTime()
+          if (timeDiff > 2000) {
+            notify.info('檔案已更新', '外部修改已同步')
+          }
+          currentArticle.value = article
+        }
+      } else {
+        // 新增文章
+        articles.value.push(article)
+        notify.info('新增文章', `偵測到新文章：${article.title}`)
+      }
+    } catch (error) {
+      console.warn(`Failed to reload article ${filePath}:`, error)
+    }
+  }
+  
+  function removeArticleByPath(filePath: string) {
+    const index = articles.value.findIndex(a => a.filePath === filePath)
+    if (index !== -1) {
+      const article = articles.value[index]
+      articles.value.splice(index, 1)
+      if (currentArticle.value?.filePath === filePath) {
+        currentArticle.value = null
+      }
+      notify.info('文章已移除', `偵測到文章被刪除：${article.title}`)
+    }
   }
 
   /**
    * Stop watching for file system changes
    */
-  function stopFileWatching() {
-    // TODO: Implement file watching cleanup using Electron API
-    // For now, skip file watching cleanup
-    watchingFiles.value = false
+  async function stopFileWatching() {
+    if (typeof window === 'undefined' || !window.electronAPI) {
+      return
+    }
+    
+    try {
+      // 取消訂閱檔案變更事件
+      if (unsubscribeFileChange) {
+        unsubscribeFileChange()
+        unsubscribeFileChange = null
+      }
+      
+      // 停止檔案監聽
+      await window.electronAPI.stopFileWatching()
+      watchingFiles.value = false
+    } catch (error) {
+      console.error('Failed to stop file watching:', error)
+    }
   }
 
   /**
@@ -406,12 +521,26 @@ export const useArticleStore = defineStore('article', () => {
    */
   async function reloadArticle(id: string) {
     const article = articles.value.find(a => a.id === id)
-    if (!article) {return}
+    if (!article) { return }
 
-    // TODO: Implement article reloading using Electron API
-    // For now, skip article reloading
-    const reloadedArticle = null
-    if (reloadedArticle) {
+    if (typeof window === 'undefined' || !window.electronAPI) {
+      return
+    }
+
+    try {
+      const content = await window.electronAPI.readFile(article.filePath)
+      const { frontmatter, content: articleContent } = _markdownService.parseMarkdown(content)
+      const fileStats = await window.electronAPI.getFileStats(article.filePath)
+      const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
+      
+      const reloadedArticle: Article = {
+        ...article,
+        title: frontmatter.title || article.title,
+        content: articleContent,
+        frontmatter,
+        lastModified
+      }
+      
       const index = articles.value.findIndex(a => a.id === id)
       if (index !== -1) {
         articles.value[index] = reloadedArticle
@@ -419,6 +548,11 @@ export const useArticleStore = defineStore('article', () => {
           currentArticle.value = reloadedArticle
         }
       }
+      
+      notify.success('重新載入成功', `已重新載入「${reloadedArticle.title}」`)
+    } catch (error) {
+      console.error('Failed to reload article:', error)
+      notify.error('重新載入失敗', '無法重新載入文章')
     }
   }
 
