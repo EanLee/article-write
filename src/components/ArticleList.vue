@@ -41,16 +41,6 @@
           <option value="management">Management</option>
         </select>
       </div>
-
-      <button
-        class="btn btn-primary btn-sm w-full"
-        @click="showCreateDialog = true"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        新增文章
-      </button>
     </div>
 
     <!-- Article List -->
@@ -101,48 +91,6 @@
         <p>沒有找到文章</p>
       </div>
     </div>
-
-    <!-- Create Article Modal -->
-    <div v-if="showCreateDialog" class="modal modal-open">
-      <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">建立新文章</h3>
-        
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">標題 *</span>
-          </label>
-          <input
-            v-model="newArticle.title"
-            type="text"
-            placeholder="輸入文章標題"
-            class="input input-bordered"
-          />
-        </div>
-        
-        <div class="form-control mb-6">
-          <label class="label">
-            <span class="label-text">分類 *</span>
-          </label>
-          <select v-model="newArticle.category" class="select select-bordered">
-            <option value="">選擇分類</option>
-            <option value="Software">Software</option>
-            <option value="growth">Growth</option>
-            <option value="management">Management</option>
-          </select>
-        </div>
-
-        <div class="modal-action">
-          <button class="btn" @click="showCreateDialog = false">取消</button>
-          <button
-            class="btn btn-primary"
-            @click="createArticle"
-            :disabled="!newArticle.title || !newArticle.category"
-          >
-            建立
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -157,11 +105,6 @@ const articleStore = useArticleStore()
 const searchText = ref('')
 const statusFilter = ref('all')
 const categoryFilter = ref('all')
-const showCreateDialog = ref(false)
-const newArticle = ref({
-  title: '',
-  category: '' as 'Software' | 'growth' | 'management' | ''
-})
 
 // Methods
 function updateSearch() {
@@ -177,24 +120,6 @@ function updateFilters() {
 
 function selectArticle(article: Article) {
   articleStore.setCurrentArticle(article)
-}
-
-async function createArticle() {
-  if (!newArticle.value.title || !newArticle.value.category) {return}
-
-  try {
-    const article = await articleStore.createArticle(
-      newArticle.value.title,
-      newArticle.value.category
-    )
-    articleStore.setCurrentArticle(article)
-    
-    // Reset form
-    newArticle.value = { title: '', category: '' }
-    showCreateDialog.value = false
-  } catch (error) {
-    console.error('Failed to create article:', error)
-  }
 }
 
 function formatDate(date: Date | string): string {
