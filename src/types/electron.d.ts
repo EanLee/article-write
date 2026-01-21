@@ -1,4 +1,22 @@
 /**
+ * 伺服器日誌資料
+ */
+export interface ServerLogData {
+  log: string
+  type: 'stdout' | 'stderr'
+  timestamp: string
+}
+
+/**
+ * 伺服器狀態
+ */
+export interface ServerStatusResult {
+  running: boolean
+  url?: string
+  logs: string[]
+}
+
+/**
  * Electron API 類型定義
  */
 export interface ElectronAPI {
@@ -8,23 +26,26 @@ export interface ElectronAPI {
   writeFileBuffer: (path: string, buffer: Uint8Array) => Promise<void>
   deleteFile: (path: string) => Promise<void>
   copyFile: (sourcePath: string, targetPath: string) => Promise<void>
-  
+
   // 目錄操作
   readDirectory: (path: string) => Promise<string[]>
   createDirectory: (path: string) => Promise<void>
   getFileStats: (path: string) => Promise<{ isDirectory: boolean; mtime: string } | null>
-  
+
   // 設定操作
   getConfig: () => Promise<any>
   setConfig: (config: any) => Promise<void>
   validateObsidianVault: (path: string) => Promise<{ valid: boolean; message: string }>
   validateAstroBlog: (path: string) => Promise<{ valid: boolean; message: string }>
-  
+
   // 程序管理
-  startDevServer: (projectPath: string) => Promise<any>
+  startDevServer: (projectPath: string) => Promise<void>
   stopDevServer: () => Promise<void>
-  getServerStatus: () => Promise<any>
-  
+  getServerStatus: () => Promise<ServerStatusResult>
+
+  // 伺服器日誌事件
+  onServerLog: (callback: (data: ServerLogData) => void) => () => void
+
   // 目錄選擇
   selectDirectory: (options?: { title?: string; defaultPath?: string }) => Promise<string | null>
 }
