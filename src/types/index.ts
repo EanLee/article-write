@@ -71,3 +71,12 @@ export interface PathValidationResult {
   valid: boolean
   message: string
 }
+
+// Save status
+export type SaveStatus = 'saved' | 'saving' | 'modified' | 'error'
+
+export interface SaveState {
+  status: SaveStatus
+  lastSavedAt: Date | null
+  error: string | null
+}
