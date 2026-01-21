@@ -288,7 +288,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
-import { ImageService, type ImageInfo } from '@/services/ImageService'
+import { useImageService } from '@/composables/useServices'
+import type { ImageInfo } from '@/services/ImageService'
 
 // Props and Emits
 const emit = defineEmits<{
@@ -299,7 +300,7 @@ const emit = defineEmits<{
 // Stores and Services
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
-const imageService = new ImageService()
+const imageService = useImageService()
 
 // Reactive data
 const loading = ref(false)
@@ -634,13 +635,15 @@ async function handleDrop(event: DragEvent) {
 }
 
 // Watchers
-watch(() => articleStore.articles, () => {
+// 使用淺層監聽 articles.length，避免深層監聽的效能問題
+// 圖片使用狀態會在文章新增/刪除時更新
+watch(() => articleStore.articles.length, () => {
   // Update usage status when articles change
   allImages.value.forEach(image => {
     image.isUsed = isImageUsed(image.name)
   })
   filterImages()
-}, { deep: true })
+})
 
 watch(() => configStore.config.paths.obsidianVault, () => {
   loadImages()

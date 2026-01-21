@@ -255,10 +255,10 @@ function stopResize() {
   localStorage.setItem('server-panel-height', logPanelHeight.value.toString())
 }
 
-// 監聽日誌變化自動滾動
-watch(logs, () => {
+// 監聯日誌變化自動滾動（監聽 length 即可，因為日誌只會 push）
+watch(() => logs.value.length, () => {
   scrollToBottom()
-}, { deep: true })
+})
 
 // 生命週期
 let unsubscribeLog: (() => void) | null = null
