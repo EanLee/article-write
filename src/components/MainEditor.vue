@@ -4,30 +4,55 @@
         <EditorHeader
             :article="articleStore.currentArticle"
             :show-preview="showPreview"
+            :show-frontmatter="showFrontmatterPanel"
+            :editor-mode="editorMode"
             @toggle-preview="togglePreview"
+            @toggle-frontmatter="showFrontmatterPanel = !showFrontmatterPanel"
             @edit-frontmatter="showFrontmatterEditor = true"
             @move-to-published="moveToPublished"
+            @toggle-editor-mode="toggleEditorMode"
+        />
+
+        <!-- Frontmatter Panel (撰寫模式才顯示) -->
+        <FrontmatterPanel
+            v-if="editorMode === 'compose'"
+            :visible="showFrontmatterPanel"
+            :article="articleStore.currentArticle"
         />
 
         <!-- Editor Content -->
         <div class="flex flex-1 overflow-hidden">
-            <!-- Editor Pane -->
-            <EditorPane
-                ref="editorPaneRef"
-                v-model="content"
-                :show-preview="showPreview"
-                :suggestions="suggestions"
-                :show-suggestions="showSuggestions"
-                :selected-suggestion-index="selectedSuggestionIndex"
-                :syntax-errors="syntaxErrors"
-                :image-validation-warnings="imageValidationWarnings"
-                :dropdown-position="dropdownPosition"
-                @insert-markdown="insertMarkdownSyntax"
-                @insert-table="insertTable"
-                @keydown="handleKeydown"
-                @cursor-change="updateAutocomplete"
-                @apply-suggestion="applySuggestion"
-            />
+            <!-- 撰寫模式 -->
+            <template v-if="editorMode === 'compose'">
+                <EditorPane
+                    ref="editorPaneRef"
+                    v-model="content"
+                    :show-preview="showPreview"
+                    :suggestions="suggestions"
+                    :show-suggestions="showSuggestions"
+                    :selected-suggestion-index="selectedSuggestionIndex"
+                    :syntax-errors="syntaxErrors"
+                    :image-validation-warnings="imageValidationWarnings"
+                    :dropdown-position="dropdownPosition"
+                    @insert-markdown="insertMarkdownSyntax"
+                    @insert-table="insertTable"
+                    @keydown="handleKeydown"
+                    @cursor-change="updateAutocomplete"
+                    @apply-suggestion="applySuggestion"
+                />
+            </template>
+
+            <!-- Raw 模式 -->
+            <template v-else>
+                <div class="flex-1 flex flex-col bg-base-100">
+                    <textarea
+                        v-model="rawContent"
+                        class="flex-1 w-full p-4 bg-base-100 text-base-content font-mono text-sm resize-none focus:outline-none"
+                        @input="handleRawContentChange"
+                        placeholder="原始 Markdown 內容..."
+                    ></textarea>
+                </div>
+            </template>
 
             <!-- Preview Pane -->
             <PreviewPane
@@ -55,6 +80,7 @@ import EditorHeader from './EditorHeader.vue';
 import EditorPane from './EditorPane.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
+import FrontmatterPanel from './FrontmatterPanel.vue';
 import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService';
 import { MarkdownService } from '@/services/MarkdownService';
 import { PreviewService } from '@/services/PreviewService';
@@ -74,9 +100,12 @@ const imageService = new ImageService();
 // Reactive data
 const content = ref('');
 const showPreview = ref(false);
+const showFrontmatterPanel = ref(true);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref('');
 const autoSaveTimer = ref<number | null>(null);
+const editorMode = ref<'compose' | 'raw'>('compose');
+const rawContent = ref('');
 
 // Component references
 const editorPaneRef = ref<InstanceType<typeof EditorPane>>();
@@ -167,6 +196,42 @@ function togglePreview() {
     showPreview.value = !showPreview.value;
     if (showPreview.value) {
         updatePreview();
+    }
+}
+
+function toggleEditorMode() {
+    if (editorMode.value === 'compose') {
+        // 切換到 Raw 模式 - 組合 frontmatter 和 content
+        editorMode.value = 'raw';
+        if (articleStore.currentArticle) {
+            rawContent.value = markdownService.combineContent(
+                articleStore.currentArticle.frontmatter,
+                articleStore.currentArticle.content
+            );
+        }
+    } else {
+        // 切換到撰寫模式 - 解析 raw content
+        editorMode.value = 'compose';
+        if (articleStore.currentArticle && rawContent.value) {
+            const parsed = markdownService.parseFrontmatter(rawContent.value);
+            articleStore.currentArticle.frontmatter = parsed.frontmatter;
+            articleStore.currentArticle.content = parsed.content;
+            content.value = parsed.content;
+        }
+    }
+}
+
+function handleRawContentChange() {
+    if (articleStore.currentArticle) {
+        // 解析並更新文章
+        const parsed = markdownService.parseFrontmatter(rawContent.value);
+        articleStore.currentArticle.frontmatter = parsed.frontmatter;
+        articleStore.currentArticle.content = parsed.content;
+        scheduleAutoSave();
+
+        if (showPreview.value) {
+            updatePreview();
+        }
     }
 }
 
@@ -390,7 +455,7 @@ function hideSuggestions() {
 
 function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
     const textarea = editorRef.value;
-    if (!textarea) return;
+    if (!textarea) {return;}
 
     const { selectionStart, selectionEnd } = textarea;
     const selectedText = textarea.value.substring(selectionStart, selectionEnd);
@@ -516,6 +581,11 @@ watch(
     (newArticle) => {
         if (newArticle) {
             content.value = newArticle.content;
+            // 更新 raw content
+            rawContent.value = markdownService.combineContent(
+                newArticle.frontmatter,
+                newArticle.content
+            );
             if (showPreview.value) {
                 updatePreview();
             }
