@@ -1,4 +1,5 @@
-import type { Article } from '@/types'
+import type { Article, SaveState, SaveStatus } from '@/types'
+import { ref, type Ref } from 'vue'
 
 /**
  * 自動儲存服務類別
@@ -12,6 +13,13 @@ export class AutoSaveService {
   private isEnabled: boolean = true
   private lastSavedContent: string = ''
   private lastSavedFrontmatter: string = ''
+
+  // 儲存狀態（響應式）
+  public readonly saveState: Ref<SaveState> = ref({
+    status: 'saved' as SaveStatus,
+    lastSavedAt: null,
+    error: null
+  })
 
   /**
    * 初始化自動儲存服務
@@ -80,11 +88,14 @@ export class AutoSaveService {
     // 檢查內容是否有變更
     if (this.hasContentChanged(currentArticle)) {
       console.log(`自動儲存文章: ${currentArticle.title}`)
+      this.updateSaveState('saving')
       try {
         await this.saveCallback(currentArticle)
         this.updateLastSavedContent(currentArticle)
+        this.updateSaveState('saved')
       } catch (error) {
         console.error('自動儲存失敗:', error)
+        this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
         // 不重新拋出錯誤，讓自動儲存繼續運行
       }
     }
@@ -104,10 +115,13 @@ export class AutoSaveService {
       // 檢查前一篇文章是否有變更
       if (this.hasContentChanged(previousArticle)) {
         console.log(`切換文章時自動儲存: ${previousArticle.title}`)
+        this.updateSaveState('saving')
         await this.saveCallback(previousArticle)
+        this.updateSaveState('saved')
       }
     } catch (error) {
       console.error('切換文章時自動儲存失敗:', error)
+      this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
     }
   }
 
@@ -119,15 +133,18 @@ export class AutoSaveService {
       return
     }
 
+    this.updateSaveState('saving')
     try {
       const currentArticle = this.getCurrentArticleCallback()
       if (currentArticle) {
         console.log(`手動儲存文章: ${currentArticle.title}`)
         await this.saveCallback(currentArticle)
         this.updateLastSavedContent(currentArticle)
+        this.updateSaveState('saved')
       }
     } catch (error) {
       console.error('手動儲存失敗:', error)
+      this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
       throw error
     }
   }
@@ -213,14 +230,75 @@ export class AutoSaveService {
   }
 
   /**
+   * 更新儲存狀態
+   * @param {SaveStatus} status - 新的儲存狀態
+   * @param {string | null} error - 錯誤訊息（僅當狀態為 error 時）
+   */
+  private updateSaveState(status: SaveStatus, error: string | null = null): void {
+    this.saveState.value = {
+      status,
+      lastSavedAt: status === 'saved' ? new Date() : this.saveState.value.lastSavedAt,
+      error: status === 'error' ? error : null
+    }
+  }
+
+  private markAsModifiedDebounceTimer: NodeJS.Timeout | null = null
+  private static DEBOUNCE_DELAY = 100 // 100ms debounce
+
+  /**
+   * 標記內容已修改
+   * 當使用者編輯內容時呼叫此方法
+   * 使用防抖避免頻繁更新狀態
+   */
+  markAsModified(): void {
+    // 清除現有的防抖計時器
+    if (this.markAsModifiedDebounceTimer) {
+      clearTimeout(this.markAsModifiedDebounceTimer)
+    }
+
+    // 設定新的防抖計時器
+    this.markAsModifiedDebounceTimer = setTimeout(() => {
+      if (this.saveState.value.status === 'saved') {
+        this.saveState.value = {
+          ...this.saveState.value,
+          status: 'modified',
+          error: null
+        }
+      }
+      this.markAsModifiedDebounceTimer = null
+    }, AutoSaveService.DEBOUNCE_DELAY)
+  }
+
+  /**
+   * 檢查是否有未儲存的變更
+   * @returns {boolean} 是否有未儲存的變更
+   */
+  hasUnsavedChanges(): boolean {
+    if (!this.getCurrentArticleCallback) {
+      return false
+    }
+    const currentArticle = this.getCurrentArticleCallback()
+    return currentArticle ? this.hasContentChanged(currentArticle) : false
+  }
+
+  /**
    * 清理資源，停止所有定時器
    */
   destroy(): void {
     this.stopAutoSave()
+    if (this.markAsModifiedDebounceTimer) {
+      clearTimeout(this.markAsModifiedDebounceTimer)
+      this.markAsModifiedDebounceTimer = null
+    }
     this.saveCallback = null
     this.getCurrentArticleCallback = null
     this.lastSavedContent = ''
     this.lastSavedFrontmatter = ''
+    this.saveState.value = {
+      status: 'saved',
+      lastSavedAt: null,
+      error: null
+    }
   }
 }
 
