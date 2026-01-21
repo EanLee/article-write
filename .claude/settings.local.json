@@ -11,7 +11,22 @@
       "Bash(pnpm run lint:*)",
       "Bash(pnpm run test:*)",
       "Bash(mcp query:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "mcp__serena__get_current_config",
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__activate_project",
+      "mcp__serena__find_symbol",
+      "Bash(pnpm add:*)",
+      "mcp__serena__find_file",
+      "mcp__serena__search_for_pattern",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm run dev)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
