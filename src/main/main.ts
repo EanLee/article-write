@@ -42,6 +42,7 @@ app.whenReady().then(() => {
   ipcMain.handle('read-file', (_, path: string) => fileService.readFile(path))
   ipcMain.handle('write-file', (_, path: string, content: string) => fileService.writeFile(path, content))
   ipcMain.handle('delete-file', (_, path: string) => fileService.deleteFile(path))
+  ipcMain.handle('copy-file', (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath))
   ipcMain.handle('read-directory', (_, path: string) => fileService.readDirectory(path))
   ipcMain.handle('create-directory', (_, path: string) => fileService.createDirectory(path))
   ipcMain.handle('get-file-stats', (_, path: string) => fileService.getFileStats(path))

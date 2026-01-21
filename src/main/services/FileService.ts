@@ -64,4 +64,14 @@ export class FileService {
       return null
     }
   }
+
+  async copyFile(sourcePath: string, targetPath: string): Promise<void> {
+    try {
+      // Ensure target directory exists
+      await fs.mkdir(dirname(targetPath), { recursive: true })
+      await fs.copyFile(sourcePath, targetPath)
+    } catch {
+      throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}`)
+    }
+  }
 }
