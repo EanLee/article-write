@@ -11,6 +11,11 @@ const isDev = !app.isPackaged
 
 let mainWindow: BrowserWindow
 
+// 模組級別服務實例，確保整個應用生命週期使用同一實例
+const fileService = new FileService()
+const configService = new ConfigService()
+const processService = new ProcessService()
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -33,11 +38,6 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow()
   
-  // Initialize services
-  const fileService = new FileService()
-  const configService = new ConfigService()
-  const processService = new ProcessService()
-  
   // Register IPC handlers
   ipcMain.handle('read-file', (_, path: string) => fileService.readFile(path))
   ipcMain.handle('write-file', (_, path: string, content: string) => fileService.writeFile(path, content))
@@ -55,6 +55,22 @@ app.whenReady().then(() => {
   ipcMain.handle('start-dev-server', (_, projectPath: string) => processService.startDevServer(projectPath))
   ipcMain.handle('stop-dev-server', () => processService.stopDevServer())
   ipcMain.handle('get-server-status', () => processService.getServerStatus())
+  
+  // 檔案監聽
+  ipcMain.handle('start-file-watching', (_, watchPath: string) => {
+    fileService.startWatching(watchPath, (event, filePath) => {
+      // 只監聽 .md 檔案
+      if (filePath.endsWith('.md')) {
+        mainWindow?.webContents.send('file-change', { event, path: filePath })
+      }
+    })
+    return true
+  })
+  ipcMain.handle('stop-file-watching', () => {
+    fileService.stopWatching()
+    return true
+  })
+  ipcMain.handle('is-file-watching', () => fileService.isWatching())
   
   // Directory selection
   ipcMain.handle('select-directory', async (_, options?: { title?: string, defaultPath?: string }) => {
@@ -81,7 +97,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
-  // Clean up any running processes
-  const processService = new ProcessService()
+  // 清理運行中的進程和檔案監聽
+  fileService.stopWatching()
   processService.stopDevServer()
 })

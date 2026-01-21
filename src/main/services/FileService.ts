@@ -1,7 +1,11 @@
 import { promises as fs } from 'fs'
 import { dirname } from 'path'
+import { watch, type FSWatcher } from 'chokidar'
 
 export class FileService {
+  private watcher: FSWatcher | null = null
+  private watchCallback: ((event: string, path: string) => void) | null = null
+
   async readFile(filePath: string): Promise<string> {
     try {
       return await fs.readFile(filePath, 'utf-8')
@@ -73,5 +77,51 @@ export class FileService {
     } catch {
       throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}`)
     }
+  }
+
+  /**
+   * 開始監聽指定目錄的檔案變更
+   */
+  startWatching(
+    watchPath: string,
+    callback: (event: string, path: string) => void
+  ): void {
+    // 如果已有監聽器，先停止
+    this.stopWatching()
+
+    this.watchCallback = callback
+    this.watcher = watch(watchPath, {
+      ignored: /(^|[\/\\])\../, // 忽略隱藏檔案
+      persistent: true,
+      ignoreInitial: true,
+      depth: 3, // 監聽深度：vault/status/category/file.md
+      awaitWriteFinish: {
+        stabilityThreshold: 300,
+        pollInterval: 100
+      }
+    })
+
+    this.watcher
+      .on('add', (path) => this.watchCallback?.('add', path))
+      .on('change', (path) => this.watchCallback?.('change', path))
+      .on('unlink', (path) => this.watchCallback?.('unlink', path))
+  }
+
+  /**
+   * 停止檔案監聽
+   */
+  stopWatching(): void {
+    if (this.watcher) {
+      this.watcher.close()
+      this.watcher = null
+      this.watchCallback = null
+    }
+  }
+
+  /**
+   * 檢查是否正在監聽
+   */
+  isWatching(): boolean {
+    return this.watcher !== null
   }
 }

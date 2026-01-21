@@ -35,6 +35,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
 
+  // 檔案監聽
+  startFileWatching: (watchPath: string) => ipcRenderer.invoke('start-file-watching', watchPath),
+  stopFileWatching: () => ipcRenderer.invoke('stop-file-watching'),
+  isFileWatching: () => ipcRenderer.invoke('is-file-watching'),
+  onFileChange: (callback: (data: { event: string; path: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { event: string; path: string }) => {
+      callback(data)
+    }
+    ipcRenderer.on('file-change', listener)
+    return () => {
+      ipcRenderer.removeListener('file-change', listener)
+    }
+  },
+
   // Directory selection
   selectDirectory: (options?: { title?: string, defaultPath?: string }) =>
     ipcRenderer.invoke('select-directory', options)

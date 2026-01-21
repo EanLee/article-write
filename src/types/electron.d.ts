@@ -8,6 +8,14 @@ export interface ServerLogData {
 }
 
 /**
+ * 檔案變更事件資料
+ */
+export interface FileChangeData {
+  event: 'add' | 'change' | 'unlink'
+  path: string
+}
+
+/**
  * 伺服器狀態
  */
 export interface ServerStatusResult {
@@ -45,6 +53,12 @@ export interface ElectronAPI {
 
   // 伺服器日誌事件
   onServerLog: (callback: (data: ServerLogData) => void) => () => void
+
+  // 檔案監聽
+  startFileWatching: (watchPath: string) => Promise<boolean>
+  stopFileWatching: () => Promise<boolean>
+  isFileWatching: () => Promise<boolean>
+  onFileChange: (callback: (data: FileChangeData) => void) => () => void
 
   // 目錄選擇
   selectDirectory: (options?: { title?: string; defaultPath?: string }) => Promise<string | null>
