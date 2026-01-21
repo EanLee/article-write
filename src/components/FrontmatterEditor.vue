@@ -155,6 +155,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { Article } from '@/types'
+import { autoSaveService } from '@/services/AutoSaveService'
 
 interface Props {
   modelValue: boolean
@@ -252,6 +253,9 @@ function handleSave() {
   // Update lastmod
   localArticle.value.frontmatter.lastmod = new Date().toISOString().split('T')[0]
   localArticle.value.lastModified = new Date()
+
+  // 標記內容已修改
+  autoSaveService.markAsModified()
 
   emit('update', localArticle.value)
   emit('update:modelValue', false)
