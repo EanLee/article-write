@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue'
 import type { Article, ArticleFilter } from '@/types'
 import { MarkdownService } from '@/services/MarkdownService'
 import { autoSaveService } from '@/services/AutoSaveService'
+import { backupService } from '@/services/BackupService'
+import { notify } from '@/services/NotificationService'
 import { useConfigStore } from './config'
 
 export const useArticleStore = defineStore('article', () => {
@@ -115,7 +117,7 @@ export const useArticleStore = defineStore('article', () => {
           for (const category of categories) {
             const categoryPath = `${folder.path}/${category}`
             const catStats = await window.electronAPI.getFileStats(categoryPath)
-            if (!catStats?.isDirectory) continue
+            if (!catStats?.isDirectory) {continue}
             
             // Read markdown files in category
             const files = await window.electronAPI.readDirectory(categoryPath)
@@ -174,7 +176,7 @@ export const useArticleStore = defineStore('article', () => {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
       }
-      
+
       const vaultPath = configStore.config.paths.obsidianVault
       if (!vaultPath) {
         throw new Error('Obsidian vault path not configured')
@@ -182,7 +184,7 @@ export const useArticleStore = defineStore('article', () => {
 
       const slug = generateSlug(title)
       const now = new Date()
-      
+
       const article: Article = {
         id: generateId(),
         title,
@@ -203,20 +205,22 @@ export const useArticleStore = defineStore('article', () => {
       // Create directory structure
       const categoryPath = `${vaultPath}/Drafts/${article.category}`
       article.filePath = `${categoryPath}/${article.slug}.md`
-      
+
       // Ensure directory exists
       await window.electronAPI.createDirectory(categoryPath)
-      
+
       // Generate initial markdown content
       const markdownContent = _markdownService.generateMarkdown(article.frontmatter, article.content)
-      
+
       // Write file
       await window.electronAPI.writeFile(article.filePath, markdownContent)
-      
+
       articles.value.push(article)
+      notify.success('建立成功', `已建立「${title}」`)
       return article
     } catch (error) {
       console.error('Failed to create article:', error)
+      notify.error('建立失敗', error instanceof Error ? error.message : '無法建立文章')
       throw error
     }
   }
@@ -226,19 +230,37 @@ export const useArticleStore = defineStore('article', () => {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
       }
-      
+
+      // 檢測衝突
+      const conflictResult = await backupService.detectConflict(updatedArticle)
+      if (conflictResult.hasConflict) {
+        notify.warning(
+          '檔案衝突',
+          '檔案在外部被修改，建議重新載入',
+          {
+            action: {
+              label: '重新載入',
+              callback: () => reloadArticle(updatedArticle.id)
+            }
+          }
+        )
+      }
+
+      // 建立備份
+      backupService.createBackup(updatedArticle)
+
       // Update lastModified timestamp
       updatedArticle.lastModified = new Date()
-      
+
       // Generate markdown content
       const markdownContent = _markdownService.generateMarkdown(
         updatedArticle.frontmatter,
         updatedArticle.content
       )
-      
+
       // Save to file
       await window.electronAPI.writeFile(updatedArticle.filePath, markdownContent)
-      
+
       // Update in store
       const index = articles.value.findIndex(a => a.id === updatedArticle.id)
       if (index !== -1) {
@@ -246,6 +268,7 @@ export const useArticleStore = defineStore('article', () => {
       }
     } catch (error) {
       console.error('Failed to update article:', error)
+      notify.error('儲存失敗', error instanceof Error ? error.message : '無法儲存文章')
       throw error
     }
   }
@@ -255,15 +278,18 @@ export const useArticleStore = defineStore('article', () => {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
       }
-      
+
       const article = articles.value.find(a => a.id === id)
       if (!article) {
         throw new Error('Article not found')
       }
 
+      // 建立備份（以防需要復原）
+      backupService.createBackup(article)
+
       // Delete file from file system
       await window.electronAPI.deleteFile(article.filePath)
-      
+
       // Remove from store
       const index = articles.value.findIndex(a => a.id === id)
       if (index !== -1) {
@@ -272,8 +298,11 @@ export const useArticleStore = defineStore('article', () => {
           currentArticle.value = null
         }
       }
+
+      notify.success('刪除成功', `已刪除「${article.title}」`)
     } catch (error) {
       console.error('Failed to delete article:', error)
+      notify.error('刪除失敗', error instanceof Error ? error.message : '無法刪除文章')
       throw error
     }
   }
@@ -283,7 +312,7 @@ export const useArticleStore = defineStore('article', () => {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
       }
-      
+
       const article = articles.value.find(a => a.id === id)
       if (!article) {
         throw new Error('Article not found')
@@ -295,29 +324,35 @@ export const useArticleStore = defineStore('article', () => {
           throw new Error('Obsidian vault path not configured')
         }
 
+        // 建立備份
+        backupService.createBackup(article)
+
         // Create new path
         const publishPath = `${vaultPath}/Publish/${article.category}`
         const newFilePath = `${publishPath}/${article.slug}.md`
-        
+
         // Ensure publish directory exists
         await window.electronAPI.createDirectory(publishPath)
-        
+
         // Read current content
         const content = await window.electronAPI.readFile(article.filePath)
-        
+
         // Write to new location
         await window.electronAPI.writeFile(newFilePath, content)
-        
+
         // Delete old file
         await window.electronAPI.deleteFile(article.filePath)
-        
+
         // Update article in store
         article.status = 'published'
         article.filePath = newFilePath
         article.lastModified = new Date()
+
+        notify.success('發布成功', `「${article.title}」已移至發布區`)
       }
     } catch (error) {
       console.error('Failed to move article to published:', error)
+      notify.error('發布失敗', error instanceof Error ? error.message : '無法移動文章')
       throw error
     }
   }
