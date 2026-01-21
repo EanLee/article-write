@@ -81,21 +81,17 @@ import EditorPane from './EditorPane.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
 import FrontmatterPanel from './FrontmatterPanel.vue';
-import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService';
-import { MarkdownService } from '@/services/MarkdownService';
-import { PreviewService } from '@/services/PreviewService';
-import { ImageService, type ImageValidationWarning } from '@/services/ImageService';
+import { useServices } from '@/composables/useServices';
+import { useAutocomplete } from '@/composables/useAutocomplete';
+import { useEditorShortcuts } from '@/composables/useEditorShortcuts';
+import { useEditorValidation } from '@/composables/useEditorValidation';
 import type { Article } from '@/types';
-import type { SuggestionItem, SyntaxError, AutocompleteContext } from '@/services/ObsidianSyntaxService';
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
 
-// Initialize services
-const obsidianSyntax = new ObsidianSyntaxService();
-const markdownService = new MarkdownService();
-const previewService = new PreviewService();
-const imageService = new ImageService();
+// 使用服務單例
+const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, imageService } = useServices();
 
 // Reactive data
 const content = ref('');
@@ -110,18 +106,42 @@ const rawContent = ref('');
 // Component references
 const editorPaneRef = ref<InstanceType<typeof EditorPane>>();
 
-// Obsidian syntax support data
-const suggestions = ref<SuggestionItem[]>([]);
-const showSuggestions = ref(false);
-const selectedSuggestionIndex = ref(0);
-const syntaxErrors = ref<SyntaxError[]>([]);
-const dropdownPosition = ref({ top: 0, left: 0 });
-const imageFiles = ref<string[]>([]);
-const allTags = ref<string[]>([]);
-const imageValidationWarnings = ref<ImageValidationWarning[]>([]);
-
 // Get editorRef from EditorPane component
 const editorRef = computed(() => editorPaneRef.value?.editorRef);
+
+// 使用 Composables
+const {
+  suggestions,
+  showSuggestions,
+  selectedSuggestionIndex,
+  dropdownPosition,
+  updateAutocomplete,
+  applySuggestion,
+  hideSuggestions,
+  handleAutocompleteKeydown
+} = useAutocomplete(editorRef, content);
+
+const {
+  insertMarkdownSyntax,
+  insertTable,
+  handleShortcuts,
+  handleAutoPairing
+} = useEditorShortcuts(editorRef, content, {
+  onSave: saveArticle,
+  onTogglePreview: togglePreview
+});
+
+const {
+  syntaxErrors,
+  imageValidationWarnings,
+  validateSyntax,
+  debounceValidation,
+  cleanup: cleanupValidation
+} = useEditorValidation(content);
+
+// 其他狀態
+const imageFiles = ref<string[]>([]);
+const allTags = ref<string[]>([]);
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -137,9 +157,6 @@ const previewValidation = ref({
     validLinks: [] as string[],
     invalidLinks: [] as string[]
 });
-
-// Validation timer
-let validationTimeout: number | null = null;
 
 // Methods
 function handleContentChange() {
@@ -293,245 +310,30 @@ function handleFrontmatterUpdate(updatedArticle: Article) {
     articleStore.updateArticle(updatedArticle);
 }
 
-// Enhanced keyboard handling with shortcuts
+// 鍵盤事件處理（整合 composables）
 function handleKeydown(event: KeyboardEvent) {
-    // Handle autocomplete suggestions first
-    if (showSuggestions.value && suggestions.value.length > 0) {
-        switch (event.key) {
-            case 'ArrowDown':
-                event.preventDefault();
-                selectedSuggestionIndex.value = Math.min(
-                    selectedSuggestionIndex.value + 1,
-                    suggestions.value.length - 1
-                );
-                break;
-            case 'ArrowUp':
-                event.preventDefault();
-                selectedSuggestionIndex.value = Math.max(selectedSuggestionIndex.value - 1, 0);
-                break;
-            case 'Enter':
-            case 'Tab':
-                event.preventDefault();
-                applySuggestion(suggestions.value[selectedSuggestionIndex.value]);
-                break;
-            case 'Escape':
-                hideSuggestions();
-                break;
-        }
+    // 先處理自動完成
+    if (handleAutocompleteKeydown(event)) {
         return;
     }
-
-    // Enhanced keyboard shortcuts
-    if (event.ctrlKey || event.metaKey) {
-        switch (event.key) {
-            case 's':
-                event.preventDefault();
-                saveArticle();
-                break;
-            case 'b':
-                event.preventDefault();
-                insertMarkdownSyntax('**', '**', '粗體文字');
-                break;
-            case 'i':
-                event.preventDefault();
-                insertMarkdownSyntax('*', '*', '斜體文字');
-                break;
-            case 'k':
-                event.preventDefault();
-                insertMarkdownSyntax('[[', ']]', '連結文字');
-                break;
-            case 'e':
-                event.preventDefault();
-                insertMarkdownSyntax('==', '==', '高亮文字');
-                break;
-            case '/':
-                event.preventDefault();
-                togglePreview();
-                break;
-        }
-    }
-
-    // Auto-pairing for brackets and quotes
-    if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-        const textarea = event.target as HTMLTextAreaElement;
-        const { selectionStart } = textarea;
-
-        switch (event.key) {
-            case '[':
-                if (textarea.value[selectionStart - 1] === '[') {
-                    event.preventDefault();
-                    insertMarkdownSyntax('', ']]', '');
-                }
-                break;
-            case '(':
-                event.preventDefault();
-                insertMarkdownSyntax('(', ')', '');
-                break;
-            case '"':
-                event.preventDefault();
-                insertMarkdownSyntax('"', '"', '');
-                break;
-            case "'":
-                event.preventDefault();
-                insertMarkdownSyntax("'", "'", '');
-                break;
-            case '`':
-                event.preventDefault();
-                if (selectionStart > 0 && textarea.value[selectionStart - 1] === '`') {
-                    insertMarkdownSyntax('`', '```', '');
-                } else {
-                    insertMarkdownSyntax('`', '`', '');
-                }
-                break;
-        }
-    }
-}
-
-function updateAutocomplete() {
-    const textarea = editorRef.value;
-    if (!textarea) {
+    
+    // 處理快捷鍵
+    if (handleShortcuts(event)) {
         return;
     }
-
-    const cursorPosition = textarea.selectionStart;
-    const text = textarea.value;
-
-    // 建立自動完成上下文
-    const context: AutocompleteContext = {
-        text,
-        cursorPosition,
-        lineNumber: text.substring(0, cursorPosition).split('\n').length,
-        columnNumber: cursorPosition - text.lastIndexOf('\n', cursorPosition - 1)
-    };
-
-    // 使用 ObsidianSyntaxService 取得建議
-    suggestions.value = obsidianSyntax.getAutocompleteSuggestions(context);
-
-    if (suggestions.value.length > 0) {
-        selectedSuggestionIndex.value = 0;
-        showSuggestions.value = true;
-        updateDropdownPosition();
-    } else {
-        hideSuggestions();
-    }
+    
+    // 處理自動配對
+    handleAutoPairing(event);
 }
 
-function updateDropdownPosition() {
-    const textarea = editorRef.value;
-    if (!textarea) {
-        return;
-    }
-
-    const cursorPosition = textarea.selectionStart;
-
-    // 使用 ObsidianSyntaxService 計算下拉選單位置
-    dropdownPosition.value = obsidianSyntax.calculateDropdownPosition(textarea, cursorPosition);
-}
-
-function applySuggestion(suggestion: SuggestionItem) {
-    const textarea = editorRef.value;
-    if (!textarea) {
-        return;
-    }
-
-    const cursorPosition = textarea.selectionStart;
-
-    // 使用 ObsidianSyntaxService 應用建議
-    const newText = obsidianSyntax.applySuggestionToText(textarea, suggestion, cursorPosition);
-    content.value = newText;
-
-    if (articleStore.currentArticle) {
-        articleStore.currentArticle.content = newText;
-    }
-
-    hideSuggestions();
-}
-
-function hideSuggestions() {
-    showSuggestions.value = false;
-    suggestions.value = [];
-    selectedSuggestionIndex.value = 0;
-}
-
-function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
-    const textarea = editorRef.value;
-    if (!textarea) {return;}
-
-    const { selectionStart, selectionEnd } = textarea;
-    const selectedText = textarea.value.substring(selectionStart, selectionEnd);
-    const textToInsert = selectedText || placeholder;
-
-    const beforeText = textarea.value.substring(0, selectionStart);
-    const afterText = textarea.value.substring(selectionEnd);
-
-    const newText = beforeText + before + textToInsert + after + afterText;
-    content.value = newText;
-
-    if (articleStore.currentArticle) {
-        articleStore.currentArticle.content = newText;
-    }
-
-    // Set cursor position
-    const newCursorStart = selectionStart + before.length;
-    const newCursorEnd = newCursorStart + textToInsert.length;
-
-    setTimeout(() => {
-        textarea.setSelectionRange(newCursorStart, newCursorEnd);
-        textarea.focus();
-    }, 0);
-}
-
-function insertTable() {
-    const tableTemplate = `| 標題1 | 標題2 | 標題3 |
-|-------|-------|-------|
-| 內容1 | 內容2 | 內容3 |
-| 內容4 | 內容5 | 內容6 |
-
-`;
-    insertMarkdownSyntax('', '', tableTemplate);
-}
-
-function debounceValidation() {
-    if (validationTimeout) {
-        clearTimeout(validationTimeout);
-    }
-
-    validationTimeout = setTimeout(() => {
-        validateSyntax();
-    }, 500); // 500ms debounce
-}
-
-async function validateSyntax() {
-    // 使用 ObsidianSyntaxService 和 MarkdownService 進行語法驗證
-    const obsidianErrors = obsidianSyntax.validateSyntax(content.value);
-    const markdownErrors = markdownService.validateMarkdownSyntax(content.value);
-
-    // 進行圖片驗證
-    const imageWarnings = await imageService.getImageValidationWarnings(content.value);
-    imageValidationWarnings.value = imageWarnings;
-
-    // 將圖片驗證警告轉換為語法錯誤格式
-    const imageErrors: SyntaxError[] = imageWarnings.map(warning => ({
-        line: warning.line,
-        column: warning.column,
-        message: warning.message,
-        type: warning.severity,
-        suggestion: warning.suggestion
-    }));
-
-    // 合併所有驗證結果
-    syntaxErrors.value = [
-        ...obsidianErrors,
-        ...markdownErrors.map((error) => ({
-            line: error.line,
-            column: 0, // MarkdownService doesn't provide column info
-            message: error.message,
-            type: error.type as 'error' | 'warning',
-            suggestion: ''
-        })),
-        ...imageErrors
-    ];
-}
+// 注意：以下方法已移至 composables
+// - updateAutocomplete -> useAutocomplete
+// - applySuggestion -> useAutocomplete
+// - hideSuggestions -> useAutocomplete
+// - insertMarkdownSyntax -> useEditorShortcuts
+// - insertTable -> useEditorShortcuts
+// - validateSyntax -> useEditorValidation
+// - debounceValidation -> useEditorValidation
 
 async function initializeObsidianSupport() {
     try {
@@ -594,9 +396,10 @@ watch(
     { immediate: true }
 );
 
-// Watch for articles changes to update tags and services
+// Watch for articles list changes (add/remove) to update tags and services
+// 使用淺層監聽 + length 監聽，避免深層監聽帶來的效能問題
 watch(
-    () => articleStore.articles,
+    () => articleStore.articles.length,
     () => {
         // 更新 ObsidianSyntaxService 的文章清單
         obsidianSyntax.updateArticles(articleStore.articles);
@@ -610,7 +413,7 @@ watch(
         });
         allTags.value = Array.from(tagSet);
     },
-    { deep: true }
+    { immediate: true }
 );
 
 // Watch for vault path changes to update image files
@@ -662,8 +465,6 @@ onUnmounted(() => {
     if (autoSaveTimer.value) {
         clearTimeout(autoSaveTimer.value);
     }
-    if (validationTimeout) {
-        clearTimeout(validationTimeout);
-    }
+    cleanupValidation();
 });
 </script>
