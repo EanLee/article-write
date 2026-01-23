@@ -35,7 +35,9 @@
       "mcp__plugin_serena_serena__replace_symbol_body",
       "mcp__plugin_serena_serena__replace_content",
       "mcp__plugin_serena_serena__search_for_pattern",
-      "mcp__plugin_serena_serena__create_text_file"
+      "mcp__plugin_serena_serena__create_text_file",
+      "mcp__plugin_serena_serena__check_onboarding_performed",
+      "mcp__plugin_serena_serena__read_file"
     ]
   }
 }
