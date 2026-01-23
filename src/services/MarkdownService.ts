@@ -267,7 +267,7 @@ export class MarkdownService {
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
       // Create a clean object with only defined values
-      const cleanData: unknown = {}
+      const cleanData: any = {}
       
       if (data.title) {cleanData.title = data.title}
       if (data.description) {cleanData.description = data.description}
@@ -277,6 +277,9 @@ export class MarkdownService {
       if (data.categories && data.categories.length > 0) { cleanData.categories = data.categories }
       if (data.slug) { cleanData.slug = data.slug }
       if (data.keywords && data.keywords.length > 0) { cleanData.keywords = data.keywords }
+      // 新增系列欄位支援
+      if (data.series) { cleanData.series = data.series }
+      if (data.seriesOrder) { cleanData.seriesOrder = data.seriesOrder }
 
       const yamlString = yaml.dump(cleanData, {
         indent: 2,
