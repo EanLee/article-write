@@ -27,6 +27,32 @@ function createWindow() {
     }
   })
 
+  // 設定 Content Security Policy
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          isDev
+            ? // 開發模式：允許 Vite 開發伺服器和熱更新
+              "default-src 'self'; " +
+              "script-src 'self' 'unsafe-inline' http://localhost:3002; " +
+              "style-src 'self' 'unsafe-inline' http://localhost:3002; " +
+              "img-src 'self' data: http://localhost:3002; " +
+              "connect-src 'self' ws://localhost:3002 http://localhost:3002; " +
+              "font-src 'self' data:;"
+            : // 生產模式：更嚴格的策略
+              "default-src 'self'; " +
+              "script-src 'self'; " +
+              "style-src 'self' 'unsafe-inline'; " +
+              "img-src 'self' data:; " +
+              "connect-src 'self'; " +
+              "font-src 'self' data:;"
+        ]
+      }
+    })
+  })
+
   if (isDev) {
     mainWindow.loadURL('http://localhost:3002')
     mainWindow.webContents.openDevTools()
