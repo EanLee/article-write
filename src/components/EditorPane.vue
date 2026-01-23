@@ -1,7 +1,7 @@
 <template>
   <div :class="showPreview ? 'w-1/2' : 'w-full'" class="flex flex-col">
     <!-- Editor Textarea -->
-    <div class="flex-1 p-4 relative">
+    <div class="flex-1 p-4 relative overflow-hidden">
       <textarea
         ref="editorRef"
         :value="modelValue"
@@ -128,6 +128,21 @@
         </div>
       </div>
     </div>
+    
+    <!-- Editor Status Bar -->
+    <EditorStatusBar
+      :content="modelValue"
+      :cursor-position="cursorPosition"
+      :selection-start="selectionStart"
+      :selection-end="selectionEnd"
+      :show-preview="showPreview"
+      :sync-scroll="syncScroll"
+      :show-line-numbers="showLineNumbers"
+      :word-wrap="wordWrap"
+      @toggle-sync-scroll="$emit('toggle-sync-scroll')"
+      @toggle-line-numbers="$emit('toggle-line-numbers')"
+      @toggle-word-wrap="$emit('toggle-word-wrap')"
+    />
   </div>
 </template>
 
@@ -136,6 +151,7 @@ import { ref, computed } from 'vue'
 import type { SuggestionItem, SyntaxError } from '@/services/ObsidianSyntaxService'
 import type { ImageValidationWarning } from '@/services/ImageService'
 import { autoSaveService } from '@/services/AutoSaveService'
+import EditorStatusBar from './EditorStatusBar.vue'
 
 interface Props {
   modelValue: string
@@ -157,9 +173,20 @@ const emit = defineEmits<{
   'keydown': [event: KeyboardEvent]
   'cursor-change': []
   'apply-suggestion': [suggestion: SuggestionItem]
+  'toggle-sync-scroll': []
+  'toggle-line-numbers': []
+  'toggle-word-wrap': []
 }>()
 
 const editorRef = ref<HTMLTextAreaElement>()
+
+// 狀態列相關狀態
+const cursorPosition = ref(0)
+const selectionStart = ref(0)
+const selectionEnd = ref(0)
+const syncScroll = ref(false)
+const showLineNumbers = ref(false)
+const wordWrap = ref(true)
 
 const hasErrors = computed(() => 
   props.syntaxErrors.some(error => error.type === 'error') ||
@@ -204,6 +231,11 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleCursorChange() {
+  if (editorRef.value) {
+    cursorPosition.value = editorRef.value.selectionStart
+    selectionStart.value = editorRef.value.selectionStart
+    selectionEnd.value = editorRef.value.selectionEnd
+  }
   emit('cursor-change')
 }
 
