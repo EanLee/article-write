@@ -58,9 +58,10 @@
         <div class="card-body p-3">
           <div class="flex justify-between items-start gap-2 mb-2">
             <h3 
-              class="card-title text-sm transition-all flex-1 min-w-0 line-clamp-2"
+              class="text-sm font-medium transition-all flex-1 min-w-0 overflow-hidden"
               :class="{ 'font-bold text-primary': article.id === articleStore.currentArticle?.id }"
               :title="article.title"
+              style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
             >
               {{ article.title }}
             </h3>
@@ -75,29 +76,30 @@
           <!-- 系列資訊 -->
           <div 
             v-if="article.frontmatter.series" 
-            class="text-xs text-primary mb-2 flex items-center gap-1 truncate"
+            class="text-xs text-primary mb-2 flex items-center gap-1 min-w-0"
             :title="`系列: ${article.frontmatter.series}${article.frontmatter.seriesOrder ? ` #${article.frontmatter.seriesOrder}` : ''}`"
           >
-            <span>📚</span>
+            <span class="shrink-0">📚</span>
             <span class="truncate">{{ article.frontmatter.series }}</span>
             <span v-if="article.frontmatter.seriesOrder" class="shrink-0">#{{ article.frontmatter.seriesOrder }}</span>
           </div>
           
-          <div class="flex justify-between text-xs text-base-content/70 mb-2">
+          <div class="flex justify-between items-center gap-2 text-xs text-base-content/70 mb-2">
             <span class="badge badge-outline badge-xs shrink-0">{{ article.category }}</span>
-            <span class="shrink-0">{{ formatDate(article.lastModified) }}</span>
+            <span class="shrink-0 text-xs">{{ formatDate(article.lastModified) }}</span>
           </div>
 
           <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags && article.frontmatter.tags.length > 0">
-            <div
+            <span
               v-for="tag in article.frontmatter.tags.slice(0, 3)"
               :key="tag"
-              class="badge badge-ghost badge-xs truncate max-w-[80px]"
+              class="badge badge-ghost badge-xs"
               :title="tag"
+              style="max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
             >
               {{ tag }}
-            </div>
-            <span v-if="article.frontmatter.tags.length > 3" class="text-xs text-base-content/50 shrink-0">
+            </span>
+            <span v-if="article.frontmatter.tags.length > 3" class="badge badge-ghost badge-xs shrink-0">
               +{{ article.frontmatter.tags.length - 3 }}
             </span>
           </div>
