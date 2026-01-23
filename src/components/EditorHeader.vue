@@ -2,10 +2,19 @@
   <header class="bg-base-200 border-b border-base-300 p-4">
     <div class="flex justify-between items-center">
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center gap-3 mb-1">
           <h2 class="text-lg font-semibold truncate">{{ article?.title }}</h2>
           <!-- 儲存狀態指示器 -->
           <SaveStatusIndicator :show-save-button="true" />
+        </div>
+        <!-- 文件路徑 -->
+        <div 
+          v-if="article?.filePath" 
+          class="text-xs text-base-content/50 mb-2 flex items-center gap-1 font-mono"
+          :title="article.filePath"
+        >
+          <FileText :size="12" />
+          <span class="truncate">{{ article.filePath }}</span>
         </div>
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <div
@@ -15,6 +24,15 @@
             {{ statusText }}
           </div>
           <span class="badge badge-sm badge-outline">{{ article?.category }}</span>
+          <!-- 系列名稱 -->
+          <span 
+            v-if="article?.frontmatter.series" 
+            class="badge badge-sm badge-primary badge-outline"
+            :title="`系列: ${article.frontmatter.series}${article.frontmatter.seriesOrder ? ` (${article.frontmatter.seriesOrder})` : ''}`"
+          >
+            📚 {{ article.frontmatter.series }}
+            <span v-if="article.frontmatter.seriesOrder" class="ml-1">#{{ article.frontmatter.seriesOrder }}</span>
+          </span>
           <span class="text-base-content/70 text-xs whitespace-nowrap">
             最後修改: {{ formatDate(article?.lastModified) }}
           </span>
@@ -101,7 +119,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Article } from '@/types'
-import { Menu, Edit3, Upload, Eye, EyeOff, FileCode, FileEdit } from 'lucide-vue-next'
+import { Menu, Edit3, Upload, Eye, EyeOff, FileCode, FileEdit, FileText } from 'lucide-vue-next'
 import SaveStatusIndicator from '@/components/SaveStatusIndicator.vue'
 
 interface Props {

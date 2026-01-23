@@ -56,35 +56,48 @@
         @click="selectArticle(article)"
       >
         <div class="card-body p-3">
-          <div class="flex justify-between items-start mb-2">
+          <div class="flex justify-between items-start gap-2 mb-2">
             <h3 
-              class="card-title text-sm transition-all"
+              class="card-title text-sm transition-all flex-1 min-w-0 line-clamp-2"
               :class="{ 'font-bold text-primary': article.id === articleStore.currentArticle?.id }"
+              :title="article.title"
             >
               {{ article.title }}
             </h3>
             <div 
-              class="badge badge-sm"
+              class="badge badge-sm shrink-0"
               :class="article.status === 'published' ? 'badge-success' : 'badge-info'"
             >
               {{ article.status === 'published' ? '已發布' : '草稿' }}
             </div>
           </div>
           
+          <!-- 系列資訊 -->
+          <div 
+            v-if="article.frontmatter.series" 
+            class="text-xs text-primary mb-2 flex items-center gap-1 truncate"
+            :title="`系列: ${article.frontmatter.series}${article.frontmatter.seriesOrder ? ` #${article.frontmatter.seriesOrder}` : ''}`"
+          >
+            <span>📚</span>
+            <span class="truncate">{{ article.frontmatter.series }}</span>
+            <span v-if="article.frontmatter.seriesOrder" class="shrink-0">#{{ article.frontmatter.seriesOrder }}</span>
+          </div>
+          
           <div class="flex justify-between text-xs text-base-content/70 mb-2">
-            <span class="badge badge-outline badge-xs">{{ article.category }}</span>
-            <span>{{ formatDate(article.lastModified) }}</span>
+            <span class="badge badge-outline badge-xs shrink-0">{{ article.category }}</span>
+            <span class="shrink-0">{{ formatDate(article.lastModified) }}</span>
           </div>
 
           <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags && article.frontmatter.tags.length > 0">
             <div
               v-for="tag in article.frontmatter.tags.slice(0, 3)"
               :key="tag"
-              class="badge badge-ghost badge-xs"
+              class="badge badge-ghost badge-xs truncate max-w-[80px]"
+              :title="tag"
             >
               {{ tag }}
             </div>
-            <span v-if="article.frontmatter.tags.length > 3" class="text-xs text-base-content/50">
+            <span v-if="article.frontmatter.tags.length > 3" class="text-xs text-base-content/50 shrink-0">
               +{{ article.frontmatter.tags.length - 3 }}
             </span>
           </div>
