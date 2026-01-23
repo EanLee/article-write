@@ -1,5 +1,5 @@
 <template>
-    <div class="h-full flex flex-col">
+    <div class="h-full flex flex-col relative">
         <!-- Editor Header -->
         <EditorHeader
             :article="articleStore.currentArticle"
@@ -18,6 +18,15 @@
             v-if="editorMode === 'compose'"
             :visible="showFrontmatterPanel"
             :article="articleStore.currentArticle"
+        />
+        
+        <!-- Search/Replace Panel -->
+        <SearchReplace
+            :visible="isSearchVisible"
+            :content="content"
+            @close="closeSearch"
+            @replace="replace"
+            @highlight="handleSearchHighlight"
         />
 
         <!-- Editor Content -->
@@ -73,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
+import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue';
 import { useArticleStore } from '@/stores/article';
 import { useConfigStore } from '@/stores/config';
 import EditorHeader from './EditorHeader.vue';
@@ -81,10 +90,13 @@ import EditorPane from './EditorPane.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
 import FrontmatterPanel from './FrontmatterPanel.vue';
+import SearchReplace from './SearchReplace.vue';
 import { useServices } from '@/composables/useServices';
 import { useAutocomplete } from '@/composables/useAutocomplete';
 import { useEditorShortcuts } from '@/composables/useEditorShortcuts';
 import { useEditorValidation } from '@/composables/useEditorValidation';
+import { useUndoRedo } from '@/composables/useUndoRedo';
+import { useSearchReplace } from '@/composables/useSearchReplace';
 import type { Article } from '@/types';
 
 const articleStore = useArticleStore();
@@ -121,6 +133,63 @@ const {
   handleAutocompleteKeydown
 } = useAutocomplete(editorRef, content);
 
+// Undo/Redo 系統
+const {
+  canUndo,
+  canRedo,
+  pushHistory,
+  undo,
+  redo,
+  initialize: initializeHistory,
+} = useUndoRedo();
+
+// 搜尋/替換功能
+const {
+  isSearchVisible,
+  openSearch,
+  closeSearch,
+  replace,
+  jumpToMatch,
+} = useSearchReplace(
+  () => content.value,
+  (newContent) => { content.value = newContent },
+  () => editorRef.value?.selectionStart || 0,
+  (position) => {
+    if (editorRef.value) {
+      editorRef.value.setSelectionRange(position, position)
+      editorRef.value.focus()
+    }
+  }
+);
+
+// 處理 Undo
+function handleUndo() {
+  const state = undo()
+  if (state) {
+    content.value = state.content
+    nextTick(() => {
+      if (editorRef.value) {
+        editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
+        editorRef.value.focus()
+      }
+    })
+  }
+}
+
+// 處理 Redo
+function handleRedo() {
+  const state = redo()
+  if (state) {
+    content.value = state.content
+    nextTick(() => {
+      if (editorRef.value) {
+        editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
+        editorRef.value.focus()
+      }
+    })
+  }
+}
+
 const {
   insertMarkdownSyntax,
   insertTable,
@@ -128,7 +197,14 @@ const {
   handleAutoPairing
 } = useEditorShortcuts(editorRef, content, {
   onSave: saveArticle,
-  onTogglePreview: togglePreview
+  onTogglePreview: togglePreview,
+  onUndo: handleUndo,
+  onRedo: handleRedo,
+  onSearch: openSearch,
+  onReplace: () => {
+    openSearch()
+    // 搜尋面板會自動處理替換模式
+  }
 });
 
 const {
@@ -175,8 +251,18 @@ function handleContentChange() {
 }
 
 // Watch content changes
-watch(content, () => {
+let historyTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(content, (newContent) => {
     handleContentChange();
+    
+    // 記錄歷史（防抖 500ms）
+    if (historyTimeout) {
+        clearTimeout(historyTimeout);
+    }
+    historyTimeout = setTimeout(() => {
+        const cursorPos = editorRef.value?.selectionStart || 0;
+        pushHistory(newContent, cursorPos);
+    }, 500);
 });
 
 function scheduleAutoSave() {
@@ -308,6 +394,36 @@ function updatePreview() {
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
     articleStore.updateArticle(updatedArticle);
+}
+
+// 搜尋高亮處理
+function handleSearchHighlight(
+  matches: Array<{ start: number; end: number }>,
+  currentIndex: number
+) {
+  if (matches.length === 0 || !editorRef.value) return;
+
+  const match = matches[currentIndex];
+  
+  // 選取匹配的文字
+  editorRef.value.setSelectionRange(match.start, match.end);
+  editorRef.value.focus();
+
+  // 滾動到可見區域
+  scrollToSelection();
+}
+
+function scrollToSelection() {
+  if (!editorRef.value) return;
+  
+  const textarea = editorRef.value;
+  const selectionStart = textarea.selectionStart;
+  const textBeforeSelection = textarea.value.substring(0, selectionStart);
+  const lines = textBeforeSelection.split('\n');
+  const lineHeight = 24; // 根據實際行高調整
+  const scrollTop = (lines.length - 1) * lineHeight;
+  
+  textarea.scrollTop = scrollTop - textarea.clientHeight / 2;
 }
 
 // 鍵盤事件處理（整合 composables）
@@ -451,6 +567,9 @@ onMounted(() => {
 
     // Initial syntax validation
     validateSyntax();
+    
+    // 初始化歷史記錄
+    initializeHistory(content.value, 0);
 
     // Click outside to hide suggestions
     document.addEventListener('click', (event) => {

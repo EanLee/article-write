@@ -6,6 +6,10 @@ import { ref, type Ref } from 'vue'
 export interface EditorShortcutsOptions {
   onSave?: () => void
   onTogglePreview?: () => void
+  onUndo?: () => void
+  onRedo?: () => void
+  onSearch?: () => void
+  onReplace?: () => void
 }
 
 export function useEditorShortcuts(
@@ -59,10 +63,33 @@ export function useEditorShortcuts(
   function handleShortcuts(event: KeyboardEvent): boolean {
     // 編輯器快捷鍵
     if (event.ctrlKey || event.metaKey) {
+      // 處理 Shift 組合鍵
+      if (event.shiftKey) {
+        switch (event.key) {
+          case 'Z': // Ctrl+Shift+Z: 重做
+            event.preventDefault()
+            options.onRedo?.()
+            return true
+        }
+      }
+      
+      // 處理一般 Ctrl 鍵
       switch (event.key) {
         case 's':
           event.preventDefault()
           options.onSave?.()
+          return true
+        case 'z': // Ctrl+Z: 撤銷
+          event.preventDefault()
+          options.onUndo?.()
+          return true
+        case 'f': // Ctrl+F: 搜尋
+          event.preventDefault()
+          options.onSearch?.()
+          return true
+        case 'h': // Ctrl+H: 替換
+          event.preventDefault()
+          options.onReplace?.()
           return true
         case 'b':
           event.preventDefault()
