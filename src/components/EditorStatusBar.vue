@@ -52,7 +52,7 @@
         @click="toggleSyncScroll"
         :title="syncScroll ? '停用同步滾動' : '啟用同步滾動'"
       >
-        <component :is="syncScroll ? Link : LinkOff" :size="14" />
+        <component :is="syncScroll ? Link : Link2Off" :size="14" />
         <span class="hidden sm:inline">同步滾動</span>
       </button>
 
@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { FileText, AlignLeft, Clock, Link, LinkOff, Hash, WrapText } from 'lucide-vue-next'
+import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from 'lucide-vue-next'
 
 interface Props {
   content: string
