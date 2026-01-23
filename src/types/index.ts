@@ -20,6 +20,8 @@ export interface Frontmatter {
   categories: string[]
   slug?: string
   keywords?: string[]
+  series?: string  // 系列名稱
+  seriesOrder?: number  // 系列順序
 }
 
 export interface ConversionConfig {
