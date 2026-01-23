@@ -21,56 +21,78 @@
         </div>
       </div>
 
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
         <!-- 編輯器模式切換 -->
         <div class="btn-group">
           <button
-            class="btn btn-sm"
+            class="btn btn-sm gap-1"
             :class="editorMode === 'compose' ? 'btn-active' : ''"
             @click="$emit('toggle-editor-mode')"
-            title="撰寫模式"
           >
             <FileEdit :size="16" />
+            <span class="hidden sm:inline">撰寫</span>
           </button>
           <button
-            class="btn btn-sm"
+            class="btn btn-sm gap-1"
             :class="editorMode === 'raw' ? 'btn-active' : ''"
             @click="$emit('toggle-editor-mode')"
-            title="Raw 模式"
           >
             <FileCode :size="16" />
+            <span class="hidden sm:inline">Raw</span>
           </button>
         </div>
 
-        <button
-          v-if="editorMode === 'compose'"
-          class="btn btn-sm btn-ghost"
-          @click="$emit('toggle-frontmatter')"
-          :title="showFrontmatter ? '隱藏 Frontmatter' : '顯示 Frontmatter'"
-        >
-          <Menu :size="16" />
-        </button>
-        <button
-          v-if="editorMode === 'compose'"
-          class="btn btn-sm btn-outline"
-          @click="$emit('edit-frontmatter')"
-        >
-          <Edit3 :size="16" class="mr-1" />
-          編輯前置資料
-        </button>
-        <button
+        <div class="divider divider-horizontal mx-0"></div>
+
+        <!-- Frontmatter 控制 -->
+        <div v-if="editorMode === 'compose'" class="flex gap-1">
+          <div class="tooltip tooltip-bottom" :data-tip="showFrontmatter ? '隱藏 Frontmatter' : '顯示 Frontmatter'">
+            <button
+              class="btn btn-sm btn-ghost btn-square"
+              @click="$emit('toggle-frontmatter')"
+            >
+              <Menu :size="18" />
+            </button>
+          </div>
+          
+          <div class="tooltip tooltip-bottom" data-tip="編輯前置資料">
+            <button
+              class="btn btn-sm btn-ghost btn-square"
+              @click="$emit('edit-frontmatter')"
+            >
+              <Edit3 :size="18" />
+            </button>
+          </div>
+        </div>
+
+        <div class="divider divider-horizontal mx-0"></div>
+
+        <!-- 發佈按鈕 -->
+        <div
           v-if="article?.status === 'draft'"
-          class="btn btn-sm btn-success"
-          @click="$emit('move-to-published')"
+          class="tooltip tooltip-bottom"
+          data-tip="移至已發布資料夾"
         >
-          <Upload :size="16" class="mr-1" />
-          移至發布
-        </button>
-        <button class="btn btn-sm btn-primary" @click="$emit('toggle-preview')">
-          <Eye v-if="!showPreview" :size="16" class="mr-1" />
-          <EyeOff v-else :size="16" class="mr-1" />
-          {{ showPreview ? '隱藏預覽' : '顯示預覽' }}
-        </button>
+          <button
+            class="btn btn-sm btn-success gap-1"
+            @click="$emit('move-to-published')"
+          >
+            <Upload :size="16" />
+            <span class="hidden sm:inline">發佈</span>
+          </button>
+        </div>
+
+        <!-- 預覽切換 -->
+        <div class="tooltip tooltip-bottom" :data-tip="showPreview ? '隱藏預覽' : '顯示預覽 (Ctrl+/)'" >
+          <button
+            class="btn btn-sm btn-primary gap-1"
+            @click="$emit('toggle-preview')"
+          >
+            <Eye v-if="!showPreview" :size="16" />
+            <EyeOff v-else :size="16" />
+            <span class="hidden sm:inline">{{ showPreview ? '隱藏' : '預覽' }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>

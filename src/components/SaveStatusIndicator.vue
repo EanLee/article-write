@@ -2,11 +2,11 @@
   <div class="flex items-center gap-2 text-sm">
     <!-- 儲存狀態圖示和文字 -->
     <div
-      class="flex items-center gap-1 px-2 py-1 rounded-md transition-colors"
+      class="flex items-center gap-1\.5 px-3 py-1\.5 rounded-lg transition-all font-medium shadow-sm"
       :class="statusClass"
     >
-      <component :is="statusIcon" :size="14" :class="iconClass" />
-      <span>{{ statusText }}</span>
+      <component :is="statusIcon" :size="16" :class="iconClass" />
+      <span class="text-sm">{{ statusText }}</span>
     </div>
 
     <!-- 最後儲存時間 -->
@@ -15,16 +15,20 @@
     </span>
 
     <!-- 手動儲存按鈕 -->
-    <button
-      v-if="showSaveButton"
-      class="btn btn-xs btn-ghost gap-1"
-      :disabled="isSaving"
-      @click="handleSave"
-      title="手動儲存 (Ctrl+S)"
-    >
-      <Save :size="12" />
-      儲存
-    </button>
+    <div v-if="showSaveButton" class="tooltip tooltip-bottom" data-tip="手動儲存 (Ctrl+S)">
+      <button
+        class="btn btn-sm gap-1"
+        :class="{
+          'btn-warning': saveState.status === 'modified',
+          'btn-ghost': saveState.status !== 'modified'
+        }"
+        :disabled="isSaving"
+        @click="handleSave"
+      >
+        <Save :size="14" />
+        <span class="hidden sm:inline">儲存</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -66,15 +70,15 @@ const statusIcon = computed(() => {
 const statusClass = computed(() => {
   switch (saveState.value.status) {
     case 'saved':
-      return 'bg-success/10 text-success'
+      return 'bg-success/20 text-success border border-success/30'
     case 'saving':
-      return 'bg-info/10 text-info'
+      return 'bg-info/20 text-info border border-info/30'
     case 'modified':
-      return 'bg-warning/10 text-warning'
+      return 'bg-warning/25 text-warning border border-warning/40'
     case 'error':
-      return 'bg-error/10 text-error'
+      return 'bg-error/20 text-error border border-error/30'
     default:
-      return 'bg-base-200 text-base-content/70'
+      return 'bg-base-200 text-base-content/70 border border-base-300'
   }
 })
 

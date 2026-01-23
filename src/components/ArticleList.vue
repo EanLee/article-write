@@ -48,13 +48,21 @@
       <div
         v-for="article in articleStore.filteredArticles"
         :key="article.id"
-        class="card bg-base-100 shadow-sm mb-2 cursor-pointer transition-all hover:shadow-md"
-        :class="{ 'ring-2 ring-primary': article.id === articleStore.currentArticle?.id }"
+        class="card bg-base-100 shadow-sm mb-2 cursor-pointer transition-all hover:shadow-md hover:border-primary/30"
+        :class="{
+          'bg-primary/5 border-l-4 border-l-primary shadow-md': article.id === articleStore.currentArticle?.id,
+          'border border-base-300': article.id !== articleStore.currentArticle?.id
+        }"
         @click="selectArticle(article)"
       >
         <div class="card-body p-3">
           <div class="flex justify-between items-start mb-2">
-            <h3 class="card-title text-sm">{{ article.title }}</h3>
+            <h3 
+              class="card-title text-sm transition-all"
+              :class="{ 'font-bold text-primary': article.id === articleStore.currentArticle?.id }"
+            >
+              {{ article.title }}
+            </h3>
             <div 
               class="badge badge-sm"
               :class="article.status === 'published' ? 'badge-success' : 'badge-info'"
