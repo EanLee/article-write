@@ -67,6 +67,40 @@
           </select>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">系列名稱</span>
+            </label>
+            <input
+              v-model="localArticle.frontmatter.series"
+              type="text"
+              placeholder="例如：Vue 3 進階教學"
+              class="input input-bordered"
+            />
+            <label class="label">
+              <span class="label-text-alt">將相關文章組織成系列</span>
+            </label>
+          </div>
+
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">系列順序</span>
+            </label>
+            <input
+              v-model.number="localArticle.frontmatter.seriesOrder"
+              type="number"
+              min="1"
+              placeholder="1"
+              class="input input-bordered"
+              :disabled="!localArticle.frontmatter.series"
+            />
+            <label class="label">
+              <span class="label-text-alt">在系列中的排序</span>
+            </label>
+          </div>
+        </div>
+
         <div class="form-control">
           <label class="label">
             <span class="label-text">標籤</span>
