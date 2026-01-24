@@ -4,22 +4,13 @@
         <EditorHeader
             :article="articleStore.currentArticle"
             :show-preview="showPreview"
-            :show-frontmatter="showFrontmatterPanel"
             :editor-mode="editorMode"
             @toggle-preview="togglePreview"
-            @toggle-frontmatter="showFrontmatterPanel = !showFrontmatterPanel"
             @edit-frontmatter="showFrontmatterEditor = true"
             @move-to-published="moveToPublished"
             @toggle-editor-mode="toggleEditorMode"
         />
 
-        <!-- Frontmatter Panel (撰寫模式才顯示) -->
-        <FrontmatterPanel
-            v-if="editorMode === 'compose'"
-            :visible="showFrontmatterPanel"
-            :article="articleStore.currentArticle"
-        />
-        
         <!-- Search/Replace Panel -->
         <SearchReplace
             :visible="isSearchVisible"
@@ -89,7 +80,6 @@ import EditorHeader from './EditorHeader.vue';
 import EditorPane from './EditorPane.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
-import FrontmatterPanel from './FrontmatterPanel.vue';
 import SearchReplace from './SearchReplace.vue';
 import { useServices } from '@/composables/useServices';
 import { useAutocomplete } from '@/composables/useAutocomplete';
@@ -108,7 +98,6 @@ const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, 
 // Reactive data
 const content = ref('');
 const showPreview = ref(false);
-const showFrontmatterPanel = ref(true);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref('');
 const autoSaveTimer = ref<number | null>(null);

@@ -62,25 +62,14 @@
 
         <div class="divider divider-horizontal mx-0"></div>
 
-        <!-- Frontmatter 控制 -->
-        <div v-if="editorMode === 'compose'" class="flex gap-1">
-          <div class="tooltip tooltip-bottom" :data-tip="showFrontmatter ? '隱藏 Frontmatter' : '顯示 Frontmatter'">
-            <button
-              class="btn btn-sm btn-ghost btn-square"
-              @click="$emit('toggle-frontmatter')"
-            >
-              <Menu :size="18" />
-            </button>
-          </div>
-          
-          <div class="tooltip tooltip-bottom" data-tip="編輯前置資料">
-            <button
-              class="btn btn-sm btn-ghost btn-square"
-              @click="$emit('edit-frontmatter')"
-            >
-              <Edit3 :size="18" />
-            </button>
-          </div>
+        <!-- Frontmatter 編輯 -->
+        <div v-if="editorMode === 'compose'" class="tooltip tooltip-bottom" data-tip="編輯前置資料">
+          <button
+            class="btn btn-sm btn-ghost btn-square"
+            @click="$emit('edit-frontmatter')"
+          >
+            <Edit3 :size="18" />
+          </button>
         </div>
 
         <div class="divider divider-horizontal mx-0"></div>
@@ -119,24 +108,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Article } from '@/types'
-import { Menu, Edit3, Upload, Eye, EyeOff, FileCode, FileEdit, FileText } from 'lucide-vue-next'
+import { Edit3, Upload, Eye, EyeOff, FileCode, FileEdit, FileText } from 'lucide-vue-next'
 import SaveStatusIndicator from '@/components/SaveStatusIndicator.vue'
 
 interface Props {
   article: Article | null
   showPreview: boolean
-  showFrontmatter?: boolean
   editorMode?: 'compose' | 'raw'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showFrontmatter: true,
   editorMode: 'compose'
 })
 
 defineEmits<{
   'toggle-preview': []
-  'toggle-frontmatter': []
   'edit-frontmatter': []
   'move-to-published': []
   'toggle-editor-mode': []
