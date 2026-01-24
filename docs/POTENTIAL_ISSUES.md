@@ -13,9 +13,10 @@
 
 ## 🔴 高優先級 (Critical)
 
-### Issue #1: MainEditor 事件監聽器記憶體洩漏
+### ✅ Issue #1: MainEditor 事件監聽器記憶體洩漏 (已修復)
 
 **檔案:** `src/components/MainEditor.vue:594`
+**修復提交:** `7188e9a`
 
 **問題描述:**
 ```typescript
@@ -54,9 +55,10 @@ onUnmounted(() => {
 
 ---
 
-### Issue #2: ResizableSidebar 拖曳時組件卸載導致監聽器洩漏
+### ✅ Issue #2: ResizableSidebar 拖曳時組件卸載導致監聽器洩漏 (已修復)
 
 **檔案:** `src/components/ResizableSidebar.vue:127-128`
+**修復提交:** `7188e9a`
 
 **問題描述:**
 ```typescript
@@ -98,9 +100,10 @@ onUnmounted(() => {
 
 ---
 
-### Issue #3: ServerControlPanel 拖曳時組件卸載導致監聽器洩漏
+### ✅ Issue #3: ServerControlPanel 拖曳時組件卸載導致監聽器洩漏 (已修復)
 
 **檔案:** `src/components/ServerControlPanel.vue:240-241`
+**修復提交:** `7188e9a`
 
 **問題描述:**
 同 Issue #2，相同的模式
@@ -354,9 +357,9 @@ app.config.errorHandler = (err, instance, info) => {
 - [x] 檢查 Watch 和 Computed
 
 ### 需要修復 ⚠️
-- [ ] Issue #1: MainEditor 事件監聽器清理
-- [ ] Issue #2: ResizableSidebar 監聽器清理
-- [ ] Issue #3: ServerControlPanel 監聽器清理
+- [x] Issue #1: MainEditor 事件監聽器清理 ✅ (commit: 7188e9a)
+- [x] Issue #2: ResizableSidebar 監聽器清理 ✅ (commit: 7188e9a)
+- [x] Issue #3: ServerControlPanel 監聽器清理 ✅ (commit: 7188e9a)
 - [ ] Issue #4: Frontmatter 類型定義修正
 - [ ] Issue #5: Article.content 空值處理
 - [ ] Issue #6: AutoSaveService 初始化檢查
@@ -376,4 +379,5 @@ app.config.errorHandler = (err, instance, info) => {
 
 **檢查日期:** 2025-01-24
 **檢查者:** Claude Code
-**程式碼版本:** develop branch (commit: bf41c70)
+**程式碼版本:** develop branch (commit: 7188e9a)
+**最後更新:** 2025-01-24 (修復 Issue #1-3)
