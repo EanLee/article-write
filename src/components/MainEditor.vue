@@ -459,7 +459,10 @@ async function initializeObsidianSupport() {
         // Update tags from articles
         const tagSet = new Set<string>();
         articleStore.articles.forEach((article: Article) => {
-            article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
+            // 防禦性檢查：確保 tags 存在且為陣列
+            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
+                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
+            }
         });
         allTags.value = Array.from(tagSet);
 

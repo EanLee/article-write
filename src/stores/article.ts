@@ -68,7 +68,10 @@ export const useArticleStore = defineStore('article', () => {
   const allTags = computed(() => {
     const tagSet = new Set<string>()
     articles.value.forEach(article => {
-      article.frontmatter.tags.forEach(tag => tagSet.add(tag))
+      // 防禦性檢查：確保 tags 存在且為陣列
+      if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
+        article.frontmatter.tags.forEach(tag => tagSet.add(tag))
+      }
     })
     return Array.from(tagSet).sort()
   })
