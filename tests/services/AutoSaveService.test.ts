@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { AutoSaveService } from '../AutoSaveService'
+import { AutoSaveService } from '@/services/AutoSaveService'
 import type { Article } from '@/types'
 
 // Mock article for testing

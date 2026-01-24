@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useArticleStore } from '../article'
-import { useConfigStore } from '../config'
+import { useArticleStore } from '@/stores/article'
+import { useConfigStore } from '@/stores/config'
 
 // Mock the window.electronAPI
 global.window = {

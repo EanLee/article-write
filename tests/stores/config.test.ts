@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useConfigStore } from '../config'
+import { useConfigStore } from '@/stores/config'
 
 // Mock the electronAPI
 const mockElectronAPI = {
