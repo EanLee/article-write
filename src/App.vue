@@ -21,10 +21,7 @@
       </div>
 
       <div class="navbar-end">
-        <button class="btn btn-primary btn-sm gap-1" @click="showSettings = true">
-          <Settings :size="16" />
-          設定
-        </button>
+        <!-- 設定按鈕已移至 ActivityBar -->
       </div>
     </header>
 
@@ -33,21 +30,19 @@
       <div class="flex flex-1 overflow-hidden">
         <!-- 編輯器視圖 -->
         <template v-if="currentView === 'editor'">
-          <!-- 可調整側邊欄 -->
-          <ResizableSidebar :default-width="280" :min-width="200" :max-width="400" storage-key="article-list-sidebar">
-            <template #header>
-              <h2 class="text-sm font-semibold px-2 py-1">文章</h2>
-            </template>
-            <ArticleListTree />
-          </ResizableSidebar>
+          <!-- Activity Bar -->
+          <ActivityBar v-model="activeView" @open-settings="showSettings = true" />
+
+          <!-- Side Bar View -->
+          <SideBarView v-model="activeView" />
 
           <!-- Content Area -->
           <main class="flex-1 bg-base-100 overflow-hidden">
-            <div v-if="!configStore.config.paths.obsidianVault" class="flex items-center justify-center h-full p-8">
+            <div v-if="!configStore.config.paths.articlesDir" class="flex items-center justify-center h-full p-8">
               <div class="card w-96 bg-base-100 shadow-xl">
                 <div class="card-body">
                   <h2 class="card-title">歡迎使用部落格撰寫應用程式</h2>
-                  <p>請先設定您的 Obsidian Vault 路徑。</p>
+                  <p>請先設定您的文章資料夾路徑。</p>
                   <div class="card-actions justify-end">
                     <button class="btn btn-primary" @click="showSettings = true">
                       開始設定
@@ -93,10 +88,11 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
-import { Edit3, List, Settings, FileText } from "lucide-vue-next";
+import { useActivityBarShortcuts } from "@/composables/useActivityBarShortcuts";
+import { Edit3, List, FileText } from "lucide-vue-next";
 
-import ResizableSidebar from "@/components/ResizableSidebar.vue";
-import ArticleListTree from "@/components/ArticleListTree.vue";
+import ActivityBar from "@/components/ActivityBar.vue";
+import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
@@ -107,6 +103,10 @@ const configStore = useConfigStore();
 const articleStore = useArticleStore();
 const showSettings = ref(false);
 const currentView = ref<"editor" | "manage">("editor");
+const activeView = ref<string>("articles");
+
+// 設定快捷鍵
+useActivityBarShortcuts(activeView);
 
 // 從文章管理切換回編輯器時，設定當前文章
 function handleEditArticle() {
@@ -125,8 +125,8 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 onMounted(async () => {
   await configStore.loadConfig();
 
-  // 只要有 obsidianVault 就載入文章（targetBlog 是發布用的，不影響文章載入）
-  if (configStore.config.paths.obsidianVault) {
+  // 只要有 articlesDir 就載入文章（targetBlog 是發布用的，不影響文章載入）
+  if (configStore.config.paths.articlesDir) {
     await articleStore.loadArticles();
   }
 
