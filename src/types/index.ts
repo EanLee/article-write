@@ -34,7 +34,7 @@ export interface ConversionConfig {
 // Configuration interfaces
 export interface AppConfig {
   paths: {
-    obsidianVault: string
+    articlesDir: string
     targetBlog: string
     imagesDir: string
   }
