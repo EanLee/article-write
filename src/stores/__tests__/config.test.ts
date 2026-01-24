@@ -6,7 +6,7 @@ import { useConfigStore } from '../config'
 const mockElectronAPI = {
   getConfig: vi.fn(),
   setConfig: vi.fn(),
-  validateObsidianVault: vi.fn(),
+  validateArticlesDir: vi.fn(),
   validateAstroBlog: vi.fn(),
   selectDirectory: vi.fn()
 }
@@ -26,7 +26,7 @@ describe('Config Store', () => {
   it('should initialize with default config', () => {
     const configStore = useConfigStore()
     
-    expect(configStore.config.paths.obsidianVault).toBe('')
+    expect(configStore.config.paths.articlesDir).toBe('')
     expect(configStore.config.paths.targetBlog).toBe('')
     expect(configStore.config.paths.imagesDir).toBe('')
     expect(configStore.config.editorConfig.autoSave).toBe(true)
@@ -38,14 +38,14 @@ describe('Config Store', () => {
   it('should validate Obsidian vault path', async () => {
     const configStore = useConfigStore()
     
-    mockElectronAPI.validateObsidianVault.mockResolvedValue({
+    mockElectronAPI.validateArticlesDir.mockResolvedValue({
       valid: true,
       message: '有效的 Obsidian Vault'
     })
 
-    const result = await configStore.validateObsidianVault('/path/to/vault')
+    const result = await configStore.validateArticlesDir('/path/to/vault')
     
-    expect(mockElectronAPI.validateObsidianVault).toHaveBeenCalledWith('/path/to/vault')
+    expect(mockElectronAPI.validateArticlesDir).toHaveBeenCalledWith('/path/to/vault')
     expect(result.valid).toBe(true)
     expect(result.message).toBe('有效的 Obsidian Vault')
   })
@@ -68,11 +68,11 @@ describe('Config Store', () => {
   it('should handle empty path validation', async () => {
     const configStore = useConfigStore()
     
-    const obsidianResult = await configStore.validateObsidianVault('')
+    const articlesResult = await configStore.validateArticlesDir('')
     const blogResult = await configStore.validateAstroBlog('  ')
     
-    expect(obsidianResult.valid).toBe(false)
-    expect(obsidianResult.message).toBe('請選擇路徑')
+    expect(articlesResult.valid).toBe(false)
+    expect(articlesResult.message).toBe('請選擇路徑')
     expect(blogResult.valid).toBe(false)
     expect(blogResult.message).toBe('請選擇路徑')
   })
@@ -84,7 +84,7 @@ describe('Config Store', () => {
 
     const newConfig = {
       paths: {
-        obsidianVault: '/path/to/vault',
+        articlesDir: '/path/to/vault',
         targetBlog: '/path/to/blog',
         imagesDir: '/path/to/images'
       },

@@ -31,7 +31,7 @@ describe('Article Store - 檔案操作測試', () => {
     setActivePinia(createPinia())
 
     const configStore = useConfigStore()
-    configStore.config.paths.obsidianVault = '/test/vault'
+    configStore.config.paths.articlesDir = '/test/vault'
 
     vi.clearAllMocks()
 

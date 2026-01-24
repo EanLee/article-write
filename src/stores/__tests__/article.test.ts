@@ -23,7 +23,7 @@ describe('Article Store', () => {
     
     // Setup config store with mock vault path
     const configStore = useConfigStore()
-    configStore.config.paths.obsidianVault = '/mock/vault/path'
+    configStore.config.paths.articlesDir = '/mock/vault/path'
     
     // Reset all mocks
     vi.clearAllMocks()
