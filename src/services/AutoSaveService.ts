@@ -13,6 +13,7 @@ export class AutoSaveService {
   private isEnabled: boolean = true
   private lastSavedContent: string = ''
   private lastSavedFrontmatter: string = ''
+  private initialized: boolean = false // 初始化標誌
 
   // 儲存狀態（響應式）
   public readonly saveState: Ref<SaveState> = ref({
@@ -35,6 +36,7 @@ export class AutoSaveService {
     this.saveCallback = saveCallback
     this.getCurrentArticleCallback = getCurrentArticleCallback
     this.autoSaveInterval = interval
+    this.initialized = true // 標記為已初始化
     
     if (this.isEnabled) {
       this.startAutoSave()
@@ -45,6 +47,10 @@ export class AutoSaveService {
    * 啟動自動儲存定時器
    */
   startAutoSave(): void {
+    if (!this.initialized) {
+      console.warn('AutoSaveService: Cannot start auto-save before initialization')
+      return
+    }
     if (!this.isEnabled || !this.saveCallback || !this.getCurrentArticleCallback) {
       return
     }
@@ -107,6 +113,10 @@ export class AutoSaveService {
    * @param {Article | null} previousArticle - 前一篇文章
    */
   async saveOnArticleSwitch(previousArticle: Article | null): Promise<void> {
+    if (!this.initialized) {
+      console.warn('AutoSaveService: Cannot save on article switch before initialization')
+      return
+    }
     if (!this.saveCallback || !previousArticle) {
       return
     }
@@ -129,6 +139,10 @@ export class AutoSaveService {
    * 手動觸發儲存當前文章
    */
   async saveCurrentArticle(): Promise<void> {
+    if (!this.initialized) {
+      console.warn('AutoSaveService: Cannot save before initialization')
+      return
+    }
     if (!this.saveCallback || !this.getCurrentArticleCallback) {
       return
     }
