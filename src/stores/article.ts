@@ -40,7 +40,7 @@ export const useArticleStore = defineStore('article', () => {
       // Tags filter
       if (filter.value.tags.length > 0) {
         const hasMatchingTag = filter.value.tags.some(tag => 
-          article.frontmatter.tags.includes(tag)
+          article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && article.frontmatter.tags.includes(tag)
         )
         if (!hasMatchingTag) {return false}
       }
