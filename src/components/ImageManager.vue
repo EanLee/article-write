@@ -374,7 +374,7 @@ async function loadImages() {
     allImages.value = images
     filterImages()
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to load images:', error)
     allImages.value = []
   } finally {
@@ -453,7 +453,7 @@ async function deleteUnusedImage(imageName: string) {
       alert('刪除圖片失敗')
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to delete image:', error)
     alert('刪除圖片失敗: ' + (error as Error).message)
   }
@@ -482,7 +482,7 @@ async function handleFileUpload(event: Event) {
         const fileName = await imageService.uploadImageFile(file)
         uploadResults.success.push(fileName)
       } catch (error) {
-        // eslint-disable-next-line no-console
+         
         console.error('Failed to upload image:', error)
         uploadResults.failed.push(file.name)
       }
@@ -504,7 +504,7 @@ async function handleFileUpload(event: Event) {
     // Refresh the image list
     await loadImages()
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to handle file upload:', error)
     alert('上傳圖片時發生錯誤')
   } finally {
@@ -519,7 +519,7 @@ function copyImagePath(imageName: string) {
   navigator.clipboard.writeText(path).then(() => {
     // Could show a toast notification here
   }).catch(err => {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to copy to clipboard:', err)
   })
 }
@@ -560,7 +560,7 @@ async function cleanupUnusedImages() {
       alert('沒有圖片被清理')
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to cleanup unused images:', error)
     alert('清理圖片時發生錯誤: ' + (error as Error).message)
   } finally {

@@ -104,7 +104,7 @@ export class ImageService {
       const imagesPath = this.getImagesPath()
       
       // Check if images directory exists
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const stats = await (window.electronAPI as any).getFileStats(imagesPath)
       if (!stats?.isDirectory) {
         return []
@@ -125,7 +125,7 @@ export class ImageService {
         const filePath = `${imagesPath}/${fileName}`
         
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           const fileStats = await (window.electronAPI as any).getFileStats(filePath)
           
           const imageInfo: ImageInfo = {
@@ -157,7 +157,7 @@ export class ImageService {
 
       return imageInfos
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to load images:', error)
       return []
     }
@@ -239,7 +239,7 @@ export class ImageService {
 
     try {
       const filePath = `${this.getImagesPath()}/${imageName}`
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const stats = await (window.electronAPI as any).getFileStats(filePath)
       return stats && stats.isFile
     } catch {
@@ -485,7 +485,7 @@ export class ImageService {
       await window.electronAPI.deleteFile(filePath)
       return true
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to delete image:', error)
       return false
     }
@@ -509,7 +509,7 @@ export class ImageService {
       await (window.electronAPI as any).copyFile(sourcePath, targetPath)
       return true
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to copy image:', error)
       return false
     }
@@ -545,7 +545,7 @@ export class ImageService {
       
       return fileName
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to upload image:', error)
       throw new Error(`Failed to upload image: ${(error as Error).message}`)
     }
@@ -584,14 +584,14 @@ export class ImageService {
           await window.electronAPI.deleteFile(image.path)
           cleanedFiles.push(image.name)
         } catch (error) {
-          // eslint-disable-next-line no-console
+           
           console.warn(`Failed to delete unused image ${image.name}:`, error)
         }
       }
 
       return cleanedFiles
     } catch (error) {
-      // eslint-disable-next-line no-console
+       
       console.error('Failed to cleanup unused images:', error)
       return []
     }

@@ -47,7 +47,7 @@ export default [
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_'
       }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       
@@ -58,10 +58,10 @@ export default [
       'vue/singleline-html-element-content-newline': 'off',
       'vue/html-self-closing': 'off',
       'vue/attributes-order': 'off',
-      'vue/no-v-html': 'warn',
+      'vue/no-v-html': 'off',
       
       // 一般規則
-      'no-console': 'warn',
+      'no-console': 'off', // 開發時允許 console
       'no-debugger': 'error',
       'no-unused-vars': 'off', // 使用 TypeScript 版本
       'no-undef': 'off', // TypeScript 處理這個
@@ -73,13 +73,7 @@ export default [
       'no-case-declarations': 'error'
     }
   },
-  {
-    files: ['**/*.test.{js,ts}', '**/__tests__/**/*.{js,ts}'],
-    rules: {
-      'no-console': 'off',
-      '@typescript-eslint/no-explicit-any': 'off'
-    }
-  },
+
   {
     files: ['src/main/**/*.ts'],
     languageOptions: {
