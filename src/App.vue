@@ -34,11 +34,11 @@
         <!-- 編輯器視圖 -->
         <template v-if="currentView === 'editor'">
           <!-- 可調整側邊欄 -->
-          <ResizableSidebar :default-width="280" :min-width="200" :max-width="500" storage-key="article-list-sidebar">
+          <ResizableSidebar :default-width="280" :min-width="200" :max-width="400" storage-key="article-list-sidebar">
             <template #header>
-              <h2 class="text-lg font-semibold">文章列表</h2>
+              <h2 class="text-sm font-semibold px-2 py-1">文章</h2>
             </template>
-            <ArticleList />
+            <ArticleListTree />
           </ResizableSidebar>
 
           <!-- Content Area -->
@@ -97,6 +97,7 @@ import { Edit3, List, Settings, FileText } from "lucide-vue-next";
 
 import ResizableSidebar from "@/components/ResizableSidebar.vue";
 import ArticleList from "@/components/ArticleList.vue";
+import ArticleListTree from "@/components/ArticleListTree.vue";
 import MainEditor from "@/components/MainEditor.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
