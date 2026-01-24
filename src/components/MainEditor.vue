@@ -5,10 +5,12 @@
             :article="articleStore.currentArticle"
             :show-preview="showPreview"
             :editor-mode="editorMode"
+            :focus-mode="focusMode"
             @toggle-preview="togglePreview"
             @edit-frontmatter="showFrontmatterEditor = true"
             @move-to-published="moveToPublished"
             @toggle-editor-mode="toggleEditorMode"
+            @toggle-focus-mode="toggleFocusMode"
         />
 
         <!-- Search/Replace Panel -->
@@ -87,6 +89,7 @@ import { useEditorShortcuts } from '@/composables/useEditorShortcuts';
 import { useEditorValidation } from '@/composables/useEditorValidation';
 import { useUndoRedo } from '@/composables/useUndoRedo';
 import { useSearchReplace } from '@/composables/useSearchReplace';
+import { useFocusMode } from '@/composables/useFocusMode';
 import type { Article } from '@/types';
 
 const articleStore = useArticleStore();
@@ -103,6 +106,9 @@ const renderedContent = ref('');
 const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<'compose' | 'raw'>('compose');
 const rawContent = ref('');
+
+// 專注模式
+const { focusMode, toggleFocusMode } = useFocusMode();
 
 // Component references
 const editorPaneRef = ref<InstanceType<typeof EditorPane>>();
