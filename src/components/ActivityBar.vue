@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, Info, Settings } from 'lucide-vue-next'
+import { FileText, Info, Settings, List } from 'lucide-vue-next'
 
 interface ActivityItem {
   id: string
@@ -38,7 +38,8 @@ interface ActivityItem {
 
 const items: ActivityItem[] = [
   { id: 'articles', icon: FileText, label: '文章列表', shortcut: 'Ctrl+Shift+E' },
-  { id: 'frontmatter', icon: Info, label: '文章資訊', shortcut: 'Ctrl+Shift+I' }
+  { id: 'frontmatter', icon: Info, label: '文章資訊', shortcut: 'Ctrl+Shift+I' },
+  { id: 'manage', icon: List, label: '文章管理', shortcut: 'Ctrl+Shift+M' }
 ]
 
 const modelValue = defineModel<string>({ default: 'articles' })

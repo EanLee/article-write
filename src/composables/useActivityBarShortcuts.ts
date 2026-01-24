@@ -8,6 +8,7 @@ import { onMounted, onUnmounted, type Ref } from 'vue'
  * 支援的快捷鍵：
  * - Ctrl+Shift+E: 切換文章列表
  * - Ctrl+Shift+I: 切換文章資訊
+ * - Ctrl+Shift+M: 切換文章管理
  * - Ctrl+B: 切換側邊欄
  */
 export function useActivityBarShortcuts(activeView: Ref<string>) {
@@ -23,6 +24,13 @@ export function useActivityBarShortcuts(activeView: Ref<string>) {
     if (e.ctrlKey && e.shiftKey && e.key === 'I') {
       e.preventDefault()
       activeView.value = activeView.value === 'frontmatter' ? '' : 'frontmatter'
+      return
+    }
+
+    // Ctrl+Shift+M: 文章管理
+    if (e.ctrlKey && e.shiftKey && e.key === 'M') {
+      e.preventDefault()
+      activeView.value = activeView.value === 'manage' ? '' : 'manage'
       return
     }
 
