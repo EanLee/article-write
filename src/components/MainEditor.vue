@@ -591,12 +591,15 @@ onMounted(() => {
     initializeHistory(content.value, 0);
 
     // Click outside to hide suggestions
-    document.addEventListener('click', (event) => {
-        if (!editorRef.value?.contains(event.target as Node)) {
-            hideSuggestions();
-        }
-    });
+    document.addEventListener('click', handleClickOutside);
 });
+
+// 處理點擊外部以隱藏建議
+function handleClickOutside(event: MouseEvent) {
+    if (!editorRef.value?.contains(event.target as Node)) {
+        hideSuggestions();
+    }
+}
 
 // Cleanup
 onUnmounted(() => {
@@ -609,6 +612,9 @@ onUnmounted(() => {
         clearTimeout(historyTimeout);
         historyTimeout = null;
     }
+    // 清理事件監聽器
+    document.removeEventListener('click', handleClickOutside);
+    // 清理驗證
     cleanupValidation();
 });
 </script>

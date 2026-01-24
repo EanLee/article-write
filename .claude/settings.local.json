@@ -38,7 +38,8 @@
       "mcp__plugin_serena_serena__create_text_file",
       "mcp__plugin_serena_serena__check_onboarding_performed",
       "mcp__plugin_serena_serena__read_file",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "mcp__plugin_serena_serena__initial_instructions"
     ]
   }
 }

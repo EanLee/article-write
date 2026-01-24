@@ -94,10 +94,16 @@ onMounted(() => {
   }
 })
 
+// 拖曳狀態
+let startX = 0
+let startWidth = 0
+let currentOnMouseMove: ((e: MouseEvent) => void) | null = null
+let currentOnMouseUp: (() => void) | null = null
+
 function startResize(e: MouseEvent) {
   isResizing.value = true
-  const startX = e.clientX
-  const startWidth = width.value
+  startX = e.clientX
+  startWidth = width.value
 
   const onMouseMove = (moveEvent: MouseEvent) => {
     if (!isResizing.value) return
@@ -121,8 +127,13 @@ function startResize(e: MouseEvent) {
       document.removeEventListener('mouseup', onMouseUp)
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
+      currentOnMouseMove = null
+      currentOnMouseUp = null
     }
   }
+
+  currentOnMouseMove = onMouseMove
+  currentOnMouseUp = onMouseUp
 
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
@@ -144,9 +155,17 @@ function toggleCollapse() {
 
 // 清理
 onUnmounted(() => {
+  // 清理樣式
   if (isResizing.value) {
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
+  }
+  // 強制移除事件監聽器（防止拖曳過程中組件卸載導致洩漏）
+  if (currentOnMouseMove) {
+    document.removeEventListener('mousemove', currentOnMouseMove)
+  }
+  if (currentOnMouseUp) {
+    document.removeEventListener('mouseup', currentOnMouseUp)
   }
 })
 </script>

@@ -291,9 +291,13 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  // 清理日誌訂閱
   if (unsubscribeLog) {
     unsubscribeLog()
   }
+  // 清理拖曳監聽器（防止拖曳過程中組件卸載導致洩漏）
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', stopResize)
 })
 </script>
 
