@@ -91,8 +91,8 @@ import { computed } from 'vue'
 import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from 'lucide-vue-next'
 
 interface Props {
-  content: string
-  cursorPosition: number
+  content?: string
+  cursorPosition?: number
   selectionStart?: number
   selectionEnd?: number
   showPreview?: boolean
@@ -102,6 +102,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  content: '',
+  cursorPosition: 0,
   selectionStart: 0,
   selectionEnd: 0,
   showPreview: false,
@@ -118,11 +120,17 @@ const emit = defineEmits<{
 
 // 計算游標位置
 const lineNumber = computed(() => {
+  if (!props.content) {
+    return 1
+  }
   const textBeforeCursor = props.content.substring(0, props.cursorPosition)
   return (textBeforeCursor.match(/\n/g) || []).length + 1
 })
 
 const columnNumber = computed(() => {
+  if (!props.content) {
+    return 1
+  }
   const textBeforeCursor = props.content.substring(0, props.cursorPosition)
   const lastLineBreak = textBeforeCursor.lastIndexOf('\n')
   return props.cursorPosition - lastLineBreak
@@ -135,6 +143,9 @@ const selectionLength = computed(() => {
 
 // 字數統計
 const wordCount = computed(() => {
+  if (!props.content) {
+    return 0
+  }
   // 移除 Markdown 語法後計算字數
   const cleanText = props.content
     .replace(/```[\s\S]*?```/g, '') // 移除程式碼區塊
@@ -157,6 +168,9 @@ const wordCount = computed(() => {
 
 // 段落數
 const paragraphCount = computed(() => {
+  if (!props.content) {
+    return 0
+  }
   const paragraphs = props.content
     .split(/\n\n+/)
     .filter(p => p.trim().length > 0)

@@ -313,22 +313,37 @@ function toggleEditorMode() {
     
     if (editorMode.value === 'compose') {
         // 切換到 Raw 模式 - 組合 frontmatter 和 content
-        editorMode.value = 'raw';
         if (articleStore.currentArticle) {
             rawContent.value = markdownService.combineContent(
                 articleStore.currentArticle.frontmatter,
                 articleStore.currentArticle.content
             );
         }
+        editorMode.value = 'raw';
     } else {
         // 切換到撰寫模式 - 解析 raw content
-        editorMode.value = 'compose';
         if (articleStore.currentArticle && rawContent.value) {
             const parsed = markdownService.parseFrontmatter(rawContent.value);
-            articleStore.currentArticle.frontmatter = parsed.frontmatter;
-            articleStore.currentArticle.content = parsed.content;
+            
+            // 創建更新後的文章對象，避免直接修改 store 中的響應式對象
+            const updatedArticle = {
+                ...articleStore.currentArticle,
+                frontmatter: parsed.frontmatter,
+                content: parsed.content
+            };
+            
+            // 更新 content（用於編輯器顯示）
             content.value = parsed.content;
+            
+            // 使用 nextTick 確保切換完成後再更新 store
+            nextTick(() => {
+                if (articleStore.currentArticle) {
+                    articleStore.currentArticle.frontmatter = updatedArticle.frontmatter;
+                    articleStore.currentArticle.content = updatedArticle.content;
+                }
+            });
         }
+        editorMode.value = 'compose';
     }
 }
 
