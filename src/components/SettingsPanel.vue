@@ -17,21 +17,21 @@
           <div class="space-y-6">
             <div class="form-control">
               <label class="label">
-                <span class="label-text font-semibold">Obsidian Vault</span>
+                <span class="label-text font-semibold">文章資料夾</span>
               </label>
               <div class="join">
                 <input
-                  v-model="localConfig.paths.obsidianVault"
+                  v-model="localConfig.paths.articlesDir"
                   type="text"
-                  placeholder="選擇 Obsidian Vault 路徑"
+                  placeholder="選擇文章存放資料夾"
                   class="input input-bordered join-item flex-1"
                 />
-                <button class="btn btn-outline join-item" @click="selectObsidianPath">
+                <button class="btn btn-outline join-item" @click="selectArticlesPath">
                   瀏覽
                 </button>
               </div>
               <label class="label">
-                <span class="label-text-alt">應包含 Publish、Drafts、Images 資料夾</span>
+                <span class="label-text-alt">存放部落格文章的資料夾</span>
               </label>
             </div>
 
@@ -71,7 +71,7 @@
                 </button>
               </div>
               <label class="label">
-                <span class="label-text-alt">預設使用 Obsidian Vault 中的 Images 資料夾</span>
+                <span class="label-text-alt">留空則使用文章資料夾中的 images 子資料夾</span>
               </label>
             </div>
 
@@ -82,9 +82,9 @@
                 <div class="flex items-center gap-2">
                   <div 
                     class="w-4 h-4 rounded-full"
-                    :class="obsidianValidation.valid ? 'bg-success' : (localConfig.paths.obsidianVault ? 'bg-warning' : 'bg-base-300')"
+                    :class="articlesValidation.valid ? 'bg-success' : (localConfig.paths.articlesDir ? 'bg-warning' : 'bg-base-300')"
                   ></div>
-                  <span class="text-sm">Obsidian Vault: {{ obsidianValidation.message }}</span>
+                  <span class="text-sm">文章資料夾: {{ articlesValidation.message }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <div 
@@ -213,7 +213,7 @@ const articleStore = useArticleStore()
 const activeTab = ref('paths')
 const localConfig = ref<AppConfig>({
   paths: {
-    obsidianVault: '',
+    articlesDir: '',
     targetBlog: '',
     imagesDir: ''
   },
@@ -233,15 +233,15 @@ const autoSaveSeconds = computed({
 })
 
 // Validation
-const obsidianValidation = ref({ valid: false, message: '請選擇路徑' })
+const articlesValidation = ref({ valid: false, message: '請選擇路徑' })
 const blogValidation = ref({ valid: false, message: '請選擇路徑' })
 
 const _isConfigValid = computed(() => {
-  return obsidianValidation.value.valid && blogValidation.value.valid
+  return articlesValidation.value.valid && blogValidation.value.valid
 })
 
 // Methods
-async function selectObsidianPath() {
+async function selectArticlesPath() {
   try {
     if (!window.electronAPI) {
       console.warn('瀏覽器模式下無法選擇資料夾')
@@ -249,15 +249,15 @@ async function selectObsidianPath() {
     }
 
     const selectedPath = await window.electronAPI.selectDirectory({
-      title: '選擇 Obsidian Vault 資料夾',
-      defaultPath: localConfig.value.paths.obsidianVault
+      title: '選擇文章資料夾',
+      defaultPath: localConfig.value.paths.articlesDir
     })
 
     if (selectedPath) {
-      localConfig.value.paths.obsidianVault = selectedPath
+      localConfig.value.paths.articlesDir = selectedPath
       // Auto-set images directory if not already set
       if (!localConfig.value.paths.imagesDir) {
-        localConfig.value.paths.imagesDir = selectedPath + '/Images'
+        localConfig.value.paths.imagesDir = selectedPath + '/images'
       }
     }
   } catch (error) {
@@ -306,16 +306,16 @@ async function selectImagesPath() {
 }
 
 async function validatePaths() {
-  // Validate Obsidian Vault
-  if (localConfig.value.paths.obsidianVault) {
+  // Validate Articles Directory
+  if (localConfig.value.paths.articlesDir) {
     try {
-      const result = await configStore.validateObsidianVault(localConfig.value.paths.obsidianVault)
-      obsidianValidation.value = result
+      const result = await configStore.validateArticlesDir(localConfig.value.paths.articlesDir)
+      articlesValidation.value = result
     } catch {
-      obsidianValidation.value = { valid: false, message: '驗證失敗' }
+      articlesValidation.value = { valid: false, message: '驗證失敗' }
     }
   } else {
-    obsidianValidation.value = { valid: false, message: '請選擇路徑' }
+    articlesValidation.value = { valid: false, message: '請選擇路徑' }
   }
 
   // Validate Astro Blog
@@ -335,8 +335,8 @@ async function handleSave() {
   try {
     await configStore.saveConfig(localConfig.value)
     
-    // 如果設定了 Obsidian Vault 路徑，重新載入文章
-    if (localConfig.value.paths.obsidianVault) {
+    // 如果設定了文章資料夾路徑，重新載入文章
+    if (localConfig.value.paths.articlesDir) {
       await articleStore.loadArticles()
     }
     
@@ -349,7 +349,7 @@ async function handleSave() {
 function resetToDefaults() {
   localConfig.value = {
     paths: {
-      obsidianVault: '',
+      articlesDir: '',
       targetBlog: '',
       imagesDir: ''
     },
@@ -368,7 +368,7 @@ function handleClose() {
 
 // Watch for path changes to trigger validation
 watch(
-  () => [localConfig.value.paths.obsidianVault, localConfig.value.paths.targetBlog],
+  () => [localConfig.value.paths.articlesDir, localConfig.value.paths.targetBlog],
   async () => {
     await validatePaths()
   }
