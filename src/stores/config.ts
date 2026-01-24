@@ -36,7 +36,8 @@ export const useConfigStore = defineStore('config', () => {
       const loadedConfig = await window.electronAPI.getConfig()
       if (loadedConfig) {
         config.value = loadedConfig
-        isConfigured.value = !!(loadedConfig.paths.articlesDir && loadedConfig.paths.targetBlog)
+        // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+        isConfigured.value = !!loadedConfig.paths.articlesDir
       }
     } catch (error) {
       console.error('Failed to load config:', error)
@@ -53,7 +54,8 @@ export const useConfigStore = defineStore('config', () => {
       if (typeof window === 'undefined' || !window.electronAPI || typeof window.electronAPI.setConfig !== 'function') {
         console.warn('Running in browser mode - config not saved')
         config.value = newConfig
-        isConfigured.value = !!(newConfig.paths.articlesDir && newConfig.paths.targetBlog)
+        // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+        isConfigured.value = !!newConfig.paths.articlesDir
         loading.value = false
         return
       }
@@ -62,7 +64,8 @@ export const useConfigStore = defineStore('config', () => {
       const plainConfig = JSON.parse(JSON.stringify(newConfig))
       await window.electronAPI.setConfig(plainConfig)
       config.value = newConfig
-      isConfigured.value = !!(newConfig.paths.articlesDir && newConfig.paths.targetBlog)
+      // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+      isConfigured.value = !!newConfig.paths.articlesDir
     } catch (error) {
       console.error('Failed to save config:', error)
       throw error

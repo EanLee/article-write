@@ -125,7 +125,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
                     <h4 class="font-semibold text-lg">部落格專案路徑</h4>
-                    <span class="badge badge-error badge-sm">必填</span>
+                    <span class="badge badge-ghost badge-sm">選填</span>
                   </div>
                   <p class="text-sm text-base-content/70 mb-3">
                     您的靜態網站專案資料夾（將發布文章到此處）
@@ -210,7 +210,7 @@
               <h4 class="font-bold">快速設定提示</h4>
               <div class="text-xs mt-1 space-y-1">
                 <p>1. 選擇一個資料夾存放您的 Markdown 文章（可使用 Wiki Link 語法）</p>
-                <p>2. 選擇您的靜態網站專案資料夾（目前支援 Astro）</p>
+                <p>2. 部落格專案路徑可稍後設定（需要時再指定用於發布）</p>
                 <p>3. 圖片資料夾可選填，留空會自動建立</p>
               </div>
             </div>
@@ -566,7 +566,8 @@ const articlesValidation = ref({ valid: false, message: '請選擇路徑' })
 const blogValidation = ref({ valid: false, message: '請選擇路徑' })
 
 const canSave = computed(() => {
-  return localConfig.value.paths.articlesDir && localConfig.value.paths.targetBlog
+  // 只需要文章資料夾即可儲存，部落格路徑為選填
+  return !!localConfig.value.paths.articlesDir
 })
 
 // Methods
