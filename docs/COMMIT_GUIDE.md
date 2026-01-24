@@ -19,7 +19,7 @@ git commit -m "feat(ui): 改善文章列表選中狀態視覺設計
 - 未選中文章添加細邊框
 - hover 時邊框變色提供即時反饋
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -32,7 +32,7 @@ git commit -m "feat(ui): 重新設計編輯器工具列
 - 響應式設計：小螢幕隱藏按鈕文字
 - 圖標尺寸從 16px 提升到 18px
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -45,7 +45,7 @@ git commit -m "feat(ui): 增強儲存狀態指示器視覺效果
 - 未儲存狀態的儲存按鈕變為黃色警告樣式
 - 字體加粗提升可讀性
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -62,7 +62,7 @@ git commit -m "feat(editor): 實作完整的 Undo/Redo 系統
 - 支援防抖機制（500ms）避免過度記錄
 - 提供歷史統計資訊
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -74,7 +74,7 @@ git commit -m "feat(editor): 實作搜尋/替換邏輯
 - 提供跳轉到匹配位置的方法
 - 自動轉義正則表達式特殊字元
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -92,7 +92,7 @@ git commit -m "feat(editor): 實作搜尋/替換 UI 組件
 - 快捷鍵：Enter (下一個)、Shift+Enter (上一個)、Esc (關閉)
 - 全部替換前顯示確認提示
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -106,7 +106,7 @@ git commit -m "feat(editor): 實作編輯器狀態列組件
 - 提供詳細統計資訊的 tooltip
 - 編輯器選項切換：同步滾動、行號、自動換行
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -128,7 +128,7 @@ git commit -m "refactor(editor): 擴充編輯器快捷鍵系統
 - 支援 Shift 組合鍵
 - 添加回調函數介面
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -152,7 +152,7 @@ git commit -m "feat(editor): 整合所有核心編輯功能
 - 自動記錄編輯歷史
 - 搜尋結果自動定位與滾動
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -164,7 +164,7 @@ git commit -m "feat(editor): 編輯器面板添加狀態列
 - 支援編輯器選項切換事件
 - 預設啟用自動換行
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -180,7 +180,7 @@ git commit -m "docs: 新增核心功能整合指南與開發路線圖
 - 包含完整的測試清單與已知限制
 - 提供後續優化建議
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ```bash
@@ -189,7 +189,7 @@ git commit -m "docs: 新增 Git commit 指南
 
 提供建議的 commit 訊息範本，方便提交所有新功能
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -225,7 +225,7 @@ UI 改善:
 - 開發路線圖（CORRECT_PRIORITY_ROADMAP.md）
 - Commit 指南（COMMIT_GUIDE.md）
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -269,15 +269,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 - 可以獨立運作
 - 易於理解與回溯
 
-### 4. 必須署名 Claude
-
-所有 commit 必須包含：
-```
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
-
----
-
 ## ✅ 提交前檢查清單
 
 在提交前，請確認：
@@ -285,7 +276,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 - [ ] 所有新檔案都已添加到 git
 - [ ] 沒有包含不相關的變更
 - [ ] Commit 訊息清楚描述變更內容
-- [ ] 已添加 Co-Authored-By 署名
 - [ ] 使用 Conventional Commits 格式
 - [ ] 使用繁體中文撰寫訊息內容
 
