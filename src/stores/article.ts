@@ -49,7 +49,8 @@ export const useArticleStore = defineStore('article', () => {
       if (filter.value.searchText) {
         const searchLower = filter.value.searchText.toLowerCase()
         const titleMatch = article.title.toLowerCase().includes(searchLower)
-        const contentMatch = article.content.toLowerCase().includes(searchLower)
+        // 空內容安全處理：空字串的 toLowerCase().includes() 總是返回 false
+        const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
         if (!titleMatch && !contentMatch) {return false}
       }
 

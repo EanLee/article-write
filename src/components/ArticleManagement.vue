@@ -224,7 +224,8 @@ const filteredArticles = computed(() => {
     if (filters.value.searchText) {
       const searchLower = filters.value.searchText.toLowerCase()
       const titleMatch = article.title.toLowerCase().includes(searchLower)
-      const contentMatch = article.content.toLowerCase().includes(searchLower)
+      // 空內容安全處理：使用 || '' 確保不會對 undefined 調用方法
+      const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
       if (!titleMatch && !contentMatch) {
         return false
       }
