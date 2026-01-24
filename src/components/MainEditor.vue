@@ -255,14 +255,17 @@ let historyTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(content, (newContent) => {
     handleContentChange();
     
-    // 記錄歷史（防抖 500ms）
-    if (historyTimeout) {
-        clearTimeout(historyTimeout);
+    // 只在撰寫模式下記錄歷史（Raw 模式下 editorRef 不存在）
+    if (editorMode.value === 'compose') {
+        // 記錄歷史（防抖 500ms）
+        if (historyTimeout) {
+            clearTimeout(historyTimeout);
+        }
+        historyTimeout = setTimeout(() => {
+            const cursorPos = editorRef.value?.selectionStart || 0;
+            pushHistory(newContent, cursorPos);
+        }, 500);
     }
-    historyTimeout = setTimeout(() => {
-        const cursorPos = editorRef.value?.selectionStart || 0;
-        pushHistory(newContent, cursorPos);
-    }, 500);
 });
 
 function scheduleAutoSave() {
@@ -303,6 +306,16 @@ function togglePreview() {
 }
 
 function toggleEditorMode() {
+    // 清理所有定時器，防止在模式切換後訪問已卸載的 ref
+    if (historyTimeout) {
+        clearTimeout(historyTimeout);
+        historyTimeout = null;
+    }
+    if (autoSaveTimer.value) {
+        clearTimeout(autoSaveTimer.value);
+        autoSaveTimer.value = null;
+    }
+    
     if (editorMode.value === 'compose') {
         // 切換到 Raw 模式 - 組合 frontmatter 和 content
         editorMode.value = 'raw';
@@ -587,8 +600,14 @@ onMounted(() => {
 
 // Cleanup
 onUnmounted(() => {
+    // 清理自動儲存定時器
     if (autoSaveTimer.value) {
         clearTimeout(autoSaveTimer.value);
+    }
+    // 清理歷史記錄定時器
+    if (historyTimeout) {
+        clearTimeout(historyTimeout);
+        historyTimeout = null;
     }
     cleanupValidation();
 });
