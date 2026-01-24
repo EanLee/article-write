@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { MarkdownService } from '../MarkdownService'
+import { MarkdownService } from '@/services/MarkdownService'
 import type { Frontmatter } from '@/types'
 
 describe('MarkdownService - 系列欄位處理', () => {

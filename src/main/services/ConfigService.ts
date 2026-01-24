@@ -9,7 +9,7 @@ interface PathValidationResult {
 
 interface AppConfig {
   paths: {
-    obsidianVault: string
+    articlesDir: string
     targetBlog: string
     imagesDir: string
   }
@@ -46,37 +46,21 @@ export class ConfigService {
     }
   }
 
-  async validateObsidianVault(path: string): Promise<PathValidationResult> {
+  async validateArticlesDir(path: string): Promise<PathValidationResult> {
     try {
       const stats = await fs.stat(path)
       if (!stats.isDirectory()) {
         return { valid: false, message: '路徑不是資料夾' }
       }
 
-      // Check for required subdirectories
-      const requiredDirs = ['Publish', 'Drafts', 'Images']
-      const missingDirs: string[] = []
-
-      for (const dir of requiredDirs) {
-        try {
-          const dirPath = join(path, dir)
-          const dirStats = await fs.stat(dirPath)
-          if (!dirStats.isDirectory()) {
-            missingDirs.push(dir)
-          }
-        } catch {
-          missingDirs.push(dir)
-        }
+      // 檢查讀寫權限
+      try {
+        await fs.access(path, fs.constants.R_OK | fs.constants.W_OK)
+      } catch {
+        return { valid: false, message: '沒有讀寫權限' }
       }
 
-      if (missingDirs.length > 0) {
-        return { 
-          valid: false, 
-          message: `缺少必要資料夾: ${missingDirs.join(', ')}` 
-        }
-      }
-
-      return { valid: true, message: '有效的 Obsidian Vault' }
+      return { valid: true, message: '有效的文章資料夾' }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }
@@ -123,7 +107,7 @@ export class ConfigService {
   private getDefaultConfig(): AppConfig {
     return {
       paths: {
-        obsidianVault: '',
+        articlesDir: '',
         targetBlog: '',
         imagesDir: ''
       },

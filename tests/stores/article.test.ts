@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useArticleStore } from '../article'
-import { useConfigStore } from '../config'
+import { useArticleStore } from '@/stores/article'
+import { useConfigStore } from '@/stores/config'
 
 // Mock the window.electronAPI
 global.window = {
@@ -23,7 +23,7 @@ describe('Article Store', () => {
     
     // Setup config store with mock vault path
     const configStore = useConfigStore()
-    configStore.config.paths.obsidianVault = '/mock/vault/path'
+    configStore.config.paths.articlesDir = '/mock/vault/path'
     
     // Reset all mocks
     vi.clearAllMocks()

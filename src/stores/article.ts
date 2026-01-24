@@ -81,7 +81,7 @@ export const useArticleStore = defineStore('article', () => {
   async function loadArticles() {
     loading.value = true
     try {
-      const vaultPath = configStore.config.paths.obsidianVault
+      const vaultPath = configStore.config.paths.articlesDir
       if (!vaultPath) {
         console.warn('Obsidian vault path not configured')
         articles.value = []
@@ -181,7 +181,7 @@ export const useArticleStore = defineStore('article', () => {
         throw new Error('Electron API not available')
       }
 
-      const vaultPath = configStore.config.paths.obsidianVault
+      const vaultPath = configStore.config.paths.articlesDir
       if (!vaultPath) {
         throw new Error('Obsidian vault path not configured')
       }
@@ -323,7 +323,7 @@ export const useArticleStore = defineStore('article', () => {
       }
 
       if (article.status === 'draft') {
-        const vaultPath = configStore.config.paths.obsidianVault
+        const vaultPath = configStore.config.paths.articlesDir
         if (!vaultPath) {
           throw new Error('Obsidian vault path not configured')
         }
@@ -384,7 +384,7 @@ export const useArticleStore = defineStore('article', () => {
   let unsubscribeFileChange: (() => void) | null = null
 
   async function startFileWatching() {
-    const vaultPath = configStore.config.paths.obsidianVault
+    const vaultPath = configStore.config.paths.articlesDir
     if (!vaultPath || watchingFiles.value) { return }
 
     // Check if we're running in Electron environment
@@ -408,7 +408,7 @@ export const useArticleStore = defineStore('article', () => {
   }
   
   async function handleFileChange(event: string, filePath: string) {
-    const vaultPath = configStore.config.paths.obsidianVault
+    const vaultPath = configStore.config.paths.articlesDir
     if (!vaultPath) {return}
     
     // 解析檔案路徑以取得狀態和分類

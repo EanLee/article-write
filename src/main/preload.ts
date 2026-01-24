@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Config operations
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (config: any) => ipcRenderer.invoke('set-config', config),
-  validateObsidianVault: (path: string) => ipcRenderer.invoke('validate-obsidian-vault', path),
+  validateArticlesDir: (path: string) => ipcRenderer.invoke('validate-articles-dir', path),
   validateAstroBlog: (path: string) => ipcRenderer.invoke('validate-astro-blog', path),
 
   // Process management

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { MarkdownService } from '../MarkdownService'
+import { MarkdownService } from '@/services/MarkdownService'
 
 describe('MarkdownService Enhanced Features', () => {
   const markdownService = new MarkdownService()

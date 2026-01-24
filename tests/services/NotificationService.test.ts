@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { NotificationService, notify } from '../NotificationService'
+import { NotificationService, notify } from '@/services/NotificationService'
 
 describe('NotificationService', () => {
   let notificationService: NotificationService

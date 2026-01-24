@@ -75,7 +75,7 @@ app.whenReady().then(() => {
   
   ipcMain.handle('get-config', () => configService.getConfig())
   ipcMain.handle('set-config', (_, config: any) => configService.setConfig(config))
-  ipcMain.handle('validate-obsidian-vault', (_, path: string) => configService.validateObsidianVault(path))
+  ipcMain.handle('validate-articles-dir', (_, path: string) => configService.validateArticlesDir(path))
   ipcMain.handle('validate-astro-blog', (_, path: string) => configService.validateAstroBlog(path))
   
   ipcMain.handle('start-dev-server', (_, projectPath: string) => processService.startDevServer(projectPath))

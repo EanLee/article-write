@@ -43,7 +43,7 @@ export interface ElectronAPI {
   // 設定操作
   getConfig: () => Promise<any>
   setConfig: (config: any) => Promise<void>
-  validateObsidianVault: (path: string) => Promise<{ valid: boolean; message: string }>
+  validateArticlesDir: (path: string) => Promise<{ valid: boolean; message: string }>
   validateAstroBlog: (path: string) => Promise<{ valid: boolean; message: string }>
 
   // 程序管理

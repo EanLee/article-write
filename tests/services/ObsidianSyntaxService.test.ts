@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ObsidianSyntaxService } from '../ObsidianSyntaxService'
+import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService'
 import type { Article } from '@/types'
-import type { AutocompleteContext } from '../ObsidianSyntaxService'
+import type { AutocompleteContext } from '@/services/ObsidianSyntaxService'
 
 describe('ObsidianSyntaxService', () => {
   let service: ObsidianSyntaxService

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { BackupService } from '../BackupService'
+import { BackupService } from '@/services/BackupService'
 import type { Article } from '@/types'
 
 describe('BackupService', () => {
