@@ -235,21 +235,21 @@ function findMatches() {
 }
 
 function findNext() {
-  if (matchCount.value === 0) return
+  if (matchCount.value === 0) {return}
 
   currentMatchIndex.value = currentMatchIndex.value >= matchCount.value ? 1 : currentMatchIndex.value + 1
   emit('highlight', matches.value, currentMatchIndex.value - 1)
 }
 
 function findPrevious() {
-  if (matchCount.value === 0) return
+  if (matchCount.value === 0) {return}
 
   currentMatchIndex.value = currentMatchIndex.value <= 1 ? matchCount.value : currentMatchIndex.value - 1
   emit('highlight', matches.value, currentMatchIndex.value - 1)
 }
 
 function replaceNext() {
-  if (matchCount.value === 0) return
+  if (matchCount.value === 0) {return}
   emit('replace', searchText.value, replaceText.value, false)
   
   // 重新搜尋
@@ -259,10 +259,10 @@ function replaceNext() {
 }
 
 function replaceAll() {
-  if (matchCount.value === 0) return
+  if (matchCount.value === 0) {return}
   
   const confirmed = confirm(`確定要替換全部 ${matchCount.value} 個匹配項嗎？`)
-  if (!confirmed) return
+  if (!confirmed) {return}
 
   emit('replace', searchText.value, replaceText.value, true)
   

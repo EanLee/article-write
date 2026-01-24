@@ -135,9 +135,6 @@ import {
   Folder,
   Tag,
   CircleDot,
-  AlertCircle,
-  Workflow,
-  CalendarClock,
   FolderOpen,
   ChevronDown,
   ChevronRight
@@ -164,7 +161,7 @@ function toggleExpanded() {
 }
 
 function formatDate(date: Date | string): string {
-  if (!date) return '-'
+  if (!date) {return '-'}
   const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',
@@ -175,34 +172,7 @@ function formatDate(date: Date | string): string {
   }).format(d)
 }
 
-function getPriorityLabel(priority: string): string {
-  switch (priority) {
-    case 'high':
-      return '高'
-    case 'medium':
-      return '中'
-    case 'low':
-      return '低'
-    default:
-      return '未設定'
-  }
-}
 
-function getWorkflowLabel(status: string): string {
-  const labels: Record<string, string> = {
-    idea: '想法',
-    writing: '撰寫中',
-    reviewing: '審閱中',
-    ready: '準備發布',
-    published: '已發布',
-    archived: '已封存'
-  }
-  return labels[status] || status
-}
-
-function isOverdue(date: string): boolean {
-  return new Date(date) < new Date()
-}
 </script>
 
 <style scoped>

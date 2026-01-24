@@ -1,7 +1,7 @@
 /**
  * 編輯器快捷鍵處理 Composable
  */
-import { ref, type Ref } from 'vue'
+import { type Ref } from 'vue'
 
 export interface EditorShortcutsOptions {
   onSave?: () => void
@@ -22,7 +22,7 @@ export function useEditorShortcuts(
    */
   function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
     const textarea = editorRef.value
-    if (!textarea) return
+    if (!textarea) {return}
 
     const { selectionStart, selectionEnd } = textarea
     const selectedText = textarea.value.substring(selectionStart, selectionEnd)
@@ -121,7 +121,7 @@ export function useEditorShortcuts(
    * 處理自動配對括號和引號
    */
   function handleAutoPairing(event: KeyboardEvent): boolean {
-    if (event.ctrlKey || event.metaKey || event.altKey) return false
+    if (event.ctrlKey || event.metaKey || event.altKey) {return false}
 
     const textarea = event.target as HTMLTextAreaElement
     const { selectionStart } = textarea

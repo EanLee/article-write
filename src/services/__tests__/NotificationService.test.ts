@@ -15,7 +15,7 @@ describe('NotificationService', () => {
 
   describe('顯示通知', () => {
     it('應該能顯示成功通知', () => {
-      const id = notificationService.success('成功', '操作完成')
+      notificationService.success('成功', '操作完成')
 
       expect(notificationService.notifications.value).toHaveLength(1)
       expect(notificationService.notifications.value[0].type).toBe('success')
@@ -24,21 +24,21 @@ describe('NotificationService', () => {
     })
 
     it('應該能顯示錯誤通知', () => {
-      const id = notificationService.error('錯誤', '操作失敗')
+      notificationService.error('錯誤', '操作失敗')
 
       expect(notificationService.notifications.value).toHaveLength(1)
       expect(notificationService.notifications.value[0].type).toBe('error')
     })
 
     it('應該能顯示警告通知', () => {
-      const id = notificationService.warning('警告', '請注意')
+      notificationService.warning('警告', '請注意')
 
       expect(notificationService.notifications.value).toHaveLength(1)
       expect(notificationService.notifications.value[0].type).toBe('warning')
     })
 
     it('應該能顯示資訊通知', () => {
-      const id = notificationService.info('資訊', '提示訊息')
+      notificationService.info('資訊', '提示訊息')
 
       expect(notificationService.notifications.value).toHaveLength(1)
       expect(notificationService.notifications.value[0].type).toBe('info')

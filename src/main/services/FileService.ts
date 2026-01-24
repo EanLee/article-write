@@ -91,7 +91,7 @@ export class FileService {
 
     this.watchCallback = callback
     this.watcher = watch(watchPath, {
-      ignored: /(^|[\/\\])\../, // 忽略隱藏檔案
+      ignored: /(^|[/\\])\../, // 忽略隱藏檔案
       persistent: true,
       ignoreInitial: true,
       depth: 3, // 監聽深度：vault/status/category/file.md

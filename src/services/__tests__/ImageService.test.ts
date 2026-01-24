@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ImageService, type ImageValidationWarning } from '../ImageService'
+import { ImageService } from '../ImageService'
 import type { Article } from '@/types'
 
 // Mock window.electronAPI

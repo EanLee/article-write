@@ -140,26 +140,26 @@ const logContainerRef = ref<HTMLElement>()
 const hasTargetBlog = computed(() => !!configStore.config.paths.targetBlog)
 
 const statusIndicatorClass = computed(() => {
-  if (loading.value) return 'bg-warning animate-pulse'
-  if (isRunning.value) return 'bg-success'
+  if (loading.value) {return 'bg-warning animate-pulse'}
+  if (isRunning.value) {return 'bg-success'}
   return 'bg-base-content/30'
 })
 
 const statusBadgeClass = computed(() => {
-  if (loading.value) return 'badge-warning'
-  if (isRunning.value) return 'badge-success'
+  if (loading.value) {return 'badge-warning'}
+  if (isRunning.value) {return 'badge-success'}
   return 'badge-ghost'
 })
 
 const statusText = computed(() => {
-  if (loading.value) return '處理中...'
-  if (isRunning.value) return '運行中'
+  if (loading.value) {return '處理中...'}
+  if (isRunning.value) {return '運行中'}
   return '已停止'
 })
 
 // Methods
 async function startServer() {
-  if (!hasTargetBlog.value || loading.value) return
+  if (!hasTargetBlog.value || loading.value) {return}
 
   loading.value = true
   try {
@@ -178,7 +178,7 @@ async function startServer() {
 }
 
 async function stopServer() {
-  if (loading.value) return
+  if (loading.value) {return}
 
   loading.value = true
   try {
@@ -212,10 +212,10 @@ function toggleExpanded() {
 }
 
 function getLogClass(log: ServerLogData) {
-  if (log.type === 'stderr') return 'text-error'
-  if (log.log.includes('錯誤') || log.log.includes('Error')) return 'text-error'
-  if (log.log.includes('警告') || log.log.includes('Warning')) return 'text-warning'
-  if (log.log.includes('已就緒') || log.log.includes('ready')) return 'text-success'
+  if (log.type === 'stderr') {return 'text-error'}
+  if (log.log.includes('錯誤') || log.log.includes('Error')) {return 'text-error'}
+  if (log.log.includes('警告') || log.log.includes('Warning')) {return 'text-warning'}
+  if (log.log.includes('已就緒') || log.log.includes('ready')) {return 'text-success'}
   return 'text-base-content/80'
 }
 
@@ -242,7 +242,7 @@ function startResize(e: MouseEvent) {
 }
 
 function onResize(e: MouseEvent) {
-  if (!isResizing) return
+  if (!isResizing) {return}
   const delta = startY - e.clientY
   const newHeight = Math.max(100, Math.min(500, startHeight + delta))
   logPanelHeight.value = newHeight

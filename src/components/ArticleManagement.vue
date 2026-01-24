@@ -280,7 +280,7 @@ async function handleCreateArticle() {
 
 // 格式化日期
 function formatDate(date: Date | string): string {
-  if (!date) return '-'
+  if (!date) {return '-'}
   const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',

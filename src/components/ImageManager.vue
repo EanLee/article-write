@@ -332,7 +332,6 @@ const currentArticleImages = computed(() => {
     return []
   }
   
-  const content = articleStore.currentArticle.content
   const images: CurrentArticleImage[] = []
   
   // Use ImageService to get image references for better accuracy

@@ -236,7 +236,7 @@ const autoSaveSeconds = computed({
 const obsidianValidation = ref({ valid: false, message: '請選擇路徑' })
 const blogValidation = ref({ valid: false, message: '請選擇路徑' })
 
-const isConfigValid = computed(() => {
+const _isConfigValid = computed(() => {
   return obsidianValidation.value.valid && blogValidation.value.valid
 })
 

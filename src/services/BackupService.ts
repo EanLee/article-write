@@ -49,10 +49,10 @@ export class BackupService {
    */
   restoreFromBackup(filePath: string, backupId: string): { content: string; frontmatter: any } | null {
     const backup = this.backups.get(filePath)
-    if (!backup) return null
+    if (!backup) {return null}
 
     const version = backup.versions.find(v => v.id === backupId)
-    if (!version) return null
+    if (!version) {return null}
 
     return {
       content: version.content,

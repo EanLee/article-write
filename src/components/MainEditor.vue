@@ -135,8 +135,8 @@ const {
 
 // Undo/Redo 系統
 const {
-  canUndo,
-  canRedo,
+  canUndo: _canUndo,
+  canRedo: _canRedo,
   pushHistory,
   undo,
   redo,
@@ -149,7 +149,7 @@ const {
   openSearch,
   closeSearch,
   replace,
-  jumpToMatch,
+  jumpToMatch: _jumpToMatch,
 } = useSearchReplace(
   () => content.value,
   (newContent) => { content.value = newContent },
@@ -373,7 +373,7 @@ function updatePreview() {
         // Update preview statistics and validation
         previewStats.value = previewService.getPreviewStats(content.value);
         previewValidation.value = previewService.validatePreviewContent(content.value);
-    } catch (error) {
+    } catch {
         // Fallback to basic MarkdownService rendering
         try {
             renderedContent.value = markdownService.renderForPreview(content.value, true);
@@ -414,7 +414,7 @@ function handleSearchHighlight(
   matches: Array<{ start: number; end: number }>,
   currentIndex: number
 ) {
-  if (matches.length === 0 || !editorRef.value) return;
+  if (matches.length === 0 || !editorRef.value) {return;}
 
   const match = matches[currentIndex];
   
@@ -427,7 +427,7 @@ function handleSearchHighlight(
 }
 
 function scrollToSelection() {
-  if (!editorRef.value) return;
+  if (!editorRef.value) {return;}
   
   const textarea = editorRef.value;
   const selectionStart = textarea.selectionStart;

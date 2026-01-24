@@ -409,19 +409,19 @@ export const useArticleStore = defineStore('article', () => {
   
   async function handleFileChange(event: string, filePath: string) {
     const vaultPath = configStore.config.paths.obsidianVault
-    if (!vaultPath) return
+    if (!vaultPath) {return}
     
     // 解析檔案路徑以取得狀態和分類
     const relativePath = filePath.replace(vaultPath, '').replace(/\\/g, '/')
     const parts = relativePath.split('/').filter(Boolean)
     
     // 預期格式：/Drafts|Publish/category/filename.md
-    if (parts.length < 3) return
+    if (parts.length < 3) {return}
     
-    const [statusFolder, category, filename] = parts
+    const [statusFolder, category] = parts
     const status = statusFolder === 'Publish' ? 'published' : 'draft'
     
-    if (!['Software', 'growth', 'management'].includes(category)) return
+    if (!['Software', 'growth', 'management'].includes(category)) {return}
     
     switch (event) {
       case 'add':
@@ -439,7 +439,7 @@ export const useArticleStore = defineStore('article', () => {
     status: 'draft' | 'published',
     category: 'Software' | 'growth' | 'management'
   ) {
-    if (typeof window === 'undefined' || !window.electronAPI) return
+    if (typeof window === 'undefined' || !window.electronAPI) {return}
     
     try {
       const content = await window.electronAPI.readFile(filePath)

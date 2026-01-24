@@ -46,7 +46,6 @@ export function useSearchReplace(
     } else {
       // 替換當前匹配
       const cursorPos = getCursorPosition()
-      const beforeCursor = content.substring(0, cursorPos)
       const afterCursor = content.substring(cursorPos)
       
       // 在游標位置之後尋找第一個匹配

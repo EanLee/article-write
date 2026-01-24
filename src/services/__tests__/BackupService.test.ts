@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { BackupService, type BackupVersion } from '../BackupService'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { BackupService } from '../BackupService'
 import type { Article } from '@/types'
 
 describe('BackupService', () => {

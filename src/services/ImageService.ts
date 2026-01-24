@@ -623,7 +623,7 @@ export class ImageService {
         } else {
           failed.push(imageName)
         }
-      } catch (error) {
+      } catch {
         failed.push(imageName)
       }
     }

@@ -37,7 +37,7 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import { Check, Loader2, AlertCircle, FileEdit, Save } from 'lucide-vue-next'
 import { autoSaveService } from '@/services/AutoSaveService'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   showSaveButton?: boolean
 }>(), {
   showSaveButton: true

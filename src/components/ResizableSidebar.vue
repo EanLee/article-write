@@ -106,7 +106,7 @@ function startResize(e: MouseEvent) {
   startWidth = width.value
 
   const onMouseMove = (moveEvent: MouseEvent) => {
-    if (!isResizing.value) return
+    if (!isResizing.value) {return}
 
     const delta = moveEvent.clientX - startX
     let newWidth = startWidth + delta
