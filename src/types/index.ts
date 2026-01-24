@@ -16,8 +16,8 @@ export interface Frontmatter {
   description?: string
   date: string
   lastmod?: string
-  tags: string[]
-  categories: string[]
+  tags?: string[]        // 改為可選，防止 undefined 導致崩潰
+  categories?: string[]  // 改為可選，防止 undefined 導致崩潰
   slug?: string
   keywords?: string[]
   series?: string  // 系列名稱
