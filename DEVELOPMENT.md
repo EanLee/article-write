@@ -210,6 +210,69 @@ git commit -m "refactor(editor): 重構編輯器"
 
 ---
 
+## Git Hooks 與自動檢查
+
+本專案使用 **Husky + lint-staged** 確保程式碼品質。
+
+### 自動執行的檢查
+
+每次執行 `git commit` 時，會自動執行兩個檢查：
+
+#### 1. Pre-commit: ESLint 程式碼檢查
+
+- **檢查範圍**: 暫存的 `.js`、`.ts`、`.vue` 檔案
+- **自動修復**: 可自動修復的問題會自動修正
+- **阻止提交**: 如果有無法修復的 ESLint 錯誤，commit 會被中止
+
+#### 2. Commit-msg: Commit 訊息格式驗證
+
+- **驗證格式**: 檢查是否符合 Conventional Commits 規範
+- **檢查項目**:
+  - Type 必須是有效的類型（feat, fix, docs 等）
+  - Subject 不能為空
+  - Header 長度不超過 100 字元
+- **阻止提交**: 格式不符合規範時 commit 會被中止
+
+### 工具說明
+
+- **Husky**: Git hooks 管理工具
+- **lint-staged**: 只檢查暫存檔案，提升效能
+- **commitlint**: Commit 訊息格式驗證工具
+
+### 配置檔案
+
+- `.husky/pre-commit`: Pre-commit hook 腳本（執行 lint-staged）
+- `.husky/commit-msg`: Commit-msg hook 腳本（執行 commitlint）
+- `.lintstagedrc.json`: lint-staged 配置
+- `commitlint.config.js`: commitlint 配置
+
+### 手動執行檢查
+
+如果需要手動檢查：
+
+```bash
+# ESLint: 檢查所有檔案
+pnpm run lint
+
+# ESLint: 檢查並自動修復
+pnpm run lint:fix
+
+# Commitlint: 驗證 commit message（需要 COMMIT_EDITMSG 檔案）
+pnpm exec commitlint --from HEAD~1 --to HEAD --verbose
+```
+
+### 繞過 Hook（不建議）
+
+緊急情況下可以跳過 hook，但**強烈不建議**：
+
+```bash
+git commit --no-verify -m "message"
+```
+
+⚠️ **警告**: 繞過 hook 可能導致程式碼品質問題進入倉庫
+
+---
+
 ## 開發流程
 
 ### 1. 接到新任務

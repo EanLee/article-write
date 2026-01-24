@@ -123,16 +123,24 @@ git checkout -b feature/任務名稱
 
 ```bash
 # 確保所有測試通過
-npm run test
+pnpm run test
 
-# 確保程式碼風格正確
-npm run lint
+# （可選）手動檢查程式碼風格
+# 注意：commit 時會自動執行 lint
+pnpm run lint
 
 # 推送到遠端
 git push origin feature/任務名稱
 
 # 建立 Pull Request 到 develop
 ```
+
+**重要 Git Hooks**:
+
+1. **Pre-commit**: 自動執行 ESLint 檢查並修復可修復的問題
+2. **Commit-msg**: 自動驗證 commit message 是否符合 Conventional Commits 規範
+
+如果檢查失敗，commit 會被中止，需修復後重新提交。
 
 ### 4. Code Review
 
@@ -164,6 +172,10 @@ git push origin feature/任務名稱
 2. **必須**使用繁體中文
 3. **必須**遵循 Atomic & SRP 原則
 4. **建議**分批提交，不要一次提交所有變更
+5. **自動檢查**: 
+   - Pre-commit hook 會自動執行 ESLint
+   - Commit-msg hook 會自動驗證 commit message 格式
+   - 不符合規範的 commit 會被自動拒絕
 
 ### 範例工作流程
 
