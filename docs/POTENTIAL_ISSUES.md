@@ -123,9 +123,10 @@ onUnmounted(() => {
 
 ## 🟡 中優先級 (High)
 
-### Issue #4: Frontmatter 類型定義與實際數據不一致
+### ✅ Issue #4: Frontmatter 類型定義與實際數據不一致 (已修復)
 
 **檔案:** `src/types/index.ts:14-25`
+**修復提交:** `cb6df6f`
 
 **問題描述:**
 ```typescript
@@ -163,9 +164,10 @@ export interface Frontmatter {
 
 ---
 
-### Issue #5: Article.content 可能為空字串導致的邏輯問題
+### ✅ Issue #5: Article.content 可能為空字串導致的邏輯問題 (已修復)
 
 **檔案:** 多個位置
+**修復提交:** `0544c71`
 
 **問題描述:**
 ```typescript
@@ -194,9 +196,10 @@ const contentMatch = article.content
 
 ---
 
-### Issue #6: AutoSaveService 初始化檢查不足
+### ✅ Issue #6: AutoSaveService 初始化檢查不足 (已修復)
 
 **檔案:** `src/services/AutoSaveService.ts`
+**修復提交:** `c621b75`
 
 **問題描述:**
 服務在未初始化時調用方法可能導致錯誤
@@ -360,9 +363,9 @@ app.config.errorHandler = (err, instance, info) => {
 - [x] Issue #1: MainEditor 事件監聽器清理 ✅ (commit: 7188e9a)
 - [x] Issue #2: ResizableSidebar 監聽器清理 ✅ (commit: 7188e9a)
 - [x] Issue #3: ServerControlPanel 監聽器清理 ✅ (commit: 7188e9a)
-- [ ] Issue #4: Frontmatter 類型定義修正
-- [ ] Issue #5: Article.content 空值處理
-- [ ] Issue #6: AutoSaveService 初始化檢查
+- [x] Issue #4: Frontmatter 類型定義修正 ✅ (commit: cb6df6f)
+- [x] Issue #5: Article.content 空值處理 ✅ (commit: 0544c71)
+- [x] Issue #6: AutoSaveService 初始化檢查 ✅ (commit: c621b75)
 
 ### 可選優化 💡
 - [ ] Issue #7-12: 中低優先級優化
@@ -379,5 +382,8 @@ app.config.errorHandler = (err, instance, info) => {
 
 **檢查日期:** 2025-01-24
 **檢查者:** Claude Code
-**程式碼版本:** develop branch (commit: 7188e9a)
-**最後更新:** 2025-01-24 (修復 Issue #1-3)
+**程式碼版本:** develop branch (commit: c621b75)
+**最後更新:** 2025-01-24
+- **階段 1 完成:** 修復 Issue #1-3 (Critical)
+- **階段 2 完成:** 修復 Issue #4-6 (High Priority)
+- **狀態:** 所有 Critical 和 High Priority issues 已修復 ✅
