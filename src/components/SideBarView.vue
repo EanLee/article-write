@@ -20,6 +20,9 @@
 
         <!-- Frontmatter 視圖 -->
         <FrontmatterView v-else-if="modelValue === 'frontmatter'" />
+
+        <!-- 文章管理視圖 -->
+        <ArticleManagement v-else-if="modelValue === 'manage'" />
       </div>
 
       <!-- Resize Handle -->
@@ -36,6 +39,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { X } from 'lucide-vue-next'
 import ArticleListTree from './ArticleListTree.vue'
 import FrontmatterView from './FrontmatterView.vue'
+import ArticleManagement from './ArticleManagement.vue'
 
 const modelValue = defineModel<string>()
 
@@ -50,7 +54,8 @@ const isResizing = ref(false)
 const currentTitle = computed(() => {
   const titles: Record<string, string> = {
     articles: '文章列表',
-    frontmatter: '文章資訊'
+    frontmatter: '文章資訊',
+    manage: '文章管理'
   }
   return titles[modelValue.value || ''] || ''
 })

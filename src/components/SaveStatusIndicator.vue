@@ -1,32 +1,43 @@
 <template>
-  <div class="flex items-center gap-2 text-sm">
-    <!-- 儲存狀態圖示和文字 -->
-    <div
-      class="flex items-center gap-1\.5 px-3 py-1\.5 rounded-lg transition-all font-medium shadow-sm"
-      :class="statusClass"
-    >
-      <component :is="statusIcon" :size="16" :class="iconClass" />
-      <span class="text-sm">{{ statusText }}</span>
+  <div class="flex items-center gap-2" :class="compact ? 'text-xs' : 'text-sm'">
+    <!-- Icon Only 模式：僅顯示圖示 -->
+    <div v-if="iconOnly" class="tooltip tooltip-bottom" :data-tip="statusText">
+      <component :is="statusIcon" :size="compact ? 14 : 16" :class="[iconClass, statusColorClass]" />
     </div>
 
-    <!-- 最後儲存時間 -->
-    <span v-if="lastSavedText" class="text-base-content/50 text-xs">
+    <!-- 一般模式：顯示圖示和文字 -->
+    <div
+      v-else
+      class="flex items-center gap-1.5 rounded-lg transition-all font-medium"
+      :class="[
+        statusClass,
+        compact ? 'px-2 py-0.5' : 'px-3 py-1.5 shadow-sm'
+      ]"
+    >
+      <component :is="statusIcon" :size="compact ? 12 : 16" :class="iconClass" />
+      <span :class="compact ? 'text-xs' : 'text-sm'">{{ statusText }}</span>
+    </div>
+
+    <!-- 最後儲存時間（非緊湊模式且非 icon-only） -->
+    <span v-if="!compact && !iconOnly && lastSavedText" class="text-base-content/50 text-xs">
       {{ lastSavedText }}
     </span>
 
-    <!-- 手動儲存按鈕 -->
-    <div v-if="showSaveButton" class="tooltip tooltip-bottom" data-tip="手動儲存 (Ctrl+S)">
+    <!-- 手動儲存按鈕（非 icon-only 模式） -->
+    <div v-if="showSaveButton && !iconOnly" class="tooltip tooltip-bottom" data-tip="手動儲存 (Ctrl+S)">
       <button
-        class="btn btn-sm gap-1"
-        :class="{
-          'btn-warning': saveState.status === 'modified',
-          'btn-ghost': saveState.status !== 'modified'
-        }"
+        :class="[
+          compact ? 'btn btn-xs gap-0.5' : 'btn btn-sm gap-1',
+          {
+            'btn-warning': saveState.status === 'modified',
+            'btn-ghost': saveState.status !== 'modified'
+          }
+        ]"
         :disabled="isSaving"
         @click="handleSave"
       >
-        <Save :size="14" />
-        <span class="hidden sm:inline">儲存</span>
+        <Save :size="compact ? 12 : 14" />
+        <span v-if="!compact" class="hidden sm:inline">儲存</span>
       </button>
     </div>
   </div>
@@ -39,8 +50,12 @@ import { autoSaveService } from '@/services/AutoSaveService'
 
 withDefaults(defineProps<{
   showSaveButton?: boolean
+  compact?: boolean
+  iconOnly?: boolean
 }>(), {
-  showSaveButton: true
+  showSaveButton: true,
+  compact: false,
+  iconOnly: false
 })
 
 const emit = defineEmits<{
@@ -79,6 +94,21 @@ const statusClass = computed(() => {
       return 'bg-error/20 text-error border border-error/30'
     default:
       return 'bg-base-200 text-base-content/70 border border-base-300'
+  }
+})
+
+const statusColorClass = computed(() => {
+  switch (saveState.value.status) {
+    case 'saved':
+      return 'text-success'
+    case 'saving':
+      return 'text-info'
+    case 'modified':
+      return 'text-warning'
+    case 'error':
+      return 'text-error'
+    default:
+      return 'text-base-content/70'
   }
 })
 
