@@ -59,20 +59,24 @@
 
           <!-- 編輯器模式切換 -->
           <div class="btn-group">
-            <button
-              class="btn btn-xs"
-              :class="editorMode === 'compose' ? 'btn-active' : ''"
-              @click="$emit('toggle-editor-mode')"
-            >
-              <FileEdit :size="14" />
-            </button>
-            <button
-              class="btn btn-xs"
-              :class="editorMode === 'raw' ? 'btn-active' : ''"
-              @click="$emit('toggle-editor-mode')"
-            >
-              <FileCode :size="14" />
-            </button>
+            <div class="tooltip tooltip-bottom" :data-tip="editorMode === 'compose' ? '撰寫模式（當前）' : '切換到撰寫模式'">
+              <button
+                class="btn btn-xs"
+                :class="editorMode === 'compose' ? 'btn-active' : ''"
+                @click="$emit('toggle-editor-mode')"
+              >
+                <FileEdit :size="14" />
+              </button>
+            </div>
+            <div class="tooltip tooltip-bottom" :data-tip="editorMode === 'raw' ? 'Raw 模式（當前）' : '切換到 Raw 模式'">
+              <button
+                class="btn btn-xs"
+                :class="editorMode === 'raw' ? 'btn-active' : ''"
+                @click="$emit('toggle-editor-mode')"
+              >
+                <FileCode :size="14" />
+              </button>
+            </div>
           </div>
 
           <!-- Frontmatter 編輯 -->
