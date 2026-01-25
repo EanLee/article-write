@@ -18,6 +18,36 @@
 
 **⚠️ 重要：絕對不要直接修改 `develop` 或 `main` 分支**
 
+**⚠️ 重要：一個 feature branch 只處理一個問題或功能**
+
+#### 單一職責原則 (Single Responsibility per Branch)
+
+每個分支應該：
+- ✅ 只解決一個 bug
+- ✅ 只實作一個功能
+- ✅ 只進行一項重構
+- ❌ 不要在同一個分支混合多個不相關的變更
+
+**範例**：
+```bash
+# ✅ 好的做法
+feature/add-search-function
+fix/editor-line-numbers
+refactor/article-service
+
+# ❌ 不好的做法
+feature/add-search-and-fix-bugs
+fix/multiple-issues
+feature/improve-everything
+```
+
+**原因**：
+- 便於 Code Review
+- 容易追蹤變更歷史
+- 方便回溯問題
+- 降低合併衝突風險
+- 符合 Git Flow 原則
+
 1. **開發新功能時：**
    ```bash
    # 從 develop 建立新的 feature 分支
@@ -313,18 +343,200 @@ git commit -m "feat(editor): 實作搜尋/替換 UI 組件
 git push origin feature/search-replace
 ```
 
+## Bug Fix 報告規範
+
+**⚠️ 重要：所有問題修正必須產生 Bug Fix 報告**
+
+### 1. 報告位置
+
+所有 Bug Fix 報告必須放在 `docs/fix-bug/` 資料夾，使用以下命名規則：
+
+```
+docs/fix-bug/YYYY-MM-DD-簡短描述.md
+```
+
+範例：
+- `docs/fix-bug/2026-01-26-editor-line-numbers.md`
+- `docs/fix-bug/2026-01-26-article-category-mapping.md`
+
+### 2. 報告格式
+
+每個報告必須包含以下三個部分：
+
+```markdown
+# [標題] Bug Fix 報告
+
+**日期**: YYYY-MM-DD  
+**影響範圍**: [編輯器/文章管理/服務層/UI/...]  
+**嚴重程度**: [Critical/High/Medium/Low]
+
+## 問題描述
+
+詳細描述遇到的問題，包括：
+- 問題現象
+- 發生條件
+- 影響範圍
+- 重現步驟（如適用）
+
+## 原因分析
+
+技術性分析問題的根本原因：
+- 程式碼層面的問題
+- 邏輯錯誤
+- 設計缺陷
+- 相關技術細節
+
+## 修正方式
+
+說明如何修正問題：
+- 修改的檔案
+- 修改的邏輯
+- 為什麼這個方案能解決問題
+- 是否有其他替代方案及選擇理由
+
+## 相關 Commit
+
+- commit_hash: commit 訊息
+```
+
+### 3. 報告撰寫時機
+
+- 修復完成後立即撰寫
+- 在合併 PR 之前完成
+- 作為 Code Review 的參考文件
+
+### 4. 範例
+
+參考 `docs/fix-bug/` 資料夾中的現有報告作為範例。
+
+## 測試規範
+
+**⚠️ 重要：所有功能開發與修正必須通過測試才算完成**
+
+### 1. Service Layer 測試
+
+**規則**：所有 Service 層的變更必須有對應的 Unit Test
+
+適用範圍：
+- `src/services/` 下的所有檔案
+- 新增或修改的 Service 方法
+- 商業邏輯層面的修改
+
+測試工具：
+- Vitest (單元測試框架)
+
+測試要求：
+```bash
+# 執行測試
+pnpm run test
+
+# 測試必須全部通過
+✓ All tests passed
+```
+
+測試檔案位置：
+```
+src/services/ArticleService.ts       → tests/services/ArticleService.test.ts
+src/services/MarkdownService.ts      → tests/services/MarkdownService.test.ts
+```
+
+測試覆蓋率：
+- 新增功能：必須 100% 覆蓋新增的程式碼
+- 修改功能：必須覆蓋修改的邏輯路徑
+- Bug Fix：必須有重現問題的測試案例
+
+### 2. UI 層測試
+
+**規則**：所有 `.vue` 檔案的變更必須有對應的 Playwright E2E Test
+
+適用範圍：
+- `src/components/` 下的 Vue 組件
+- 使用者互動流程
+- UI 行為驗證
+
+測試工具：
+- Playwright (E2E 測試框架)
+
+測試要求：
+```bash
+# 執行 E2E 測試
+pnpm run test:e2e
+
+# 測試必須全部通過
+✓ All tests passed
+```
+
+測試檔案位置：
+```
+src/components/ArticleManagement.vue  → tests/e2e/article-management.spec.ts
+src/components/MainEditor.vue         → tests/e2e/main-editor.spec.ts
+```
+
+測試範圍：
+- 關鍵使用者流程（如：建立文章、編輯、儲存）
+- UI 互動行為（如：點擊、輸入、選擇）
+- 錯誤狀態處理
+- 邊界條件
+
+### 3. 測試撰寫時機
+
+**開發流程**：
+1. 撰寫測試（TDD 優先，或至少同步撰寫）
+2. 實作功能
+3. 執行測試確認通過
+4. 提交 Commit
+
+**修復流程**：
+1. 撰寫重現問題的測試（應該會失敗）
+2. 修復問題
+3. 執行測試確認通過
+4. 提交 Commit + 撰寫 Bug Fix 報告
+
+### 4. 完成定義 (Definition of Done)
+
+功能或修復只有在以下條件**全部**滿足時才算完成：
+
+✅ **程式碼完成**
+- [ ] 程式碼已撰寫並符合規範
+- [ ] ESLint 檢查通過
+- [ ] TypeScript 型別檢查通過
+
+✅ **測試完成**
+- [ ] Service 層：Unit Test 撰寫並通過
+- [ ] UI 層：Playwright Test 撰寫並通過
+- [ ] 所有測試執行 `pnpm run test` 全部通過
+
+✅ **文件完成**
+- [ ] Bug Fix：撰寫 Bug Fix 報告 (`docs/fix-bug/`)
+- [ ] 新功能：更新相關文件（如適用）
+- [ ] Commit Message 符合規範
+
+✅ **Code Review**
+- [ ] PR 建立並附上測試結果
+- [ ] Code Review 通過
+- [ ] 解決所有 Review Comments
+
+### 5. CI/CD 整合
+
+**未來規劃**：
+- 所有測試將在 CI Pipeline 中自動執行
+- 測試不通過將無法合併 PR
+- 建議本地先確保測試通過再推送
+
 ## 工具偏好
 
 - **優先使用**：Context7 和 Serena MCP 工具
 - **Commit 工具**：使用 `/commit` skill（如果可用）
+- **測試工具**：Vitest (Unit Test)、Playwright (E2E Test)
 
 ## 參考文件
 
 - [Commit 詳細指南](../docs/COMMIT_GUIDE.md)
 - [整合指南](../docs/INTEGRATION_GUIDE.md)
 - [潛在問題清單](../docs/POTENTIAL_ISSUES.md)
+- [Bug Fix 報告範例](../docs/fix-bug/)
 
 ---
 
-**最後更新**: 2025-01-25
-**版本**: 1.1.0
+**最後更新**: 2026-01-26
+**版本**: 1.2.0
