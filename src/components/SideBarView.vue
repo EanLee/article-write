@@ -1,47 +1,55 @@
 <template>
-  <transition name="slide">
-    <div v-if="modelValue" class="sidebar-view" :style="{ width: `${width}px` }">
-      <!-- Header -->
-      <div class="sidebar-header">
-        <h3 class="sidebar-title">{{ currentTitle }}</h3>
+  <div class="sidebar-view" :style="{ width: `${width}px` }">
+    <!-- Header with tabs -->
+    <div class="sidebar-header">
+      <div class="sidebar-tabs">
         <button
-          class="btn btn-ghost btn-xs"
-          title="收合側邊欄"
-          @click="$emit('update:modelValue', '')"
+          class="tab-btn"
+          :class="{ active: modelValue === SidebarView.Articles }"
+          @click="$emit('update:modelValue', SidebarView.Articles)"
         >
-          <X :size="16" />
+          <FileText :size="14" />
+          <span>文章列表</span>
+        </button>
+        <button
+          class="tab-btn"
+          :class="{ active: modelValue === SidebarView.Frontmatter }"
+          :disabled="!hasCurrentArticle"
+          @click="$emit('update:modelValue', SidebarView.Frontmatter)"
+        >
+          <Info :size="14" />
+          <span>文章資訊</span>
         </button>
       </div>
-
-      <!-- Content -->
-      <div class="sidebar-content">
-        <!-- 文章列表視圖 -->
-        <ArticleListTree v-if="modelValue === 'articles'" />
-
-        <!-- Frontmatter 視圖 -->
-        <FrontmatterView v-else-if="modelValue === 'frontmatter'" />
-
-        <!-- 文章管理視圖 -->
-        <ArticleManagement v-else-if="modelValue === 'manage'" />
-      </div>
-
-      <!-- Resize Handle -->
-      <div
-        class="resize-handle"
-        @mousedown="startResize"
-      ></div>
     </div>
-  </transition>
+
+    <!-- Content -->
+    <div class="sidebar-content">
+      <!-- 文章列表視圖 -->
+      <ArticleListTree v-if="modelValue === SidebarView.Articles" />
+
+      <!-- Frontmatter 視圖 -->
+      <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+    </div>
+
+    <!-- Resize Handle -->
+    <div
+      class="resize-handle"
+      @mousedown="startResize"
+    ></div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { X } from 'lucide-vue-next'
+import { FileText, Info } from 'lucide-vue-next'
+import { SidebarView } from '@/types'
+import { useArticleStore } from '@/stores/article'
 import ArticleListTree from './ArticleListTree.vue'
 import FrontmatterView from './FrontmatterView.vue'
-import ArticleManagement from './ArticleManagement.vue'
 
-const modelValue = defineModel<string>()
+const articleStore = useArticleStore()
+const modelValue = defineModel<SidebarView>({ default: SidebarView.Articles })
 
 const MIN_WIDTH = 200
 const MAX_WIDTH = 600
@@ -51,14 +59,7 @@ const STORAGE_KEY = 'sidebar-view-width'
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
 
-const currentTitle = computed(() => {
-  const titles: Record<string, string> = {
-    articles: '文章列表',
-    frontmatter: '文章資訊',
-    manage: '文章管理'
-  }
-  return titles[modelValue.value || ''] || ''
-})
+const hasCurrentArticle = computed(() => !!articleStore.currentArticle)
 
 function startResize(e: MouseEvent) {
   isResizing.value = true
@@ -114,20 +115,47 @@ onUnmounted(() => {
 }
 
 .sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
   border-bottom: 1px solid oklch(var(--bc) / 0.1);
-  min-height: 40px;
+  background: oklch(var(--b2) / 0.5);
 }
 
-.sidebar-title {
-  font-size: 11px;
+.sidebar-tabs {
+  display: flex;
+  padding: 4px;
+  gap: 2px;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: oklch(var(--bc) / 0.6);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover:not(:disabled) {
+  background: oklch(var(--bc) / 0.05);
+  color: oklch(var(--bc) / 0.8);
+}
+
+.tab-btn.active {
+  background: oklch(var(--b1));
+  color: oklch(var(--p));
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: oklch(var(--bc) / 0.7);
+}
+
+.tab-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .sidebar-content {
@@ -150,21 +178,5 @@ onUnmounted(() => {
 
 .resize-handle:hover {
   background: oklch(var(--p) / 0.3);
-}
-
-/* Slide animation */
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.slide-enter-from {
-  transform: translateX(-100%);
-  opacity: 0;
-}
-
-.slide-leave-to {
-  transform: translateX(-100%);
-  opacity: 0;
 }
 </style>
