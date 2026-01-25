@@ -84,29 +84,42 @@ const result = await articleService.saveArticle(updatedArticle);
 const parsed = articleService.parseRawContent(rawContent.value);
 ```
 
-## ⚠️ 進行中的重構
+### 3. 重構 articleStore（已完成）
 
-### 3. 重構 articleStore（進行中）
+**檔案**：`src/stores/article.ts`
 
-**目標**：
-- 🔄 Store 只負責狀態管理
-- 🔄 不應該直接操作檔案
-- 🔄 `updateArticle()` 應該只更新狀態，不寫入檔案
+**變更內容**：
+- ✅ 引入 ArticleService，移除 backupService 直接引用
+- ✅ 創建新的 `saveArticle()` 函數處理實際檔案寫入
+- ✅ 重構 `updateArticle()` 為純狀態更新函數
+- ✅ 重構 `createArticle()` 使用 ArticleService.saveArticle()
+- ✅ 重構 `deleteArticle()` 使用 ArticleService.deleteArticle()
+- ✅ 重構 `moveToPublished()` 使用 ArticleService.moveArticle()
+- ✅ 更新 `autoSaveService.initialize()` 使用新的 saveArticle
 
-**當前狀態**：
-- `src/stores/article.ts` 的 `updateArticle()` 仍然包含檔案操作
-- 需要重構為只更新狀態，檔案操作透過 service
+**前後對比**：
 
-**待處理**：
-```typescript
-// ❌ 當前實作（包含檔案操作）
+❌ **重構前**：
+```javascript
+// Store 直接操作檔案
 async function updateArticle(updatedArticle: Article) {
-  // ... 備份、衝突檢測
-  await window.electronAPI.writeFile(...)  // 直接寫檔
-  // ... 更新 store
+  await backupService.createBackup(updatedArticle);  // 直接備份
+  await window.electronAPI.writeFile(...);  // 直接寫檔
+  articles.value[index] = { ...updatedArticle };
+}
+```
+
+✅ **重構後**：
+```javascript
+// 新增：儲存到磁碟（透過 Service）
+async function saveArticle(article: Article) {
+  const result = await articleService.saveArticle(article);
+  if (result.success) {
+    updateArticle(article);  // 成功後更新狀態
+  }
 }
 
-// ✅ 應該改為（只更新狀態）
+// 改為：只更新狀態
 function updateArticle(updatedArticle: Article) {
   const index = articles.value.findIndex(a => a.id === updatedArticle.id);
   if (index !== -1) {
@@ -114,6 +127,11 @@ function updateArticle(updatedArticle: Article) {
   }
 }
 ```
+
+**設計原則**：
+- ✅ Store 只負責狀態管理，不直接操作檔案
+- ✅ 清楚區分記憶體更新 (updateArticle) 與磁碟寫入 (saveArticle)
+- ✅ 所有檔案操作統一透過 ArticleService 處理
 
 ## 📝 待完成的工作
 
@@ -169,9 +187,9 @@ Service (ArticleService)  ← 唯一的商業邏輯層
 
 ## 🎯 下一步行動
 
-1. **立即**：完成 articleStore 的重構
+1. ~~**立即**：完成 articleStore 的重構~~ ✅ **已完成**
 2. **短期**：為 ArticleService 添加完整測試
-3. **中期**：添加 E2E 測試
+3. **中期**：添加 E2E 測試（Playwright）
 4. **長期**：考慮為其他功能也創建對應的 service
 
 ## 📌 重要原則
@@ -201,4 +219,4 @@ Service (ArticleService)  ← 唯一的商業邏輯層
 ---
 
 **最後更新**：2026-01-25
-**狀態**：階段性完成（MainEditor.vue 已重構，Store 重構進行中）
+**狀態**：✅ 核心重構完成（ArticleService、MainEditor.vue、articleStore 已全部重構）
