@@ -28,36 +28,43 @@ export const useArticleStore = defineStore('article', () => {
 
   // Getters
   const filteredArticles = computed(() => {
-    return articles.value.filter(article => {
-      // Status filter
-      if (filter.value.status !== ArticleFilterStatus.All && article.status !== filter.value.status) {
-        return false
-      }
+    return articles.value
+      .filter(article => {
+        // Status filter
+        if (filter.value.status !== ArticleFilterStatus.All && article.status !== filter.value.status) {
+          return false
+        }
 
-      // Category filter
-      if (filter.value.category !== ArticleFilterCategory.All && article.category !== filter.value.category) {
-        return false
-      }
+        // Category filter
+        if (filter.value.category !== ArticleFilterCategory.All && article.category !== filter.value.category) {
+          return false
+        }
 
-      // Tags filter
-      if (filter.value.tags.length > 0) {
-        const hasMatchingTag = filter.value.tags.some(tag => 
-          article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && article.frontmatter.tags.includes(tag)
-        )
-        if (!hasMatchingTag) {return false}
-      }
+        // Tags filter
+        if (filter.value.tags.length > 0) {
+          const hasMatchingTag = filter.value.tags.some(tag => 
+            article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && article.frontmatter.tags.includes(tag)
+          )
+          if (!hasMatchingTag) {return false}
+        }
 
-      // Search text filter
-      if (filter.value.searchText) {
-        const searchLower = filter.value.searchText.toLowerCase()
-        const titleMatch = article.title.toLowerCase().includes(searchLower)
-        // 空內容安全處理：空字串的 toLowerCase().includes() 總是返回 false
-        const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
-        if (!titleMatch && !contentMatch) {return false}
-      }
+        // Search text filter
+        if (filter.value.searchText) {
+          const searchLower = filter.value.searchText.toLowerCase()
+          const titleMatch = article.title.toLowerCase().includes(searchLower)
+          // 空內容安全處理：空字串的 toLowerCase().includes() 總是返回 false
+          const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
+          if (!titleMatch && !contentMatch) {return false}
+        }
 
-      return true
-    })
+        return true
+      })
+      .sort((a, b) => {
+        // 按最後修改時間降序排列（最新的在前）
+        const timeA = a.lastModified instanceof Date ? a.lastModified.getTime() : new Date(a.lastModified).getTime()
+        const timeB = b.lastModified instanceof Date ? b.lastModified.getTime() : new Date(b.lastModified).getTime()
+        return timeB - timeA
+      })
   })
 
   const draftArticles = computed(() => 
