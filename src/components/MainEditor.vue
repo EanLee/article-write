@@ -41,6 +41,8 @@
                     @keydown="handleKeydown"
                     @cursor-change="updateAutocomplete"
                     @apply-suggestion="applySuggestion"
+                    @scroll="onEditorScroll"
+                    @toggle-sync-scroll="toggleSyncScroll"
                 />
             </template>
 
@@ -58,10 +60,12 @@
 
             <!-- Preview Pane -->
             <PreviewPane
+                ref="previewPaneRef"
                 v-if="showPreview"
                 :rendered-content="renderedContent"
                 :stats="previewStats"
                 :validation="previewValidation"
+                @scroll="onPreviewScroll"
             />
         </div>
 
@@ -90,6 +94,7 @@ import { useEditorValidation } from '@/composables/useEditorValidation';
 import { useUndoRedo } from '@/composables/useUndoRedo';
 import { useSearchReplace } from '@/composables/useSearchReplace';
 import { useFocusMode } from '@/composables/useFocusMode';
+import { useSyncScroll } from '@/composables/useSyncScroll';
 import { getArticleService } from '@/services/ArticleService';
 import type { Article } from '@/types';
 
@@ -115,9 +120,21 @@ const { focusMode, toggleFocusMode } = useFocusMode();
 
 // Component references
 const editorPaneRef = ref<InstanceType<typeof EditorPane>>();
+const previewPaneRef = ref<InstanceType<typeof PreviewPane>>();
 
 // Get editorRef from EditorPane component
 const editorRef = computed(() => editorPaneRef.value?.editorRef);
+
+// Get preview container ref from PreviewPane component
+const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
+
+// 同步滾動功能
+const {
+  syncEnabled,
+  onEditorScroll,
+  onPreviewScroll,
+  setSync
+} = useSyncScroll(editorRef, previewRef);
 
 // 使用 Composables
 const {
@@ -339,6 +356,10 @@ function togglePreview() {
     if (showPreview.value) {
         updatePreview();
     }
+}
+
+function toggleSyncScroll() {
+    setSync(!syncEnabled.value);
 }
 
 function toggleEditorMode() {
