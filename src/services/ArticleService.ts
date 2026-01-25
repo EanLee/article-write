@@ -16,7 +16,8 @@
 
 import type { Article, Frontmatter } from '@/types'
 import { MarkdownService } from './MarkdownService'
-import { BackupService } from './BackupService'
+import { backupService } from './BackupService'
+import type { BackupService } from './BackupService'
 
 export class ArticleService {
   private markdownService: MarkdownService
@@ -24,7 +25,7 @@ export class ArticleService {
 
   constructor() {
     this.markdownService = new MarkdownService()
-    this.backupService = BackupService.getInstance()
+    this.backupService = backupService
   }
 
   /**
