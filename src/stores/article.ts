@@ -146,13 +146,33 @@ export const useArticleStore = defineStore('article', () => {
                 const fileStats = await window.electronAPI.getFileStats(filePath)
                 const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
                 
+                // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
+                let articleCategory: ArticleCategory
+                if (frontmatter.categories && frontmatter.categories.length > 0) {
+                  // 從 frontmatter.categories 陣列取第一個有效值
+                  const firstCategory = frontmatter.categories[0]
+                  if (Object.values(ArticleCategory).includes(firstCategory as ArticleCategory)) {
+                    articleCategory = firstCategory as ArticleCategory
+                  } else {
+                    // 如果 categories 值不在 enum 中，使用資料夾名稱或預設值
+                    articleCategory = (Object.values(ArticleCategory).includes(category as ArticleCategory) 
+                      ? category 
+                      : ArticleCategory.Software) as ArticleCategory
+                  }
+                } else {
+                  // 沒有 frontmatter.categories，使用資料夾名稱或預設值
+                  articleCategory = (Object.values(ArticleCategory).includes(category as ArticleCategory) 
+                    ? category 
+                    : ArticleCategory.Software) as ArticleCategory
+                }
+                
                 const article: Article = {
                   id: generateId(),
                   title: frontmatter.title || file.replace('.md', ''),
-                  slug: file.replace('.md', ''),
+                  slug: frontmatter.slug || file.replace('.md', ''),
                   filePath,
                   status: folder.status,
-                  category: category as 'Software' | 'growth' | 'management',
+                  category: articleCategory,
                   lastModified,
                   content: articleContent,
                   frontmatter

@@ -26,12 +26,11 @@
           <textarea
             ref="editorRef"
             :value="modelValue"
-            class="textarea textarea-bordered w-full h-full resize-none font-mono text-sm leading-relaxed"
+            class="textarea textarea-bordered h-full resize-none font-mono text-sm leading-relaxed editor-textarea"
             :class="{ 
               'border-error': hasErrors,
               'border-warning': hasWarnings && !hasErrors,
-              'editor-with-problems': problemLines.size > 0,
-              'with-line-numbers-padding': showLineNumbers
+              'editor-with-problems': problemLines.size > 0
             }"
             placeholder="開始撰寫您的文章..."
             @input="handleInput"
@@ -388,10 +387,17 @@ defineExpose({
 .editor-content-wrapper {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.with-line-numbers-padding {
-  padding-left: 8px !important;
+.editor-textarea {
+  width: 100%;
+  flex: 1;
+  border: 1px solid oklch(var(--bc) / 0.2);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background: oklch(var(--b1));
 }
 
 .editor-with-problems {

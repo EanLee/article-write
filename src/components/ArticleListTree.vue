@@ -201,8 +201,8 @@ const seriesGroups = computed(() => {
     .filter(([name]) => name !== '_standalone')
     .sort(([a], [b]) => a.localeCompare(b))
     .forEach(([name, articles]) => {
-      // 按 seriesOrder 排序
-      const sorted = articles.sort((a, b) => {
+      // 按 seriesOrder 排序（使用副本避免修改原陣列）
+      const sorted = [...articles].sort((a, b) => {
         const orderA = a.frontmatter.seriesOrder || 999
         const orderB = b.frontmatter.seriesOrder || 999
         return orderA - orderB
@@ -217,10 +217,12 @@ const seriesGroups = computed(() => {
 
   // 最後添加獨立文章
   if (groups.has('_standalone')) {
+    // 使用副本避免修改原陣列
+    const standaloneArticles = groups.get('_standalone')!
     result.push({
       name: '_standalone',
       displayName: '📄 獨立文章',
-      articles: groups.get('_standalone')!.sort((a, b) =>
+      articles: [...standaloneArticles].sort((a, b) =>
         new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
       )
     })
