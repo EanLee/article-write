@@ -54,6 +54,22 @@ export enum SaveStatus {
   Error = 'error'
 }
 
+/**
+ * 視圖模式（編輯 vs 管理）
+ */
+export enum ViewMode {
+  Editor = 'editor',
+  Management = 'management'
+}
+
+/**
+ * 側邊欄視圖類型（編輯模式下使用）
+ */
+export enum SidebarView {
+  Articles = 'articles',
+  Frontmatter = 'frontmatter'
+}
+
 // Core data structures
 export interface Article {
   id: string
