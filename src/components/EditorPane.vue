@@ -392,12 +392,13 @@ defineExpose({
 }
 
 .editor-textarea {
-  width: 100%;
   flex: 1;
   border: 1px solid oklch(var(--bc) / 0.2);
   border-radius: 0.5rem;
   padding: 1rem;
   background: oklch(var(--b1));
+  box-sizing: border-box;
+  min-width: 0; /* 防止 flex 子元素溢出 */
 }
 
 .editor-with-problems {

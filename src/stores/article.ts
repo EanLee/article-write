@@ -60,10 +60,8 @@ export const useArticleStore = defineStore('article', () => {
         return true
       })
       .sort((a, b) => {
-        // 按最後修改時間降序排列（最新的在前）
-        const timeA = a.lastModified instanceof Date ? a.lastModified.getTime() : new Date(a.lastModified).getTime()
-        const timeB = b.lastModified instanceof Date ? b.lastModified.getTime() : new Date(b.lastModified).getTime()
-        return timeB - timeA
+        // 按標題字母順序排序（穩定排序，不會因儲存而跳動）
+        return a.title.localeCompare(b.title, 'zh-TW')
       })
   })
 
