@@ -353,13 +353,8 @@ function toggleEditorMode() {
                 // 更新 content（用於編輯器顯示）
                 content.value = parsed.content;
             }
-            editorMode.value = 'compose';
+        editorMode.value = 'compose';
         }
-        
-        // 模式切換完成後立即儲存
-        nextTick(() => {
-            saveArticle();
-        });
     } catch (error) {
         console.error('[EditorMode] 模式切換失敗:', error);
         // 發生錯誤時恢復標誌，允許重試
