@@ -1,4 +1,5 @@
-import type { Article, SaveState, SaveStatus } from '@/types'
+import type { Article, SaveState } from '@/types'
+import { SaveStatus } from '@/types'
 import { ref, type Ref } from 'vue'
 
 /**
@@ -17,7 +18,7 @@ export class AutoSaveService {
 
   // 儲存狀態（響應式）
   public readonly saveState: Ref<SaveState> = ref({
-    status: 'saved' as SaveStatus,
+    status: SaveStatus.Saved,
     lastSavedAt: null,
     error: null
   })
@@ -94,14 +95,14 @@ export class AutoSaveService {
     // 檢查內容是否有變更
     if (this.hasContentChanged(currentArticle)) {
       console.log(`自動儲存文章: ${currentArticle.title}`)
-      this.updateSaveState('saving')
+      this.updateSaveState(SaveStatus.Saving)
       try {
         await this.saveCallback(currentArticle)
         this.updateLastSavedContent(currentArticle)
-        this.updateSaveState('saved')
+        this.updateSaveState(SaveStatus.Saved)
       } catch (error) {
         console.error('自動儲存失敗:', error)
-        this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
+        this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : '儲存失敗')
         // 不重新拋出錯誤，讓自動儲存繼續運行
       }
     }
@@ -125,13 +126,13 @@ export class AutoSaveService {
       // 檢查前一篇文章是否有變更
       if (this.hasContentChanged(previousArticle)) {
         console.log(`切換文章時自動儲存: ${previousArticle.title}`)
-        this.updateSaveState('saving')
+        this.updateSaveState(SaveStatus.Saving)
         await this.saveCallback(previousArticle)
-        this.updateSaveState('saved')
+        this.updateSaveState(SaveStatus.Saved)
       }
     } catch (error) {
       console.error('切換文章時自動儲存失敗:', error)
-      this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
+      this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : '儲存失敗')
     }
   }
 
@@ -147,18 +148,18 @@ export class AutoSaveService {
       return
     }
 
-    this.updateSaveState('saving')
+    this.updateSaveState(SaveStatus.Saving)
     try {
       const currentArticle = this.getCurrentArticleCallback()
       if (currentArticle) {
         console.log(`手動儲存文章: ${currentArticle.title}`)
         await this.saveCallback(currentArticle)
         this.updateLastSavedContent(currentArticle)
-        this.updateSaveState('saved')
+        this.updateSaveState(SaveStatus.Saved)
       }
     } catch (error) {
       console.error('手動儲存失敗:', error)
-      this.updateSaveState('error', error instanceof Error ? error.message : '儲存失敗')
+      this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : '儲存失敗')
       throw error
     }
   }
@@ -251,8 +252,8 @@ export class AutoSaveService {
   private updateSaveState(status: SaveStatus, error: string | null = null): void {
     this.saveState.value = {
       status,
-      lastSavedAt: status === 'saved' ? new Date() : this.saveState.value.lastSavedAt,
-      error: status === 'error' ? error : null
+      lastSavedAt: status === SaveStatus.Saved ? new Date() : this.saveState.value.lastSavedAt,
+      error: status === SaveStatus.Error ? error : null
     }
   }
 
@@ -272,10 +273,10 @@ export class AutoSaveService {
 
     // 設定新的防抖計時器
     this.markAsModifiedDebounceTimer = setTimeout(() => {
-      if (this.saveState.value.status === 'saved') {
+      if (this.saveState.value.status === SaveStatus.Saved) {
         this.saveState.value = {
           ...this.saveState.value,
-          status: 'modified',
+          status: SaveStatus.Modified,
           error: null
         }
       }
@@ -309,7 +310,7 @@ export class AutoSaveService {
     this.lastSavedContent = ''
     this.lastSavedFrontmatter = ''
     this.saveState.value = {
-      status: 'saved',
+      status: SaveStatus.Saved,
       lastSavedAt: null,
       error: null
     }
