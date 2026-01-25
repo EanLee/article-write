@@ -100,6 +100,7 @@ const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, 
 
 // Reactive data
 const content = ref('');
+const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref('');
@@ -248,6 +249,11 @@ function handleContentChange() {
 // Watch content changes
 let historyTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(content, (newContent) => {
+    // 模式切換期間不處理內容變更
+    if (isSwitchingMode.value) {
+        return;
+    }
+    
     handleContentChange();
     
     // 只在撰寫模式下記錄歷史（Raw 模式下 editorRef 不存在）
@@ -301,62 +307,90 @@ function togglePreview() {
 }
 
 function toggleEditorMode() {
-    // 清理所有定時器，防止在模式切換後訪問已卸載的 ref
-    if (historyTimeout) {
-        clearTimeout(historyTimeout);
-        historyTimeout = null;
-    }
-    if (autoSaveTimer.value) {
-        clearTimeout(autoSaveTimer.value);
-        autoSaveTimer.value = null;
+    // 防止重複切換
+    if (isSwitchingMode.value) {
+        console.warn('[EditorMode] 正在切換模式中，請稍後再試');
+        return;
     }
     
-    if (editorMode.value === 'compose') {
-        // 切換到 Raw 模式 - 組合 frontmatter 和 content
-        if (articleStore.currentArticle) {
-            rawContent.value = markdownService.combineContent(
-                articleStore.currentArticle.frontmatter,
-                articleStore.currentArticle.content
-            );
+    // 設置切換標誌
+    isSwitchingMode.value = true;
+    
+    try {
+        // 清理所有定時器，防止在模式切換後訪問已卸載的 ref
+        if (historyTimeout) {
+            clearTimeout(historyTimeout);
+            historyTimeout = null;
         }
-        editorMode.value = 'raw';
-    } else {
-        // 切換到撰寫模式 - 解析 raw content
-        if (articleStore.currentArticle && rawContent.value) {
-            const parsed = markdownService.parseFrontmatter(rawContent.value);
-            
-            // 創建更新後的文章對象，避免直接修改 store 中的響應式對象
-            const updatedArticle = {
-                ...articleStore.currentArticle,
-                frontmatter: parsed.frontmatter,
-                content: parsed.content
-            };
-            
-            // 更新 content（用於編輯器顯示）
-            content.value = parsed.content;
-            
-            // 使用 nextTick 確保切換完成後再更新 store
-            nextTick(() => {
-                if (articleStore.currentArticle) {
-                    articleStore.currentArticle.frontmatter = updatedArticle.frontmatter;
-                    articleStore.currentArticle.content = updatedArticle.content;
+        if (autoSaveTimer.value) {
+            clearTimeout(autoSaveTimer.value);
+            autoSaveTimer.value = null;
+        }
+        
+        if (editorMode.value === 'compose') {
+            // 切換到 Raw 模式 - 組合 frontmatter 和 content
+            if (articleStore.currentArticle) {
+                // 在切換前儲存一次，確保不會丟失變更
+                if (content.value !== articleStore.currentArticle.content) {
+                    articleStore.currentArticle.content = content.value;
                 }
-            });
+                
+                rawContent.value = markdownService.combineContent(
+                    articleStore.currentArticle.frontmatter,
+                    articleStore.currentArticle.content
+                );
+            }
+            editorMode.value = 'raw';
+        } else {
+            // 切換到撰寫模式 - 解析 raw content
+            if (articleStore.currentArticle && rawContent.value) {
+                const parsed = markdownService.parseFrontmatter(rawContent.value);
+                
+                // 直接更新 store（同步更新，避免時序問題）
+                articleStore.currentArticle.frontmatter = parsed.frontmatter;
+                articleStore.currentArticle.content = parsed.content;
+                
+                // 更新 content（用於編輯器顯示）
+                content.value = parsed.content;
+            }
+            editorMode.value = 'compose';
         }
-        editorMode.value = 'compose';
+        
+        // 模式切換完成後立即儲存
+        nextTick(() => {
+            saveArticle();
+        });
+    } catch (error) {
+        console.error('[EditorMode] 模式切換失敗:', error);
+        // 發生錯誤時恢復標誌，允許重試
+    } finally {
+        // 延遲解除鎖定，確保所有副作用完成
+        setTimeout(() => {
+            isSwitchingMode.value = false;
+        }, 100);
     }
 }
 
 function handleRawContentChange() {
+    // 模式切換期間不處理內容變更
+    if (isSwitchingMode.value) {
+        return;
+    }
+    
     if (articleStore.currentArticle) {
-        // 解析並更新文章
-        const parsed = markdownService.parseFrontmatter(rawContent.value);
-        articleStore.currentArticle.frontmatter = parsed.frontmatter;
-        articleStore.currentArticle.content = parsed.content;
-        scheduleAutoSave();
+        try {
+            // 解析並更新文章
+            const parsed = markdownService.parseFrontmatter(rawContent.value);
+            articleStore.currentArticle.frontmatter = parsed.frontmatter;
+            articleStore.currentArticle.content = parsed.content;
+            scheduleAutoSave();
 
-        if (showPreview.value) {
-            updatePreview();
+            if (showPreview.value) {
+                updatePreview();
+            }
+        } catch (error) {
+            console.error('[RawMode] 解析 frontmatter 失敗:', error);
+            // 不拋出錯誤，避免中斷使用者輸入
         }
     }
 }
