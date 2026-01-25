@@ -4,13 +4,14 @@ import type { Article, ArticleFilter } from '@/types'
 import { ArticleStatus, ArticleCategory, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import { useMarkdownService } from '@/composables/useServices'
 import { autoSaveService } from '@/services/AutoSaveService'
-import { backupService } from '@/services/BackupService'
 import { notify } from '@/services/NotificationService'
 import { useConfigStore } from './config'
+import { getArticleService } from '@/services/ArticleService'
 
 export const useArticleStore = defineStore('article', () => {
   // 使用服務單例
   const _markdownService = useMarkdownService()
+  const articleService = getArticleService()
   const configStore = useConfigStore()
 
   // State
@@ -190,11 +191,18 @@ export const useArticleStore = defineStore('article', () => {
       const slug = generateSlug(title)
       const now = new Date()
 
+      // Create directory structure
+      const categoryPath = `${vaultPath}/Drafts/${category}`
+      const filePath = `${categoryPath}/${slug}.md`
+
+      // Ensure directory exists
+      await window.electronAPI.createDirectory(categoryPath)
+
       const article: Article = {
         id: generateId(),
         title,
         slug,
-        filePath: '', // Will be set by file service
+        filePath,
         status: ArticleStatus.Draft,
         category,
         lastModified: now,
@@ -207,19 +215,16 @@ export const useArticleStore = defineStore('article', () => {
         }
       }
 
-      // Create directory structure
-      const categoryPath = `${vaultPath}/Drafts/${article.category}`
-      article.filePath = `${categoryPath}/${article.slug}.md`
+      // 使用 ArticleService 儲存新文章
+      const result = await articleService.saveArticle(article, {
+        skipConflictCheck: true // 新文章不需要檢查衝突
+      })
 
-      // Ensure directory exists
-      await window.electronAPI.createDirectory(categoryPath)
+      if (!result.success) {
+        throw result.error || new Error('Failed to create article')
+      }
 
-      // Generate initial markdown content
-      const markdownContent = _markdownService.generateMarkdown(article.frontmatter, article.content)
-
-      // Write file
-      await window.electronAPI.writeFile(article.filePath, markdownContent)
-
+      // 儲存成功，加入 store
       articles.value.push(article)
       notify.success('建立成功', `已建立「${title}」`)
       return article
@@ -230,51 +235,68 @@ export const useArticleStore = defineStore('article', () => {
     }
   }
 
-  async function updateArticle(updatedArticle: Article) {
+  /**
+   * 儲存文章到磁碟（使用 ArticleService）
+   * 
+   * ⚠️ 這個函數會執行實際的檔案寫入操作
+   * 成功後會自動更新 store 狀態
+   */
+  async function saveArticle(article: Article) {
     try {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
       }
 
-      // 檢測衝突
-      const conflictResult = await backupService.detectConflict(updatedArticle)
-      if (conflictResult.hasConflict) {
+      // 更新 lastModified timestamp
+      const articleToSave = {
+        ...article,
+        lastModified: new Date()
+      }
+
+      // 使用 ArticleService 儲存（包含備份、衝突檢測、檔案寫入）
+      const result = await articleService.saveArticle(articleToSave)
+
+      if (result.success) {
+        // 儲存成功，更新 store 狀態
+        updateArticle(articleToSave)
+      } else if (result.conflict) {
+        // 檔案衝突
         notify.warning(
           '檔案衝突',
           '檔案在外部被修改，建議重新載入',
           {
             action: {
               label: '重新載入',
-              callback: () => reloadArticle(updatedArticle.id)
+              callback: () => reloadArticle(article.id)
             }
           }
         )
-      }
-
-      // 建立備份
-      backupService.createBackup(updatedArticle)
-
-      // Update lastModified timestamp
-      updatedArticle.lastModified = new Date()
-
-      // Generate markdown content
-      const markdownContent = _markdownService.generateMarkdown(
-        updatedArticle.frontmatter,
-        updatedArticle.content
-      )
-
-      // Save to file
-      await window.electronAPI.writeFile(updatedArticle.filePath, markdownContent)
-
-      // Update in store
-      const index = articles.value.findIndex(a => a.id === updatedArticle.id)
-      if (index !== -1) {
-        articles.value[index] = { ...updatedArticle }
+        throw new Error('File conflict detected')
+      } else if (result.error) {
+        throw result.error
       }
     } catch (error) {
-      console.error('Failed to update article:', error)
+      console.error('Failed to save article:', error)
       notify.error('儲存失敗', error instanceof Error ? error.message : '無法儲存文章')
       throw error
+    }
+  }
+
+  /**
+   * 更新文章狀態（僅記憶體中，不寫入檔案）
+   * 
+   * ⚠️ 這個函數只更新 store 狀態，不會寫入檔案
+   * 如需儲存到磁碟，請使用 saveArticle()
+   */
+  function updateArticle(updatedArticle: Article) {
+    const index = articles.value.findIndex(a => a.id === updatedArticle.id)
+    if (index !== -1) {
+      articles.value[index] = { ...updatedArticle }
+    }
+    
+    // 如果更新的是當前文章，也更新 currentArticle
+    if (currentArticle.value?.id === updatedArticle.id) {
+      currentArticle.value = { ...updatedArticle }
     }
   }
 
@@ -289,13 +311,10 @@ export const useArticleStore = defineStore('article', () => {
         throw new Error('Article not found')
       }
 
-      // 建立備份（以防需要復原）
-      backupService.createBackup(article)
+      // 使用 ArticleService 刪除文章（包含備份）
+      await articleService.deleteArticle(article)
 
-      // Delete file from file system
-      await window.electronAPI.deleteFile(article.filePath)
-
-      // Remove from store
+      // 從 store 移除
       const index = articles.value.findIndex(a => a.id === id)
       if (index !== -1) {
         articles.value.splice(index, 1)
@@ -329,9 +348,6 @@ export const useArticleStore = defineStore('article', () => {
           throw new Error('Obsidian vault path not configured')
         }
 
-        // 建立備份
-        backupService.createBackup(article)
-
         // Create new path
         const publishPath = `${vaultPath}/Publish/${article.category}`
         const newFilePath = `${publishPath}/${article.slug}.md`
@@ -339,16 +355,10 @@ export const useArticleStore = defineStore('article', () => {
         // Ensure publish directory exists
         await window.electronAPI.createDirectory(publishPath)
 
-        // Read current content
-        const content = await window.electronAPI.readFile(article.filePath)
+        // 使用 ArticleService 移動文章（包含備份和檔案操作）
+        await articleService.moveArticle(article, newFilePath)
 
-        // Write to new location
-        await window.electronAPI.writeFile(newFilePath, content)
-
-        // Delete old file
-        await window.electronAPI.deleteFile(article.filePath)
-
-        // Update article in store
+        // 更新 store 中的文章狀態
         article.status = ArticleStatus.Published
         article.filePath = newFilePath
         article.lastModified = new Date()
@@ -566,7 +576,7 @@ export const useArticleStore = defineStore('article', () => {
    */
   async function saveCurrentArticle() {
     if (currentArticle.value) {
-      await updateArticle(currentArticle.value)
+      await saveArticle(currentArticle.value)
     }
   }
 
@@ -590,7 +600,7 @@ export const useArticleStore = defineStore('article', () => {
     const interval = config.editorConfig.autoSaveInterval || 30000
     
     autoSaveService.initialize(
-      updateArticle,
+      saveArticle,  // ✅ 使用新的 saveArticle 函數（會寫入檔案）
       () => currentArticle.value,
       interval
     )
@@ -631,7 +641,8 @@ export const useArticleStore = defineStore('article', () => {
     // Actions
     loadArticles,
     createArticle,
-    updateArticle,
+    saveArticle,  // ✅ 新增：儲存文章到磁碟
+    updateArticle,  // ⚠️ 注意：現在只更新 store 狀態，不寫檔案
     deleteArticle,
     moveToPublished,
     setCurrentArticle,
