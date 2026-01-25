@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { Article, ArticleFilter } from '@/types'
+import { ArticleStatus, ArticleCategory, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import { useMarkdownService } from '@/composables/useServices'
 import { autoSaveService } from '@/services/AutoSaveService'
 import { backupService } from '@/services/BackupService'
@@ -16,8 +17,8 @@ export const useArticleStore = defineStore('article', () => {
   const articles = ref<Article[]>([])
   const currentArticle = ref<Article | null>(null)
   const filter = ref<ArticleFilter>({
-    status: 'all',
-    category: 'all',
+    status: ArticleFilterStatus.All,
+    category: ArticleFilterCategory.All,
     tags: [],
     searchText: ''
   })
@@ -28,12 +29,12 @@ export const useArticleStore = defineStore('article', () => {
   const filteredArticles = computed(() => {
     return articles.value.filter(article => {
       // Status filter
-      if (filter.value.status !== 'all' && article.status !== filter.value.status) {
+      if (filter.value.status !== ArticleFilterStatus.All && article.status !== filter.value.status) {
         return false
       }
 
       // Category filter
-      if (filter.value.category !== 'all' && article.category !== filter.value.category) {
+      if (filter.value.category !== ArticleFilterCategory.All && article.category !== filter.value.category) {
         return false
       }
 
@@ -103,8 +104,8 @@ export const useArticleStore = defineStore('article', () => {
       
       // Scan both Drafts and Publish folders
       const folders = [
-        { path: `${vaultPath}/Drafts`, status: 'draft' as const },
-        { path: `${vaultPath}/Publish`, status: 'published' as const }
+        { path: `${vaultPath}/Drafts`, status: ArticleStatus.Draft },
+        { path: `${vaultPath}/Publish`, status: ArticleStatus.Published }
       ]
       
       for (const folder of folders) {
@@ -175,7 +176,7 @@ export const useArticleStore = defineStore('article', () => {
     }
   }
 
-  async function createArticle(title: string, category: 'Software' | 'growth' | 'management'): Promise<Article> {
+  async function createArticle(title: string, category: ArticleCategory): Promise<Article> {
     try {
       if (typeof window === 'undefined' || !window.electronAPI) {
         throw new Error('Electron API not available')
@@ -194,7 +195,7 @@ export const useArticleStore = defineStore('article', () => {
         title,
         slug,
         filePath: '', // Will be set by file service
-        status: 'draft',
+        status: ArticleStatus.Draft,
         category,
         lastModified: now,
         content: '',
@@ -348,7 +349,7 @@ export const useArticleStore = defineStore('article', () => {
         await window.electronAPI.deleteFile(article.filePath)
 
         // Update article in store
-        article.status = 'published'
+        article.status = ArticleStatus.Published
         article.filePath = newFilePath
         article.lastModified = new Date()
 
@@ -436,8 +437,8 @@ export const useArticleStore = defineStore('article', () => {
   
   async function reloadArticleByPath(
     filePath: string,
-    status: 'draft' | 'published',
-    category: 'Software' | 'growth' | 'management'
+    status: ArticleStatus,
+    category: ArticleCategory
   ) {
     if (typeof window === 'undefined' || !window.electronAPI) {return}
     

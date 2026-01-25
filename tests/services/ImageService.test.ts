@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ImageService } from '@/services/ImageService'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 
 // Mock window.electronAPI
 const mockElectronAPI = {
@@ -26,7 +27,7 @@ describe('ImageService', () => {
         title: 'Test Article',
         slug: 'test-article',
         filePath: '/test/article.md',
-        status: 'draft',
+        status: ArticleStatus.Draft,
         frontmatter: {
           title: 'Test Article',
           date: '2024-01-01',
@@ -35,7 +36,7 @@ describe('ImageService', () => {
         },
         content: 'This is a test article with an image ![[test-image.png]] and another ![[missing-image.jpg]]',
         lastModified: new Date(),
-        category: 'Software'
+        category: ArticleCategory.Software
       }
     ]
 

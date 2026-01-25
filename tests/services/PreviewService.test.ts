@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PreviewService } from '@/services/PreviewService'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 
 describe('PreviewService', () => {
   let previewService: PreviewService
@@ -14,7 +15,7 @@ describe('PreviewService', () => {
         title: 'Test Article',
         slug: 'test-article',
         filePath: '/test/path',
-        status: 'draft',
+        status: ArticleStatus.Draft,
         frontmatter: {
           title: 'Test Article',
           date: '2024-01-01',
@@ -23,7 +24,7 @@ describe('PreviewService', () => {
         },
         content: 'Test content',
         lastModified: new Date(),
-        category: 'Software'
+        category: ArticleCategory.Software
       }
     ]
     previewService.updateArticles(mockArticles)
@@ -197,7 +198,7 @@ More regular text.
           title: 'New Article',
           slug: 'new-article',
           filePath: '/new/path',
-          status: 'published',
+          status: ArticleStatus.Published,
           frontmatter: {
             title: 'New Article',
             date: '2024-01-02',
@@ -206,7 +207,7 @@ More regular text.
           },
           content: 'New content',
           lastModified: new Date(),
-          category: 'growth'
+          category: ArticleCategory.Growth
         }
       ]
       

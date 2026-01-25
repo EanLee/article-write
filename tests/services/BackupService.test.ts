@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { BackupService } from '@/services/BackupService'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 
 describe('BackupService', () => {
   let backupService: BackupService
@@ -13,8 +14,8 @@ describe('BackupService', () => {
       title: 'Test Article',
       slug: 'test-article',
       filePath: '/test/path/test-article.md',
-      status: 'draft',
-      category: 'Software',
+      status: ArticleStatus.Draft,
+      category: ArticleCategory.Software,
       lastModified: new Date(),
       content: '# Test Content',
       frontmatter: {

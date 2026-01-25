@@ -8,6 +8,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 
 // Mock 全域 electronAPI
 global.window = {
@@ -179,8 +180,8 @@ Content`
         title: 'Test Article',
         slug: 'test-article',
         filePath: '/test/vault/Drafts/Software/test-article.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Test content',
         frontmatter: {
@@ -215,8 +216,8 @@ Content`
         title: 'Full Frontmatter Test',
         slug: 'full-frontmatter-test',
         filePath: '/test/vault/Drafts/Software/full-frontmatter-test.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content',
         frontmatter: {
@@ -262,8 +263,8 @@ Content`
         title: 'Original Title',
         slug: 'original',
         filePath: '/test/vault/Drafts/Software/original.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date('2024-01-01'),
         content: 'Original content',
         frontmatter: {
@@ -300,8 +301,8 @@ Content`
         title: 'Test',
         slug: 'test',
         filePath: '/test/vault/Drafts/Software/test.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content',
         frontmatter: {
@@ -369,8 +370,8 @@ Content`
         title: 'To Delete',
         slug: 'to-delete',
         filePath: '/test/vault/Drafts/Software/to-delete.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Will be deleted',
         frontmatter: {
@@ -400,8 +401,8 @@ Content`
         title: 'Delete Fail',
         slug: 'delete-fail',
         filePath: '/test/vault/Drafts/Software/delete-fail.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content',
         frontmatter: {
@@ -440,8 +441,8 @@ Content to publish`)
         title: 'To Publish',
         slug: 'to-publish',
         filePath: '/test/vault/Drafts/Software/to-publish.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content to publish',
         frontmatter: {
@@ -486,8 +487,8 @@ Content to publish`)
         title: 'Article 1',
         slug: 'article-1',
         filePath: '/test/vault/Drafts/Software/article-1.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Original content 1',
         frontmatter: {
@@ -503,8 +504,8 @@ Content to publish`)
         title: 'Article 2',
         slug: 'article-2',
         filePath: '/test/vault/Drafts/Software/article-2.md',
-        status: 'draft',
-        category: 'Software',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Original content 2',
         frontmatter: {

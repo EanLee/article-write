@@ -147,6 +147,112 @@ git push origin feature/任務名稱
 - PR 必須經過審查才能合併
 - 回應審查意見並進行必要的修改
 
+## TypeScript 型別規範
+
+### Enum 使用準則
+
+**優先使用 Enum 而非字串字面值類型**
+
+為了提升程式碼的可維護性和型別安全，本專案採用 **TypeScript Enum** 來定義固定的選項集合。
+
+#### 何時使用 Enum
+
+✅ **應該使用 Enum**：
+- 固定的狀態選項（如：draft, published）
+- 固定的分類選項（如：Software, growth, management）
+- 固定的主題選項（如：light, dark）
+- 任何有明確、有限選項集合的情況
+
+❌ **不應該使用 Enum**：
+- 動態產生的值
+- 可能隨時間變化的選項
+- 來自外部 API 的動態資料
+
+#### Enum 命名規範
+
+1. **Enum 名稱**：使用 PascalCase，清楚描述用途
+   ```typescript
+   export enum ArticleStatus { ... }
+   export enum ArticleCategory { ... }
+   export enum SaveStatus { ... }
+   ```
+
+2. **Enum 成員**：使用 PascalCase
+   ```typescript
+   export enum ArticleStatus {
+     Draft = 'draft',
+     Published = 'published'
+   }
+   ```
+
+3. **字串值**：使用小寫或 camelCase（視情況而定）
+   ```typescript
+   export enum ArticleCategory {
+     Software = 'Software',  // 保持原有命名慣例
+     Growth = 'growth',
+     Management = 'management'
+   }
+   ```
+
+#### 使用範例
+
+```typescript
+// ✅ 好的做法：使用 enum
+import { ArticleStatus, ArticleCategory } from '@/types'
+
+const article: Article = {
+  id: '1',
+  status: ArticleStatus.Draft,
+  category: ArticleCategory.Software,
+  // ...
+}
+
+// 比較狀態
+if (article.status === ArticleStatus.Published) {
+  // ...
+}
+
+// ❌ 避免的做法：使用字串字面值
+const article = {
+  id: '1',
+  status: 'draft',  // 容易拼錯，沒有 IDE 提示
+  category: 'software',  // 可能與實際值不符
+  // ...
+}
+```
+
+#### Enum 組織結構
+
+所有 Enum 定義統一放在 `src/types/index.ts` 檔案開頭：
+
+```typescript
+// Enums - 集中定義所有列舉類型
+
+/**
+ * 文章狀態
+ */
+export enum ArticleStatus {
+  Draft = 'draft',
+  Published = 'published'
+}
+
+// ... 其他 enum 定義
+
+// Core data structures
+export interface Article {
+  status: ArticleStatus  // 使用 enum 而非 'draft' | 'published'
+  // ...
+}
+```
+
+#### 優點
+
+1. **型別安全**：編譯時期就能發現錯誤
+2. **IDE 支援**：自動完成、重構、查找引用
+3. **可維護性**：統一管理，修改時只需要改一處
+4. **可讀性**：清楚表達意圖，避免魔術字串
+5. **重構友善**：修改 enum 值時，TypeScript 會提示所有需要更新的地方
+
 ## AI 助手專屬規則
 
 ### 執行任務前
@@ -220,5 +326,5 @@ git push origin feature/search-replace
 
 ---
 
-**最後更新**: 2025-01-24
-**版本**: 1.0.0
+**最後更新**: 2025-01-25
+**版本**: 1.1.0

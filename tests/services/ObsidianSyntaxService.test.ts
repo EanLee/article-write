@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ObsidianSyntaxService } from '@/services/ObsidianSyntaxService'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 import type { AutocompleteContext } from '@/services/ObsidianSyntaxService'
 
 describe('ObsidianSyntaxService', () => {
@@ -17,7 +18,7 @@ describe('ObsidianSyntaxService', () => {
         title: 'Vue.js 基礎教學',
         slug: 'vue-js-basics',
         filePath: '/path/to/vue-basics.md',
-        status: 'published',
+        status: ArticleStatus.Published,
         frontmatter: {
           title: 'Vue.js 基礎教學',
           date: '2024-01-01',
@@ -26,14 +27,14 @@ describe('ObsidianSyntaxService', () => {
         },
         content: '# Vue.js 基礎教學\n\n這是一篇關於 Vue.js 的教學文章。',
         lastModified: new Date('2024-01-01'),
-        category: 'Software'
+        category: ArticleCategory.Software
       },
       {
         id: '2',
         title: 'TypeScript 進階技巧',
         slug: 'typescript-advanced',
         filePath: '/path/to/typescript-advanced.md',
-        status: 'draft',
+        status: ArticleStatus.Draft,
         frontmatter: {
           title: 'TypeScript 進階技巧',
           date: '2024-01-02',
@@ -42,7 +43,7 @@ describe('ObsidianSyntaxService', () => {
         },
         content: '# TypeScript 進階技巧\n\n進階的 TypeScript 使用技巧。',
         lastModified: new Date('2024-01-02'),
-        category: 'Software'
+        category: ArticleCategory.Software
       }
     ]
 

@@ -1,14 +1,70 @@
+// Enums - 集中定義所有列舉類型
+
+/**
+ * 文章狀態
+ */
+export enum ArticleStatus {
+  Draft = 'draft',
+  Published = 'published'
+}
+
+/**
+ * 文章分類
+ */
+export enum ArticleCategory {
+  Software = 'Software',
+  Growth = 'growth',
+  Management = 'management'
+}
+
+/**
+ * 篩選器狀態選項（包含 "全部"）
+ */
+export enum ArticleFilterStatus {
+  All = 'all',
+  Draft = 'draft',
+  Published = 'published'
+}
+
+/**
+ * 篩選器分類選項（包含 "全部"）
+ */
+export enum ArticleFilterCategory {
+  All = 'all',
+  Software = 'Software',
+  Growth = 'growth',
+  Management = 'management'
+}
+
+/**
+ * 編輯器主題
+ */
+export enum EditorTheme {
+  Light = 'light',
+  Dark = 'dark'
+}
+
+/**
+ * 儲存狀態
+ */
+export enum SaveStatus {
+  Saved = 'saved',
+  Saving = 'saving',
+  Modified = 'modified',
+  Error = 'error'
+}
+
 // Core data structures
 export interface Article {
   id: string
   title: string
   slug: string
   filePath: string
-  status: 'draft' | 'published'
+  status: ArticleStatus
   frontmatter: Frontmatter
   content: string
   lastModified: Date
-  category: 'Software' | 'growth' | 'management'
+  category: ArticleCategory
 }
 
 export interface Frontmatter {
@@ -41,14 +97,14 @@ export interface AppConfig {
   editorConfig: {
     autoSave: boolean
     autoSaveInterval: number
-    theme: 'light' | 'dark'
+    theme: EditorTheme
   }
 }
 
 // Filter and UI state
 export interface ArticleFilter {
-  status: 'all' | 'draft' | 'published'
-  category: 'all' | 'Software' | 'growth' | 'management'
+  status: ArticleFilterStatus
+  category: ArticleFilterCategory
   tags: string[]
   searchText: string
 }
@@ -75,8 +131,6 @@ export interface PathValidationResult {
 }
 
 // Save status
-export type SaveStatus = 'saved' | 'saving' | 'modified' | 'error'
-
 export interface SaveState {
   status: SaveStatus
   lastSavedAt: Date | null

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { AutoSaveService } from '@/services/AutoSaveService'
 import type { Article } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 
 // Mock article for testing
 const mockArticle: Article = {
@@ -8,8 +9,8 @@ const mockArticle: Article = {
   title: 'Test Article',
   slug: 'test-article',
   filePath: '/test/path.md',
-  status: 'draft',
-  category: 'Software',
+  status: ArticleStatus.Draft,
+  category: ArticleCategory.Software,
   lastModified: new Date(),
   content: 'Test content',
   frontmatter: {

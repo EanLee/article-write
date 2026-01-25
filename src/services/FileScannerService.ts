@@ -1,5 +1,6 @@
 import * as chokidar from 'chokidar'
 import type { Article, FileSystemItem } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 import { MarkdownService } from './MarkdownService'
 
 /**
@@ -24,7 +25,7 @@ export class FileScannerService {
    * @param {'draft' | 'published'} status - 文章狀態（草稿或已發布）
    * @returns {Promise<Article[]>} 解析後的文章陣列
    */
-  async scanMarkdownFiles(directoryPath: string, status: 'draft' | 'published'): Promise<Article[]> {
+  async scanMarkdownFiles(directoryPath: string, status: ArticleStatus): Promise<Article[]> {
     try {
       const files = await this.getMarkdownFiles(directoryPath)
       const articles: Article[] = []
@@ -54,7 +55,7 @@ export class FileScannerService {
    * @param {'draft' | 'published'} status - 文章狀態
    * @returns {Promise<Article | null>} 解析後的文章物件，失敗時返回 null
    */
-  async parseMarkdownFile(filePath: string, status: 'draft' | 'published'): Promise<Article | null> {
+  async parseMarkdownFile(filePath: string, status: ArticleStatus): Promise<Article | null> {
     try {
       const content = await window.electronAPI.readFile(filePath)
       const parsed = this.markdownService.parseFrontmatter(content)
@@ -131,15 +132,15 @@ export class FileScannerService {
    * @param {string} filePath - 檔案路徑
    * @returns {'Software' | 'growth' | 'management'} 文章分類
    */
-  private extractCategoryFromPath(filePath: string): 'Software' | 'growth' | 'management' {
+  private extractCategoryFromPath(filePath: string): ArticleCategory {
     const normalizedPath = filePath.replace(/\\/g, '/')
     
-    if (normalizedPath.includes('/Software/')) {return 'Software'}
-    if (normalizedPath.includes('/growth/')) {return 'growth'}
-    if (normalizedPath.includes('/management/')) {return 'management'}
+    if (normalizedPath.includes('/Software/')) {return ArticleCategory.Software}
+    if (normalizedPath.includes('/growth/')) {return ArticleCategory.Growth}
+    if (normalizedPath.includes('/management/')) {return ArticleCategory.Management}
     
     // Default to Software if no category found
-    return 'Software'
+    return ArticleCategory.Software
   }
 
   /**
