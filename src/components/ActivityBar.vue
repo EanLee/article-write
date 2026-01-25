@@ -27,34 +27,29 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, Info, Settings, List } from 'lucide-vue-next'
+import { Edit3, LayoutDashboard, Settings } from 'lucide-vue-next'
+import { ViewMode } from '@/types'
 
 interface ActivityItem {
-  id: string
+  id: ViewMode
   icon: any
   label: string
   shortcut: string
 }
 
 const items: ActivityItem[] = [
-  { id: 'articles', icon: FileText, label: '文章列表', shortcut: 'Ctrl+Shift+E' },
-  { id: 'frontmatter', icon: Info, label: '文章資訊', shortcut: 'Ctrl+Shift+I' },
-  { id: 'manage', icon: List, label: '文章管理', shortcut: 'Ctrl+Shift+M' }
+  { id: ViewMode.Editor, icon: Edit3, label: '編輯模式', shortcut: 'Ctrl+Shift+E' },
+  { id: ViewMode.Management, icon: LayoutDashboard, label: '管理模式', shortcut: 'Ctrl+Shift+M' }
 ]
 
-const modelValue = defineModel<string>({ default: 'articles' })
+const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
 
 defineEmits<{
   'open-settings': []
 }>()
 
-function handleClick(id: string) {
-  if (modelValue.value === id) {
-    // 再次點擊同一個：收合側邊欄
-    modelValue.value = ''
-  } else {
-    modelValue.value = id
-  }
+function handleClick(id: ViewMode) {
+  modelValue.value = id
 }
 </script>
 
