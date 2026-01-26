@@ -65,6 +65,15 @@ export const useArticleStore = defineStore('article', () => {
       })
   })
 
+  // Debug: 監控 filteredArticles 重新計算
+  watch(filteredArticles, (newArticles, oldArticles) => {
+    console.log('📋 filteredArticles 重新計算:', {
+      count: newArticles.length,
+      titles: newArticles.map(a => a.title),
+      changed: newArticles !== oldArticles
+    })
+  })
+
   const draftArticles = computed(() => 
     articles.value.filter(article => article.status === 'draft')
   )

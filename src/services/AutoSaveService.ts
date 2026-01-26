@@ -124,11 +124,27 @@ export class AutoSaveService {
 
     try {
       // 檢查前一篇文章是否有變更
-      if (this.hasContentChanged(previousArticle)) {
-        console.log(`切換文章時自動儲存: ${previousArticle.title}`)
+      const hasChanged = this.hasContentChanged(previousArticle)
+      const currentContent = previousArticle.content
+      const currentFrontmatter = JSON.stringify(previousArticle.frontmatter)
+
+      console.group(`🔍 切換文章檢查: ${previousArticle.title}`)
+      console.log('hasChanged:', hasChanged)
+      console.log('currentContent length:', currentContent?.length)
+      console.log('lastSavedContent length:', this.lastSavedContent?.length)
+      console.log('content相等?:', currentContent === this.lastSavedContent)
+      console.log('currentFrontmatter:', currentFrontmatter)
+      console.log('lastSavedFrontmatter:', this.lastSavedFrontmatter)
+      console.log('frontmatter相等?:', currentFrontmatter === this.lastSavedFrontmatter)
+      console.groupEnd()
+
+      if (hasChanged) {
+        console.log(`✅ 內容已變更，執行自動儲存: ${previousArticle.title}`)
         this.updateSaveState(SaveStatus.Saving)
         await this.saveCallback(previousArticle)
         this.updateSaveState(SaveStatus.Saved)
+      } else {
+        console.log(`⏭️  內容無變更，跳過儲存: ${previousArticle.title}`)
       }
     } catch (error) {
       console.error('切換文章時自動儲存失敗:', error)
