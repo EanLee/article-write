@@ -12,11 +12,25 @@
 - [x] MarkdownService 導出單例
 - [x] 更新 article.ts 使用 markdownService
 
+### Phase 1B: 重構 Article Store ✅
+- [x] 在 ArticleService 中實作 `loadAllArticles` 和 `loadArticle`
+- [x] ArticleService 單元測試（13/13 通過）
+- [x] 新增 `generateSlug` 和 `generateId` 輔助方法
+- [x] 導出 `articleService` 單例
+- [x] 更新 article.ts 的 `loadArticles` 使用 ArticleService
+- [x] 更新 article.ts 的 `saveArticle` 使用 `ignoreNextChange`
+- [x] 新增 `updateArticleInMemory`，取代舊的 `updateArticle`
+- [x] 新增 `setupFileWatching` 和相關輔助函數
+- [x] 移除舊的 `reloadArticleByPath`, `removeArticleByPath`, `handleFileChange` 等
+- [x] 移除 `watchingFiles` 狀態
+- [x] 移除 `generateId` 和 `generateSlug` 從 article.ts（已移到 Service）
+- [x] 更新測試（199/199 單元測試通過）
+
 ---
 
 ## 🚧 進行中
 
-### Phase 1B: 重構 Article Store
+### Phase 2: 手動測試與驗證
 
 #### 要移除的功能（移到 Service）
 1. `startFileWatching()` - 移到 FileWatchService ✅ 已有
@@ -285,21 +299,27 @@ function parseArticlePath(
 
 ---
 
-## 📋 待辦清單
+## 📋 Phase 1 待辦清單（已完成✅）
 
 - [x] 在 ArticleService 中實作 `loadAllArticles` 和 `loadArticle` ✅
 - [x] ArticleService 單元測試（13/13 通過）✅
 - [x] 新增 `generateSlug` 和 `generateId` 輔助方法 ✅
 - [x] 導出 `articleService` 單例 ✅
-- [ ] 更新 article.ts 的 `loadArticles` 使用 ArticleService
-- [ ] 更新 article.ts 的 `saveArticle` 使用 `ignoreNextChange`
-- [ ] 新增 `updateArticleInMemory`，移除舊的 `updateArticle`
-- [ ] 新增 `setupFileWatching` 和相關輔助函數
-- [ ] 移除舊的 `reloadArticleByPath`, `removeArticleByPath`, `handleFileChange` 等
-- [ ] 移除 `watchingFiles` 狀態
-- [ ] 移除 `generateId` 和 `generateSlug` 從 article.ts（已移到 Service）
-- [ ] 更新測試
+- [x] 更新 article.ts 的 `loadArticles` 使用 ArticleService ✅
+- [x] 更新 article.ts 的 `saveArticle` 使用 `ignoreNextChange` ✅
+- [x] 新增 `updateArticleInMemory`，移除舊的 `updateArticle` ✅
+- [x] 新增 `setupFileWatching` 和相關輔助函數 ✅
+- [x] 移除舊的 `reloadArticleByPath`, `removeArticleByPath`, `handleFileChange` 等 ✅
+- [x] 移除 `watchingFiles` 狀態 ✅
+- [x] 移除 `generateId` 和 `generateSlug` 從 article.ts（已移到 Service）✅
+- [x] 更新測試（199/199 單元測試通過）✅
+
+## 📋 Phase 2 待辦清單（當前階段）
+
 - [ ] 手動測試：確認列表不會跳動
+- [ ] 建立手動測試報告
+- [ ] 更新 Bug Fix 報告（確認問題已解決）
+- [ ] 重構 `article.path-handling.test.ts`（目前 skip 的 7 個測試）
 
 ---
 
@@ -319,4 +339,16 @@ function parseArticlePath(
 
 ---
 
-**下一步**: 實作 ArticleService 的 loadAllArticles 和 loadArticle 方法
+## 📊 當前進度
+
+- **Phase 1A**: ✅ 完成（FileWatchService 建立完成）
+- **Phase 1B**: ✅ 完成（Article Store 重構完成，199/199 測試通過）
+- **Phase 2**: 🚧 進行中（手動測試驗證）
+
+**相關 Commits**:
+- `1916f2b` - feat(service): 實作 ArticleService 的文章載入方法
+- `27c98f7` - docs(refactor): 更新重構計劃進度
+- `9b0c8aa` - refactor(store): 重構 article store 使用新的服務層架構
+- `c475943` - test: 修復所有單元測試使其通過
+
+**下一步**: 手動測試應用程式，驗證列表跳動問題已修復
