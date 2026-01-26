@@ -256,6 +256,25 @@ export class MarkdownService {
       frontmatter.keywords = []
     }
 
+    // Series validation
+    if (data.series !== undefined) {
+      if (typeof data.series === 'string') {
+        frontmatter.series = data.series.trim()
+      } else {
+        errors.push('Series must be a string')
+      }
+    }
+
+    // SeriesOrder validation
+    if (data.seriesOrder !== undefined) {
+      const order = Number(data.seriesOrder)
+      if (Number.isInteger(order) && order > 0) {
+        frontmatter.seriesOrder = order
+      } else {
+        errors.push('seriesOrder must be a positive integer')
+      }
+    }
+
     return frontmatter
   }
 
@@ -610,3 +629,6 @@ export class MarkdownService {
     return errors
   }
 }
+
+// 單例實例
+export const markdownService = new MarkdownService()

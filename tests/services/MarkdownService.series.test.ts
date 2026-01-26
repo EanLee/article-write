@@ -36,7 +36,7 @@ seriesOrder: 3
       expect(result.frontmatter.series).toBe('Vue 3 進階教學')
       expect(result.frontmatter.seriesOrder).toBe(3)
       expect(result.frontmatter.title).toBe('Vue 3 深入理解')
-      expect(result.content).toBe('\n這是文章內容')
+      expect(result.content).toBe('這是文章內容')
     })
 
     it('應該處理沒有系列資訊的 Markdown', () => {
