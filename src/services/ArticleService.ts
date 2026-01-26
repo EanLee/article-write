@@ -15,6 +15,7 @@
  */
 
 import type { Article, Frontmatter } from '@/types'
+import { ArticleStatus, ArticleCategory } from '@/types'
 import { MarkdownService } from './MarkdownService'
 import { backupService } from './BackupService'
 import type { BackupService } from './BackupService'
@@ -164,6 +165,128 @@ export class ArticleService {
   }
 
   /**
+   * 載入所有文章（從磁碟掃描）
+   * 
+   * @param vaultPath - Obsidian vault 根目錄路徑
+   * @returns 載入的所有文章
+   */
+  async loadAllArticles(vaultPath: string): Promise<Article[]> {
+    if (!window.electronAPI) {
+      throw new Error('Electron API not available')
+    }
+
+    const loadedArticles: Article[] = []
+    
+    // 掃描 Drafts 和 Publish 兩個資料夾
+    const folders = [
+      { path: `${vaultPath}/Drafts`, status: ArticleStatus.Draft },
+      { path: `${vaultPath}/Publish`, status: ArticleStatus.Published }
+    ]
+    
+    for (const folder of folders) {
+      try {
+        // 檢查資料夾是否存在
+        const stats = await window.electronAPI.getFileStats(folder.path)
+        if (!stats?.isDirectory) {
+          continue
+        }
+        
+        // 讀取分類資料夾 (Software, growth, management)
+        const categories = await window.electronAPI.readDirectory(folder.path)
+        
+        for (const category of categories) {
+          const categoryPath = `${folder.path}/${category}`
+          const catStats = await window.electronAPI.getFileStats(categoryPath)
+          if (!catStats?.isDirectory) {
+            continue
+          }
+          
+          // 讀取分類下的 markdown 檔案
+          const files = await window.electronAPI.readDirectory(categoryPath)
+          const mdFiles = files.filter(f => f.endsWith('.md'))
+          
+          for (const file of mdFiles) {
+            const filePath = `${categoryPath}/${file}`
+            try {
+              const article = await this.loadArticle(filePath, folder.status, category as ArticleCategory)
+              loadedArticles.push(article)
+            } catch (err) {
+              console.warn(`Failed to load article ${filePath}:`, err)
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(`Failed to scan ${folder.path}:`, err)
+      }
+    }
+    
+    return loadedArticles
+  }
+
+  /**
+   * 載入單一文章（從磁碟）
+   * 
+   * @param filePath - 檔案路徑
+   * @param status - 文章狀態 (draft/published)
+   * @param categoryFolder - 分類資料夾名稱
+   * @returns 載入的文章
+   */
+  async loadArticle(
+    filePath: string,
+    status: ArticleStatus,
+    categoryFolder: ArticleCategory
+  ): Promise<Article> {
+    if (!window.electronAPI) {
+      throw new Error('Electron API not available')
+    }
+
+    // 讀取檔案內容
+    const content = await window.electronAPI.readFile(filePath)
+    const { frontmatter, content: articleContent } = this.markdownService.parseMarkdown(content)
+    
+    // 取得檔案的最後修改時間
+    const fileStats = await window.electronAPI.getFileStats(filePath)
+    const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
+    
+    // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
+    let articleCategory: ArticleCategory
+    if (frontmatter.categories && frontmatter.categories.length > 0) {
+      // 從 frontmatter.categories 陣列取第一個有效值
+      const firstCategory = frontmatter.categories[0]
+      if (Object.values(ArticleCategory).includes(firstCategory as ArticleCategory)) {
+        articleCategory = firstCategory as ArticleCategory
+      } else {
+        // 如果 categories 值不在 enum 中，使用資料夾名稱或預設值
+        articleCategory = (Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) 
+          ? categoryFolder 
+          : ArticleCategory.Software) as ArticleCategory
+      }
+    } else {
+      // 沒有 frontmatter.categories，使用資料夾名稱或預設值
+      articleCategory = (Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) 
+        ? categoryFolder 
+        : ArticleCategory.Software) as ArticleCategory
+    }
+    
+    // 從檔案路徑取得檔案名稱（不含副檔名）
+    const fileName = filePath.split('/').pop()?.replace('.md', '') || 'untitled'
+    
+    const article: Article = {
+      id: this.generateId(),
+      title: frontmatter.title || fileName,
+      slug: frontmatter.slug || fileName,
+      filePath,
+      status,
+      category: articleCategory,
+      lastModified,
+      content: articleContent,
+      frontmatter
+    }
+    
+    return article
+  }
+
+  /**
    * 刪除文章
    *
    * @param article - 要刪除的文章
@@ -199,6 +322,35 @@ export class ArticleService {
 
     // 刪除舊檔案
     await window.electronAPI.deleteFile(article.filePath)
+  }
+
+  /**
+   * 產生唯一 ID
+   */
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2)
+  }
+
+  /**
+   * 從標題產生 slug
+   * 
+   * @param title - 文章標題
+   * @returns URL-safe 的 slug
+   */
+  /**
+   * 從標題產生 slug
+   * 
+   * @param title - 文章標題
+   * @returns URL-safe 的 slug
+   */
+  generateSlug(title: string): string {
+    return title
+      .trim()  // 先 trim 前後空格
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')  // 移除前後的 -
   }
 
   /**
@@ -241,3 +393,6 @@ export function getArticleService(): ArticleService {
   }
   return articleServiceInstance
 }
+
+// 導出單例實例（與其他服務保持一致）
+export const articleService = getArticleService()
