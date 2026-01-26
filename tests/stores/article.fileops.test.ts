@@ -23,7 +23,9 @@ global.window = {
     setConfig: vi.fn(),
     watchDirectory: vi.fn(),
     unwatchDirectory: vi.fn(),
-    startFileWatching: vi.fn().mockResolvedValue(undefined)
+    startFileWatching: vi.fn().mockResolvedValue(undefined),
+    stopFileWatching: vi.fn().mockResolvedValue(undefined),
+    onFileChange: vi.fn(() => vi.fn()) // Returns unsubscribe function
   }
 } as any
 
