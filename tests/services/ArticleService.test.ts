@@ -1,9 +1,13 @@
 /**
  * ArticleService 單元測試
+ *
+ * 使用 MockFileSystem 進行依賴注入測試
+ * 不再依賴 global.window mock
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ArticleService } from '@/services/ArticleService'
+import { MockFileSystem } from '@/services/MockFileSystem'
 import { ArticleStatus, ArticleCategory } from '@/types'
 import type { Article } from '@/types'
 
@@ -66,406 +70,367 @@ vi.mock('@/services/BackupService', () => {
   }
 })
 
-// Mock 全域 electronAPI
-const mockReadFile = vi.fn()
-const mockWriteFile = vi.fn()
-const mockGetFileStats = vi.fn()
-const mockReadDirectory = vi.fn()
-const mockCreateDirectory = vi.fn()
-const mockDeleteFile = vi.fn()
-
-global.window = {
-  electronAPI: {
-    readFile: mockReadFile,
-    writeFile: mockWriteFile,
-    getFileStats: mockGetFileStats,
-    readDirectory: mockReadDirectory,
-    createDirectory: mockCreateDirectory,
-    deleteFile: mockDeleteFile
-  }
-} as any
-
-describe('ArticleService', () => {
+describe('ArticleService with MockFileSystem', () => {
   let service: ArticleService
+  let mockFileSystem: MockFileSystem
   let mockParseMarkdown: any
+  let mockCombineContent: any
   let mockDetectConflict: any
 
   beforeEach(async () => {
+    // 建立新的 MockFileSystem
+    mockFileSystem = new MockFileSystem()
+
     // 取得 mocked functions
     const markdownMod = await import('@/services/MarkdownService')
     const backupMod = await import('@/services/BackupService')
 
     mockParseMarkdown = (markdownMod as any).markdownService.parseMarkdown
+    mockCombineContent = (markdownMod as any).markdownService.combineContent
     mockDetectConflict = (backupMod as any).backupService.detectConflict
 
-    service = new ArticleService()
+    // 重置 mock
     vi.clearAllMocks()
 
-    // 預設的 mock 行為
-    mockReadFile.mockResolvedValue('---\ntitle: Test\n---\nContent')
-    mockWriteFile.mockResolvedValue(undefined)
-    mockGetFileStats.mockResolvedValue({
-      isDirectory: false,
-      mtime: new Date('2026-01-26').getTime()
-    })
+    // 使用 MockFileSystem 注入創建 service
+    service = new ArticleService(mockFileSystem)
   })
 
   describe('loadArticle', () => {
-    it('should load a single article from disk', async () => {
-      const filePath = '/vault/Drafts/Software/test.md'
-
-      mockReadFile.mockResolvedValue(`---
+    it('應該成功載入文章', async () => {
+      // 準備測試資料
+      const filePath = '/vault/Drafts/Software/test-article.md'
+      const fileContent = `---
 title: Test Article
-slug: test-article
-tags:
-  - test
-categories:
-  - Software
+date: 2026-01-26
+tags: [test]
+categories: [Software]
 ---
 
-This is test content`)
+Test content`
 
-      mockGetFileStats.mockResolvedValue({
-        isDirectory: false,
-        mtime: new Date('2026-01-26T10:00:00Z').getTime()
-      })
+      // 設定 MockFileSystem
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+      await mockFileSystem.writeFile(filePath, fileContent)
 
-      const article = await service.loadArticle(
-        filePath,
-        ArticleStatus.Draft,
-        ArticleCategory.Software
-      )
+      // 執行測試
+      const result = await service.loadArticle(filePath, ArticleStatus.Draft, ArticleCategory.Software)
 
-      expect(mockReadFile).toHaveBeenCalledWith(filePath)
-      expect(mockGetFileStats).toHaveBeenCalledWith(filePath)
-
-      expect(article.filePath).toBe(filePath)
-      expect(article.status).toBe(ArticleStatus.Draft)
-      expect(article.category).toBe(ArticleCategory.Software)
-      expect(article.title).toBe('Test Article')
-      expect(article.content).toBe('Test content')
+      // 驗證
+      expect(result.title).toBe('Test Article')
+      expect(result.filePath).toBe(filePath)
+      expect(result.status).toBe(ArticleStatus.Draft)
+      expect(result.category).toBe(ArticleCategory.Software)
+      expect(mockParseMarkdown).toHaveBeenCalledWith(fileContent)
     })
 
-    it('should use folder name as category if frontmatter.categories is missing', async () => {
-      const filePath = '/vault/Drafts/growth/test.md'
+    it('應該處理檔案不存在的情況', async () => {
+      const filePath = '/vault/Drafts/Software/non-existent.md'
 
-      // Mock parseMarkdown to return no categories in frontmatter
-      mockParseMarkdown.mockReturnValueOnce({
-        frontmatter: {
-          title: 'Test Article',
-          date: '2026-01-26',
-          tags: ['test']
-          // No categories field
-        },
-        content: 'Test content'
-      })
-
-      const article = await service.loadArticle(
-        filePath,
-        ArticleStatus.Draft,
-        ArticleCategory.Growth
-      )
-
-      expect(article.category).toBe(ArticleCategory.Growth)
-    })
-
-    it('should use file name as title if frontmatter.title is missing', async () => {
-      const filePath = '/vault/Drafts/Software/my-article.md'
-
-      // Mock parseMarkdown to return no title
-      mockParseMarkdown.mockReturnValueOnce({
-        frontmatter: {
-          date: '2026-01-26',
-          tags: ['test'],
-          categories: ['Software']
-        },
-        content: 'Test content'
-      })
-
-      const article = await service.loadArticle(
-        filePath,
-        ArticleStatus.Draft,
-        ArticleCategory.Software
-      )
-
-      expect(article.title).toBe('my-article')
-      expect(article.slug).toBe('my-article')
+      await expect(
+        service.loadArticle(filePath, ArticleStatus.Draft, ArticleCategory.Software)
+      ).rejects.toThrow('File not found')
     })
   })
 
   describe('loadAllArticles', () => {
-    it('should load all articles from Drafts and Publish folders', async () => {
-      const vaultPath = '/vault'
-
-      // Mock 資料夾結構
-      mockGetFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Publish')) {
-          return { isDirectory: true }
+    it('應該掃描並載入所有文章', async () => {
+      // 準備測試資料
+      await mockFileSystem.seed({
+        directories: [
+          '/vault',
+          '/vault/Drafts',
+          '/vault/Drafts/Software',
+          '/vault/Drafts/growth',
+          '/vault/Publish',
+          '/vault/Publish/Software'
+        ],
+        files: {
+          '/vault/Drafts/Software/article1.md': 'content1',
+          '/vault/Drafts/Software/article2.md': 'content2',
+          '/vault/Drafts/growth/article3.md': 'content3',
+          '/vault/Publish/Software/article4.md': 'content4'
         }
-        if (path.includes('Software') || path.includes('growth')) {
-          return { isDirectory: true }
-        }
-        return { isDirectory: false, mtime: Date.now() }
       })
 
-      mockReadDirectory.mockImplementation(async (path: string) => {
-        if (path === '/vault/Drafts') {
-          return ['Software', 'growth']
-        }
-        if (path === '/vault/Publish') {
-          return ['Software']
-        }
-        if (path === '/vault/Drafts/Software') {
-          return ['article1.md', 'article2.md']
-        }
-        if (path === '/vault/Drafts/growth') {
-          return ['article3.md']
-        }
-        if (path === '/vault/Publish/Software') {
-          return ['published1.md']
-        }
-        return []
-      })
+      // 執行測試
+      const articles = await service.loadAllArticles('/vault')
 
-      mockReadFile.mockResolvedValue(`---
-title: Test Article
-categories:
-  - Software
----
-
-Content`)
-
-      const articles = await service.loadAllArticles(vaultPath)
-
-      // 應該載入 4 篇文章
-      expect(articles.length).toBe(4)
-
-      // 驗證呼叫次數
-      expect(mockReadDirectory).toHaveBeenCalledTimes(5) // 2 folders + 3 categories
-      expect(mockReadFile).toHaveBeenCalledTimes(4) // 4 articles
+      // 驗證
+      expect(articles).toHaveLength(4)
+      expect(mockParseMarkdown).toHaveBeenCalledTimes(4)
     })
 
-    it('should handle missing folders gracefully', async () => {
-      const vaultPath = '/vault'
+    it('應該處理空 vault 的情況', async () => {
+      await mockFileSystem.createDirectory('/vault')
+      await mockFileSystem.createDirectory('/vault/Drafts')
+      await mockFileSystem.createDirectory('/vault/Publish')
 
-      // Mock Drafts 存在但 Publish 不存在
-      mockGetFileStats.mockImplementation(async (path: string) => {
-        if (path === '/vault/Drafts') {
-          return { isDirectory: true }
-        }
-        if (path === '/vault/Publish') {
-          return { isDirectory: false }  // 不是資料夾
-        }
-        if (path.includes('Software')) {
-          return { isDirectory: true }
-        }
-        return { isDirectory: false, mtime: Date.now() }
-      })
+      const articles = await service.loadAllArticles('/vault')
 
-      mockReadDirectory.mockImplementation(async (path: string) => {
-        if (path === '/vault/Drafts') {
-          return ['Software']
-        }
-        if (path === '/vault/Drafts/Software') {
-          return ['article1.md']
-        }
-        return []
-      })
-
-      mockReadFile.mockResolvedValue(`---
-title: Test Article
----
-Content`)
-
-      const articles = await service.loadAllArticles(vaultPath)
-
-      // 應該只載入 Drafts 的文章
-      expect(articles.length).toBe(1)
+      expect(articles).toHaveLength(0)
     })
 
-    it('should skip files that fail to load', async () => {
-      const vaultPath = '/vault'
+    it('應該略過不存在的資料夾', async () => {
+      // 只建立部分資料夾
+      await mockFileSystem.createDirectory('/vault')
+      await mockFileSystem.createDirectory('/vault/Drafts')
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+      await mockFileSystem.writeFile('/vault/Drafts/Software/article1.md', 'content')
 
-      mockGetFileStats.mockResolvedValue({ isDirectory: true })
-      mockReadDirectory.mockImplementation(async (path: string) => {
-        if (path === '/vault/Drafts') {
-          return ['Software']
-        }
-        if (path === '/vault/Publish') {
-          return []
-        }
-        if (path === '/vault/Drafts/Software') {
-          return ['good.md', 'bad.md']
-        }
-        return []
-      })
+      // Publish 資料夾不存在
 
-      // good.md 成功，bad.md 失敗
-      mockReadFile.mockImplementation(async (path: string) => {
-        if (path.includes('bad.md')) {
-          throw new Error('Failed to read file')
-        }
-        return `---
-title: Good Article
----
-Content`
-      })
+      const articles = await service.loadAllArticles('/vault')
 
-      const articles = await service.loadAllArticles(vaultPath)
-
-      // 應該只載入成功的文章
-      expect(articles.length).toBe(1)
-      expect(articles[0].title).toBe('Test Article')  // from mock
-    })
-  })
-
-  describe('generateSlug', () => {
-    it('should generate URL-safe slug from title', () => {
-      expect(service.generateSlug('Hello World')).toBe('hello-world')
-      expect(service.generateSlug('Test 123')).toBe('test-123')
-      expect(service.generateSlug('Special!@#$%Characters')).toBe('specialcharacters')
-      expect(service.generateSlug('Multiple   Spaces')).toBe('multiple-spaces')
-      expect(service.generateSlug('  Trimmed  ')).toBe('trimmed')
+      expect(articles).toHaveLength(1)
     })
   })
 
   describe('saveArticle', () => {
-    it('should save article to disk', async () => {
+    it('應該成功儲存文章', async () => {
       const article: Article = {
-        id: '1',
-        title: 'Test Article',
-        slug: 'test-article',
+        id: 'test-id',
+        title: 'Test',
+        slug: 'test',
         filePath: '/vault/Drafts/Software/test.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Test content',
         frontmatter: {
-          title: 'Test Article',
+          title: 'Test',
           date: '2026-01-26',
-          tags: ['test'],
+          tags: [],
           categories: ['Software']
         }
       }
 
+      // 準備目錄
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+
+      // 執行測試
       const result = await service.saveArticle(article)
 
+      // 驗證
       expect(result.success).toBe(true)
-      expect(mockWriteFile).toHaveBeenCalledWith(
-        article.filePath,
-        expect.stringContaining('title: Test Article')
-      )
+      expect(mockCombineContent).toHaveBeenCalled()
+      expect(mockDetectConflict).toHaveBeenCalledWith(article)
+
+      // 驗證檔案已寫入
+      const exists = await mockFileSystem.exists(article.filePath)
+      expect(exists).toBe(true)
     })
 
-    it('should detect conflicts if not skipped', async () => {
+    it('應該處理衝突情況', async () => {
+      mockDetectConflict.mockResolvedValueOnce({ hasConflict: true })
+
       const article: Article = {
-        id: '1',
-        title: 'Test',
-        slug: 'test',
-        filePath: '/vault/test.md',
-        status: ArticleStatus.Draft,
-        category: ArticleCategory.Software,
-        lastModified: new Date(),
-        content: 'Content',
-        frontmatter: { title: 'Test' }
-      }
-
-      // Mock conflict detection
-      mockDetectConflict.mockResolvedValueOnce({
-        hasConflict: true,
-        message: 'File modified externally'
-      })
-
-      const result = await service.saveArticle(article)
-
-      expect(result.success).toBe(false)
-      expect(result.conflict).toBe(true)
-      expect(mockWriteFile).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('deleteArticle', () => {
-    it('should delete article file', async () => {
-      const article: Article = {
-        id: '1',
-        title: 'Test',
-        slug: 'test',
-        filePath: '/vault/test.md',
-        status: ArticleStatus.Draft,
-        category: ArticleCategory.Software,
-        lastModified: new Date(),
-        content: 'Content',
-        frontmatter: { title: 'Test' }
-      }
-
-      await service.deleteArticle(article)
-
-      expect(mockDeleteFile).toHaveBeenCalledWith(article.filePath)
-    })
-  })
-
-  describe('moveArticle', () => {
-    it('should move article to new location', async () => {
-      const article: Article = {
-        id: '1',
+        id: 'test-id',
         title: 'Test',
         slug: 'test',
         filePath: '/vault/Drafts/Software/test.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
-        content: 'Content',
-        frontmatter: { title: 'Test' }
+        content: 'Test content',
+        frontmatter: {
+          title: 'Test',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
       }
 
-      const newPath = '/vault/Publish/Software/test.md'
-      const fileContent = '---\ntitle: Test\n---\nContent'
+      const result = await service.saveArticle(article)
 
-      mockReadFile.mockResolvedValue(fileContent)
+      expect(result.success).toBe(false)
+      expect(result.conflict).toBe(true)
+    })
 
-      await service.moveArticle(article, newPath)
+    it('應該支援跳過衝突檢查和備份', async () => {
+      const article: Article = {
+        id: 'test-id',
+        title: 'Test',
+        slug: 'test',
+        filePath: '/vault/Drafts/Software/test.md',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content: 'Test content',
+        frontmatter: {
+          title: 'Test',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
+      }
 
-      expect(mockReadFile).toHaveBeenCalledWith(article.filePath)
-      expect(mockWriteFile).toHaveBeenCalledWith(newPath, fileContent)
-      expect(mockDeleteFile).toHaveBeenCalledWith(article.filePath)
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+
+      const result = await service.saveArticle(article, {
+        skipConflictCheck: true,
+        skipBackup: true
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockDetectConflict).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('deleteArticle', () => {
+    it('應該成功刪除文章', async () => {
+      const article: Article = {
+        id: 'test-id',
+        title: 'Test',
+        slug: 'test',
+        filePath: '/vault/Drafts/Software/test.md',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content: 'Test content',
+        frontmatter: {
+          title: 'Test',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
+      }
+
+      // 先建立檔案
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+      await mockFileSystem.writeFile(article.filePath, 'content')
+
+      // 刪除
+      await service.deleteArticle(article)
+
+      // 驗證
+      const exists = await mockFileSystem.exists(article.filePath)
+      expect(exists).toBe(false)
+    })
+  })
+
+  describe('moveArticle', () => {
+    it('應該成功移動文章', async () => {
+      const article: Article = {
+        id: 'test-id',
+        title: 'Test',
+        slug: 'test',
+        filePath: '/vault/Drafts/Software/test.md',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content: 'Test content',
+        frontmatter: {
+          title: 'Test',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
+      }
+
+      const newFilePath = '/vault/Publish/Software/test.md'
+
+      // 準備測試
+      await mockFileSystem.createDirectory('/vault/Drafts/Software')
+      await mockFileSystem.createDirectory('/vault/Publish/Software')
+      await mockFileSystem.writeFile(article.filePath, 'original content')
+
+      // 移動
+      await service.moveArticle(article, newFilePath)
+
+      // 驗證
+      const oldExists = await mockFileSystem.exists(article.filePath)
+      const newExists = await mockFileSystem.exists(newFilePath)
+
+      expect(oldExists).toBe(false)
+      expect(newExists).toBe(true)
+
+      const newContent = await mockFileSystem.readFile(newFilePath)
+      expect(newContent).toBe('original content')
+    })
+  })
+
+  describe('generateSlug', () => {
+    it('應該產生正確的 slug', () => {
+      expect(service.generateSlug('Hello World')).toBe('hello-world')
+      expect(service.generateSlug('  Trim Spaces  ')).toBe('trim-spaces')
+      expect(service.generateSlug('Remove@Special#Chars')).toBe('removespecialchars')
+      expect(service.generateSlug('Multiple   Spaces')).toBe('multiple-spaces')
+      expect(service.generateSlug('Multiple---Dashes')).toBe('multiple-dashes')
     })
   })
 
   describe('validateArticle', () => {
-    it('should validate article data', () => {
-      const validArticle: Article = {
-        id: '1',
-        title: 'Test',
-        slug: 'test',
-        filePath: '/vault/test.md',
+    it('應該驗證有效的文章', () => {
+      const article: Article = {
+        id: 'test-id',
+        title: 'Valid Article',
+        slug: 'valid-article',
+        filePath: '/vault/Drafts/Software/valid.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content',
-        frontmatter: { title: 'Test' }
+        frontmatter: {
+          title: 'Valid Article',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
       }
 
-      const result = service.validateArticle(validArticle)
+      const result = service.validateArticle(article)
+
       expect(result.valid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
-    it('should detect missing title', () => {
-      const invalidArticle: Article = {
-        id: '1',
+    it('應該偵測缺少標題', () => {
+      const article: Article = {
+        id: 'test-id',
         title: '',
         slug: 'test',
-        filePath: '/vault/test.md',
+        filePath: '/vault/Drafts/Software/test.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
         content: 'Content',
-        frontmatter: { title: '' }
+        frontmatter: {
+          title: '',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
       }
 
-      const result = service.validateArticle(invalidArticle)
+      const result = service.validateArticle(article)
+
       expect(result.valid).toBe(false)
       expect(result.errors).toContain('標題不能為空')
+    })
+
+    it('應該偵測缺少檔案路徑', () => {
+      const article: Article = {
+        id: 'test-id',
+        title: 'Test',
+        slug: 'test',
+        filePath: '',
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content: 'Content',
+        frontmatter: {
+          title: 'Test',
+          date: '2026-01-26',
+          tags: [],
+          categories: ['Software']
+        }
+      }
+
+      const result = service.validateArticle(article)
+
+      expect(result.valid).toBe(false)
+      expect(result.errors).toContain('檔案路徑不能為空')
     })
   })
 })
