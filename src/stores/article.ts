@@ -9,7 +9,6 @@ import { useConfigStore } from "./config";
 import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
 import { fileWatchService } from "@/services/FileWatchService";
-import { logger } from "@/utils/logger";
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -43,7 +42,7 @@ export const useArticleStore = defineStore("article", () => {
         }
 
         // 分類過濾 - 早期返回
-        if (categoryFilter !== ArticleFilterCategory.All && article.category !== categoryFilter) {
+        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as ArticleCategory)) {
           return false;
         }
 
@@ -102,7 +101,7 @@ export const useArticleStore = defineStore("article", () => {
         return;
       }
 
-      logger.debug("開始載入文章，Vault 路徑:", vaultPath);
+      console.log("開始載入文章，Vault 路徑:", vaultPath);
 
       // Check if we're running in Electron environment
       if (typeof window === "undefined" || !window.electronAPI) {
@@ -116,7 +115,7 @@ export const useArticleStore = defineStore("article", () => {
       const loadedArticles = await articleService.loadAllArticles(vaultPath);
       articles.value = loadedArticles;
 
-      logger.debug(`載入完成，共 ${loadedArticles.length} 篇文章`);
+      console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
@@ -142,7 +141,7 @@ export const useArticleStore = defineStore("article", () => {
         handleFileChangeEvent(event);
       });
 
-      logger.debug("FileWatchService: 檔案監聽已啟動");
+      console.log("FileWatchService: 檔案監聽已啟動");
     } catch (error) {
       console.error("Failed to setup file watching:", error);
     }
@@ -160,7 +159,7 @@ export const useArticleStore = defineStore("article", () => {
       return; // 不是文章檔案，忽略
     }
 
-    logger.debug(`檔案變化：${type} - ${filePath}`);
+    console.log(`檔案變化：${type} - ${filePath}`);
 
     switch (type) {
       case "add":
