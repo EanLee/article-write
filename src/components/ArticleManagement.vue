@@ -81,7 +81,7 @@
     </div>
 
     <!-- 文章表格 -->
-    <div class="table-container">
+    <div ref="tableContainerRef" class="table-container">
       <table class="table table-sm table-pin-rows table-zebra">
         <thead>
           <tr>
@@ -204,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import type { Article } from '@/types'
@@ -238,6 +238,10 @@ const filters = ref({
 // 分頁
 const currentPage = ref(1)
 const pageSize = ref(50)
+
+// 表格容器和滾動位置
+const tableContainerRef = ref<HTMLElement | null>(null)
+const savedScrollTop = ref(0)
 
 // 檢查是否有啟用的篩選條件
 const hasActiveFilters = computed(() => {
@@ -318,8 +322,20 @@ function handleRowClick(article: Article) {
 
 // 處理編輯文章
 function handleEditArticle(article: Article) {
+  // 保存當前滾動位置
+  if (tableContainerRef.value) {
+    savedScrollTop.value = tableContainerRef.value.scrollTop
+  }
+
   articleStore.setCurrentArticle(article)
   emit('edit-article')
+
+  // 使用 nextTick 確保 DOM 更新後恢復滾動位置
+  nextTick(() => {
+    if (tableContainerRef.value) {
+      tableContainerRef.value.scrollTop = savedScrollTop.value
+    }
+  })
 }
 
 // 處理刪除文章
@@ -331,8 +347,24 @@ function handleDeleteArticle(article: Article) {
 
 // 處理新增文章
 async function handleCreateArticle() {
-  await articleStore.createNewArticle()
+  // 保存滾動位置
+  if (tableContainerRef.value) {
+    savedScrollTop.value = tableContainerRef.value.scrollTop
+  }
+
+  // 創建新文章（需要提供標題和分類，這裡使用預設值）
+  const newArticle = await articleStore.createArticle('未命名文章', 'Software' as any)
+
+  // 設為當前文章
+  articleStore.setCurrentArticle(newArticle)
   emit('edit-article')
+
+  // 恢復滾動位置
+  nextTick(() => {
+    if (tableContainerRef.value) {
+      tableContainerRef.value.scrollTop = savedScrollTop.value
+    }
+  })
 }
 
 // 格式化日期
