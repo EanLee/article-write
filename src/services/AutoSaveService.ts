@@ -1,6 +1,7 @@
-import type { Article, SaveState } from '@/types'
+import type { Article, SaveState, Frontmatter } from '@/types'
 import { SaveStatus } from '@/types'
 import { ref, type Ref } from 'vue'
+import { isEqual } from 'lodash-es'
 
 /**
  * 自動儲存服務類別
@@ -13,7 +14,7 @@ export class AutoSaveService {
   private autoSaveInterval: number = 30000 // 30 seconds
   private isEnabled: boolean = true
   private lastSavedContent: string = ''
-  private lastSavedFrontmatter: string = ''
+  private lastSavedFrontmatter: Partial<Frontmatter> = {}
   private initialized: boolean = false // 初始化標誌
 
   // 儲存狀態（響應式）
@@ -182,16 +183,14 @@ export class AutoSaveService {
 
   /**
    * 檢查文章內容是否有變更
+   * 使用 lodash isEqual 進行深度比較，比 JSON.stringify 效能更好
    * @param {Article} article - 要檢查的文章
    * @returns {boolean} 是否有變更
    */
   private hasContentChanged(article: Article): boolean {
-    const currentContent = article.content
-    const currentFrontmatter = JSON.stringify(article.frontmatter)
-    
     return (
-      currentContent !== this.lastSavedContent ||
-      currentFrontmatter !== this.lastSavedFrontmatter
+      article.content !== this.lastSavedContent ||
+      !isEqual(article.frontmatter, this.lastSavedFrontmatter)
     )
   }
 
@@ -201,7 +200,7 @@ export class AutoSaveService {
    */
   private updateLastSavedContent(article: Article): void {
     this.lastSavedContent = article.content
-    this.lastSavedFrontmatter = JSON.stringify(article.frontmatter)
+    this.lastSavedFrontmatter = { ...article.frontmatter }
   }
 
   /**
@@ -213,7 +212,7 @@ export class AutoSaveService {
       this.updateLastSavedContent(article)
     } else {
       this.lastSavedContent = ''
-      this.lastSavedFrontmatter = ''
+      this.lastSavedFrontmatter = {}
     }
   }
 
