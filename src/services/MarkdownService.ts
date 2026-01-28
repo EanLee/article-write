@@ -391,22 +391,15 @@ export class MarkdownService {
    * @returns {string[]} 圖片路徑陣列
    */
   extractImageReferences(content: string): string[] {
-    const images: string[] = []
+    // 使用 matchAll 優化正則匹配（更簡潔高效）
+    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)]
+      .map(m => m[1])
     
-    // Standard markdown images: ![alt](path)
-    const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g
-    let match
-    while ((match = standardImageRegex.exec(content)) !== null) {
-      images.push(match[1])
-    }
+    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)]
+      .map(m => m[1])
     
-    // Obsidian style images: ![[image.png]]
-    const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g
-    while ((match = obsidianImageRegex.exec(content)) !== null) {
-      images.push(match[1])
-    }
-    
-    return [...new Set(images)] // Remove duplicates
+    // 合併並去重
+    return [...new Set([...standardImages, ...obsidianImages])]
   }
 
   /**
@@ -415,19 +408,12 @@ export class MarkdownService {
    * @returns {Array<{ link: string; alias?: string }>} Wiki 連結陣列
    */
   extractWikiLinks(content: string): Array<{ link: string; alias?: string }> {
-    const links: Array<{ link: string; alias?: string }> = []
-    
-    // Wiki links: [[link]] or [[link|alias]]
-    const wikiLinkRegex = /\[\[([^\]|]+)(\|([^\]]+))?\]\]/g
-    let match
-    while ((match = wikiLinkRegex.exec(content)) !== null) {
-      links.push({
+    // 使用 matchAll 優化正則匹配
+    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g)]
+      .map(match => ({
         link: match[1],
         alias: match[3]
-      })
-    }
-    
-    return links
+      }))
   }
 
   /**
