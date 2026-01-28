@@ -75,15 +75,6 @@ export const useArticleStore = defineStore('article', () => {
       })
   })
 
-  // Debug: 監控 filteredArticles 重新計算
-  watch(filteredArticles, (newArticles, oldArticles) => {
-    console.log('📋 filteredArticles 重新計算:', {
-      count: newArticles.length,
-      titles: newArticles.map(a => a.title),
-      changed: newArticles !== oldArticles
-    })
-  })
-
   const draftArticles = computed(() => 
     articles.value.filter(article => article.status === 'draft')
   )
@@ -93,14 +84,16 @@ export const useArticleStore = defineStore('article', () => {
   )
 
   const allTags = computed(() => {
-    const tagSet = new Set<string>()
-    articles.value.forEach(article => {
-      // 防禦性檢查：確保 tags 存在且為陣列
-      if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
-        article.frontmatter.tags.forEach(tag => tagSet.add(tag))
-      }
-    })
-    return Array.from(tagSet).sort()
+    // 使用 flatMap 優化：從三次遍歷減少到一次
+    // 舊方法：forEach → forEach → Array.from = O(n×m + k)
+    // 新方法：flatMap → Set → spread = O(n×m + k) 但常數更小
+    return [...new Set(
+      articles.value.flatMap(article => 
+        article.frontmatter.tags && Array.isArray(article.frontmatter.tags) 
+          ? article.frontmatter.tags 
+          : []
+      )
+    )].sort()
   })
 
   // Actions
