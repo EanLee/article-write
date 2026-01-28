@@ -10,6 +10,7 @@
  */
 
 import { normalizePath } from "@/utils/path";
+import { logger } from "@/utils/logger";
 
 export type FileChangeEvent = {
   event: "add" | "change" | "unlink";
@@ -63,7 +64,7 @@ export class FileWatchService {
       this.isWatching = true;
       this.watchedPath = path;
 
-      logger.debug('FileWatchService: Started watching', path)
+      logger.debug("FileWatchService: Started watching", path);
     } catch (error) {
       console.error("Failed to start file watching:", error);
       throw error;
@@ -101,7 +102,7 @@ export class FileWatchService {
     this.watchedPath = null;
     this.recentEvents.clear();
 
-    logger.debug('FileWatchService: Stopped watching')
+    logger.debug("FileWatchService: Stopped watching");
   }
 
   /**
@@ -131,7 +132,7 @@ export class FileWatchService {
       this.recentEvents.delete(normalized);
     }, durationMs);
 
-    logger.debug(`FileWatchService: Will ignore changes to ${filePath} for ${durationMs}ms`)
+    logger.debug(`FileWatchService: Will ignore changes to ${filePath} for ${durationMs}ms`);
   }
 
   /**
@@ -146,7 +147,7 @@ export class FileWatchService {
       const timeSinceLastEvent = Date.now() - recent.timestamp;
 
       if (timeSinceLastEvent < this.DEBOUNCE_MS) {
-        logger.debug(`FileWatchService: Debounced ${event} for ${normalized} (${timeSinceLastEvent}ms ago)`)
+        logger.debug(`FileWatchService: Debounced ${event} for ${normalized} (${timeSinceLastEvent}ms ago)`);
         return;
       }
     }
@@ -163,7 +164,7 @@ export class FileWatchService {
       path: normalized,
     };
 
-    logger.debug('FileWatchService: File changed', fileEvent)
+    logger.debug("FileWatchService: File changed", fileEvent);
 
     this.callbacks.forEach((callback) => {
       try {

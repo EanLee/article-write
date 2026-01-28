@@ -2,6 +2,7 @@ import type { Article, SaveState, Frontmatter } from "@/types";
 import { SaveStatus } from "@/types";
 import { ref, type Ref } from "vue";
 import { isEqual } from "lodash-es";
+import { logger } from "@/utils/logger";
 
 /**
  * 自動儲存服務類別
@@ -71,7 +72,7 @@ export class AutoSaveService {
     if (this.autoSaveTimer) {
       clearInterval(this.autoSaveTimer);
       this.autoSaveTimer = null;
-      logger.debug('自動儲存已停止')
+      logger.debug("自動儲存已停止");
     }
   }
 
