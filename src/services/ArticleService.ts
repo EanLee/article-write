@@ -176,7 +176,8 @@ export class ArticleService {
    * @returns 載入的所有文章
    */
   async loadAllArticles(vaultPath: string): Promise<Article[]> {
-    const loadedArticles: Article[] = []
+    // 收集所有載入任務，稍後並行執行
+    const loadTasks: Promise<Article | null>[] = []
 
     // 掃描 Drafts 和 Publish 兩個資料夾
     const folders = [
@@ -184,6 +185,7 @@ export class ArticleService {
       { path: `${vaultPath}/Publish`, status: ArticleStatus.Published }
     ]
 
+    // 第一階段：收集所有檔案路徑和元資料
     for (const folder of folders) {
       try {
         // 檢查資料夾是否存在
@@ -206,14 +208,16 @@ export class ArticleService {
           const files = await this.fileSystem.readDirectory(categoryPath)
           const mdFiles = files.filter(f => f.endsWith('.md'))
 
+          // 為每個檔案建立載入任務（不立即執行）
           for (const file of mdFiles) {
             const filePath = `${categoryPath}/${file}`
-            try {
-              const article = await this.loadArticle(filePath, folder.status, category as ArticleCategory)
-              loadedArticles.push(article)
-            } catch (err) {
-              console.warn(`Failed to load article ${filePath}:`, err)
-            }
+            // 建立 Promise 並加入任務列表
+            const loadTask = this.loadArticle(filePath, folder.status, category as ArticleCategory)
+              .catch(err => {
+                console.warn(`Failed to load article ${filePath}:`, err)
+                return null // 載入失敗返回 null
+              })
+            loadTasks.push(loadTask)
           }
         }
       } catch (err) {
@@ -221,7 +225,31 @@ export class ArticleService {
       }
     }
 
-    return loadedArticles
+    // 第二階段：並行執行所有載入任務（限制並發數避免過載）
+    const loadedArticles = await this.loadInBatches(loadTasks, 10)
+
+    // 過濾掉載入失敗的文章 (null 值)
+    return loadedArticles.filter((article): article is Article => article !== null)
+  }
+
+  /**
+   * 批次並行載入，避免同時開啟過多檔案
+   * 
+   * @param tasks - 載入任務陣列
+   * @param batchSize - 每批次並行載入的數量
+   * @returns 載入結果陣列
+   */
+  private async loadInBatches<T>(tasks: Promise<T>[], batchSize: number): Promise<T[]> {
+    const results: T[] = []
+
+    // 分批執行任務
+    for (let i = 0; i < tasks.length; i += batchSize) {
+      const batch = tasks.slice(i, i + batchSize)
+      const batchResults = await Promise.all(batch)
+      results.push(...batchResults)
+    }
+
+    return results
   }
 
   /**
