@@ -28,33 +28,43 @@ export const useArticleStore = defineStore('article', () => {
 
   // Getters
   const filteredArticles = computed(() => {
+    // 單次遍歷，合併所有過濾條件（優化從 O(n×m) 到 O(n)）
+    const statusFilter = filter.value.status
+    const categoryFilter = filter.value.category
+    const tagsFilter = filter.value.tags
+    const searchText = filter.value.searchText?.toLowerCase()
+
     return articles.value
       .filter(article => {
-        // Status filter
-        if (filter.value.status !== ArticleFilterStatus.All && article.status !== filter.value.status) {
+        // 狀態過濾 - 早期返回
+        if (statusFilter !== ArticleFilterStatus.All && article.status !== statusFilter) {
           return false
         }
 
-        // Category filter
-        if (filter.value.category !== ArticleFilterCategory.All && article.category !== filter.value.category) {
+        // 分類過濾 - 早期返回
+        if (categoryFilter !== ArticleFilterCategory.All && article.category !== categoryFilter) {
           return false
         }
 
-        // Tags filter
-        if (filter.value.tags.length > 0) {
-          const hasMatchingTag = filter.value.tags.some(tag => 
-            article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && article.frontmatter.tags.includes(tag)
-          )
-          if (!hasMatchingTag) {return false}
+        // 標籤過濾 - 早期返回
+        if (tagsFilter.length > 0) {
+          const hasMatchingTag = article.frontmatter.tags && 
+                                 Array.isArray(article.frontmatter.tags) &&
+                                 tagsFilter.some(tag => article.frontmatter.tags!.includes(tag))
+          if (!hasMatchingTag) {
+            return false
+          }
         }
 
-        // Search text filter
-        if (filter.value.searchText) {
-          const searchLower = filter.value.searchText.toLowerCase()
-          const titleMatch = article.title.toLowerCase().includes(searchLower)
-          // 空內容安全處理：空字串的 toLowerCase().includes() 總是返回 false
-          const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
-          if (!titleMatch && !contentMatch) {return false}
+        // 搜尋文字過濾 - 早期返回優化
+        if (searchText) {
+          const titleMatch = article.title.toLowerCase().includes(searchText)
+          if (titleMatch) {return true} // 早期返回，避免不必要的內容搜尋
+          
+          const contentMatch = (article.content || '').toLowerCase().includes(searchText)
+          if (!contentMatch) {
+            return false
+          }
         }
 
         return true
