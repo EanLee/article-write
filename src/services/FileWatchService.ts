@@ -63,7 +63,7 @@ export class FileWatchService {
       this.isWatching = true;
       this.watchedPath = path;
 
-      console.log("FileWatchService: Started watching", path);
+      logger.debug('FileWatchService: Started watching', path)
     } catch (error) {
       console.error("Failed to start file watching:", error);
       throw error;
@@ -93,15 +93,15 @@ export class FileWatchService {
 
     // 清理定期清理的 interval
     if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval)
-      this.cleanupInterval = null
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
     }
 
     this.isWatching = false;
     this.watchedPath = null;
     this.recentEvents.clear();
 
-    console.log("FileWatchService: Stopped watching");
+    logger.debug('FileWatchService: Stopped watching')
   }
 
   /**
@@ -131,7 +131,7 @@ export class FileWatchService {
       this.recentEvents.delete(normalized);
     }, durationMs);
 
-    console.log(`FileWatchService: Will ignore changes to ${filePath} for ${durationMs}ms`);
+    logger.debug(`FileWatchService: Will ignore changes to ${filePath} for ${durationMs}ms`)
   }
 
   /**
@@ -146,7 +146,7 @@ export class FileWatchService {
       const timeSinceLastEvent = Date.now() - recent.timestamp;
 
       if (timeSinceLastEvent < this.DEBOUNCE_MS) {
-        console.log(`FileWatchService: Debounced ${event} for ${normalized} (${timeSinceLastEvent}ms ago)`);
+        logger.debug(`FileWatchService: Debounced ${event} for ${normalized} (${timeSinceLastEvent}ms ago)`)
         return;
       }
     }
@@ -157,14 +157,13 @@ export class FileWatchService {
       timestamp: Date.now(),
     });
 
-
     // 通知所有訂閱者
     const fileEvent: FileChangeEvent = {
       event: event as "add" | "change" | "unlink",
       path: normalized,
     };
 
-    console.log("FileWatchService: File changed", fileEvent);
+    logger.debug('FileWatchService: File changed', fileEvent)
 
     this.callbacks.forEach((callback) => {
       try {
