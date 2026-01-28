@@ -1,80 +1,45 @@
 <template>
     <div class="h-full flex flex-col relative">
         <!-- Editor Header -->
-        <EditorHeader
-            :article="articleStore.currentArticle"
-            :show-preview="showPreview"
-            :editor-mode="editorMode"
-            :focus-mode="focusMode"
-            @toggle-preview="togglePreview"
-            @edit-frontmatter="showFrontmatterEditor = true"
-            @move-to-published="moveToPublished"
-            @toggle-editor-mode="toggleEditorMode"
-            @toggle-focus-mode="toggleFocusMode"
-        />
+        <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
+            :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
+            @move-to-published="moveToPublished" @toggle-editor-mode="toggleEditorMode"
+            @toggle-focus-mode="toggleFocusMode" />
 
         <!-- Search/Replace Panel -->
-        <SearchReplace
-            :visible="isSearchVisible"
-            :content="content"
-            @close="closeSearch"
-            @replace="replace"
-            @highlight="handleSearchHighlight"
-        />
+        <SearchReplace :visible="isSearchVisible" :content="content" @close="closeSearch" @replace="replace"
+            @highlight="handleSearchHighlight" />
 
         <!-- Editor Content -->
         <div class="flex flex-1 overflow-hidden">
             <!-- 撰寫模式 -->
             <template v-if="editorMode === 'compose'">
-                <EditorPane
-                    ref="editorPaneRef"
-                    v-model="content"
-                    :show-preview="showPreview"
-                    :suggestions="suggestions"
-                    :show-suggestions="showSuggestions"
-                    :selected-suggestion-index="selectedSuggestionIndex"
-                    :syntax-errors="syntaxErrors"
-                    :image-validation-warnings="imageValidationWarnings"
-                    :dropdown-position="dropdownPosition"
-                    @insert-markdown="insertMarkdownSyntax"
-                    @insert-table="insertTable"
-                    @keydown="handleKeydown"
-                    @cursor-change="updateAutocomplete"
-                    @apply-suggestion="applySuggestion"
-                    @scroll="onEditorScroll"
-                    @toggle-sync-scroll="toggleSyncScroll"
-                />
+                <EditorPane ref="editorPaneRef" v-model="content" :show-preview="showPreview" :suggestions="suggestions"
+                    :show-suggestions="showSuggestions" :selected-suggestion-index="selectedSuggestionIndex"
+                    :syntax-errors="syntaxErrors" :image-validation-warnings="imageValidationWarnings"
+                    :dropdown-position="dropdownPosition" @insert-markdown="insertMarkdownSyntax"
+                    @insert-table="insertTable" @keydown="handleKeydown" @cursor-change="updateAutocomplete"
+                    @apply-suggestion="applySuggestion" @scroll="onEditorScroll"
+                    @toggle-sync-scroll="toggleSyncScroll" />
             </template>
 
             <!-- Raw 模式 -->
             <template v-else>
                 <div class="flex-1 flex flex-col bg-base-100">
-                    <textarea
-                        v-model="rawContent"
+                    <textarea v-model="rawContent"
                         class="flex-1 w-full p-4 bg-base-100 text-base-content font-mono text-sm resize-none focus:outline-none"
-                        @input="handleRawContentChange"
-                        placeholder="原始 Markdown 內容..."
-                    ></textarea>
+                        @input="handleRawContentChange" placeholder="原始 Markdown 內容..."></textarea>
                 </div>
             </template>
 
             <!-- Preview Pane -->
-            <PreviewPane
-                ref="previewPaneRef"
-                v-if="showPreview"
-                :rendered-content="renderedContent"
-                :stats="previewStats"
-                :validation="previewValidation"
-                @scroll="onPreviewScroll"
-            />
+            <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
+                :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
         </div>
 
         <!-- Frontmatter Editor Modal -->
-        <FrontmatterEditor
-            v-model="showFrontmatterEditor"
-            :article="articleStore.currentArticle"
-            @update="handleFrontmatterUpdate"
-        />
+        <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
+            @update="handleFrontmatterUpdate" />
     </div>
 </template>
 
@@ -82,6 +47,7 @@
 import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue';
 import { useArticleStore } from '@/stores/article';
 import { useConfigStore } from '@/stores/config';
+import { debounce } from 'lodash-es';
 import EditorHeader from './EditorHeader.vue';
 import EditorPane from './EditorPane.vue';
 import PreviewPane from './PreviewPane.vue';
@@ -130,109 +96,110 @@ const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
 
 // 同步滾動功能
 const {
-  syncEnabled,
-  onEditorScroll,
-  onPreviewScroll,
-  setSync
+    syncEnabled,
+    onEditorScroll,
+    onPreviewScroll,
+    setSync
 } = useSyncScroll(editorRef, previewRef);
 
 // 使用 Composables
 const {
-  suggestions,
-  showSuggestions,
-  selectedSuggestionIndex,
-  dropdownPosition,
-  updateAutocomplete,
-  applySuggestion,
-  hideSuggestions,
-  handleAutocompleteKeydown
+    suggestions,
+    showSuggestions,
+    selectedSuggestionIndex,
+    dropdownPosition,
+    updateAutocomplete,
+    applySuggestion,
+    hideSuggestions,
+    handleAutocompleteKeydown
 } = useAutocomplete(editorRef, content);
 
 // Undo/Redo 系統
 const {
-  canUndo: _canUndo,
-  canRedo: _canRedo,
-  pushHistory,
-  undo,
-  redo,
-  initialize: initializeHistory,
+    canUndo: _canUndo,
+    canRedo: _canRedo,
+    pushHistory,
+    undo,
+    redo,
+    initialize: initializeHistory,
 } = useUndoRedo();
 
 // 搜尋/替換功能
 const {
-  isSearchVisible,
-  openSearch,
-  closeSearch,
-  replace,
-  jumpToMatch: _jumpToMatch,
+    isSearchVisible,
+    openSearch,
+    closeSearch,
+    replace,
+    jumpToMatch: _jumpToMatch,
 } = useSearchReplace(
-  () => content.value,
-  (newContent) => { content.value = newContent },
-  () => editorRef.value?.selectionStart || 0,
-  (position) => {
-    if (editorRef.value) {
-      editorRef.value.setSelectionRange(position, position)
-      editorRef.value.focus()
+    () => content.value,
+    (newContent) => { content.value = newContent },
+    () => editorRef.value?.selectionStart || 0,
+    (position) => {
+        if (editorRef.value) {
+            editorRef.value.setSelectionRange(position, position)
+            editorRef.value.focus()
+        }
     }
-  }
 );
 
 // 處理 Undo
 function handleUndo() {
-  const state = undo()
-  if (state) {
-    content.value = state.content
-    nextTick(() => {
-      if (editorRef.value) {
-        editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
-        editorRef.value.focus()
-      }
-    })
-  }
+    const state = undo()
+    if (state) {
+        content.value = state.content
+        nextTick(() => {
+            if (editorRef.value) {
+                editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
+                editorRef.value.focus()
+            }
+        })
+    }
 }
 
 // 處理 Redo
 function handleRedo() {
-  const state = redo()
-  if (state) {
-    content.value = state.content
-    nextTick(() => {
-      if (editorRef.value) {
-        editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
-        editorRef.value.focus()
-      }
-    })
-  }
+    const state = redo()
+    if (state) {
+        content.value = state.content
+        nextTick(() => {
+            if (editorRef.value) {
+                editorRef.value.setSelectionRange(state.cursorPosition, state.cursorPosition)
+                editorRef.value.focus()
+            }
+        })
+    }
 }
 
 const {
-  insertMarkdownSyntax,
-  insertTable,
-  handleShortcuts,
-  handleAutoPairing
+    insertMarkdownSyntax,
+    insertTable,
+    handleShortcuts,
+    handleAutoPairing
 } = useEditorShortcuts(editorRef, content, {
-  onSave: saveArticle,
-  onTogglePreview: togglePreview,
-  onUndo: handleUndo,
-  onRedo: handleRedo,
-  onSearch: openSearch,
-  onReplace: () => {
-    openSearch()
-    // 搜尋面板會自動處理替換模式
-  }
+    onSave: saveArticle,
+    onTogglePreview: togglePreview,
+    onUndo: handleUndo,
+    onRedo: handleRedo,
+    onSearch: openSearch,
+    onReplace: () => {
+        openSearch()
+        // 搜尋面板會自動處理替換模式
+    }
 });
 
 const {
-  syntaxErrors,
-  imageValidationWarnings,
-  validateSyntax,
-  debounceValidation,
-  cleanup: cleanupValidation
+    syntaxErrors,
+    imageValidationWarnings,
+    validateSyntax,
+    debounceValidation,
+    cleanup: cleanupValidation
 } = useEditorValidation(content);
 
 // 其他狀態
-const imageFiles = ref<string[]>([]);
-const allTags = ref<string[]>([]);
+const imageFiles = ref<string[]>([])
+// 直接從 store 取得 allTags，不在組件中重複計算
+const allTags = computed(() => articleStore.allTags)
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -271,9 +238,9 @@ watch(content, (newContent) => {
     if (isSwitchingMode.value) {
         return;
     }
-    
+
     handleContentChange();
-    
+
     // 只在撰寫模式下記錄歷史（Raw 模式下 editorRef 不存在）
     if (editorMode.value === 'compose') {
         // 記錄歷史（防抖 500ms）
@@ -510,32 +477,32 @@ function handleFrontmatterUpdate(updatedArticle: Article) {
 
 // 搜尋高亮處理
 function handleSearchHighlight(
-  matches: Array<{ start: number; end: number }>,
-  currentIndex: number
+    matches: Array<{ start: number; end: number }>,
+    currentIndex: number
 ) {
-  if (matches.length === 0 || !editorRef.value) {return;}
+    if (matches.length === 0 || !editorRef.value) { return; }
 
-  const match = matches[currentIndex];
-  
-  // 選取匹配的文字
-  editorRef.value.setSelectionRange(match.start, match.end);
-  editorRef.value.focus();
+    const match = matches[currentIndex];
 
-  // 滾動到可見區域
-  scrollToSelection();
+    // 選取匹配的文字
+    editorRef.value.setSelectionRange(match.start, match.end);
+    editorRef.value.focus();
+
+    // 滾動到可見區域
+    scrollToSelection();
 }
 
 function scrollToSelection() {
-  if (!editorRef.value) {return;}
-  
-  const textarea = editorRef.value;
-  const selectionStart = textarea.selectionStart;
-  const textBeforeSelection = textarea.value.substring(0, selectionStart);
-  const lines = textBeforeSelection.split('\n');
-  const lineHeight = 24; // 根據實際行高調整
-  const scrollTop = (lines.length - 1) * lineHeight;
-  
-  textarea.scrollTop = scrollTop - textarea.clientHeight / 2;
+    if (!editorRef.value) { return; }
+
+    const textarea = editorRef.value;
+    const selectionStart = textarea.selectionStart;
+    const textBeforeSelection = textarea.value.substring(0, selectionStart);
+    const lines = textBeforeSelection.split('\n');
+    const lineHeight = 24; // 根據實際行高調整
+    const scrollTop = (lines.length - 1) * lineHeight;
+
+    textarea.scrollTop = scrollTop - textarea.clientHeight / 2;
 }
 
 // 鍵盤事件處理（整合 composables）
@@ -544,12 +511,12 @@ function handleKeydown(event: KeyboardEvent) {
     if (handleAutocompleteKeydown(event)) {
         return;
     }
-    
+
     // 處理快捷鍵
     if (handleShortcuts(event)) {
         return;
     }
-    
+
     // 處理自動配對
     handleAutoPairing(event);
 }
@@ -629,26 +596,20 @@ watch(
 
 // Watch for articles list changes (add/remove) to update tags and services
 // 使用淺層監聽 + length 監聽，避免深層監聽帶來的效能問題
+// 使用 debounce 避免頻繁更新
+const updateServices = debounce(() => {
+    // 更新 ObsidianSyntaxService 的文章清單
+    obsidianSyntax.updateArticles(articleStore.articles)
+
+    // 更新 ImageService 的文章清單
+    imageService.updateArticles(articleStore.articles)
+}, 300)
+
 watch(
     () => articleStore.articles.length,
-    () => {
-        // 更新 ObsidianSyntaxService 的文章清單
-        obsidianSyntax.updateArticles(articleStore.articles);
-        
-        // 更新 ImageService 的文章清單
-        imageService.updateArticles(articleStore.articles);
-
-        const tagSet = new Set<string>();
-        articleStore.articles.forEach((article: Article) => {
-            // 防禦性檢查：確保 tags 存在且為陣列
-            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
-                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
-            }
-        });
-        allTags.value = Array.from(tagSet);
-    },
+    updateServices,
     { immediate: true }
-);
+)
 
 // Watch for vault path changes to update image files
 watch(
@@ -657,7 +618,7 @@ watch(
         if (newPath && window.electronAPI) {
             // 更新 ImageService 的 vault 路徑
             imageService.setVaultPath(newPath);
-            
+
             try {
                 const imagesPath = `${newPath}/images`;
                 const files = await window.electronAPI.readDirectory(imagesPath);
@@ -685,7 +646,7 @@ onMounted(() => {
 
     // Initial syntax validation
     validateSyntax();
-    
+
     // 初始化歷史記錄
     initializeHistory(content.value, 0);
 
