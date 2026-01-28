@@ -227,14 +227,6 @@ const emit = defineEmits<{
   'edit-article': []
 }>()
 
-// 篩選器
-const filters = ref({
-  status: ArticleFilterStatus.All,
-  category: ArticleFilterCategory.All,
-  tags: [] as string[],
-  searchText: ''
-})
-
 // 分頁
 const currentPage = ref(1)
 const pageSize = ref(50)
@@ -243,6 +235,12 @@ const pageSize = ref(50)
 const tableContainerRef = ref<HTMLElement | null>(null)
 const savedScrollTop = ref(0)
 
+// 使用 store 的 filter 狀態
+const filters = computed({
+  get: () => articleStore.filter,
+  set: (value) => articleStore.updateFilter(value)
+})
+
 // 檢查是否有啟用的篩選條件
 const hasActiveFilters = computed(() => {
   return filters.value.status !== ArticleFilterStatus.All || 
@@ -250,32 +248,8 @@ const hasActiveFilters = computed(() => {
          filters.value.searchText !== ''
 })
 
-// 計算過濾後的文章
-const filteredArticles = computed(() => {
-  return articleStore.articles.filter(article => {
-    // 狀態過濾
-    if (filters.value.status !== ArticleFilterStatus.All && article.status !== filters.value.status) {
-      return false
-    }
-
-    // 分類過濾
-    if (filters.value.category !== ArticleFilterCategory.All && article.category !== filters.value.category) {
-      return false
-    }
-
-    // 搜尋文字過濾
-    if (filters.value.searchText) {
-      const searchLower = filters.value.searchText.toLowerCase()
-      const titleMatch = article.title.toLowerCase().includes(searchLower)
-      const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
-      if (!titleMatch && !contentMatch) {
-        return false
-      }
-    }
-
-    return true
-  })
-})
+// 直接使用 store 的 filteredArticles，避免重複過濾
+const filteredArticles = computed(() => articleStore.filteredArticles)
 
 // 分頁計算
 const totalPages = computed(() => Math.ceil(filteredArticles.value.length / pageSize.value))
@@ -307,12 +281,12 @@ const categoryCount = computed(() => {
 
 // 重置篩選器
 function resetFilters() {
-  filters.value = {
+  articleStore.updateFilter({
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
     tags: [],
     searchText: ''
-  }
+  })
 }
 
 // 處理列點擊
