@@ -1,25 +1,25 @@
-import MarkdownIt from 'markdown-it'
-import * as yaml from 'js-yaml'
-import hljs from 'highlight.js'
-import markdownItHighlightjs from 'markdown-it-highlightjs'
+import MarkdownIt from "markdown-it";
+import * as yaml from "js-yaml";
+import hljs from "highlight.js";
+import markdownItHighlightjs from "markdown-it-highlightjs";
 // @ts-ignore - Using custom type declarations
-import markdownItToc from 'markdown-it-table-of-contents'
-// @ts-ignore - Using custom type declarations  
-import markdownItTaskLists from 'markdown-it-task-lists'
+import markdownItToc from "markdown-it-table-of-contents";
 // @ts-ignore - Using custom type declarations
-import markdownItMark from 'markdown-it-mark'
+import markdownItTaskLists from "markdown-it-task-lists";
 // @ts-ignore - Using custom type declarations
-import markdownItFootnote from 'markdown-it-footnote'
-import type { Frontmatter } from '@/types'
+import markdownItMark from "markdown-it-mark";
+// @ts-ignore - Using custom type declarations
+import markdownItFootnote from "markdown-it-footnote";
+import type { Frontmatter } from "@/types";
 
 /**
  * 解析後的 Markdown 內容介面
  */
 export interface ParsedMarkdown {
-  frontmatter: Partial<Frontmatter>
-  body: string
-  hasValidFrontmatter: boolean
-  errors: string[]
+  frontmatter: Partial<Frontmatter>;
+  body: string;
+  hasValidFrontmatter: boolean;
+  errors: string[];
 }
 
 /**
@@ -27,7 +27,7 @@ export interface ParsedMarkdown {
  * 負責 Markdown 內容的解析、渲染和前置資料處理
  */
 export class MarkdownService {
-  private md: MarkdownIt
+  private md: MarkdownIt;
 
   /**
    * 建構子 - 初始化 MarkdownService
@@ -37,38 +37,38 @@ export class MarkdownService {
       html: true,
       linkify: true,
       typographer: true,
-      breaks: true
-    })
+      breaks: true,
+    });
 
     // 配置語法高亮
     this.md.use(markdownItHighlightjs, {
       hljs,
       auto: true,
-      code: true
-    })
+      code: true,
+    });
 
     // 配置目錄
     this.md.use(markdownItToc, {
       includeLevel: [1, 2, 3, 4],
-      containerClass: 'table-of-contents',
-      markerPattern: /^\[\[toc\]\]/im
-    })
+      containerClass: "table-of-contents",
+      markerPattern: /^\[\[toc\]\]/im,
+    });
 
     // 配置任務清單
     this.md.use(markdownItTaskLists, {
       enabled: true,
       label: true,
-      labelAfter: true
-    })
+      labelAfter: true,
+    });
 
     // 配置標記（高亮）語法
-    this.md.use(markdownItMark)
+    this.md.use(markdownItMark);
 
     // 配置腳註
-    this.md.use(markdownItFootnote)
+    this.md.use(markdownItFootnote);
 
     // 自定義 Obsidian 語法規則
-    this.addObsidianRules()
+    this.addObsidianRules();
   }
 
   /**
@@ -78,8 +78,8 @@ export class MarkdownService {
    */
   render(content: string): string {
     // 預處理 Obsidian 語法
-    const processedContent = this.preprocessObsidianSyntax(content)
-    return this.md.render(processedContent)
+    const processedContent = this.preprocessObsidianSyntax(content);
+    return this.md.render(processedContent);
   }
 
   /**
@@ -89,14 +89,14 @@ export class MarkdownService {
    * @returns {string} 渲染後的 HTML
    */
   renderForPreview(content: string, isPreview: boolean = true): string {
-    let processedContent = content
+    let processedContent = content;
 
     if (isPreview) {
       // 在預覽模式中處理 Obsidian 特殊語法
-      processedContent = this.preprocessObsidianSyntax(content)
+      processedContent = this.preprocessObsidianSyntax(content);
     }
 
-    return this.md.render(processedContent)
+    return this.md.render(processedContent);
   }
 
   /**
@@ -105,41 +105,41 @@ export class MarkdownService {
    * @returns {ParsedMarkdown} 解析結果
    */
   parseFrontmatter(content: string): ParsedMarkdown {
-    const errors: string[] = []
-    let frontmatter: Partial<Frontmatter> = {}
-    let body = content
-    let hasValidFrontmatter = false
+    const errors: string[] = [];
+    let frontmatter: Partial<Frontmatter> = {};
+    let body = content;
+    let hasValidFrontmatter = false;
 
     // Match frontmatter pattern
-    const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/
-    const match = content.match(frontmatterRegex)
+    const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/;
+    const match = content.match(frontmatterRegex);
 
     if (match) {
-      const yamlContent = match[1]
-      body = match[2]
+      const yamlContent = match[1];
+      body = match[2];
 
       try {
-        const parsed = yaml.load(yamlContent) as any
-        
-        if (parsed && typeof parsed === 'object') {
-          frontmatter = this.validateAndNormalizeFrontmatter(parsed, errors)
-          hasValidFrontmatter = errors.length === 0
+        const parsed = yaml.load(yamlContent) as any;
+
+        if (parsed && typeof parsed === "object") {
+          frontmatter = this.validateAndNormalizeFrontmatter(parsed, errors);
+          hasValidFrontmatter = errors.length === 0;
         } else {
-          errors.push('Frontmatter must be a valid YAML object')
+          errors.push("Frontmatter must be a valid YAML object");
         }
       } catch (error) {
-        errors.push(`YAML parsing error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        errors.push(`YAML parsing error: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
-    } else if (content.trim().startsWith('---')) {
-      errors.push('Frontmatter format is invalid - missing closing ---')
+    } else if (content.trim().startsWith("---")) {
+      errors.push("Frontmatter format is invalid - missing closing ---");
     }
 
     return {
       frontmatter,
       body,
       hasValidFrontmatter,
-      errors
-    }
+      errors,
+    };
   }
 
   /**
@@ -149,43 +149,43 @@ export class MarkdownService {
    * @returns {Partial<Frontmatter>} 標準化後的前置資料
    */
   private validateAndNormalizeFrontmatter(data: any, errors: string[]): Partial<Frontmatter> {
-    const frontmatter: Partial<Frontmatter> = {}
+    const frontmatter: Partial<Frontmatter> = {};
 
     // Title validation
     if (data.title) {
-      if (typeof data.title === 'string') {
-        frontmatter.title = data.title.trim()
+      if (typeof data.title === "string") {
+        frontmatter.title = data.title.trim();
       } else {
-        errors.push('Title must be a string')
+        errors.push("Title must be a string");
       }
     }
 
     // Description validation
     if (data.description !== undefined) {
-      if (typeof data.description === 'string') {
-        frontmatter.description = data.description.trim()
+      if (typeof data.description === "string") {
+        frontmatter.description = data.description.trim();
       } else {
-        errors.push('Description must be a string')
+        errors.push("Description must be a string");
       }
     }
 
     // Date validation
     if (data.date) {
-      const dateStr = String(data.date)
+      const dateStr = String(data.date);
       if (this.isValidDateString(dateStr)) {
-        frontmatter.date = dateStr
+        frontmatter.date = dateStr;
       } else {
-        errors.push('Date must be in YYYY-MM-DD format')
+        errors.push("Date must be in YYYY-MM-DD format");
       }
     }
 
     // Last modified validation
     if (data.lastmod) {
-      const lastmodStr = String(data.lastmod)
+      const lastmodStr = String(data.lastmod);
       if (this.isValidDateString(lastmodStr)) {
-        frontmatter.lastmod = lastmodStr
+        frontmatter.lastmod = lastmodStr;
       } else {
-        errors.push('lastmod must be in YYYY-MM-DD format')
+        errors.push("lastmod must be in YYYY-MM-DD format");
       }
     }
 
@@ -193,48 +193,47 @@ export class MarkdownService {
     if (data.tags !== undefined) {
       if (Array.isArray(data.tags)) {
         frontmatter.tags = data.tags
-          .filter((tag: any) => typeof tag === 'string')
+          .filter((tag: any) => typeof tag === "string")
           .map((tag: any) => tag.trim())
-          .filter((tag: any) => tag.length > 0)
-        
+          .filter((tag: any) => tag.length > 0);
+
         if (data.tags.length !== frontmatter.tags.length) {
-          errors.push('Some tags are invalid - tags must be non-empty strings')
+          errors.push("Some tags are invalid - tags must be non-empty strings");
         }
       } else {
-        errors.push('Tags must be an array')
+        errors.push("Tags must be an array");
       }
     } else {
-      frontmatter.tags = []
+      frontmatter.tags = [];
     }
 
     // Categories validation
     if (data.categories !== undefined) {
       if (Array.isArray(data.categories)) {
-        const validCategories = ['Software', 'growth', 'management']
-        frontmatter.categories = data.categories
-          .filter((cat: any) => typeof cat === 'string' && validCategories.includes(cat))
-        
+        const validCategories = ["Software", "growth", "management"];
+        frontmatter.categories = data.categories.filter((cat: any) => typeof cat === "string" && validCategories.includes(cat));
+
         if (data.categories.length !== frontmatter.categories.length) {
-          errors.push('Some categories are invalid - must be one of: Software, growth, management')
+          errors.push("Some categories are invalid - must be one of: Software, growth, management");
         }
       } else {
-        errors.push('Categories must be an array')
+        errors.push("Categories must be an array");
       }
     } else {
-      frontmatter.categories = []
+      frontmatter.categories = [];
     }
 
     // Slug validation
     if (data.slug !== undefined) {
-      if (typeof data.slug === 'string') {
-        const slug = data.slug.trim()
+      if (typeof data.slug === "string") {
+        const slug = data.slug.trim();
         if (this.isValidSlug(slug)) {
-          frontmatter.slug = slug
+          frontmatter.slug = slug;
         } else {
-          errors.push('Slug must contain only lowercase letters, numbers, and hyphens')
+          errors.push("Slug must contain only lowercase letters, numbers, and hyphens");
         }
       } else {
-        errors.push('Slug must be a string')
+        errors.push("Slug must be a string");
       }
     }
 
@@ -242,40 +241,40 @@ export class MarkdownService {
     if (data.keywords !== undefined) {
       if (Array.isArray(data.keywords)) {
         frontmatter.keywords = data.keywords
-          .filter((keyword: any) => typeof keyword === 'string')
+          .filter((keyword: any) => typeof keyword === "string")
           .map((keyword: any) => keyword.trim())
-          .filter((keyword: unknown) => keyword.length > 0)
-        
+          .filter((keyword: unknown) => keyword.length > 0);
+
         if (data.keywords.length !== frontmatter.keywords.length) {
-          errors.push('Some keywords are invalid - keywords must be non-empty strings')
+          errors.push("Some keywords are invalid - keywords must be non-empty strings");
         }
       } else {
-        errors.push('Keywords must be an array')
+        errors.push("Keywords must be an array");
       }
     } else {
-      frontmatter.keywords = []
+      frontmatter.keywords = [];
     }
 
     // Series validation
     if (data.series !== undefined) {
-      if (typeof data.series === 'string') {
-        frontmatter.series = data.series.trim()
+      if (typeof data.series === "string") {
+        frontmatter.series = data.series.trim();
       } else {
-        errors.push('Series must be a string')
+        errors.push("Series must be a string");
       }
     }
 
     // SeriesOrder validation
     if (data.seriesOrder !== undefined) {
-      const order = Number(data.seriesOrder)
+      const order = Number(data.seriesOrder);
       if (Number.isInteger(order) && order > 0) {
-        frontmatter.seriesOrder = order
+        frontmatter.seriesOrder = order;
       } else {
-        errors.push('seriesOrder must be a positive integer')
+        errors.push("seriesOrder must be a positive integer");
       }
     }
 
-    return frontmatter
+    return frontmatter;
   }
 
   /**
@@ -286,31 +285,51 @@ export class MarkdownService {
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
       // Create a clean object with only defined values
-      const cleanData: any = {}
-      
-      if (data.title) {cleanData.title = data.title}
-      if (data.description) {cleanData.description = data.description}
-      if (data.date) {cleanData.date = data.date}
-      if (data.lastmod) {cleanData.lastmod = data.lastmod}
-      if (data.tags && data.tags.length > 0) { cleanData.tags = data.tags }
-      if (data.categories && data.categories.length > 0) { cleanData.categories = data.categories }
-      if (data.slug) { cleanData.slug = data.slug }
-      if (data.keywords && data.keywords.length > 0) { cleanData.keywords = data.keywords }
+      const cleanData: any = {};
+
+      if (data.title) {
+        cleanData.title = data.title;
+      }
+      if (data.description) {
+        cleanData.description = data.description;
+      }
+      if (data.date) {
+        cleanData.date = data.date;
+      }
+      if (data.lastmod) {
+        cleanData.lastmod = data.lastmod;
+      }
+      if (data.tags && data.tags.length > 0) {
+        cleanData.tags = data.tags;
+      }
+      if (data.categories && data.categories.length > 0) {
+        cleanData.categories = data.categories;
+      }
+      if (data.slug) {
+        cleanData.slug = data.slug;
+      }
+      if (data.keywords && data.keywords.length > 0) {
+        cleanData.keywords = data.keywords;
+      }
       // 新增系列欄位支援
-      if (data.series) { cleanData.series = data.series }
-      if (data.seriesOrder) { cleanData.seriesOrder = data.seriesOrder }
+      if (data.series) {
+        cleanData.series = data.series;
+      }
+      if (data.seriesOrder) {
+        cleanData.seriesOrder = data.seriesOrder;
+      }
 
       const yamlString = yaml.dump(cleanData, {
         indent: 2,
         lineWidth: -1,
         noRefs: true,
-        sortKeys: false
-      })
+        sortKeys: false,
+      });
 
-      return `---\n${yamlString}---\n`
+      return `---\n${yamlString}---\n`;
     } catch (error) {
-      console.error('Failed to generate frontmatter:', error)
-      return '---\n# Error generating frontmatter\n---\n'
+      console.error("Failed to generate frontmatter:", error);
+      return "---\n# Error generating frontmatter\n---\n";
     }
   }
 
@@ -321,8 +340,8 @@ export class MarkdownService {
    * @returns {string} 完整的 Markdown 內容
    */
   combineContent(frontmatter: Partial<Frontmatter>, body: string): string {
-    const frontmatterString = this.generateFrontmatter(frontmatter)
-    return frontmatterString + body
+    const frontmatterString = this.generateFrontmatter(frontmatter);
+    return frontmatterString + body;
   }
 
   /**
@@ -330,12 +349,12 @@ export class MarkdownService {
    * @param {string} markdown - 完整的 Markdown 內容
    * @returns {{ frontmatter: Partial<Frontmatter>, content: string }} 解析結果
    */
-  parseMarkdown(markdown: string): { frontmatter: Partial<Frontmatter>, content: string } {
-    const parsed = this.parseFrontmatter(markdown)
+  parseMarkdown(markdown: string): { frontmatter: Partial<Frontmatter>; content: string } {
+    const parsed = this.parseFrontmatter(markdown);
     return {
       frontmatter: parsed.frontmatter,
-      content: parsed.body
-    }
+      content: parsed.body,
+    };
   }
 
   /**
@@ -345,7 +364,7 @@ export class MarkdownService {
    * @returns {string} 完整的 Markdown 內容
    */
   generateMarkdown(frontmatter: Partial<Frontmatter>, content: string): string {
-    return this.combineContent(frontmatter, content)
+    return this.combineContent(frontmatter, content);
   }
 
   /**
@@ -354,11 +373,13 @@ export class MarkdownService {
    * @returns {boolean} 是否為有效日期格式
    */
   private isValidDateString(dateStr: string): boolean {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(dateStr)) { return false }
-    
-    const date = new Date(dateStr)
-    return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().startsWith(dateStr)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dateStr)) {
+      return false;
+    }
+
+    const date = new Date(dateStr);
+    return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().startsWith(dateStr);
   }
 
   /**
@@ -367,8 +388,8 @@ export class MarkdownService {
    * @returns {boolean} 是否為有效 slug 格式
    */
   private isValidSlug(slug: string): boolean {
-    const slugRegex = /^[a-z0-9-]+$/
-    return slugRegex.test(slug) && !slug.startsWith('-') && !slug.endsWith('-')
+    const slugRegex = /^[a-z0-9-]+$/;
+    return slugRegex.test(slug) && !slug.startsWith("-") && !slug.endsWith("-");
   }
 
   /**
@@ -379,10 +400,10 @@ export class MarkdownService {
   generateSlugFromTitle(title: string): string {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   /**
@@ -392,14 +413,12 @@ export class MarkdownService {
    */
   extractImageReferences(content: string): string[] {
     // 使用 matchAll 優化正則匹配（更簡潔高效）
-    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)]
-      .map(m => m[1])
-    
-    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)]
-      .map(m => m[1])
-    
+    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)].map((m) => m[1]);
+
+    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
+
     // 合併並去重
-    return [...new Set([...standardImages, ...obsidianImages])]
+    return [...new Set([...standardImages, ...obsidianImages])];
   }
 
   /**
@@ -409,11 +428,10 @@ export class MarkdownService {
    */
   extractWikiLinks(content: string): Array<{ link: string; alias?: string }> {
     // 使用 matchAll 優化正則匹配
-    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g)]
-      .map(match => ({
-        link: match[1],
-        alias: match[3]
-      }))
+    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g)].map((match) => ({
+      link: match[1],
+      alias: match[3],
+    }));
   }
 
   /**
@@ -421,98 +439,114 @@ export class MarkdownService {
    */
   private addObsidianRules(): void {
     // Wiki 連結規則 [[link]] 或 [[link|alias]]
-    this.md.inline.ruler.before('link', 'wikilink', (state, silent) => {
-      const start = state.pos
-      const max = state.posMax
+    this.md.inline.ruler.before("link", "wikilink", (state, silent) => {
+      const start = state.pos;
+      const max = state.posMax;
 
-      if (start + 4 >= max) { return false }
-      if (state.src.charCodeAt(start) !== 0x5B /* [ */) { return false }
-      if (state.src.charCodeAt(start + 1) !== 0x5B /* [ */) { return false }
+      if (start + 4 >= max) {
+        return false;
+      }
+      if (state.src.charCodeAt(start) !== 0x5b /* [ */) {
+        return false;
+      }
+      if (state.src.charCodeAt(start + 1) !== 0x5b /* [ */) {
+        return false;
+      }
 
-      let pos = start + 2
-      let found = false
-      let content = ''
+      let pos = start + 2;
+      let found = false;
+      let content = "";
 
       while (pos < max) {
-        if (state.src.charCodeAt(pos) === 0x5D /* ] */ && 
-            state.src.charCodeAt(pos + 1) === 0x5D /* ] */) {
-          found = true
-          break
+        if (state.src.charCodeAt(pos) === 0x5d /* ] */ && state.src.charCodeAt(pos + 1) === 0x5d /* ] */) {
+          found = true;
+          break;
         }
-        content += state.src[pos]
-        pos++
+        content += state.src[pos];
+        pos++;
       }
 
-      if (!found) { return false }
+      if (!found) {
+        return false;
+      }
 
-      state.pos = start + 2
-      state.posMax = pos
+      state.pos = start + 2;
+      state.posMax = pos;
 
       if (!silent) {
-        const parts = content.split('|')
-        const link = parts[0].trim()
-        const alias = parts[1] ? parts[1].trim() : link
+        const parts = content.split("|");
+        const link = parts[0].trim();
+        const alias = parts[1] ? parts[1].trim() : link;
 
-        const token = state.push('wikilink', '', 0)
-        token.content = content
-        token.meta = { link, alias }
+        const token = state.push("wikilink", "", 0);
+        token.content = content;
+        token.meta = { link, alias };
       }
 
-      state.pos = pos + 2
-      return true
-    })
+      state.pos = pos + 2;
+      return true;
+    });
 
     // 渲染 Wiki 連結
     this.md.renderer.rules.wikilink = (tokens, idx) => {
-      const token = tokens[idx]
-      const { link, alias } = token.meta
-      return `<a href="#" class="wikilink" data-link="${this.escapeHtml(link)}">${this.escapeHtml(alias)}</a>`
-    }
+      const token = tokens[idx];
+      const { link, alias } = token.meta;
+      return `<a href="#" class="wikilink" data-link="${this.escapeHtml(link)}">${this.escapeHtml(alias)}</a>`;
+    };
 
     // Obsidian 圖片語法 ![[image.png]]
-    this.md.inline.ruler.before('image', 'obsidian_image', (state, silent) => {
-      const start = state.pos
-      const max = state.posMax
+    this.md.inline.ruler.before("image", "obsidian_image", (state, silent) => {
+      const start = state.pos;
+      const max = state.posMax;
 
-      if (start + 5 >= max) { return false }
-      if (state.src.charCodeAt(start) !== 0x21 /* ! */) { return false }
-      if (state.src.charCodeAt(start + 1) !== 0x5B /* [ */) { return false }
-      if (state.src.charCodeAt(start + 2) !== 0x5B /* [ */) { return false }
+      if (start + 5 >= max) {
+        return false;
+      }
+      if (state.src.charCodeAt(start) !== 0x21 /* ! */) {
+        return false;
+      }
+      if (state.src.charCodeAt(start + 1) !== 0x5b /* [ */) {
+        return false;
+      }
+      if (state.src.charCodeAt(start + 2) !== 0x5b /* [ */) {
+        return false;
+      }
 
-      let pos = start + 3
-      let found = false
-      let content = ''
+      let pos = start + 3;
+      let found = false;
+      let content = "";
 
       while (pos < max) {
-        if (state.src.charCodeAt(pos) === 0x5D /* ] */ && 
-            state.src.charCodeAt(pos + 1) === 0x5D /* ] */) {
-          found = true
-          break
+        if (state.src.charCodeAt(pos) === 0x5d /* ] */ && state.src.charCodeAt(pos + 1) === 0x5d /* ] */) {
+          found = true;
+          break;
         }
-        content += state.src[pos]
-        pos++
+        content += state.src[pos];
+        pos++;
       }
 
-      if (!found) { return false }
+      if (!found) {
+        return false;
+      }
 
       if (!silent) {
-        const token = state.push('obsidian_image', 'img', 0)
-        token.content = content.trim()
-        token.attrSet('src', `./images/${content.trim()}`)
-        token.attrSet('alt', content.trim())
+        const token = state.push("obsidian_image", "img", 0);
+        token.content = content.trim();
+        token.attrSet("src", `./images/${content.trim()}`);
+        token.attrSet("alt", content.trim());
       }
 
-      state.pos = pos + 2
-      return true
-    })
+      state.pos = pos + 2;
+      return true;
+    });
 
     // 渲染 Obsidian 圖片
     this.md.renderer.rules.obsidian_image = (tokens, idx) => {
-      const token = tokens[idx]
-      const src = token.attrGet('src')
-      const alt = token.attrGet('alt')
-      return `<img src="${this.escapeHtml(src || '')}" alt="${this.escapeHtml(alt || '')}" class="obsidian-image" />`
-    }
+      const token = tokens[idx];
+      const src = token.attrGet("src");
+      const alt = token.attrGet("alt");
+      return `<img src="${this.escapeHtml(src || "")}" alt="${this.escapeHtml(alt || "")}" class="obsidian-image" />`;
+    };
   }
 
   /**
@@ -521,18 +555,18 @@ export class MarkdownService {
    * @returns {string} 處理後的內容
    */
   private preprocessObsidianSyntax(content: string): string {
-    let processed = content
+    let processed = content;
 
     // 處理 Obsidian 高亮語法 ==text== 轉換為 <mark>text</mark>
-    processed = processed.replace(/==(.*?)==/g, '<mark>$1</mark>')
+    processed = processed.replace(/==(.*?)==/g, "<mark>$1</mark>");
 
     // 處理 Obsidian 註釋 %%comment%% （在預覽中隱藏）
-    processed = processed.replace(/%%.*?%%/g, '')
+    processed = processed.replace(/%%.*?%%/g, "");
 
     // 處理 Obsidian 標籤 #tag (支援中文)
-    processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="tag">#$1</span>')
+    processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="tag">#$1</span>');
 
-    return processed
+    return processed;
   }
 
   /**
@@ -542,13 +576,13 @@ export class MarkdownService {
    */
   private escapeHtml(text: string): string {
     const map: { [key: string]: string } = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }
-    return text.replace(/[&<>"']/g, (m) => map[m])
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 
   /**
@@ -556,7 +590,7 @@ export class MarkdownService {
    * @returns {string[]} 支援的語言清單
    */
   getSupportedLanguages(): string[] {
-    return hljs.listLanguages()
+    return hljs.listLanguages();
   }
 
   /**
@@ -564,57 +598,57 @@ export class MarkdownService {
    * @param {string} content - Markdown 內容
    * @returns {Array<{line: number, message: string, type: 'error' | 'warning'}>} 語法錯誤清單
    */
-  validateMarkdownSyntax(content: string): Array<{line: number, message: string, type: 'error' | 'warning'}> {
-    const errors: Array<{line: number, message: string, type: 'error' | 'warning'}> = []
-    const lines = content.split('\n')
+  validateMarkdownSyntax(content: string): Array<{ line: number; message: string; type: "error" | "warning" }> {
+    const errors: Array<{ line: number; message: string; type: "error" | "warning" }> = [];
+    const lines = content.split("\n");
 
     lines.forEach((line, index) => {
-      const lineNumber = index + 1
+      const lineNumber = index + 1;
 
       // 檢查未閉合的 Wiki 連結
-      const openWikiLinks = (line.match(/\[\[/g) || []).length
-      const closeWikiLinks = (line.match(/\]\]/g) || []).length
+      const openWikiLinks = (line.match(/\[\[/g) || []).length;
+      const closeWikiLinks = (line.match(/\]\]/g) || []).length;
       if (openWikiLinks !== closeWikiLinks) {
         errors.push({
           line: lineNumber,
-          message: '未閉合的 Wiki 連結',
-          type: 'error'
-        })
+          message: "未閉合的 Wiki 連結",
+          type: "error",
+        });
       }
 
       // 檢查未閉合的高亮語法
-      const highlightMarks = (line.match(/==/g) || []).length
+      const highlightMarks = (line.match(/==/g) || []).length;
       if (highlightMarks % 2 !== 0) {
         errors.push({
           line: lineNumber,
-          message: '未閉合的高亮語法 ==',
-          type: 'error'
-        })
+          message: "未閉合的高亮語法 ==",
+          type: "error",
+        });
       }
 
       // 檢查未閉合的註釋
-      const commentStart = (line.match(/%%/g) || []).length
+      const commentStart = (line.match(/%%/g) || []).length;
       if (commentStart % 2 !== 0) {
         errors.push({
           line: lineNumber,
-          message: '未閉合的註釋 %%',
-          type: 'warning'
-        })
+          message: "未閉合的註釋 %%",
+          type: "warning",
+        });
       }
 
       // 檢查圖片語法
-      if (line.includes('![[') && !line.includes(']]')) {
+      if (line.includes("![[") && !line.includes("]]")) {
         errors.push({
           line: lineNumber,
-          message: '未閉合的圖片語法',
-          type: 'error'
-        })
+          message: "未閉合的圖片語法",
+          type: "error",
+        });
       }
-    })
+    });
 
-    return errors
+    return errors;
   }
 }
 
 // 單例實例
-export const markdownService = new MarkdownService()
+export const markdownService = new MarkdownService();

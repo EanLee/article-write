@@ -57,19 +57,11 @@
 
         <div class="search-box">
           <Search :size="16" class="search-icon" />
-          <input
-            v-model="filters.searchText"
-            type="text"
-            placeholder="搜尋標題或內容..."
-            class="input input-sm input-bordered"
-          />
+          <input v-model="filters.searchText" type="text" placeholder="搜尋標題或內容..."
+            class="input input-sm input-bordered" />
         </div>
 
-        <button 
-          v-if="hasActiveFilters" 
-          class="btn btn-sm btn-ghost gap-1" 
-          @click="resetFilters"
-        >
+        <button v-if="hasActiveFilters" class="btn btn-sm btn-ghost gap-1" @click="resetFilters">
           <RotateCcw :size="14" />
           重置
         </button>
@@ -95,12 +87,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr 
-            v-for="(article, index) in paginatedArticles" 
-            :key="article.id"
-            class="hover cursor-pointer"
-            @click="handleRowClick(article)"
-          >
+          <tr v-for="(article, index) in paginatedArticles" :key="article.id" class="hover cursor-pointer"
+            @click="handleRowClick(article)">
             <td class="text-base-content/50">{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td>
               <div class="flex items-center gap-2">
@@ -109,10 +97,8 @@
               </div>
             </td>
             <td>
-              <span
-                class="badge badge-sm"
-                :class="article.status === ArticleStatus.Published ? 'badge-success' : 'badge-info'"
-              >
+              <span class="badge badge-sm"
+                :class="article.status === ArticleStatus.Published ? 'badge-success' : 'badge-info'">
                 {{ article.status === ArticleStatus.Published ? '已發布' : '草稿' }}
               </span>
             </td>
@@ -121,17 +107,12 @@
             </td>
             <td>
               <div class="flex flex-wrap gap-1">
-                <span
-                  v-for="tag in (article.frontmatter.tags || []).slice(0, 2)"
-                  :key="tag"
-                  class="badge badge-xs badge-ghost"
-                >
+                <span v-for="tag in (article.frontmatter.tags || []).slice(0, 2)" :key="tag"
+                  class="badge badge-xs badge-ghost">
                   {{ tag }}
                 </span>
-                <span
-                  v-if="article.frontmatter.tags && article.frontmatter.tags.length > 2"
-                  class="badge badge-xs badge-ghost"
-                >
+                <span v-if="article.frontmatter.tags && article.frontmatter.tags.length > 2"
+                  class="badge badge-xs badge-ghost">
                   +{{ article.frontmatter.tags.length - 2 }}
                 </span>
               </div>
@@ -141,18 +122,10 @@
             </td>
             <td @click.stop>
               <div class="flex gap-1 justify-center">
-                <button
-                  class="btn btn-xs btn-ghost"
-                  @click="handleEditArticle(article)"
-                  title="編輯"
-                >
+                <button class="btn btn-xs btn-ghost" @click="handleEditArticle(article)" title="編輯">
                   <Edit2 :size="14" />
                 </button>
-                <button
-                  class="btn btn-xs btn-ghost text-error"
-                  @click="handleDeleteArticle(article)"
-                  title="刪除"
-                >
+                <button class="btn btn-xs btn-ghost text-error" @click="handleDeleteArticle(article)" title="刪除">
                   <Trash2 :size="14" />
                 </button>
               </div>
@@ -162,10 +135,7 @@
       </table>
 
       <!-- 空狀態 -->
-      <div
-        v-if="filteredArticles.length === 0"
-        class="empty-state"
-      >
+      <div v-if="filteredArticles.length === 0" class="empty-state">
         <FileText :size="64" class="empty-icon" />
         <p class="empty-title">沒有找到相符的文章</p>
         <p class="empty-subtitle">嘗試調整篩選條件或建立新文章</p>
@@ -175,21 +145,13 @@
     <!-- 分頁 -->
     <div v-if="totalPages > 1" class="pagination-bar">
       <div class="join">
-        <button 
-          class="join-item btn btn-sm"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
+        <button class="join-item btn btn-sm" :disabled="currentPage === 1" @click="currentPage--">
           «
         </button>
         <button class="join-item btn btn-sm">
           頁面 {{ currentPage }} / {{ totalPages }}
         </button>
-        <button 
-          class="join-item btn btn-sm"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
+        <button class="join-item btn btn-sm" :disabled="currentPage === totalPages" @click="currentPage++">
           »
         </button>
       </div>
@@ -243,9 +205,9 @@ const filters = computed({
 
 // 檢查是否有啟用的篩選條件
 const hasActiveFilters = computed(() => {
-  return filters.value.status !== ArticleFilterStatus.All || 
-         filters.value.category !== ArticleFilterCategory.All || 
-         filters.value.searchText !== ''
+  return filters.value.status !== ArticleFilterStatus.All ||
+    filters.value.category !== ArticleFilterCategory.All ||
+    filters.value.searchText !== ''
 })
 
 // 直接使用 store 的 filteredArticles，避免重複過濾
@@ -343,7 +305,7 @@ async function handleCreateArticle() {
 
 // 格式化日期
 function formatDate(date: Date | string): string {
-  if (!date) {return '-'}
+  if (!date) { return '-' }
   const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',

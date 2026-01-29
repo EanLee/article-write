@@ -3,7 +3,7 @@
  * 在開發環境下輸出 debug/info 日誌，在生產環境只輸出 warn/error
  */
 
-const isDev = import.meta.env.DEV
+const isDev = import.meta.env.DEV;
 
 export const logger = {
   /**
@@ -11,7 +11,7 @@ export const logger = {
    */
   debug: (...args: unknown[]): void => {
     if (isDev) {
-      console.log('[DEBUG]', ...args)
+      console.log("[DEBUG]", ...args);
     }
   },
 
@@ -20,7 +20,7 @@ export const logger = {
    */
   info: (...args: unknown[]): void => {
     if (isDev) {
-      console.info('[INFO]', ...args)
+      console.info("[INFO]", ...args);
     }
   },
 
@@ -28,13 +28,13 @@ export const logger = {
    * 警告日誌（總是輸出）
    */
   warn: (...args: unknown[]): void => {
-    console.warn('[WARN]', ...args)
+    console.warn("[WARN]", ...args);
   },
 
   /**
    * 錯誤日誌（總是輸出）
    */
   error: (...args: unknown[]): void => {
-    console.error('[ERROR]', ...args)
-  }
-}
+    console.error("[ERROR]", ...args);
+  },
+};

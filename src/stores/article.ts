@@ -37,7 +37,7 @@ export const useArticleStore = defineStore("article", () => {
     return articles.value
       .filter((article) => {
         // 狀態過濾 - 早期返回
-        if (statusFilter !== ArticleFilterStatus.All && article.status !== statusFilter) {
+        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as ArticleStatus)) {
           return false;
         }
 
