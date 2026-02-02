@@ -57,19 +57,11 @@
 
         <div class="search-box">
           <Search :size="16" class="search-icon" />
-          <input
-            v-model="filters.searchText"
-            type="text"
-            placeholder="搜尋標題或內容..."
-            class="input input-sm input-bordered"
-          />
+          <input v-model="filters.searchText" type="text" placeholder="搜尋標題或內容..."
+            class="input input-sm input-bordered" />
         </div>
 
-        <button 
-          v-if="hasActiveFilters" 
-          class="btn btn-sm btn-ghost gap-1" 
-          @click="resetFilters"
-        >
+        <button v-if="hasActiveFilters" class="btn btn-sm btn-ghost gap-1" @click="resetFilters">
           <RotateCcw :size="14" />
           重置
         </button>
@@ -81,7 +73,7 @@
     </div>
 
     <!-- 文章表格 -->
-    <div class="table-container">
+    <div ref="tableContainerRef" class="table-container">
       <table class="table table-sm table-pin-rows table-zebra">
         <thead>
           <tr>
@@ -95,12 +87,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr 
-            v-for="(article, index) in paginatedArticles" 
-            :key="article.id"
-            class="hover cursor-pointer"
-            @click="handleRowClick(article)"
-          >
+          <tr v-for="(article, index) in paginatedArticles" :key="article.id" class="hover cursor-pointer"
+            @click="handleRowClick(article)">
             <td class="text-base-content/50">{{ (currentPage - 1) * pageSize + index + 1 }}</td>
             <td>
               <div class="flex items-center gap-2">
@@ -109,10 +97,8 @@
               </div>
             </td>
             <td>
-              <span
-                class="badge badge-sm"
-                :class="article.status === ArticleStatus.Published ? 'badge-success' : 'badge-info'"
-              >
+              <span class="badge badge-sm"
+                :class="article.status === ArticleStatus.Published ? 'badge-success' : 'badge-info'">
                 {{ article.status === ArticleStatus.Published ? '已發布' : '草稿' }}
               </span>
             </td>
@@ -121,17 +107,12 @@
             </td>
             <td>
               <div class="flex flex-wrap gap-1">
-                <span
-                  v-for="tag in (article.frontmatter.tags || []).slice(0, 2)"
-                  :key="tag"
-                  class="badge badge-xs badge-ghost"
-                >
+                <span v-for="tag in (article.frontmatter.tags || []).slice(0, 2)" :key="tag"
+                  class="badge badge-xs badge-ghost">
                   {{ tag }}
                 </span>
-                <span
-                  v-if="article.frontmatter.tags && article.frontmatter.tags.length > 2"
-                  class="badge badge-xs badge-ghost"
-                >
+                <span v-if="article.frontmatter.tags && article.frontmatter.tags.length > 2"
+                  class="badge badge-xs badge-ghost">
                   +{{ article.frontmatter.tags.length - 2 }}
                 </span>
               </div>
@@ -141,18 +122,10 @@
             </td>
             <td @click.stop>
               <div class="flex gap-1 justify-center">
-                <button
-                  class="btn btn-xs btn-ghost"
-                  @click="handleEditArticle(article)"
-                  title="編輯"
-                >
+                <button class="btn btn-xs btn-ghost" @click="handleEditArticle(article)" title="編輯">
                   <Edit2 :size="14" />
                 </button>
-                <button
-                  class="btn btn-xs btn-ghost text-error"
-                  @click="handleDeleteArticle(article)"
-                  title="刪除"
-                >
+                <button class="btn btn-xs btn-ghost text-error" @click="handleDeleteArticle(article)" title="刪除">
                   <Trash2 :size="14" />
                 </button>
               </div>
@@ -162,10 +135,7 @@
       </table>
 
       <!-- 空狀態 -->
-      <div
-        v-if="filteredArticles.length === 0"
-        class="empty-state"
-      >
+      <div v-if="filteredArticles.length === 0" class="empty-state">
         <FileText :size="64" class="empty-icon" />
         <p class="empty-title">沒有找到相符的文章</p>
         <p class="empty-subtitle">嘗試調整篩選條件或建立新文章</p>
@@ -175,21 +145,13 @@
     <!-- 分頁 -->
     <div v-if="totalPages > 1" class="pagination-bar">
       <div class="join">
-        <button 
-          class="join-item btn btn-sm"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
+        <button class="join-item btn btn-sm" :disabled="currentPage === 1" @click="currentPage--">
           «
         </button>
         <button class="join-item btn btn-sm">
           頁面 {{ currentPage }} / {{ totalPages }}
         </button>
-        <button 
-          class="join-item btn btn-sm"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
+        <button class="join-item btn btn-sm" :disabled="currentPage === totalPages" @click="currentPage++">
           »
         </button>
       </div>
@@ -204,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useArticleStore } from '@/stores/article'
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import type { Article } from '@/types'
@@ -227,51 +189,29 @@ const emit = defineEmits<{
   'edit-article': []
 }>()
 
-// 篩選器
-const filters = ref({
-  status: ArticleFilterStatus.All,
-  category: ArticleFilterCategory.All,
-  tags: [] as string[],
-  searchText: ''
-})
-
 // 分頁
 const currentPage = ref(1)
 const pageSize = ref(50)
 
+// 表格容器和滾動位置
+const tableContainerRef = ref<HTMLElement | null>(null)
+const savedScrollTop = ref(0)
+
+// 使用 store 的 filter 狀態
+const filters = computed({
+  get: () => articleStore.filter,
+  set: (value) => articleStore.updateFilter(value)
+})
+
 // 檢查是否有啟用的篩選條件
 const hasActiveFilters = computed(() => {
-  return filters.value.status !== ArticleFilterStatus.All || 
-         filters.value.category !== ArticleFilterCategory.All || 
-         filters.value.searchText !== ''
+  return filters.value.status !== ArticleFilterStatus.All ||
+    filters.value.category !== ArticleFilterCategory.All ||
+    filters.value.searchText !== ''
 })
 
-// 計算過濾後的文章
-const filteredArticles = computed(() => {
-  return articleStore.articles.filter(article => {
-    // 狀態過濾
-    if (filters.value.status !== ArticleFilterStatus.All && article.status !== filters.value.status) {
-      return false
-    }
-
-    // 分類過濾
-    if (filters.value.category !== ArticleFilterCategory.All && article.category !== filters.value.category) {
-      return false
-    }
-
-    // 搜尋文字過濾
-    if (filters.value.searchText) {
-      const searchLower = filters.value.searchText.toLowerCase()
-      const titleMatch = article.title.toLowerCase().includes(searchLower)
-      const contentMatch = (article.content || '').toLowerCase().includes(searchLower)
-      if (!titleMatch && !contentMatch) {
-        return false
-      }
-    }
-
-    return true
-  })
-})
+// 直接使用 store 的 filteredArticles，避免重複過濾
+const filteredArticles = computed(() => articleStore.filteredArticles)
 
 // 分頁計算
 const totalPages = computed(() => Math.ceil(filteredArticles.value.length / pageSize.value))
@@ -303,12 +243,12 @@ const categoryCount = computed(() => {
 
 // 重置篩選器
 function resetFilters() {
-  filters.value = {
+  articleStore.updateFilter({
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
     tags: [],
     searchText: ''
-  }
+  })
 }
 
 // 處理列點擊
@@ -318,8 +258,20 @@ function handleRowClick(article: Article) {
 
 // 處理編輯文章
 function handleEditArticle(article: Article) {
+  // 保存當前滾動位置
+  if (tableContainerRef.value) {
+    savedScrollTop.value = tableContainerRef.value.scrollTop
+  }
+
   articleStore.setCurrentArticle(article)
   emit('edit-article')
+
+  // 使用 nextTick 確保 DOM 更新後恢復滾動位置
+  nextTick(() => {
+    if (tableContainerRef.value) {
+      tableContainerRef.value.scrollTop = savedScrollTop.value
+    }
+  })
 }
 
 // 處理刪除文章
@@ -331,13 +283,29 @@ function handleDeleteArticle(article: Article) {
 
 // 處理新增文章
 async function handleCreateArticle() {
-  await articleStore.createNewArticle()
+  // 保存滾動位置
+  if (tableContainerRef.value) {
+    savedScrollTop.value = tableContainerRef.value.scrollTop
+  }
+
+  // 創建新文章（需要提供標題和分類，這裡使用預設值）
+  const newArticle = await articleStore.createArticle('未命名文章', 'Software' as any)
+
+  // 設為當前文章
+  articleStore.setCurrentArticle(newArticle)
   emit('edit-article')
+
+  // 恢復滾動位置
+  nextTick(() => {
+    if (tableContainerRef.value) {
+      tableContainerRef.value.scrollTop = savedScrollTop.value
+    }
+  })
 }
 
 // 格式化日期
 function formatDate(date: Date | string): string {
-  if (!date) {return '-'}
+  if (!date) { return '-' }
   const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('zh-TW', {
     year: 'numeric',

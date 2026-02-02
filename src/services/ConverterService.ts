@@ -1,5 +1,8 @@
 import type { Article, ConversionConfig } from '@/types'
-import { FileService } from './FileService'
+import { ArticleStatus, ArticleCategory } from '@/types'
+import type { IFileSystem } from '@/types/IFileSystem'
+import { electronFileSystem } from './ElectronFileSystem'
+import { articleService as defaultArticleService, ArticleService } from './ArticleService'
 import { MarkdownService } from './MarkdownService'
 
 /**
@@ -27,17 +30,30 @@ export type ProgressCallback = (processed: number, total: number, currentFile?: 
 /**
  * 轉換服務類別
  * 負責將 Obsidian 格式的文章轉換為 Astro 格式並部署到目標部落格
+ *
+ * 重構後使用依賴注入：
+ * - IFileSystem: 基礎檔案操作
+ * - ArticleService: 文章載入邏輯
  */
 export class ConverterService {
-  private fileService: FileService
+  private fileSystem: IFileSystem
+  private articleService: ArticleService
   private markdownService: MarkdownService
 
   /**
-   * 建構子 - 初始化 ConverterService
+   * 建構子 - 使用依賴注入
+   * @param fileSystem - 檔案系統介面（可選）
+   * @param articleService - 文章服務（可選）
+   * @param markdownService - Markdown 服務（可選）
    */
-  constructor() {
-    this.fileService = new FileService()
-    this.markdownService = new MarkdownService()
+  constructor(
+    fileSystem?: IFileSystem,
+    articleService?: ArticleService,
+    markdownService?: MarkdownService
+  ) {
+    this.fileSystem = fileSystem || electronFileSystem
+    this.articleService = articleService || defaultArticleService
+    this.markdownService = markdownService || new MarkdownService()
   }
 
   /**
@@ -138,7 +154,7 @@ export class ConverterService {
 
       // 4. 建立目標目錄結構 (Leaf Bundle)
       const targetDir = this.createTargetPath(article, config.targetDir)
-      await this.fileService.createDirectory(targetDir)
+      await this.fileSystem.createDirectory(targetDir)
 
       // 5. 複製並處理圖片
       const imageProcessResult = await this.processImages(convertedContent, article, config, targetDir)
@@ -150,7 +166,7 @@ export class ConverterService {
 
       // 7. 寫入目標檔案
       const targetFilePath = this.joinPath(targetDir, 'index.md')
-      await this.fileService.writeFile(targetFilePath, finalContent)
+      await this.fileSystem.writeFile(targetFilePath, finalContent)
 
       // 8. 驗證轉換結果
       const validationResult = await this.validateConversionResult(targetDir, article)
@@ -185,12 +201,16 @@ export class ConverterService {
         const categoryPath = this.joinPath(publishPath, category)
         
         try {
-          const files = await this.fileService.readDirectory(categoryPath)
+          const files = await this.fileSystem.readDirectory(categoryPath)
           
           for (const file of files) {
             if (file.endsWith('.md')) {
               const filePath = this.joinPath(categoryPath, file)
-              const article = await this.fileService.loadArticle(filePath)
+              const article = await this.articleService.loadArticle(
+                filePath,
+                ArticleStatus.Published,
+                category as ArticleCategory
+              )
               
               if (article) {
                 articles.push(article)
@@ -397,7 +417,7 @@ export class ConverterService {
 
     // 建立目標圖片目錄
     const targetImagesDir = this.joinPath(targetDir, 'images')
-    await this.fileService.createDirectory(targetImagesDir)
+    await this.fileSystem.createDirectory(targetImagesDir)
 
     let processedContent = content
     const processedImages: string[] = []
@@ -515,7 +535,7 @@ export class ConverterService {
 
       // 確保目標目錄存在
       const targetDir = this.getDirname(targetPath)
-      await this.fileService.createDirectory(targetDir)
+      await this.fileSystem.createDirectory(targetDir)
 
       // 使用 Electron API 複製檔案
       await (window.electronAPI as any).copyFile(sourcePath, targetPath)
@@ -665,7 +685,7 @@ export class ConverterService {
 
       // 檢查轉換後的內容是否包含未轉換的 Obsidian 語法
       if (indexExists) {
-        const convertedContent = await this.fileService.readFile(indexPath)
+        const convertedContent = await this.fileSystem.readFile(indexPath)
         
         // 檢查是否還有未轉換的 Wiki 連結
         if (convertedContent.includes('[[') && convertedContent.includes(']]')) {
@@ -728,7 +748,7 @@ export class ConverterService {
     }
 
     // 確保目標目錄存在
-    await this.fileService.createDirectory(targetImagesDir)
+    await this.fileSystem.createDirectory(targetImagesDir)
 
     // 並行複製圖片（限制並發數量以避免系統負載過高）
     const concurrencyLimit = 5
@@ -780,12 +800,12 @@ export class ConverterService {
     const cleanedFiles: string[] = []
 
     try {
-      const existingFiles = await this.fileService.readDirectory(targetImagesDir)
+      const existingFiles = await this.fileSystem.readDirectory(targetImagesDir)
       
       for (const file of existingFiles) {
         if (this.isValidImageFile(file) && !usedImages.includes(file)) {
           const filePath = this.joinPath(targetImagesDir, file)
-          await this.fileService.deleteFile(filePath)
+          await this.fileSystem.deleteFile(filePath)
           cleanedFiles.push(file)
           console.log(`Cleaned up unused image: ${file}`)
         }
@@ -882,16 +902,19 @@ export class ConverterService {
     const articles: Article[] = []
     
     try {
-      const files = await this.fileService.readDirectory(categoryPath)
+      const files = await this.fileSystem.readDirectory(categoryPath)
       
       for (const file of files) {
         if (file.endsWith('.md')) {
           const filePath = this.joinPath(categoryPath, file)
-          const article = await this.fileService.loadArticle(filePath)
+          const article = await this.articleService.loadArticle(
+            filePath,
+            ArticleStatus.Published,
+            category as ArticleCategory
+          )
           
           if (article) {
-            // 確保分類正確設定
-            article.category = category as 'Software' | 'growth' | 'management'
+            // 分類已由 ArticleService.loadArticle 正確設定
             articles.push(article)
           }
         }
