@@ -270,6 +270,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { ConverterService, type ConversionResult } from '@/services/ConverterService'
 import type { ConversionConfig } from '@/types'
+import { getFileName } from '@/utils/formatters'
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -462,15 +463,6 @@ const formatTime = (date?: Date): string => {
     minute: '2-digit',
     second: '2-digit'
   })
-}
-
-/**
- * 從完整路徑中提取檔案名稱
- * @param {string} filePath - 完整檔案路徑
- * @returns {string} 檔案名稱
- */
-const getFileName = (filePath: string): string => {
-  return filePath.split(/[/\\]/).pop() || filePath
 }
 
 // 組件掛載時載入統計
