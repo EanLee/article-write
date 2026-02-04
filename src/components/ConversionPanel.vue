@@ -272,6 +272,7 @@ import { ConverterService, type ConversionResult } from '@/services/ConverterSer
 import type { ConversionConfig } from '@/types'
 import { getFileName } from '@/utils/formatters'
 import { notificationService } from '@/services/NotificationService'
+import { formatErrorMessage } from '@/utils/errorFormatter'
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -401,12 +402,22 @@ const startConversion = async () => {
     
   } catch (error) {
     console.error('Conversion failed:', error)
+
+    // 格式化錯誤訊息
+    const formatted = formatErrorMessage(error)
+
+    // 顯示友善的錯誤通知
+    notificationService.error(
+      formatted.friendlyMessage,
+      formatted.suggestions.slice(0, 2).join('\n')
+    )
+
     conversionResult.value = {
       success: false,
       processedFiles: 0,
       errors: [{
         file: 'conversion process',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: formatted.originalError
       }],
       warnings: [],
       completedAt: new Date()
@@ -492,12 +503,22 @@ const convertCategory = async (category: string) => {
     
   } catch (error) {
     console.error(`Category ${category} conversion failed:`, error)
+
+    // 格式化錯誤訊息
+    const formatted = formatErrorMessage(error)
+
+    // 顯示友善的錯誤通知
+    notificationService.error(
+      `${category} 分類轉換失敗`,
+      formatted.friendlyMessage + '\n\n' + formatted.suggestions.slice(0, 2).join('\n')
+    )
+
     conversionResult.value = {
       success: false,
       processedFiles: 0,
       errors: [{
         file: `category: ${category}`,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: formatted.originalError
       }],
       warnings: [],
       completedAt: new Date()
