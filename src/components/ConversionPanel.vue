@@ -271,6 +271,7 @@ import { useConfigStore } from '@/stores/config'
 import { ConverterService, type ConversionResult } from '@/services/ConverterService'
 import type { ConversionConfig } from '@/types'
 import { getFileName } from '@/utils/formatters'
+import { notificationService } from '@/services/NotificationService'
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -324,14 +325,20 @@ const loadStats = async () => {
  */
 const startConversion = async () => {
   if (!isConfigValid.value) {
-    alert('請先設定有效的路徑配置')
+    notificationService.error(
+      '設定錯誤',
+      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+    )
     return
   }
 
   // 驗證批次轉換前置條件
   const validation = await converterService.validateBatchConversionPrerequisites(config.value)
   if (!validation.valid) {
-    alert(`轉換前置條件不滿足:\n${validation.issues.join('\n')}`)
+    notificationService.error(
+      '轉換前置條件檢查失敗',
+      `請檢查以下問題：\n${validation.issues.map(i => `• ${i}`).join('\n')}`
+    )
     return
   }
 
@@ -390,7 +397,10 @@ const startConversion = async () => {
  */
 const convertCategory = async (category: string) => {
   if (!isConfigValid.value) {
-    alert('請先設定有效的路徑配置')
+    notificationService.error(
+      '設定錯誤',
+      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+    )
     return
   }
 
