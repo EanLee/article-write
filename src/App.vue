@@ -16,8 +16,8 @@
             <div v-if="!configStore.config.paths.articlesDir" class="flex items-center justify-center h-full p-8">
               <div class="card w-96 bg-base-100 shadow-xl">
                 <div class="card-body">
-                  <h2 class="card-title">歡迎使用部落格撰寫應用程式</h2>
-                  <p>請先設定您的文章資料夾路徑。</p>
+                  <h2 class="card-title">歡迎使用 WriteFlow</h2>
+                  <p>讓寫作更流暢。請先設定您的文章資料夾路徑開始使用。</p>
                   <div class="card-actions justify-end">
                     <button class="btn btn-primary" @click="showSettings = true">
                       開始設定
