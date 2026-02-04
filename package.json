@@ -1,7 +1,7 @@
 {
-  "name": "blog-writing-app",
-  "version": "1.0.0",
-  "description": "A blog writing application integrating Obsidian markdown editing with Astro blog publishing",
+  "name": "writeflow",
+  "version": "0.1.0",
+  "description": "WriteFlow - A writing and publishing tool for content creators. Seamlessly publish from Obsidian to Astro blogs.",
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"pnpm run dev:renderer\" \"pnpm run dev:main\"",
