@@ -173,11 +173,8 @@ Obsidian 圖片語法：
       // 驗證圖片路徑轉換
       expect(writtenContent).toContain('![示意圖](./images/demo.png)')
 
-      // TODO: Bug - Obsidian 圖片語法 ![[image.png]] 被 convertWikiLinks 誤判為 Wiki Link
-      // 預期: ![screenshot.png](./images/screenshot.png)
-      // 實際: ![screenshot.png](../screenshotpng/)
-      // 需要修正 convertWikiLinks 的正則表達式，排除 ![[]] 格式
-      expect(writtenContent).toContain('![screenshot.png](../')
+      // Bug #1 已修復：Obsidian 圖片語法現在正確處理
+      expect(writtenContent).toContain('![screenshot.png](./images/screenshot.png)')
 
       // 驗證高亮語法轉換
       expect(writtenContent).toContain('<mark>重點內容</mark>')
@@ -380,6 +377,72 @@ Obsidian 圖片語法：
       expect(result.processedFiles).toBe(1) // 成功處理 1 篇
       expect(result.errors).toHaveLength(1) // 有 1 個錯誤
       expect(result.errors[0].error).toContain('寫入失敗')
+    })
+  })
+
+  describe('Obsidian 語法轉換', () => {
+    it('應該正確區分 Wiki Link 和 Obsidian 圖片語法', async () => {
+      const testArticle: Article = {
+        id: 'syntax-test',
+        title: 'Obsidian 語法測試',
+        slug: 'obsidian-syntax-test',
+        category: ArticleCategory.Software,
+        status: ArticleStatus.Published,
+        content: `# Obsidian 語法測試
+
+## Wiki Links (應該轉換)
+普通連結：[[文章A]]
+帶別名：[[文章B|查看文章B]]
+
+## Obsidian 圖片 (不應該被轉換為 Wiki Link)
+圖片語法：![[image1.png]]
+帶描述：![[image2.jpg|圖片描述]]
+
+## 混合使用
+這裡有一個連結 [[相關文章]] 和一張圖片 ![[demo.png]]
+`,
+        frontmatter: {
+          title: 'Obsidian 語法測試',
+          date: '2026-02-04',
+          category: 'Software',
+          tags: []
+        },
+        filePath: '/test/obsidian-vault/publish/Software/syntax-test.md',
+        createdAt: new Date('2026-02-04'),
+        updatedAt: new Date('2026-02-04')
+      }
+
+      vi.mocked(mockArticleService.loadArticle).mockResolvedValue(testArticle)
+      vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
+        if (path.includes('Software')) {
+return ['syntax-test.md']}
+        return []
+      })
+      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(true)
+
+      let writtenContent = ''
+      vi.mocked(mockFileSystem.writeFile).mockImplementation(async (_path: string, content: string) => {
+        writtenContent = content
+      })
+
+      const result = await converterService.convertAllArticles(config)
+
+      expect(result.success).toBe(true)
+      expect(result.processedFiles).toBe(1)
+
+      // 驗證 Wiki Links 被正確轉換
+      expect(writtenContent).toContain('[文章A](../a/)')
+      expect(writtenContent).toContain('[查看文章B](../b/)')
+      expect(writtenContent).toContain('[相關文章](..//)') // 中文會被移除
+
+      // 驗證 Obsidian 圖片語法被正確轉換（不被誤判為 Wiki Link）
+      expect(writtenContent).toContain('![image1.png](./images/image1.png)')
+      expect(writtenContent).toContain('![image2.jpg|圖片描述](./images/image2.jpg|圖片描述)')
+      expect(writtenContent).toContain('![demo.png](./images/demo.png)')
+
+      // 確認沒有錯誤的轉換（![[]] 不應該變成 [[]]）
+      expect(writtenContent).not.toContain('![image1.png](../')
+      expect(writtenContent).not.toContain('[image1.png](../')
     })
   })
 
