@@ -177,11 +177,17 @@
         :value="conversionProgress.processed" 
         :max="conversionProgress.total"
       ></progress>
-      <div class="text-xs text-gray-500 text-center">
-        {{ Math.round((conversionProgress.processed / conversionProgress.total) * 100) }}% 完成
-        <span v-if="currentProcessingFile" class="ml-2">
-          正在處理: {{ currentProcessingFile }}
-        </span>
+      <div class="text-xs text-gray-500">
+        <div class="flex justify-between items-center">
+          <span>{{ Math.round((conversionProgress.processed / conversionProgress.total) * 100) }}% 完成</span>
+          <span v-if="etaInfo" class="flex items-center gap-2">
+            <span class="badge badge-sm badge-outline">{{ etaInfo.speed.toFixed(1) }} 篇/秒</span>
+            <span class="text-primary">預估剩餘: {{ etaInfo.formattedETA }}</span>
+          </span>
+        </div>
+        <div v-if="currentProcessingFile" class="mt-1 text-center truncate">
+          正在處理: {{ getFileName(currentProcessingFile) }}
+        </div>
       </div>
     </div>
 
@@ -273,6 +279,7 @@ import type { ConversionConfig } from '@/types'
 import { getFileName } from '@/utils/formatters'
 import { notificationService } from '@/services/NotificationService'
 import { formatErrorMessage } from '@/utils/errorFormatter'
+import { calculateETA } from '@/utils/timeFormatter'
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -291,6 +298,7 @@ const conversionProgress = ref({
 })
 
 const currentProcessingFile = ref<string>('')
+const conversionStartTime = ref<number>(0)
 
 // 轉換設定
 const config = computed<ConversionConfig>(() => ({
@@ -303,6 +311,19 @@ const config = computed<ConversionConfig>(() => ({
 // 檢查設定是否有效
 const isConfigValid = computed(() => {
   return converterService.validateConfig(config.value)
+})
+
+// 計算 ETA
+const etaInfo = computed(() => {
+  if (!isConverting.value || conversionStartTime.value === 0) {
+    return null
+  }
+
+  return calculateETA({
+    processed: conversionProgress.value.processed,
+    total: conversionProgress.value.total,
+    startTime: conversionStartTime.value
+  })
 })
 
 /**
@@ -346,7 +367,8 @@ const startConversion = async () => {
   isConverting.value = true
   conversionResult.value = null
   currentProcessingFile.value = ''
-  
+  conversionStartTime.value = Date.now()
+
   // 重設進度
   conversionProgress.value = {
     processed: 0,
@@ -444,9 +466,10 @@ const convertCategory = async (category: string) => {
   isConverting.value = true
   conversionResult.value = null
   currentProcessingFile.value = ''
-  
+  conversionStartTime.value = Date.now()
+
   const categoryStats = conversionStats.value?.articlesByCategory[category] || 0
-  
+
   // 重設進度
   conversionProgress.value = {
     processed: 0,
