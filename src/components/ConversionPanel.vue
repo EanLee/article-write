@@ -361,15 +361,41 @@ const startConversion = async () => {
         currentProcessingFile.value = currentFile || ''
       }
     )
-    
+
     // 添加完成時間
     const resultWithTime = {
       ...result,
       completedAt: new Date()
     }
-    
+
     conversionResult.value = resultWithTime
-    
+
+    // 顯示成功通知
+    if (result.success) {
+      const hasErrors = result.errors.length > 0
+      const hasWarnings = result.warnings.length > 0
+
+      if (!hasErrors && !hasWarnings) {
+        // 完美成功：無錯誤、無警告
+        notificationService.success(
+          '完美！轉換完成 🎉',
+          `成功轉換 ${result.processedFiles} 篇文章，無錯誤、無警告`
+        )
+      } else if (!hasErrors && hasWarnings) {
+        // 成功但有警告
+        notificationService.success(
+          '轉換完成',
+          `成功轉換 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
+        )
+      }
+    } else {
+      // 轉換失敗
+      notificationService.error(
+        '轉換失敗',
+        `處理了 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
+      )
+    }
+
     // 重新載入統計
     await loadStats()
     
@@ -426,15 +452,41 @@ const convertCategory = async (category: string) => {
         currentProcessingFile.value = currentFile || ''
       }
     )
-    
+
     // 添加完成時間
     const resultWithTime = {
       ...result,
       completedAt: new Date()
     }
-    
+
     conversionResult.value = resultWithTime
-    
+
+    // 顯示成功通知
+    if (result.success) {
+      const hasErrors = result.errors.length > 0
+      const hasWarnings = result.warnings.length > 0
+
+      if (!hasErrors && !hasWarnings) {
+        // 完美成功：無錯誤、無警告
+        notificationService.success(
+          '完美！轉換完成 🎉',
+          `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，無錯誤、無警告`
+        )
+      } else if (!hasErrors && hasWarnings) {
+        // 成功但有警告
+        notificationService.success(
+          '轉換完成',
+          `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
+        )
+      }
+    } else {
+      // 轉換失敗
+      notificationService.error(
+        '轉換失敗',
+        `處理了 ${category} 分類的 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
+      )
+    }
+
     // 重新載入統計
     await loadStats()
     
