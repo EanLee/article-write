@@ -60,7 +60,22 @@ export class ConfigService {
         return { valid: false, message: '沒有讀寫權限' }
       }
 
-      return { valid: true, message: '有效的文章資料夾' }
+      // 檢查是否為 Obsidian Vault（可選，有 .obsidian 資料夾更好）
+      const obsidianPath = join(path, '.obsidian')
+      let isObsidianVault = false
+      try {
+        const obsidianStats = await fs.stat(obsidianPath)
+        isObsidianVault = obsidianStats.isDirectory()
+      } catch {
+        // .obsidian 不存在也沒關係，只是普通的 Markdown 資料夾
+        isObsidianVault = false
+      }
+
+      if (isObsidianVault) {
+        return { valid: true, message: '✓ 有效的 Obsidian Vault' }
+      } else {
+        return { valid: true, message: '✓ 有效的 Markdown 資料夾' }
+      }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }
@@ -73,32 +88,41 @@ export class ConfigService {
         return { valid: false, message: '路徑不是資料夾' }
       }
 
-      // Check for package.json
-      try {
-        const packageJsonPath = join(path, 'package.json')
-        const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'))
-        
-        // Check if it's an Astro project
-        const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies }
-        if (!dependencies.astro) {
-          return { valid: false, message: '不是 Astro 專案' }
+      // 檢查是否為 Astro 專案（檢查 astro.config.*)
+      const configFiles = ['astro.config.js', 'astro.config.ts', 'astro.config.mjs']
+      let hasAstroConfig = false
+      
+      for (const configFile of configFiles) {
+        try {
+          const configPath = join(path, configFile)
+          await fs.access(configPath, fs.constants.R_OK)
+          hasAstroConfig = true
+          break
+        } catch {
+          // 檔案不存在，繼續檢查下一個
+          continue
         }
-      } catch {
-        return { valid: false, message: '找不到 package.json 或格式錯誤' }
       }
 
-      // Check for src/content/blog structure
+      if (!hasAstroConfig) {
+        return { valid: false, message: '找不到 astro.config.* 檔案' }
+      }
+
+      // 檢查 src/content/blog 結構（可選，沒有也可以手動建立）
+      const blogPath = join(path, 'src', 'content', 'blog')
+      let hasBlogStructure = false
       try {
-        const blogPath = join(path, 'src', 'content', 'blog')
         const blogStats = await fs.stat(blogPath)
-        if (!blogStats.isDirectory()) {
-          return { valid: false, message: '缺少 src/content/blog 資料夾' }
-        }
+        hasBlogStructure = blogStats.isDirectory()
       } catch {
-        return { valid: false, message: '缺少 src/content/blog 資料夾' }
+        hasBlogStructure = false
       }
 
-      return { valid: true, message: '有效的 Astro 部落格專案' }
+      if (hasBlogStructure) {
+        return { valid: true, message: '✓ 有效的 Astro 部落格專案（已有 blog 資料夾）' }
+      } else {
+        return { valid: true, message: '✓ 有效的 Astro 專案（需要建立 src/content/blog 資料夾）' }
+      }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }
