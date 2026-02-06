@@ -177,11 +177,17 @@
         :value="conversionProgress.processed" 
         :max="conversionProgress.total"
       ></progress>
-      <div class="text-xs text-gray-500 text-center">
-        {{ Math.round((conversionProgress.processed / conversionProgress.total) * 100) }}% 完成
-        <span v-if="currentProcessingFile" class="ml-2">
-          正在處理: {{ currentProcessingFile }}
-        </span>
+      <div class="text-xs text-gray-500">
+        <div class="flex justify-between items-center">
+          <span>{{ Math.round((conversionProgress.processed / conversionProgress.total) * 100) }}% 完成</span>
+          <span v-if="etaInfo" class="flex items-center gap-2">
+            <span class="badge badge-sm badge-outline">{{ etaInfo.speed.toFixed(1) }} 篇/秒</span>
+            <span class="text-primary">預估剩餘: {{ etaInfo.formattedETA }}</span>
+          </span>
+        </div>
+        <div v-if="currentProcessingFile" class="mt-1 text-center truncate">
+          正在處理: {{ getFileName(currentProcessingFile) }}
+        </div>
       </div>
     </div>
 
@@ -270,6 +276,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { ConverterService, type ConversionResult } from '@/services/ConverterService'
 import type { ConversionConfig } from '@/types'
+import { getFileName } from '@/utils/formatters'
+import { notificationService } from '@/services/NotificationService'
+import { formatErrorMessage } from '@/utils/errorFormatter'
+import { calculateETA } from '@/utils/timeFormatter'
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -288,6 +298,7 @@ const conversionProgress = ref({
 })
 
 const currentProcessingFile = ref<string>('')
+const conversionStartTime = ref<number>(0)
 
 // 轉換設定
 const config = computed<ConversionConfig>(() => ({
@@ -300,6 +311,19 @@ const config = computed<ConversionConfig>(() => ({
 // 檢查設定是否有效
 const isConfigValid = computed(() => {
   return converterService.validateConfig(config.value)
+})
+
+// 計算 ETA
+const etaInfo = computed(() => {
+  if (!isConverting.value || conversionStartTime.value === 0) {
+    return null
+  }
+
+  return calculateETA({
+    processed: conversionProgress.value.processed,
+    total: conversionProgress.value.total,
+    startTime: conversionStartTime.value
+  })
 })
 
 /**
@@ -323,21 +347,28 @@ const loadStats = async () => {
  */
 const startConversion = async () => {
   if (!isConfigValid.value) {
-    alert('請先設定有效的路徑配置')
+    notificationService.error(
+      '設定錯誤',
+      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+    )
     return
   }
 
   // 驗證批次轉換前置條件
   const validation = await converterService.validateBatchConversionPrerequisites(config.value)
   if (!validation.valid) {
-    alert(`轉換前置條件不滿足:\n${validation.issues.join('\n')}`)
+    notificationService.error(
+      '轉換前置條件檢查失敗',
+      `請檢查以下問題：\n${validation.issues.map(i => `• ${i}`).join('\n')}`
+    )
     return
   }
 
   isConverting.value = true
   conversionResult.value = null
   currentProcessingFile.value = ''
-  
+  conversionStartTime.value = Date.now()
+
   // 重設進度
   conversionProgress.value = {
     processed: 0,
@@ -353,26 +384,62 @@ const startConversion = async () => {
         currentProcessingFile.value = currentFile || ''
       }
     )
-    
+
     // 添加完成時間
     const resultWithTime = {
       ...result,
       completedAt: new Date()
     }
-    
+
     conversionResult.value = resultWithTime
-    
+
+    // 顯示成功通知
+    if (result.success) {
+      const hasErrors = result.errors.length > 0
+      const hasWarnings = result.warnings.length > 0
+
+      if (!hasErrors && !hasWarnings) {
+        // 完美成功：無錯誤、無警告
+        notificationService.success(
+          '完美！轉換完成 🎉',
+          `成功轉換 ${result.processedFiles} 篇文章，無錯誤、無警告`
+        )
+      } else if (!hasErrors && hasWarnings) {
+        // 成功但有警告
+        notificationService.success(
+          '轉換完成',
+          `成功轉換 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
+        )
+      }
+    } else {
+      // 轉換失敗
+      notificationService.error(
+        '轉換失敗',
+        `處理了 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
+      )
+    }
+
     // 重新載入統計
     await loadStats()
     
   } catch (error) {
     console.error('Conversion failed:', error)
+
+    // 格式化錯誤訊息
+    const formatted = formatErrorMessage(error)
+
+    // 顯示友善的錯誤通知
+    notificationService.error(
+      formatted.friendlyMessage,
+      formatted.suggestions.slice(0, 2).join('\n')
+    )
+
     conversionResult.value = {
       success: false,
       processedFiles: 0,
       errors: [{
         file: 'conversion process',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: formatted.originalError
       }],
       warnings: [],
       completedAt: new Date()
@@ -389,16 +456,20 @@ const startConversion = async () => {
  */
 const convertCategory = async (category: string) => {
   if (!isConfigValid.value) {
-    alert('請先設定有效的路徑配置')
+    notificationService.error(
+      '設定錯誤',
+      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+    )
     return
   }
 
   isConverting.value = true
   conversionResult.value = null
   currentProcessingFile.value = ''
-  
+  conversionStartTime.value = Date.now()
+
   const categoryStats = conversionStats.value?.articlesByCategory[category] || 0
-  
+
   // 重設進度
   conversionProgress.value = {
     processed: 0,
@@ -415,26 +486,62 @@ const convertCategory = async (category: string) => {
         currentProcessingFile.value = currentFile || ''
       }
     )
-    
+
     // 添加完成時間
     const resultWithTime = {
       ...result,
       completedAt: new Date()
     }
-    
+
     conversionResult.value = resultWithTime
-    
+
+    // 顯示成功通知
+    if (result.success) {
+      const hasErrors = result.errors.length > 0
+      const hasWarnings = result.warnings.length > 0
+
+      if (!hasErrors && !hasWarnings) {
+        // 完美成功：無錯誤、無警告
+        notificationService.success(
+          '完美！轉換完成 🎉',
+          `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，無錯誤、無警告`
+        )
+      } else if (!hasErrors && hasWarnings) {
+        // 成功但有警告
+        notificationService.success(
+          '轉換完成',
+          `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
+        )
+      }
+    } else {
+      // 轉換失敗
+      notificationService.error(
+        '轉換失敗',
+        `處理了 ${category} 分類的 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
+      )
+    }
+
     // 重新載入統計
     await loadStats()
     
   } catch (error) {
     console.error(`Category ${category} conversion failed:`, error)
+
+    // 格式化錯誤訊息
+    const formatted = formatErrorMessage(error)
+
+    // 顯示友善的錯誤通知
+    notificationService.error(
+      `${category} 分類轉換失敗`,
+      formatted.friendlyMessage + '\n\n' + formatted.suggestions.slice(0, 2).join('\n')
+    )
+
     conversionResult.value = {
       success: false,
       processedFiles: 0,
       errors: [{
         file: `category: ${category}`,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: formatted.originalError
       }],
       warnings: [],
       completedAt: new Date()
@@ -462,15 +569,6 @@ const formatTime = (date?: Date): string => {
     minute: '2-digit',
     second: '2-digit'
   })
-}
-
-/**
- * 從完整路徑中提取檔案名稱
- * @param {string} filePath - 完整檔案路徑
- * @returns {string} 檔案名稱
- */
-const getFileName = (filePath: string): string => {
-  return filePath.split(/[/\\]/).pop() || filePath
 }
 
 // 組件掛載時載入統計

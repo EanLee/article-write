@@ -267,13 +267,15 @@ export class ConverterService {
    */
   private convertWikiLinks(content: string): string {
     // 轉換 [[link|alias]] 格式（不包含錨點的）
-    content = content.replace(/\[\[([^#\]|]+)\|([^\]]+)\]\]/g, (_, link, alias) => {
+    // 使用負向後查找 (?<!!) 排除 Obsidian 圖片語法 ![[]]
+    content = content.replace(/(?<!!)\[\[([^#\]|]+)\|([^\]]+)\]\]/g, (_, link, alias) => {
       const slug = this.markdownService.generateSlugFromTitle(link.trim())
       return `[${alias.trim()}](../${slug}/)`
     })
 
     // 轉換 [[link]] 格式（不包含錨點的）
-    content = content.replace(/\[\[([^#\]]+)\]\]/g, (_, link) => {
+    // 使用負向後查找 (?<!!) 排除 Obsidian 圖片語法 ![[]]
+    content = content.replace(/(?<!!)\[\[([^#\]]+)\]\]/g, (_, link) => {
       const trimmedLink = link.trim()
       const slug = this.markdownService.generateSlugFromTitle(trimmedLink)
       return `[${trimmedLink}](../${slug}/)`

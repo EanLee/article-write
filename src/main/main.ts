@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import { FileService } from './services/FileService.js'
 import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
+import { PublishService } from './services/PublishService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -15,6 +16,7 @@ let mainWindow: BrowserWindow
 const fileService = new FileService()
 const configService = new ConfigService()
 const processService = new ProcessService()
+const publishService = new PublishService(fileService)
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -77,7 +79,12 @@ app.whenReady().then(() => {
   ipcMain.handle('set-config', (_, config: any) => configService.setConfig(config))
   ipcMain.handle('validate-articles-dir', (_, path: string) => configService.validateArticlesDir(path))
   ipcMain.handle('validate-astro-blog', (_, path: string) => configService.validateAstroBlog(path))
-  
+
+  // Publish Service
+  ipcMain.handle('publish-article', async (_, article: any, config: any, onProgress?: any) => {
+    return await publishService.publishArticle(article, config, onProgress)
+  })
+
   ipcMain.handle('start-dev-server', (_, projectPath: string) => processService.startDevServer(projectPath))
   ipcMain.handle('stop-dev-server', () => processService.stopDevServer())
   ipcMain.handle('get-server-status', () => processService.getServerStatus())

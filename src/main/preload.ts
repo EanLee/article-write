@@ -18,6 +18,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   validateArticlesDir: (path: string) => ipcRenderer.invoke('validate-articles-dir', path),
   validateAstroBlog: (path: string) => ipcRenderer.invoke('validate-astro-blog', path),
 
+  // Publish operations
+  publishArticle: (article: any, config: any, onProgress?: any) =>
+    ipcRenderer.invoke('publish-article', article, config, onProgress),
+
   // Process management
   startDevServer: (projectPath: string) => ipcRenderer.invoke('start-dev-server', projectPath),
   stopDevServer: () => ipcRenderer.invoke('stop-dev-server'),
