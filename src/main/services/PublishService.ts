@@ -1,6 +1,6 @@
 import { join } from 'path'
 import type { Article } from '../../types'
-import { FileService } from './FileService'
+import { FileService } from './FileService.js'
 
 /**
  * 發布配置
@@ -265,7 +265,7 @@ export class PublishService {
    */
   private async processImages(
     content: string,
-    article: Article,
+    _article: Article,
     config: PublishConfig
   ): Promise<{ content: string; imageWarnings: string[] }> {
     const warnings: string[] = []
