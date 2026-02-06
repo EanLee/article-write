@@ -1,5 +1,5 @@
 import { join } from 'path'
-import type { Article } from '../../types'
+import type { Article } from '../../types/index.js'
 import { FileService } from './FileService.js'
 
 /**
