@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs'
 import { join } from 'path'
 import type { Article } from '../../types'
 import { FileService } from './FileService'
@@ -171,11 +170,11 @@ export class PublishService {
   private convertMarkdownContent(content: string): string {
     let converted = content
 
-    // 1. 轉換 Wiki Links: [[link]] → [link](link)
-    converted = this.convertWikiLinks(converted)
-
-    // 2. 轉換 Obsidian 圖片語法: ![[image.png]] → ![image.png](./images/image.png)
+    // 1. 轉換 Obsidian 圖片語法 (必須在 Wiki Links 之前): ![[image.png]] → ![image.png](./images/image.png)
     converted = this.convertObsidianImages(converted)
+
+    // 2. 轉換 Wiki Links: [[link]] → [link](link)
+    converted = this.convertWikiLinks(converted)
 
     // 3. 轉換 Obsidian 標籤: #tag → tag (在 frontmatter tags)
     // (標籤轉換在 frontmatter 處理中進行)
@@ -375,9 +374,8 @@ export class PublishService {
    * 確保目錄存在，不存在則建立
    */
   private async ensureDirectoryExists(dirPath: string): Promise<void> {
-    try {
-      await fs.access(dirPath)
-    } catch {
+    const exists = await this.fileService.exists(dirPath)
+    if (!exists) {
       await this.fileService.createDirectory(dirPath)
     }
   }
@@ -386,11 +384,6 @@ export class PublishService {
    * 檢查檔案是否存在
    */
   private async fileExists(filePath: string): Promise<boolean> {
-    try {
-      await fs.access(filePath)
-      return true
-    } catch {
-      return false
-    }
+    return await this.fileService.exists(filePath)
   }
 }
