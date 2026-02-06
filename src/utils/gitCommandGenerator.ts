@@ -75,8 +75,8 @@ function generateCommitMessage(article: Article): string {
 function getCategoryScope(category: string): string {
   const scopeMap: Record<string, string> = {
     Software: 'tech',
-    Growth: 'growth',
-    Management: 'management'
+    growth: 'growth',
+    management: 'management'
   }
 
   return scopeMap[category] || 'blog'
