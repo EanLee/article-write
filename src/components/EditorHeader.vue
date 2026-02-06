@@ -89,7 +89,7 @@
             </button>
           </div>
 
-          <!-- 發佈按鈕 -->
+          <!-- 移至已發布資料夾 -->
           <div
             v-if="article?.status === 'draft'"
             class="tooltip tooltip-bottom"
@@ -101,6 +101,20 @@
             >
               <Upload :size="14" />
               <span class="hidden lg:inline text-xs">發佈</span>
+            </button>
+          </div>
+
+          <!-- 發布到部落格 -->
+          <div
+            class="tooltip tooltip-bottom"
+            data-tip="發布到部落格 (Ctrl+Shift+P)"
+          >
+            <button
+              class="btn btn-xs btn-primary gap-1"
+              @click="$emit('publish-to-blog')"
+            >
+              <Send :size="14" />
+              <span class="hidden lg:inline text-xs">發布</span>
             </button>
           </div>
 
@@ -132,7 +146,8 @@ import {
   FileCode,
   FileEdit,
   Maximize,
-  Minimize
+  Minimize,
+  Send
 } from 'lucide-vue-next'
 import SaveStatusIndicator from '@/components/SaveStatusIndicator.vue'
 
@@ -152,6 +167,7 @@ defineEmits<{
   'toggle-preview': []
   'edit-frontmatter': []
   'move-to-published': []
+  'publish-to-blog': []
   'toggle-editor-mode': []
   'toggle-focus-mode': []
 }>()

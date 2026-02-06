@@ -3,8 +3,8 @@
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
             :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
-            @move-to-published="moveToPublished" @toggle-editor-mode="toggleEditorMode"
-            @toggle-focus-mode="toggleFocusMode" />
+            @move-to-published="moveToPublished" @publish-to-blog="handlePublishToBlog"
+            @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
 
         <!-- Search/Replace Panel -->
         <SearchReplace :visible="isSearchVisible" :content="content" @close="closeSearch" @replace="replace"
@@ -62,7 +62,9 @@ import { useSearchReplace } from '@/composables/useSearchReplace';
 import { useFocusMode } from '@/composables/useFocusMode';
 import { useSyncScroll } from '@/composables/useSyncScroll';
 import { getArticleService } from '@/services/ArticleService';
+import { notificationService } from '@/services/NotificationService';
 import type { Article } from '@/types';
+import type { PublishConfig, PublishResult } from '@/main/services/PublishService';
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -315,6 +317,72 @@ async function moveToPublished() {
         } catch {
             // Failed to move article to published
         }
+    }
+}
+
+async function handlePublishToBlog() {
+    const article = articleStore.currentArticle;
+    if (!article) {
+        notificationService.error('沒有文章可發布');
+        return;
+    }
+
+    // 先儲存當前內容
+    await saveArticle();
+
+    // 檢查配置
+    const config = configStore.config;
+    if (!config.paths.articlesDir || !config.paths.targetBlog) {
+        notificationService.error('請先在設定中配置文章目錄和部落格路徑');
+        return;
+    }
+
+    // 確認發布
+    if (!confirm(`確定要發布文章「${article.title}」到部落格嗎？`)) {
+        return;
+    }
+
+    try {
+        const publishConfig: PublishConfig = {
+            articlesDir: config.paths.articlesDir,
+            targetBlogDir: config.paths.targetBlog,
+            imagesDir: config.paths.imagesDir
+        };
+
+        notificationService.info('正在發布文章...');
+
+        const result: PublishResult = await window.electronAPI.publishArticle(
+            article,
+            publishConfig,
+            (step: string, progress: number) => {
+                console.log(`發布進度: ${step} - ${progress}%`);
+            }
+        );
+
+        if (result.success) {
+            notificationService.success(`成功發布文章: ${article.title}`);
+
+            // 如果有警告，顯示警告訊息
+            if (result.warnings && result.warnings.length > 0) {
+                console.warn('發布警告:', result.warnings);
+                result.warnings.forEach(warning => {
+                    notificationService.warning(warning);
+                });
+            }
+        } else {
+            notificationService.error(`發布失敗: ${result.message}`);
+
+            // 顯示詳細錯誤
+            if (result.errors && result.errors.length > 0) {
+                result.errors.forEach(error => {
+                    notificationService.error(error);
+                });
+            }
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '未知錯誤';
+        notificationService.error(`發布失敗: ${errorMessage}`);
+        console.error('Failed to publish article:', error);
     }
 }
 
