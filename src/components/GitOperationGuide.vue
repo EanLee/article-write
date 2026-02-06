@@ -1,7 +1,7 @@
 <template>
-  <div class="git-operation-guide">
+  <div class="p-4">
     <!-- 標題 -->
-    <div class="guide-header">
+    <div class="pb-3 border-b border-base-300">
       <h3 class="text-lg font-semibold flex items-center gap-2">
         <GitBranch :size="20" />
         Git 操作指引
@@ -16,10 +16,10 @@
       <div
         v-for="(item, index) in displayCommands"
         :key="index"
-        class="command-item"
+        class="bg-base-100 rounded-lg p-3 border border-base-300"
       >
-        <div class="command-header">
-          <span class="command-title">{{ item.title }}</span>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-base-content">{{ item.title }}</span>
           <button
             class="btn btn-xs btn-ghost gap-1"
             @click="copyCommand(item.command)"
@@ -28,15 +28,15 @@
             複製
           </button>
         </div>
-        <div class="command-code">
-          <code>{{ item.command }}</code>
+        <div class="bg-base-300 rounded p-2 mb-2 overflow-x-auto">
+          <code class="text-sm font-mono text-primary">{{ item.command }}</code>
         </div>
-        <p class="command-description">{{ item.description }}</p>
+        <p class="text-xs text-base-content/60">{{ item.description }}</p>
       </div>
     </div>
 
     <!-- 快速複製完整指令 -->
-    <div class="quick-copy mt-4 p-3 bg-base-200 rounded-lg">
+    <div class="mt-4 p-3 bg-base-200 rounded-lg">
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm font-medium">一鍵執行所有指令</span>
         <button
@@ -104,40 +104,3 @@ async function copyFullCommand() {
 }
 </script>
 
-<style scoped>
-.git-operation-guide {
-  @apply p-4;
-}
-
-.guide-header {
-  @apply pb-3 border-b border-base-300;
-}
-
-.command-item {
-  @apply bg-base-100 rounded-lg p-3 border border-base-300;
-}
-
-.command-header {
-  @apply flex items-center justify-between mb-2;
-}
-
-.command-title {
-  @apply text-sm font-medium text-base-content;
-}
-
-.command-code {
-  @apply bg-base-300 rounded p-2 mb-2 overflow-x-auto;
-}
-
-.command-code code {
-  @apply text-sm font-mono text-primary;
-}
-
-.command-description {
-  @apply text-xs text-base-content/60;
-}
-
-.quick-copy code {
-  @apply text-base-content/80 break-all;
-}
-</style>
