@@ -122,6 +122,14 @@
             </td>
             <td @click.stop>
               <div class="flex gap-1 justify-center">
+                <button
+                  class="btn btn-xs btn-ghost text-success"
+                  :disabled="!canPublish(article)"
+                  @click="handlePublishArticle(article)"
+                  title="發布到部落格"
+                >
+                  <Send :size="14" />
+                </button>
                 <button class="btn btn-xs btn-ghost" @click="handleEditArticle(article)" title="編輯">
                   <Edit2 :size="14" />
                 </button>
@@ -168,8 +176,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { useArticleStore } from '@/stores/article'
+import { useConfigStore } from '@/stores/config'
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import type { Article } from '@/types'
+import type { PublishConfig, PublishResult } from '@/main/services/PublishService'
+import { notificationService } from '@/services/NotificationService'
 import {
   FileText,
   FilePenLine,
@@ -180,14 +191,20 @@ import {
   Edit2,
   Trash2,
   FilePlus,
-  Filter
+  Filter,
+  Send
 } from 'lucide-vue-next'
 
 const articleStore = useArticleStore()
+const configStore = useConfigStore()
 
 const emit = defineEmits<{
   'edit-article': []
 }>()
+
+// 發布相關狀態
+const publishingArticleId = ref<string | null>(null)
+const publishProgress = ref<{ step: string; progress: number } | null>(null)
 
 // 分頁
 const currentPage = ref(1)
@@ -278,6 +295,89 @@ function handleEditArticle(article: Article) {
 function handleDeleteArticle(article: Article) {
   if (confirm(`確定要刪除文章「${article.title}」嗎？`)) {
     articleStore.deleteArticle(article.id)
+  }
+}
+
+// 檢查是否可以發布
+function canPublish(article: Article): boolean {
+  // 正在發布中的文章不能再次發布
+  if (publishingArticleId.value === article.id) {
+    return false
+  }
+
+  // 必須有標題和 slug
+  if (!article.title || !article.slug) {
+    return false
+  }
+
+  // 必須設定了路徑
+  const config = configStore.config
+  if (!config.paths.articlesDir || !config.paths.targetBlog) {
+    return false
+  }
+
+  return true
+}
+
+// 處理發布文章
+async function handlePublishArticle(article: Article) {
+  // 檢查配置
+  const config = configStore.config
+  if (!config.paths.articlesDir || !config.paths.targetBlog) {
+    notificationService.error('請先在設定中配置文章目錄和部落格路徑')
+    return
+  }
+
+  // 確認發布
+  if (!confirm(`確定要發布文章「${article.title}」到部落格嗎？`)) {
+    return
+  }
+
+  publishingArticleId.value = article.id
+  publishProgress.value = { step: '準備發布', progress: 0 }
+
+  try {
+    const publishConfig: PublishConfig = {
+      articlesDir: config.paths.articlesDir,
+      targetBlogDir: config.paths.targetBlog,
+      imagesDir: config.paths.imagesDir
+    }
+
+    const result: PublishResult = await window.electronAPI.publishArticle(
+      article,
+      publishConfig,
+      (step: string, progress: number) => {
+        publishProgress.value = { step, progress }
+      }
+    )
+
+    if (result.success) {
+      notificationService.success(`成功發布文章: ${article.title}`)
+
+      // 如果有警告，顯示警告訊息
+      if (result.warnings && result.warnings.length > 0) {
+        console.warn('發布警告:', result.warnings)
+        result.warnings.forEach(warning => {
+          notificationService.warning(warning)
+        })
+      }
+    } else {
+      notificationService.error(`發布失敗: ${result.message}`)
+
+      // 顯示詳細錯誤
+      if (result.errors && result.errors.length > 0) {
+        result.errors.forEach(error => {
+          notificationService.error(error)
+        })
+      }
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : '未知錯誤'
+    notificationService.error(`發布失敗: ${errorMessage}`)
+    console.error('Failed to publish article:', error)
+  } finally {
+    publishingArticleId.value = null
+    publishProgress.value = null
   }
 }
 
