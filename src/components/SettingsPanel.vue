@@ -432,23 +432,67 @@
           </div>
         </div>
 
-        <!-- Git Settings Tab (Coming Soon) -->
+        <!-- Git Settings Tab -->
         <div v-show="activeTab === 'git'" class="space-y-4">
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
-              <h4 class="font-semibold text-lg mb-4">Git 自動發布設定</h4>
+              <h4 class="font-semibold text-lg mb-4">Git 發布設定</h4>
               <p class="text-sm text-base-content/70 mb-4">
-                配置一鍵發布時的 Git 自動化行為
+                管理文章發布後的 Git 操作流程
               </p>
 
-              <!-- Coming Soon Notice -->
-              <div class="alert">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6">
+              <!-- Current Version Features -->
+              <div class="alert alert-success mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <h4 class="font-bold">✨ v0.1 已提供 Git 操作指南</h4>
+                  <div class="text-xs mt-1">
+                    發布文章後會自動顯示 Git 操作指令，提供一鍵複製功能
+                  </div>
+                </div>
+              </div>
+
+              <!-- Current Features List -->
+              <div class="bg-base-200 rounded-lg p-4 mb-4">
+                <h5 class="font-semibold mb-3">當前功能 (v0.1)</h5>
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span><strong>自動生成 Git 指令</strong>：根據發布的文章自動生成 add、commit、push 指令</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span><strong>標準化 Commit Message</strong>：遵循 Conventional Commits 規範</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span><strong>一鍵複製</strong>：單個指令或完整指令序列均可快速複製</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span><strong>操作指引</strong>：每個步驟都有清楚的說明</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Future Features Notice -->
+              <div class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div>
-                  <h4 class="font-bold">功能開發中</h4>
-                  <div class="text-xs mt-1">此功能將在下個版本推出，敬請期待！</div>
+                  <h4 class="font-bold">🚀 v0.2 將支援 Git 自動化</h4>
+                  <div class="text-xs mt-1">下個版本將提供一鍵自動執行 Git 操作的功能</div>
                 </div>
               </div>
 
