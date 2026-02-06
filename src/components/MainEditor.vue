@@ -40,6 +40,22 @@
         <!-- Frontmatter Editor Modal -->
         <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
             @update="handleFrontmatterUpdate" />
+
+        <!-- Git 操作指南 Modal -->
+        <dialog :class="{ 'modal': true, 'modal-open': showGitGuide }">
+            <div class="modal-box max-w-3xl">
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    @click="showGitGuide = false"
+                >
+                    ✕
+                </button>
+                <GitOperationGuide v-if="gitCommands" :commands="gitCommands" />
+            </div>
+            <form method="dialog" class="modal-backdrop" @click="showGitGuide = false">
+                <button>close</button>
+            </form>
+        </dialog>
     </div>
 </template>
 
@@ -65,6 +81,9 @@ import { getArticleService } from '@/services/ArticleService';
 import { notificationService } from '@/services/NotificationService';
 import type { Article } from '@/types';
 import type { PublishConfig, PublishResult } from '@/main/services/PublishService';
+import { generateGitCommands } from '@/utils/gitCommandGenerator';
+import type { GitCommands } from '@/utils/gitCommandGenerator';
+import GitOperationGuide from './GitOperationGuide.vue';
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -78,6 +97,8 @@ const content = ref('');
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
+const showGitGuide = ref(false);
+const gitCommands = ref<GitCommands | null>(null);
 const renderedContent = ref('');
 const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<'compose' | 'raw'>('compose');
@@ -361,6 +382,17 @@ async function handlePublishToBlog() {
 
         if (result.success) {
             notificationService.success(`成功發布文章: ${article.title}`);
+
+            // 生成 Git 指令並顯示操作指南
+            if (result.targetPath) {
+                // 計算相對於 Astro 專案的路徑
+                const relativePath = result.targetPath.replace(/\\/g, '/');
+                const pathParts = relativePath.split('/');
+                const relativeToProject = pathParts.slice(pathParts.indexOf('src')).join('/');
+
+                gitCommands.value = generateGitCommands(article, relativeToProject);
+                showGitGuide.value = true;
+            }
 
             // 如果有警告，顯示警告訊息
             if (result.warnings && result.warnings.length > 0) {

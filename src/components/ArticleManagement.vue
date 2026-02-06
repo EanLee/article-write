@@ -170,6 +170,22 @@
         <option :value="100">100 / 頁</option>
       </select>
     </div>
+
+    <!-- Git 操作指南 Modal -->
+    <dialog :class="{ 'modal': true, 'modal-open': showGitGuide }">
+      <div class="modal-box max-w-3xl">
+        <button
+          class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          @click="showGitGuide = false"
+        >
+          ✕
+        </button>
+        <GitOperationGuide v-if="gitCommands" :commands="gitCommands" />
+      </div>
+      <form method="dialog" class="modal-backdrop" @click="showGitGuide = false">
+        <button>close</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -181,6 +197,8 @@ import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/typ
 import type { Article } from '@/types'
 import type { PublishConfig, PublishResult } from '@/main/services/PublishService'
 import { notificationService } from '@/services/NotificationService'
+import { generateGitCommands } from '@/utils/gitCommandGenerator'
+import type { GitCommands } from '@/utils/gitCommandGenerator'
 import {
   FileText,
   FilePenLine,
@@ -194,6 +212,7 @@ import {
   Filter,
   Send
 } from 'lucide-vue-next'
+import GitOperationGuide from './GitOperationGuide.vue'
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
@@ -205,6 +224,8 @@ const emit = defineEmits<{
 // 發布相關狀態
 const publishingArticleId = ref<string | null>(null)
 const publishProgress = ref<{ step: string; progress: number } | null>(null)
+const showGitGuide = ref(false)
+const gitCommands = ref<GitCommands | null>(null)
 
 // 分頁
 const currentPage = ref(1)
@@ -353,6 +374,17 @@ async function handlePublishArticle(article: Article) {
 
     if (result.success) {
       notificationService.success(`成功發布文章: ${article.title}`)
+
+      // 生成 Git 指令並顯示操作指南
+      if (result.targetPath) {
+        // 計算相對於 Astro 專案的路徑
+        const relativePath = result.targetPath.replace(/\\/g, '/')
+        const pathParts = relativePath.split('/')
+        const relativeToProject = pathParts.slice(pathParts.indexOf('src')).join('/')
+
+        gitCommands.value = generateGitCommands(article, relativeToProject)
+        showGitGuide.value = true
+      }
 
       // 如果有警告，顯示警告訊息
       if (result.warnings && result.warnings.length > 0) {
