@@ -393,6 +393,7 @@ defineExpose({
 
 .editor-textarea {
   flex: 1;
+  width: 100%; /* 確保填滿父容器寬度，覆蓋 textarea 預設 cols=20 */
   border: 1px solid oklch(var(--bc) / 0.2);
   border-radius: 0.5rem;
   padding: 1rem;
