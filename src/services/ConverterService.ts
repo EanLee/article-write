@@ -561,8 +561,8 @@ export class ConverterService {
    * @returns {string} 目標路徑
    */
   private createTargetPath(article: Article, targetBlogDir: string): string {
-    // 建立 Leaf Bundle 結構：src/content/blog/category/slug/
-    return this.joinPath(targetBlogDir, 'src', 'content', 'blog', article.category, article.slug)
+    // target 直接是輸出資料夾，結構：{targetDir}/category/slug/
+    return this.joinPath(targetBlogDir, article.category, article.slug)
   }
 
   /**
@@ -946,13 +946,6 @@ export class ConverterService {
         const targetExists = await this.fileExists(config.targetDir)
         if (!targetExists) {
           issues.push('目標目錄不存在')
-        } else {
-          // 檢查 Astro 專案結構
-          const contentPath = this.joinPath(config.targetDir, 'src', 'content', 'blog')
-          const contentExists = await this.fileExists(contentPath)
-          if (!contentExists) {
-            issues.push('目標目錄不是有效的 Astro 專案結構')
-          }
         }
       }
 

@@ -357,8 +357,8 @@ export class PublishService {
     content: string,
     config: PublishConfig
   ): Promise<string> {
-    // 目標路徑: {targetBlogDir}/src/content/blog/{slug}.md
-    const targetDir = join(config.targetBlogDir, 'src', 'content', 'blog')
+    // target 直接是輸出資料夾，結構：{targetBlogDir}/{slug}.md
+    const targetDir = config.targetBlogDir
     await this.ensureDirectoryExists(targetDir)
 
     const targetPath = join(targetDir, `${article.slug}.md`)

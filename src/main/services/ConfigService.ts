@@ -88,42 +88,8 @@ export class ConfigService {
         return { valid: false, message: '路徑不是資料夾' }
       }
 
-      // 檢查是否為 Astro 專案（檢查 astro.config.*)
-      const configFiles = ['astro.config.js', 'astro.config.ts', 'astro.config.mjs']
-      let hasAstroConfig = false
-      
-      for (const configFile of configFiles) {
-        try {
-          const configPath = join(path, configFile)
-          await fs.access(configPath, fs.constants.R_OK)
-          hasAstroConfig = true
-          break
-        } catch {
-          // 檔案不存在，繼續檢查下一個
-          continue
-        }
-      }
-
-      if (!hasAstroConfig) {
-        // 路徑存在且是資料夾，但非 Astro 專案 → 允許但提示警告
-        return { valid: true, warning: true, message: '⚠ 找不到 astro.config.* 檔案，請確認此為 Astro 專案根目錄' }
-      }
-
-      // 檢查 src/content/blog 結構（可選，沒有也可以手動建立）
-      const blogPath = join(path, 'src', 'content', 'blog')
-      let hasBlogStructure = false
-      try {
-        const blogStats = await fs.stat(blogPath)
-        hasBlogStructure = blogStats.isDirectory()
-      } catch {
-        hasBlogStructure = false
-      }
-
-      if (hasBlogStructure) {
-        return { valid: true, message: '✓ 有效的 Astro 部落格專案（已有 blog 資料夾）' }
-      } else {
-        return { valid: true, message: '✓ 有效的 Astro 專案（需要建立 src/content/blog 資料夾）' }
-      }
+      // target 就是直接輸出的資料夾，不需要驗證 Astro 專案結構
+      return { valid: true, message: '✓ 有效的輸出資料夾' }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }

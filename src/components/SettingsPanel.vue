@@ -128,13 +128,13 @@
                     <span class="badge badge-ghost badge-sm">選填</span>
                   </div>
                   <p class="text-sm text-base-content/70 mb-3">
-                    您的靜態網站專案資料夾（將發布文章到此處）
+                    文章輸出目標資料夾（直接指向 content 資料夾，例如 Astro 的 <code class="font-mono text-xs bg-base-300 px-1 rounded">src/content/blog</code>）
                   </p>
                   <div class="join w-full">
                     <input
                       v-model="localConfig.paths.targetBlog"
                       type="text"
-                      placeholder="例如：C:\Users\你的名字\Projects\my-astro-blog"
+                      placeholder="例如：C:\Users\你的名字\Projects\my-blog\src\content\blog"
                       class="input input-bordered join-item flex-1"
                       :class="{ 'input-error': localConfig.paths.targetBlog && !blogValidation.valid && !blogValidation.warning }"
                     />
