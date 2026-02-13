@@ -173,25 +173,48 @@ export class ArticleService {
     const loadTasks: Promise<Article | null>[] = [];
 
     try {
-      // 掃描所有分類資料夾（不再依賴 Drafts/Publish 資料夾結構）
-      const entries = await this.fileSystem.readDirectory(vaultPath);
+      // 掃描所有頂層資料夾（支援新結構 vaultPath/Category/*.md
+      // 以及舊結構 vaultPath/TopDir/Category/*.md，如 Drafts/Software/*.md）
+      const topEntries = await this.fileSystem.readDirectory(vaultPath);
 
-      for (const entry of entries) {
-        const entryPath = `${vaultPath}/${entry}`;
-        const stats = await this.fileSystem.getFileStats(entryPath);
-        if (!stats?.isDirectory) {continue;}
+      for (const topEntry of topEntries) {
+        const topPath = `${vaultPath}/${topEntry}`;
+        const topStats = await this.fileSystem.getFileStats(topPath);
+        if (!topStats?.isDirectory) { continue; }
 
-        // 讀取分類資料夾下的 .md 文章
-        const files = await this.fileSystem.readDirectory(entryPath);
-        const mdFiles = files.filter((f) => f.endsWith(".md"));
+        // 先嘗試直接讀取此資料夾下的 .md 檔（新結構：vaultPath/Category/*.md）
+        const topFiles = await this.fileSystem.readDirectory(topPath);
+        const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
 
-        for (const file of mdFiles) {
-          const filePath = `${entryPath}/${file}`;
-          const loadTask = this.loadArticle(filePath, entry as ArticleCategory).catch((err) => {
-            console.warn(`Failed to load article ${filePath}:`, err);
-            return null;
-          });
-          loadTasks.push(loadTask);
+        if (directMdFiles.length > 0) {
+          // 有 .md 檔 → 此資料夾本身是 Category 資料夾
+          for (const file of directMdFiles) {
+            const filePath = `${topPath}/${file}`;
+            const loadTask = this.loadArticle(filePath, topEntry as ArticleCategory).catch((err) => {
+              console.warn(`Failed to load article ${filePath}:`, err);
+              return null;
+            });
+            loadTasks.push(loadTask);
+          }
+        } else {
+          // 無 .md 檔 → 可能是舊結構的中間層（如 Drafts/、Publish/），再往下掃一層
+          for (const subEntry of topFiles) {
+            const subPath = `${topPath}/${subEntry}`;
+            const subStats = await this.fileSystem.getFileStats(subPath);
+            if (!subStats?.isDirectory) { continue; }
+
+            const subFiles = await this.fileSystem.readDirectory(subPath);
+            const subMdFiles = subFiles.filter((f) => f.endsWith(".md"));
+
+            for (const file of subMdFiles) {
+              const filePath = `${subPath}/${file}`;
+              const loadTask = this.loadArticle(filePath, subEntry as ArticleCategory).catch((err) => {
+                console.warn(`Failed to load article ${filePath}:`, err);
+                return null;
+              });
+              loadTasks.push(loadTask);
+            }
+          }
         }
       }
     } catch (err) {
