@@ -433,6 +433,14 @@ export const useArticleStore = defineStore("article", () => {
         await saveArticle(updatedArticle);
 
         notify.success("發布成功", `「${article.title}」已設為公開`);
+
+        // 背景備份：靜默觸發 git commit，失敗不影響使用者
+        const blogPath = configStore.config.paths.targetBlog;
+        if (blogPath) {
+          window.electronAPI
+            .gitAddCommitPush(blogPath, `backup: publish ${article.slug}`)
+            .catch((err: unknown) => console.warn("Git backup failed:", err));
+        }
       }
     } catch (error) {
       console.error("Failed to publish article:", error);
