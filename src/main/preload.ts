@@ -53,6 +53,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
 
+  // Git operations
+  gitStatus: (repoPath: string) => ipcRenderer.invoke('git-status', repoPath),
+  gitAdd: (repoPath: string, paths?: string[]) => ipcRenderer.invoke('git-add', repoPath, paths),
+  gitCommit: (repoPath: string, options: { message: string; addAll?: boolean }) =>
+    ipcRenderer.invoke('git-commit', repoPath, options),
+  gitPush: (repoPath: string, options?: { remote?: string; branch?: string }) =>
+    ipcRenderer.invoke('git-push', repoPath, options),
+  gitAddCommitPush: (repoPath: string, commitMessage: string) =>
+    ipcRenderer.invoke('git-add-commit-push', repoPath, commitMessage),
+  gitLog: (repoPath: string, count?: number) => ipcRenderer.invoke('git-log', repoPath, count),
+
   // Directory selection
   selectDirectory: (options?: { title?: string, defaultPath?: string }) =>
     ipcRenderer.invoke('select-directory', options)
