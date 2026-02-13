@@ -38,8 +38,6 @@
               <MainEditor />
             </div>
 
-            <!-- 伺服器控制面板 -->
-            <ServerControlPanel />
           </main>
         </div>
       </template>
@@ -70,7 +68,6 @@ import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
-import ServerControlPanel from "@/components/ServerControlPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 
