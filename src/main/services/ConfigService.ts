@@ -105,7 +105,8 @@ export class ConfigService {
       }
 
       if (!hasAstroConfig) {
-        return { valid: false, message: '找不到 astro.config.* 檔案' }
+        // 路徑存在且是資料夾，但非 Astro 專案 → 允許但提示警告
+        return { valid: true, warning: true, message: '⚠ 找不到 astro.config.* 檔案，請確認此為 Astro 專案根目錄' }
       }
 
       // 檢查 src/content/blog 結構（可選，沒有也可以手動建立）
