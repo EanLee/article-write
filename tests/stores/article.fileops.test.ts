@@ -56,20 +56,17 @@ describe('Article Store - 檔案操作測試', () => {
     it('應該正確載入包含系列資訊的文章', async () => {
       // Mock 檔案系統結構
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['test-article.md']
         }
         return []
@@ -102,20 +99,17 @@ Test content here`)
 
     it('應該正確載入沒有系列資訊的文章', async () => {
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['no-series.md']
         }
         return []
@@ -141,20 +135,17 @@ Content without series`)
 
     it('當檔案讀取失敗時應該繼續載入其他文章', async () => {
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['good.md', 'bad.md', 'another-good.md']
         }
         return []

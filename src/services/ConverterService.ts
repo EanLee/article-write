@@ -71,9 +71,8 @@ export class ConverterService {
     }
 
     try {
-      // 掃描 Publish 資料夾中的所有文章
-      const publishPath = this.joinPath(config.sourceDir, 'publish')
-      const articles = await this.scanPublishedArticles(publishPath)
+      // 掃描所有 status === Published 的文章
+      const articles = await this.scanPublishedArticles(config.sourceDir)
 
       console.log(`Found ${articles.length} articles to convert`)
 
@@ -190,41 +189,33 @@ export class ConverterService {
    * @param {string} publishPath - Publish 資料夾路徑
    * @returns {Promise<Article[]>} 文章陣列
    */
-  private async scanPublishedArticles(publishPath: string): Promise<Article[]> {
+  private async scanPublishedArticles(sourceDir: string): Promise<Article[]> {
     const articles: Article[] = []
-    
     try {
-      // 掃描所有分類資料夾
-      const categories = ['Software', 'growth', 'management']
-      
-      for (const category of categories) {
-        const categoryPath = this.joinPath(publishPath, category)
-        
-        try {
-          const files = await this.fileSystem.readDirectory(categoryPath)
-          
-          for (const file of files) {
-            if (file.endsWith('.md')) {
-              const filePath = this.joinPath(categoryPath, file)
-              const article = await this.articleService.loadArticle(
-                filePath,
-                ArticleStatus.Published,
-                category as ArticleCategory
-              )
-              
-              if (article) {
-                articles.push(article)
-              }
+      const entries = await this.fileSystem.readDirectory(sourceDir)
+      for (const entry of entries) {
+        const entryPath = `${sourceDir}/${entry}`
+        const stats = await this.fileSystem.getFileStats(entryPath)
+        if (!stats?.isDirectory) {continue}
+
+        const files = await this.fileSystem.readDirectory(entryPath)
+        const mdFiles = files.filter((f) => f.endsWith('.md'))
+
+        for (const file of mdFiles) {
+          const filePath = `${entryPath}/${file}`
+          try {
+            const article = await this.articleService.loadArticle(filePath, entry as ArticleCategory)
+            if (article.status === ArticleStatus.Published) {
+              articles.push(article)
             }
+          } catch (err) {
+            console.warn(`Failed to load article ${filePath}:`, err)
           }
-        } catch (error) {
-          console.warn(`Failed to scan category ${category}:`, error)
         }
       }
-    } catch (error) {
-      console.error('Failed to scan published articles:', error)
+    } catch (err) {
+      console.warn(`Failed to scan source dir ${sourceDir}:`, err)
     }
-
     return articles
   }
 
@@ -621,11 +612,11 @@ export class ConverterService {
    * @param {string} publishPath - Publish 資料夾路徑
    * @returns {Promise<{totalArticles: number, articlesByCategory: Record<string, number>}>} 統計資訊
    */
-  async getConversionStats(publishPath: string): Promise<{
+  async getConversionStats(sourceDir: string): Promise<{
     totalArticles: number
     articlesByCategory: Record<string, number>
   }> {
-    const articles = await this.scanPublishedArticles(publishPath)
+    const articles = await this.scanPublishedArticles(sourceDir)
     const stats = {
       totalArticles: articles.length,
       articlesByCategory: {

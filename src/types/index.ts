@@ -88,6 +88,7 @@ export interface Frontmatter {
   description?: string
   date: string
   lastmod?: string
+  status?: ArticleStatus     // 文章狀態，未設定預設為 draft
   tags?: string[]        // 改為可選，防止 undefined 導致崩潰
   categories?: string[]  // 改為可選，防止 undefined 導致崩潰
   slug?: string

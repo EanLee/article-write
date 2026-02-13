@@ -17,6 +17,7 @@ vi.mock("@/services/MarkdownService", () => {
     frontmatter: {
       title: "Test Article",
       date: "2026-01-26",
+      status: "draft",
       tags: ["test"],
       categories: ["Software"],
     },
@@ -114,7 +115,7 @@ Test content`;
       await mockFileSystem.writeFile(filePath, fileContent);
 
       // 執行測試
-      const result = await service.loadArticle(filePath, ArticleStatus.Draft, ArticleCategory.Software);
+      const result = await service.loadArticle(filePath, ArticleCategory.Software);
 
       // 驗證
       expect(result.title).toBe("Test Article");
@@ -127,7 +128,7 @@ Test content`;
     it("應該處理檔案不存在的情況", async () => {
       const filePath = "/vault/Drafts/Software/non-existent.md";
 
-      await expect(service.loadArticle(filePath, ArticleStatus.Draft, ArticleCategory.Software)).rejects.toThrow("File not found");
+      await expect(service.loadArticle(filePath, ArticleCategory.Software)).rejects.toThrow("File not found");
     });
   });
 
@@ -135,12 +136,12 @@ Test content`;
     it("應該掃描並載入所有文章", async () => {
       // 準備測試資料
       await mockFileSystem.seed({
-        directories: ["/vault", "/vault/Drafts", "/vault/Drafts/Software", "/vault/Drafts/growth", "/vault/Publish", "/vault/Publish/Software"],
+        directories: ["/vault", "/vault/Software", "/vault/growth"],
         files: {
-          "/vault/Drafts/Software/article1.md": "content1",
-          "/vault/Drafts/Software/article2.md": "content2",
-          "/vault/Drafts/growth/article3.md": "content3",
-          "/vault/Publish/Software/article4.md": "content4",
+          "/vault/Software/article1.md": "content1",
+          "/vault/Software/article2.md": "content2",
+          "/vault/growth/article3.md": "content3",
+          "/vault/Software/article4.md": "content4",
         },
       });
 
@@ -154,8 +155,6 @@ Test content`;
 
     it("應該處理空 vault 的情況", async () => {
       await mockFileSystem.createDirectory("/vault");
-      await mockFileSystem.createDirectory("/vault/Drafts");
-      await mockFileSystem.createDirectory("/vault/Publish");
 
       const articles = await service.loadAllArticles("/vault");
 
@@ -165,11 +164,10 @@ Test content`;
     it("應該略過不存在的資料夾", async () => {
       // 只建立部分資料夾
       await mockFileSystem.createDirectory("/vault");
-      await mockFileSystem.createDirectory("/vault/Drafts");
-      await mockFileSystem.createDirectory("/vault/Drafts/Software");
-      await mockFileSystem.writeFile("/vault/Drafts/Software/article1.md", "content");
+      await mockFileSystem.createDirectory("/vault/Software");
+      await mockFileSystem.writeFile("/vault/Software/article1.md", "content");
 
-      // Publish 資料夾不存在
+      // 其他分類資料夾不存在
 
       const articles = await service.loadAllArticles("/vault");
 
