@@ -1,65 +1,104 @@
 <template>
-  <div class="sidebar-view" :style="{ width: `${width}px` }">
-    <!-- Header with tabs -->
-    <div class="sidebar-header">
-      <div class="sidebar-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: modelValue === SidebarView.Articles }"
-          @click="$emit('update:modelValue', SidebarView.Articles)"
-        >
-          <FileText :size="14" />
-          <span>文章列表</span>
-        </button>
-        <button
-          class="tab-btn"
-          :class="{ active: modelValue === SidebarView.Frontmatter }"
-          :disabled="!hasCurrentArticle"
-          @click="$emit('update:modelValue', SidebarView.Frontmatter)"
-        >
-          <Info :size="14" />
-          <span>文章資訊</span>
-        </button>
+  <div
+    class="sidebar-view"
+    :class="{ 'sidebar-collapsed': isCollapsed || focusMode }"
+    :style="isCollapsed || focusMode ? {} : { width: `${width}px` }"
+  >
+    <!-- 收合狀態：只顯示展開按鈕 -->
+    <div v-if="isCollapsed || focusMode" class="sidebar-toggle-btn" @click="expand" title="展開側欄 (Ctrl+B)">
+      <PanelLeftOpen :size="16" />
+    </div>
+
+    <!-- 展開狀態 -->
+    <template v-else>
+      <!-- Header with tabs -->
+      <div class="sidebar-header">
+        <div class="sidebar-tabs">
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Articles }"
+            @click="$emit('update:modelValue', SidebarView.Articles)"
+          >
+            <FileText :size="14" />
+            <span>文章列表</span>
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Frontmatter }"
+            :disabled="!hasCurrentArticle"
+            @click="$emit('update:modelValue', SidebarView.Frontmatter)"
+          >
+            <Info :size="14" />
+            <span>文章資訊</span>
+          </button>
+          <!-- 收合按鈕 -->
+          <button class="tab-btn collapse-btn" @click="collapse" title="收合側欄 (Ctrl+B)">
+            <PanelLeftClose :size="14" />
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Content -->
-    <div class="sidebar-content">
-      <!-- 文章列表視圖 -->
-      <ArticleListTree v-if="modelValue === SidebarView.Articles" />
+      <!-- Content -->
+      <div class="sidebar-content">
+        <ArticleListTree v-if="modelValue === SidebarView.Articles" />
+        <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+      </div>
 
-      <!-- Frontmatter 視圖 -->
-      <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
-    </div>
-
-    <!-- Resize Handle -->
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+      <!-- Resize Handle -->
+      <div class="resize-handle" @mousedown="startResize"></div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FileText, Info } from 'lucide-vue-next'
+import { FileText, Info, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
 import { SidebarView } from '@/types'
 import { useArticleStore } from '@/stores/article'
+import { useFocusMode } from '@/composables/useFocusMode'
 import ArticleListTree from './ArticleListTree.vue'
 import FrontmatterView from './FrontmatterView.vue'
 
 const articleStore = useArticleStore()
+const { focusMode } = useFocusMode()
 const modelValue = defineModel<SidebarView>({ default: SidebarView.Articles })
 
 const MIN_WIDTH = 200
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 280
 const STORAGE_KEY = 'sidebar-view-width'
+const COLLAPSED_KEY = 'sidebar-view-collapsed'
 
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
+const isCollapsed = ref(false)
 
 const hasCurrentArticle = computed(() => !!articleStore.currentArticle)
+
+function collapse() {
+  isCollapsed.value = true
+  localStorage.setItem(COLLAPSED_KEY, 'true')
+}
+
+function expand() {
+  isCollapsed.value = false
+  localStorage.setItem(COLLAPSED_KEY, 'false')
+}
+
+function toggleCollapse() {
+  if (isCollapsed.value) {
+    expand()
+  } else {
+    collapse()
+  }
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault()
+    toggleCollapse()
+  }
+}
 
 function startResize(e: MouseEvent) {
   isResizing.value = true
@@ -67,8 +106,7 @@ function startResize(e: MouseEvent) {
 }
 
 function handleMouseMove(e: MouseEvent) {
-  if (!isResizing.value) {return}
-
+  if (!isResizing.value) { return }
   const newWidth = e.clientX - 48 // 扣除 ActivityBar 的寬度
   if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
     width.value = newWidth
@@ -78,13 +116,11 @@ function handleMouseMove(e: MouseEvent) {
 function stopResize() {
   if (isResizing.value) {
     isResizing.value = false
-    // 儲存寬度到 localStorage
     localStorage.setItem(STORAGE_KEY, width.value.toString())
   }
 }
 
 onMounted(() => {
-  // 載入儲存的寬度
   const savedWidth = localStorage.getItem(STORAGE_KEY)
   if (savedWidth) {
     const parsed = parseInt(savedWidth, 10)
@@ -93,13 +129,20 @@ onMounted(() => {
     }
   }
 
+  const savedCollapsed = localStorage.getItem(COLLAPSED_KEY)
+  if (savedCollapsed === 'true') {
+    isCollapsed.value = true
+  }
+
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', stopResize)
+  window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', stopResize)
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -112,6 +155,29 @@ onUnmounted(() => {
   height: 100%;
   flex-shrink: 0;
   position: relative;
+  transition: width 0.2s ease;
+}
+
+.sidebar-collapsed {
+  width: 36px !important;
+  overflow: hidden;
+}
+
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 100%;
+  cursor: pointer;
+  color: oklch(var(--bc) / 0.5);
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+  color: oklch(var(--bc) / 0.9);
+  background: oklch(var(--bc) / 0.05);
 }
 
 .sidebar-header {
@@ -156,6 +222,12 @@ onUnmounted(() => {
 .tab-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.collapse-btn {
+  flex: none;
+  width: 28px;
+  padding: 6px 6px;
 }
 
 .sidebar-content {
