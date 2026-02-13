@@ -4,13 +4,7 @@
     :class="{ 'sidebar-collapsed': isCollapsed || focusMode }"
     :style="isCollapsed || focusMode ? {} : { width: `${width}px` }"
   >
-    <!-- 收合狀態：只顯示展開按鈕 -->
-    <div v-if="isCollapsed || focusMode" class="sidebar-toggle-btn" @click="expand" title="展開側欄 (Ctrl+B)">
-      <PanelLeftOpen :size="16" />
-    </div>
-
-    <!-- 展開狀態 -->
-    <template v-else>
+    <template v-if="!isCollapsed && !focusMode">
       <!-- Header with tabs -->
       <div class="sidebar-header">
         <div class="sidebar-tabs">
@@ -31,10 +25,6 @@
             <Info :size="14" />
             <span>文章資訊</span>
           </button>
-          <!-- 收合按鈕 -->
-          <button class="tab-btn collapse-btn" @click="collapse" title="收合側欄 (Ctrl+B)">
-            <PanelLeftClose :size="14" />
-          </button>
         </div>
       </div>
 
@@ -52,12 +42,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FileText, Info, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
+import { FileText, Info } from 'lucide-vue-next'
 import { SidebarView } from '@/types'
 import { useArticleStore } from '@/stores/article'
 import { useFocusMode } from '@/composables/useFocusMode'
 import ArticleListTree from './ArticleListTree.vue'
 import FrontmatterView from './FrontmatterView.vue'
+
+defineProps<{ isCollapsed: boolean }>()
 
 const articleStore = useArticleStore()
 const { focusMode } = useFocusMode()
@@ -67,38 +59,11 @@ const MIN_WIDTH = 200
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 280
 const STORAGE_KEY = 'sidebar-view-width'
-const COLLAPSED_KEY = 'sidebar-view-collapsed'
 
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
-const isCollapsed = ref(false)
 
 const hasCurrentArticle = computed(() => !!articleStore.currentArticle)
-
-function collapse() {
-  isCollapsed.value = true
-  localStorage.setItem(COLLAPSED_KEY, 'true')
-}
-
-function expand() {
-  isCollapsed.value = false
-  localStorage.setItem(COLLAPSED_KEY, 'false')
-}
-
-function toggleCollapse() {
-  if (isCollapsed.value) {
-    expand()
-  } else {
-    collapse()
-  }
-}
-
-function handleKeydown(e: KeyboardEvent) {
-  if (e.ctrlKey && e.key === 'b') {
-    e.preventDefault()
-    toggleCollapse()
-  }
-}
 
 function startResize(e: MouseEvent) {
   isResizing.value = true
@@ -107,7 +72,7 @@ function startResize(e: MouseEvent) {
 
 function handleMouseMove(e: MouseEvent) {
   if (!isResizing.value) { return }
-  const newWidth = e.clientX - 48 // 扣除 ActivityBar 的寬度
+  const newWidth = e.clientX - 48
   if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
     width.value = newWidth
   }
@@ -129,20 +94,13 @@ onMounted(() => {
     }
   }
 
-  const savedCollapsed = localStorage.getItem(COLLAPSED_KEY)
-  if (savedCollapsed === 'true') {
-    isCollapsed.value = true
-  }
-
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', stopResize)
-  window.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', stopResize)
-  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -155,29 +113,13 @@ onUnmounted(() => {
   height: 100%;
   flex-shrink: 0;
   position: relative;
-  transition: width 0.2s ease;
+  overflow: hidden;
+  transition: width 0.15s ease;
 }
 
 .sidebar-collapsed {
-  width: 36px !important;
-  overflow: hidden;
-}
-
-.sidebar-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 100%;
-  cursor: pointer;
-  color: oklch(var(--bc) / 0.5);
-  transition: color 0.15s ease;
-  flex-shrink: 0;
-}
-
-.sidebar-toggle-btn:hover {
-  color: oklch(var(--bc) / 0.9);
-  background: oklch(var(--bc) / 0.05);
+  width: 0 !important;
+  border-right: none;
 }
 
 .sidebar-header {
@@ -224,19 +166,12 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
-.collapse-btn {
-  flex: none;
-  width: 28px;
-  padding: 6px 6px;
-}
-
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Resize Handle */
 .resize-handle {
   position: absolute;
   right: 0;

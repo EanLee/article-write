@@ -44,12 +44,18 @@ const items: ActivityItem[] = [
 
 const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
 
-defineEmits<{
+const emit = defineEmits<{
   'open-settings': []
+  'toggle-sidebar': []
 }>()
 
 function handleClick(id: ViewMode) {
-  modelValue.value = id
+  if (modelValue.value === id) {
+    // 點擊已選中的圖示 → 切換 sidebar（VSCode 行為）
+    emit('toggle-sidebar')
+  } else {
+    modelValue.value = id
+  }
 }
 </script>
 
