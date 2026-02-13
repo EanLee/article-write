@@ -423,14 +423,15 @@ Content`
     })
   })
 
-  describe('moveToPublished - 移動到已發布', () => {
-    it('應該移動檔案並更新文章狀態', async () => {
+  describe('moveToPublished - 設為已發布', () => {
+    it('應該更新 frontmatter status 並保持檔案位置不變', async () => {
       const store = useArticleStore()
 
-      // Mock readFile 以模擬讀取原始檔案
+      // Mock readFile 以模擬讀取原始檔案（saveArticle 內部會讀取）
       window.electronAPI.readFile.mockResolvedValue(`---
 title: To Publish
 date: 2024-01-01
+status: draft
 tags: []
 categories:
   - Software
@@ -442,7 +443,7 @@ Content to publish`)
         id: 'move-test',
         title: 'To Publish',
         slug: 'to-publish',
-        filePath: '/test/vault/Drafts/Software/to-publish.md',
+        filePath: '/test/vault/Software/to-publish.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
@@ -450,6 +451,7 @@ Content to publish`)
         frontmatter: {
           title: 'To Publish',
           date: '2024-01-01',
+          status: ArticleStatus.Draft,
           tags: [],
           categories: ['Software']
         }
@@ -459,24 +461,20 @@ Content to publish`)
 
       await store.moveToPublished('move-test')
 
-      // 應該讀取原始檔案
-      expect(window.electronAPI.readFile).toHaveBeenCalledWith(
-        '/test/vault/Drafts/Software/to-publish.md'
-      )
-
-      // 應該寫入新位置
+      // 應該寫入同一個路徑（不移動檔案）
       expect(window.electronAPI.writeFile).toHaveBeenCalled()
-      const [newPath] = window.electronAPI.writeFile.mock.calls[0]
-      expect(newPath).toContain('/Publish/Software/')
+      const [writtenPath, writtenContent] = window.electronAPI.writeFile.mock.calls[0]
+      expect(writtenPath).toBe('/test/vault/Software/to-publish.md')
 
-      // 應該刪除舊檔案
-      expect(window.electronAPI.deleteFile).toHaveBeenCalledWith(
-        '/test/vault/Drafts/Software/to-publish.md'
-      )
+      // 應該寫入 published status
+      expect(writtenContent).toContain('status: published')
+
+      // 不應該刪除檔案
+      expect(window.electronAPI.deleteFile).not.toHaveBeenCalled()
 
       // 應該更新 store 中的文章狀態
-      expect(store.articles[0].status).toBe('published')
-      expect(store.articles[0].filePath).toContain('/Publish/Software/')
+      expect(store.articles[0].status).toBe(ArticleStatus.Published)
+      expect(store.articles[0].filePath).toBe('/test/vault/Software/to-publish.md')
     })
   })
 

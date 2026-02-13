@@ -830,9 +830,9 @@ export class ConverterService {
     }
 
     try {
-      // 掃描指定分類的文章
-      const publishPath = this.joinPath(config.sourceDir, 'publish', category)
-      const articles = await this.scanCategoryArticles(publishPath, category)
+      // 掃描指定分類資料夾（直接在 sourceDir 下，不再有 publish/ 中間層）
+      const categoryPath = this.joinPath(config.sourceDir, category)
+      const articles = await this.scanCategoryArticles(categoryPath, category)
 
       console.log(`Found ${articles.length} articles in category ${category}`)
 
@@ -900,15 +900,13 @@ export class ConverterService {
       for (const file of files) {
         if (file.endsWith('.md')) {
           const filePath = this.joinPath(categoryPath, file)
-          const article = await this.articleService.loadArticle(
-            filePath,
-            ArticleStatus.Published,
-            category as ArticleCategory
-          )
-          
-          if (article) {
-            // 分類已由 ArticleService.loadArticle 正確設定
-            articles.push(article)
+          try {
+            const article = await this.articleService.loadArticle(filePath, category as ArticleCategory)
+            if (article.status === ArticleStatus.Published) {
+              articles.push(article)
+            }
+          } catch (err) {
+            console.warn(`Failed to load article ${filePath}:`, err)
           }
         }
       }
@@ -938,13 +936,6 @@ export class ConverterService {
         const sourceExists = await this.fileExists(config.sourceDir)
         if (!sourceExists) {
           issues.push('來源目錄不存在')
-        } else {
-          // 檢查 publish 資料夾
-          const publishPath = this.joinPath(config.sourceDir, 'publish')
-          const publishExists = await this.fileExists(publishPath)
-          if (!publishExists) {
-            issues.push('Publish 資料夾不存在')
-          }
         }
       }
 

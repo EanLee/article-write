@@ -418,32 +418,25 @@ export const useArticleStore = defineStore("article", () => {
         throw new Error("Article not found");
       }
 
-      if (article.status === "draft") {
-        const vaultPath = configStore.config.paths.articlesDir;
-        if (!vaultPath) {
-          throw new Error("Obsidian vault path not configured");
-        }
+      if (article.status === ArticleStatus.Draft) {
+        // 更新 frontmatter 中的 status 欄位，不移動檔案
+        const updatedArticle = {
+          ...article,
+          status: ArticleStatus.Published,
+          frontmatter: {
+            ...article.frontmatter,
+            status: ArticleStatus.Published,
+          },
+          lastModified: new Date(),
+        };
 
-        // Create new path
-        const publishPath = `${vaultPath}/Publish/${article.category}`;
-        const newFilePath = `${publishPath}/${article.slug}.md`;
+        await saveArticle(updatedArticle);
 
-        // Ensure publish directory exists
-        await window.electronAPI.createDirectory(publishPath);
-
-        // 使用 ArticleService 移動文章（包含備份和檔案操作）
-        await articleService.moveArticle(article, newFilePath);
-
-        // 更新 store 中的文章狀態
-        article.status = ArticleStatus.Published;
-        article.filePath = newFilePath;
-        article.lastModified = new Date();
-
-        notify.success("發布成功", `「${article.title}」已移至發布區`);
+        notify.success("發布成功", `「${article.title}」已設為公開`);
       }
     } catch (error) {
-      console.error("Failed to move article to published:", error);
-      notify.error("發布失敗", error instanceof Error ? error.message : "無法移動文章");
+      console.error("Failed to publish article:", error);
+      notify.error("發布失敗", error instanceof Error ? error.message : "無法發布文章");
       throw error;
     }
   }

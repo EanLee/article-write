@@ -335,8 +335,7 @@ const loadStats = async () => {
       return
     }
     
-    const publishPath = `${config.value.sourceDir}/publish`
-    conversionStats.value = await converterService.getConversionStats(publishPath)
+    conversionStats.value = await converterService.getConversionStats(config.value.sourceDir)
   } catch (error) {
     console.error('Failed to load conversion stats:', error)
   }
