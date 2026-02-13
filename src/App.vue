@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="h-screen flex bg-base-100">
-    <!-- Activity Bar (Mode Selector) -->
-    <ActivityBar v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
+    <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
+    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -58,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
@@ -73,6 +74,7 @@ import ArticleManagement from "@/components/ArticleManagement.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
+const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
 const sidebarView = ref<SidebarView>(SidebarView.Articles);
