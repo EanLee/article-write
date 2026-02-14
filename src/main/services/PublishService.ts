@@ -1,4 +1,5 @@
 import { join } from 'path'
+import { promises as fs } from 'fs'
 import type { Article } from '../../types/index.js'
 import { FileService } from './FileService.js'
 
@@ -29,6 +30,17 @@ export interface PublishResult {
  * 發布進度回調
  */
 export type PublishProgressCallback = (step: string, progress: number) => void
+
+/**
+ * 全量同步結果
+ */
+export interface SyncResult {
+  total: number
+  succeeded: number
+  failed: number
+  errors: string[]
+  warnings: string[]
+}
 
 /**
  * PublishService - 負責將文章從 Obsidian 發布到 Astro 部落格
@@ -114,6 +126,111 @@ export class PublishService {
         message: `發布失敗: ${errorMessage}`,
         errors
       }
+    }
+  }
+
+  /**
+   * 全量同步：掃描 articlesDir，將所有 status: published 的文章輸出到 target
+   */
+  async syncAllPublished(
+    config: PublishConfig,
+    onProgress?: (current: number, total: number, title: string) => void
+  ): Promise<SyncResult> {
+    const result: SyncResult = { total: 0, succeeded: 0, failed: 0, errors: [], warnings: [] }
+
+    // 掃描 articlesDir 取得所有 .md 檔案
+    let mdFiles: string[]
+    try {
+      mdFiles = await this.scanMarkdownFiles(config.articlesDir)
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '無法掃描文章目錄'
+      result.errors.push(msg)
+      return result
+    }
+
+    // 過濾出 status: published 的文章
+    const publishedArticles: Article[] = []
+    for (const filePath of mdFiles) {
+      try {
+        const raw = await this.fileService.readFile(filePath)
+        const article = this.parseArticleFromFile(raw, filePath)
+        if (article && article.status === 'published') {
+          publishedArticles.push(article)
+        }
+      } catch {
+        // 無法解析的檔案靜默略過
+      }
+    }
+
+    result.total = publishedArticles.length
+
+    for (let i = 0; i < publishedArticles.length; i++) {
+      const article = publishedArticles[i]
+      onProgress?.(i + 1, publishedArticles.length, article.title)
+
+      const publishResult = await this.publishArticle(article, config)
+      if (publishResult.success) {
+        result.succeeded++
+        if (publishResult.warnings) {result.warnings.push(...publishResult.warnings)}
+      } else {
+        result.failed++
+        result.errors.push(`「${article.title}」：${publishResult.message}`)
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * 遞迴掃描目錄，回傳所有 .md 檔案的絕對路徑
+   */
+  private async scanMarkdownFiles(dir: string): Promise<string[]> {
+    const results: string[] = []
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        const sub = await this.scanMarkdownFiles(fullPath)
+        results.push(...sub)
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        results.push(fullPath)
+      }
+    }
+    return results
+  }
+
+  /**
+   * 從原始 .md 內容解析出 Article 基本資訊（僅用於 syncAllPublished 篩選）
+   */
+  private parseArticleFromFile(raw: string, filePath: string): Article | null {
+    try {
+      const fmMatch = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+      if (!fmMatch) {return null}
+
+      const fm = fmMatch[1]
+      const get = (key: string) => {
+        const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
+        return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''
+      }
+
+      const status = get('status') || 'draft'
+      const title = get('title') || '未命名'
+      const slug = get('slug') || ''
+      const rawContent = raw.slice(fmMatch[0].length).trim()
+
+      return {
+        id: filePath,
+        title,
+        slug: slug || title.toLowerCase().replace(/\s+/g, '-'),
+        filePath,
+        status: status as 'draft' | 'published',
+        category: (get('category') as any) || 'Software',
+        lastModified: new Date(),
+        content: rawContent,
+        frontmatter: { title, status, slug }
+      }
+    } catch {
+      return null
     }
   }
 
@@ -265,7 +382,7 @@ export class PublishService {
    */
   private async processImages(
     content: string,
-    _article: Article,
+    article: Article,
     config: PublishConfig
   ): Promise<{ content: string; imageWarnings: string[] }> {
     const warnings: string[] = []
@@ -282,8 +399,8 @@ export class PublishService {
     // 決定圖片來源目錄
     const imageSourceDir = config.imagesDir || join(config.articlesDir, 'images')
 
-    // 確定目標圖片目錄
-    const targetImageDir = join(config.targetBlogDir, 'public', 'images')
+    // Leaf 結構：圖片輸出到 {target}/{slug}/images/
+    const targetImageDir = join(config.targetBlogDir, article.slug, 'images')
 
     // 確保目標目錄存在
     await this.ensureDirectoryExists(targetImageDir)
@@ -357,11 +474,11 @@ export class PublishService {
     content: string,
     config: PublishConfig
   ): Promise<string> {
-    // target 直接是輸出資料夾，結構：{targetBlogDir}/{slug}.md
-    const targetDir = config.targetBlogDir
+    // Leaf 結構：{targetBlogDir}/{slug}/index.md
+    const targetDir = join(config.targetBlogDir, article.slug)
     await this.ensureDirectoryExists(targetDir)
 
-    const targetPath = join(targetDir, `${article.slug}.md`)
+    const targetPath = join(targetDir, 'index.md')
 
     // 寫入檔案
     await this.fileService.writeFile(targetPath, content)

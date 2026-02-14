@@ -21,6 +21,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Publish operations
   publishArticle: (article: any, config: any, onProgress?: any) =>
     ipcRenderer.invoke('publish-article', article, config, onProgress),
+  syncAllPublished: (config: any) =>
+    ipcRenderer.invoke('sync-all-published', config),
+  onSyncProgress: (callback: (data: { current: number; total: number; title: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { current: number; total: number; title: string }) => {
+      callback(data)
+    }
+    ipcRenderer.on('sync-progress', listener)
+    return () => {
+      ipcRenderer.removeListener('sync-progress', listener)
+    }
+  },
 
   // Process management
   startDevServer: (projectPath: string) => ipcRenderer.invoke('start-dev-server', projectPath),

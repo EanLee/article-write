@@ -87,6 +87,12 @@ app.whenReady().then(() => {
     return await publishService.publishArticle(article, config, onProgress)
   })
 
+  ipcMain.handle('sync-all-published', async (event, config: any) => {
+    return await publishService.syncAllPublished(config, (current, total, title) => {
+      event.sender.send('sync-progress', { current, total, title })
+    })
+  })
+
   // Git Service
   ipcMain.handle('git-status', (_, repoPath: string) => gitService.getStatus(repoPath))
   ipcMain.handle('git-add', (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths))

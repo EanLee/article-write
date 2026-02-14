@@ -92,7 +92,8 @@ describe('PublishService', () => {
 
       expect(mockFileService.writeFile).toHaveBeenCalled()
       const writeCall = mockFileService.writeFile.mock.calls[0]
-      expect(writeCall[0]).toContain('test-article.md')
+      expect(writeCall[0]).toContain('test-article')
+      expect(writeCall[0]).toContain('index.md')
     })
 
     it('應該建立目標目錄', async () => {
