@@ -229,7 +229,7 @@ export class PublishService {
         category: (get('category') as any) || 'Software',
         lastModified: new Date(),
         content: rawContent,
-        frontmatter: { title, status, slug, date: get('date') || new Date().toISOString().split('T')[0] }
+        frontmatter: { title, status, slug, date: get('date') || undefined }
       }
     } catch {
       return null
@@ -355,21 +355,15 @@ export class PublishService {
   private convertFrontmatter(frontmatter: Record<string, any>): Record<string, any> {
     const converted: Record<string, any> = { ...frontmatter }
 
-    // 確保必要欄位存在
-    if (!converted.pubDate && !converted.publishDate) {
-      converted.pubDate = new Date().toISOString()
-    }
-
-    // 標準化日期格式
-    if (converted.publishDate && !converted.pubDate) {
-      converted.pubDate = converted.publishDate
-      delete converted.publishDate
+    // date 欄位 = 公開/發佈時間（欄位名沿用 blog 框架，語意非建立時間）
+    // 若 date 已有值則直接沿用；若無值（發佈前為空）則填入當下時間
+    if (!converted.date) {
+      converted.date = new Date().toISOString().split('T')[0]
     }
 
     // 處理標籤
     if (converted.tags) {
       if (typeof converted.tags === 'string') {
-        // 如果是字串，分割成陣列
         converted.tags = converted.tags.split(',').map((tag: string) => tag.trim())
       }
       // 移除 Obsidian 標籤的 # 符號

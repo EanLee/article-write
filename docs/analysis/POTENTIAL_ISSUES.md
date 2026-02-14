@@ -367,6 +367,21 @@ app.config.errorHandler = (err, instance, info) => {
 - [x] Issue #5: Article.content 空值處理 ✅ (commit: 0544c71)
 - [x] Issue #6: AutoSaveService 初始化檢查 ✅ (commit: c621b75)
 
+### 開發注意事項 📌
+
+#### Frontmatter `date` 欄位語意說明
+
+**欄位名稱**：`date`（沿用部落格框架，不可更改）
+**實際語意**：公開/發佈時間，**不是建立時間**
+
+| 情況 | 行為 |
+|------|------|
+| frontmatter 已有 `date` | 直接沿用，不覆蓋 |
+| frontmatter 無 `date` | 同步時由 `PublishService.convertFrontmatter()` 自動填入當日日期 |
+
+> 在文章發佈前，`date` 可以是空值。建立時間不單獨儲存。
+> 相關位置：`src/types/index.ts` → `Frontmatter.date`；`src/main/services/PublishService.ts` → `convertFrontmatter()`
+
 ### 可選優化 💡
 - [ ] Issue #7-12: 中低優先級優化
 

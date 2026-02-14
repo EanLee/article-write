@@ -86,7 +86,13 @@ export interface Article {
 export interface Frontmatter {
   title: string
   description?: string
-  date: string
+  /**
+   * 公開/發佈時間。
+   * ⚠️ 欄位名稱 `date` 沿用自現有部落格框架，無法更改。
+   * 語意上代表「文章對外公開的時間」，非建立時間。
+   * 發佈前可能為空；PublishService 同步時若為空則自動填入當下時間。
+   */
+  date?: string
   lastmod?: string
   status?: ArticleStatus     // 文章狀態，未設定預設為 draft
   tags?: string[]        // 改為可選，防止 undefined 導致崩潰
