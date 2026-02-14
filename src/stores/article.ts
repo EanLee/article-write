@@ -186,8 +186,8 @@ export const useArticleStore = defineStore("article", () => {
       const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
 
       if (existingIndex !== -1) {
-        // 更新現有文章
-        articles.value[existingIndex] = article;
+        // 更新現有文章，保留原有 id（避免 UI 組件因 id 變動而重新掛載）
+        articles.value[existingIndex] = { ...article, id: articles.value[existingIndex].id };
 
         if (currentArticle.value && normalizePath(currentArticle.value.filePath) === normalizedPath) {
           currentArticle.value = article;
@@ -613,5 +613,8 @@ export const useArticleStore = defineStore("article", () => {
     reloadArticle,
     saveCurrentArticle,
     initializeAutoSave,
+    // 內部方法（供測試使用）
+    reloadArticleFromDisk,
+    removeArticleFromMemory,
   };
 });

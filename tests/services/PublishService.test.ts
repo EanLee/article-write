@@ -191,6 +191,24 @@ describe('PublishService', () => {
       const writtenContent = writeCall[1]
       expect(writtenContent).toContain('![image.png](./images/image.png)')
     })
+
+    it('圖片存在時應使用 Leaf 結構複製到 {slug}/images/', async () => {
+      mockArticle.content = '![[photo.png]]'
+      // 讓圖片來源存在
+      mockFileService.exists.mockResolvedValue(true)
+
+      await publishService.publishArticle(mockArticle, mockConfig)
+
+      // 驗證 copyFile 被呼叫，且目標路徑符合 Leaf 結構
+      expect(mockFileService.copyFile).toHaveBeenCalledWith(
+        expect.stringContaining('photo.png'), // 來源：imagesDir/photo.png
+        expect.stringContaining(`test-article`) // 目標：{targetBlogDir}/test-article/images/photo.png
+      )
+      // 更嚴格：目標路徑應包含 /images/
+      const copyArgs = mockFileService.copyFile.mock.calls[0]
+      expect(copyArgs[1]).toContain('images')
+      expect(copyArgs[1]).toContain('photo.png')
+    })
   })
 
   describe('Frontmatter 轉換', () => {
