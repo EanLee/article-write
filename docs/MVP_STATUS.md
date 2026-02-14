@@ -130,6 +130,18 @@
 
 ---
 
+### UX-02 編輯器 UX 改善（CodeMirror 6 遷移）
+
+| 項目 | 內容 |
+|------|------|
+| **Done 定義** | Markdown 語法高亮；`**` 自動補全游標居中；選取文字後符號包裹；Tab/Shift+Tab 縮排；行號顯示；`[[` Wikilink 自動完成；Undo/Redo 正常 |
+| **當前狀態** | ✅ 完成 |
+| **相關 ADR** | [ADR-0001](adr/ADR-0001-codemirror6-editor-migration.md) |
+| **相關 Commit** | `fb4c166` |
+| **驗收** | Jordan 驗收通過（2026-02-14）|
+
+---
+
 ### I-05 Electron 打包
 
 | 項目 | 內容 |
