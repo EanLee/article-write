@@ -84,7 +84,7 @@ export interface Article {
 }
 
 export interface Frontmatter {
-  title: string
+  title?: string  // 草稿可能尚未填寫標題
   description?: string
   /**
    * 建立時間。

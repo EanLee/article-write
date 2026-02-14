@@ -220,6 +220,10 @@ export class PublishService {
       const slug = get('slug') || ''
       const rawContent = raw.slice(fmMatch[0].length).trim()
 
+      // 草稿或撰寫中的文章可能缺少任何時間欄位，一律視為可選
+      const pubDate = get('pubDate') || get('date') || undefined
+      const created = get('created') || undefined
+
       return {
         id: filePath,
         title,
@@ -229,7 +233,13 @@ export class PublishService {
         category: (get('category') as any) || 'Software',
         lastModified: new Date(),
         content: rawContent,
-        frontmatter: { title, status, slug, date: get('date') || undefined }
+        frontmatter: {
+          title,
+          status,
+          slug,
+          ...(pubDate && { pubDate }),
+          ...(created && { created }),
+        }
       }
     } catch {
       return null
