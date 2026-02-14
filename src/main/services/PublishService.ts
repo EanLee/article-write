@@ -229,7 +229,7 @@ export class PublishService {
         category: (get('category') as any) || 'Software',
         lastModified: new Date(),
         content: rawContent,
-        frontmatter: { title, status, slug }
+        frontmatter: { title, status, slug, date: get('date') || new Date().toISOString().split('T')[0] }
       }
     } catch {
       return null
