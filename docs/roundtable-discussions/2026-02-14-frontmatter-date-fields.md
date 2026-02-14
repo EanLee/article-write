@@ -176,12 +176,29 @@
 | `pubDate` | 公開/發佈時間 | 同步輸出時自動填入；已有值則沿用 | 否（同步時補） |
 | `lastmod` | 最後修改時間 | 保持現狀 | 否 |
 
+### 自動移轉機制（降低轉換成本）
+
+為減輕已有 Obsidian 文章的使用者的轉換負擔，WriteFlow 在**開啟文章時**執行自動檢查與轉換：
+
+| 偵測條件 | 自動處理 |
+|---------|---------|
+| frontmatter 有 `date`，無 `pubDate` | 將 `date` 值複製到 `pubDate`，移除 `date` |
+| frontmatter 有 `date` 且有 `pubDate` | 保留 `pubDate`，移除 `date` |
+| frontmatter 無 `date` 也無 `pubDate` | 不處理（同步輸出時再填） |
+| frontmatter 已是 `pubDate` | 不處理 |
+
+**原則**：自動轉換，但**不改變語意**——`date` 的值原本就是發佈時間，移轉到 `pubDate` 是正確對應。
+
+**說明文件**：在 WriteFlow 設定頁或首次開啟時顯示一次性提示，告知使用者已自動移轉欄位名稱，部落格端 schema 需對應調整（附上說明連結）。
+
 ### 行動項目
 
 - [ ] Lin：`Frontmatter` interface 新增 `created?: string`，移除 `date`，改為 `pubDate?: string`
 - [ ] Lin：`PublishService.convertFrontmatter()` 處理 `pubDate`（原 `date` 邏輯移至此）
-- [ ] Lin：`setCurrentArticle()` 在文章無 `created` 時自動寫入
-- [ ] Sam：更新 `docs/dev-notes/GOTCHAS.md` 反映新欄位定義
+- [ ] Lin：`setCurrentArticle()` 執行三件事：
+  - 若無 `created`，自動填入當下時間並寫回檔案
+  - 若有 `date`（舊欄位），自動移轉至 `pubDate` 並寫回檔案
+- [ ] Sam：更新 `docs/dev-notes/GOTCHAS.md` 反映新欄位定義與移轉邏輯
 - [ ] Sam：更新 `docs/architecture/E2E_PUBLISH_FLOW.md` 中的 frontmatter 說明
 
 ---
