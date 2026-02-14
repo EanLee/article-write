@@ -453,9 +453,8 @@ export const useArticleStore = defineStore("article", () => {
     let dirty = false
 
     // 1. 補上 created（建立時間）
+    // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      // 若有舊的 date 欄位，用其值作為建立時間（最接近實際建立時間的資訊）
-      // 若無任何時間資訊，填入當下時間
       fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
       dirty = true
     }
@@ -469,6 +468,12 @@ export const useArticleStore = defineStore("article", () => {
       delete (fm as any).date
       dirty = true
     }
+
+    // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
+    if (fm.title === undefined) { fm.title = ''; dirty = true }
+    if (fm.description === undefined) { fm.description = ''; dirty = true }
+    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
+    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
 
     if (!dirty) {return article}
 
