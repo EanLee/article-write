@@ -4,46 +4,49 @@
 
 ---
 
-## 001 · `Frontmatter.date` 的語意與限制
+## 001 · Frontmatter 時間欄位定義（圓桌 #007）
 
 **日期**：2026-02-14
-**相關檔案**：`src/types/index.ts`、`src/main/services/PublishService.ts`
+**相關檔案**：`src/types/index.ts`、`src/main/services/PublishService.ts`、`src/stores/article.ts`
 
-### 問題
+### 三個時間欄位
 
-`date` 欄位名稱直覺上像「建立時間」，但實際語意是**公開/發佈時間**。
+| 欄位 | 語意 | 填入時機 |
+|------|------|---------|
+| `created` | 建立時間 | WriteFlow 首次開啟時自動填入 |
+| `pubDate` | 公開/發佈時間 | 同步輸出時自動填入；已有值則沿用 |
+| `lastmod` | 最後修改時間 | 保持現狀 |
 
-### 原因
+### 自動移轉邏輯（`migrateArticleFrontmatter`）
 
-現有部落格框架（Astro 等）使用 `date` 作為發佈日期欄位，**欄位名稱不能更改**，否則 blog 框架無法識別。
+開啟文章時執行，順序固定（先處理 `created`，再移轉 `date`）：
 
-### 規則
-
-| 情況 | 行為 |
-|------|------|
-| frontmatter 已有 `date` 值 | 直接沿用，不覆蓋 |
-| frontmatter 無 `date` 值 | `PublishService.convertFrontmatter()` 同步時自動填入當日日期 |
-
-- 文章**發佈前** `date` 可以是空值（`date?: string` 為可選欄位）
-- WriteFlow **不單獨儲存建立時間**
+1. 無 `created` 且有舊 `date` → 用 `date` 值填入 `created`
+2. 無 `created` 且無 `date` → 填入當下時間
+3. 有 `date` 且無 `pubDate` → 複製 `date` → `pubDate`，刪除 `date`
+4. 有 `date` 且有 `pubDate` → 保留 `pubDate`，刪除 `date`
 
 ### 不要這樣做
 
 ```ts
-// ❌ 不要把 date 當建立時間使用
-frontmatter.date = article.createdAt
+// ❌ 不要在解析場合強制補時間（掩蓋語意）
+date: get('date') || new Date().toISOString()
 
-// ❌ 不要強制補上 date（在 parseArticleFromFile 等解析場合）
-date: get('date') || new Date().toISOString()  // 會掩蓋「尚未設定發佈時間」的語意
+// ❌ pubDate 用舊欄位名 date
+converted.date = new Date().toISOString()
 ```
 
-### 正確做法
+### 部落格端對應
+
+使用者的 Astro blog `content/config.ts` 需對應調整：
 
 ```ts
-// ✅ 只在同步輸出時（convertFrontmatter）才補日期
-if (!converted.date) {
-  converted.date = new Date().toISOString().split('T')[0]
-}
+// 舊
+date: z.string().optional()
+
+// 新
+pubDate: z.string().optional(),
+created: z.string().optional(),
 ```
 
 ---
