@@ -443,11 +443,53 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
+
+  /**
+   * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+   * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
+   */
+  function migrateArticleFrontmatter(article: Article): Article {
+    const fm = { ...article.frontmatter }
+    let dirty = false
+
+    // 1. 補上 created（建立時間）
+    if (!fm.created) {
+      // 若有舊的 date 欄位，用其值作為建立時間（最接近實際建立時間的資訊）
+      // 若無任何時間資訊，填入當下時間
+      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
+      dirty = true
+    }
+
+    // 2. 移轉 date → pubDate
+    const legacyDate = (fm as any).date
+    if (legacyDate !== undefined) {
+      if (!fm.pubDate) {
+        fm.pubDate = legacyDate
+      }
+      delete (fm as any).date
+      dirty = true
+    }
+
+    if (!dirty) {return article}
+
+    const migrated = { ...article, frontmatter: fm }
+    // 非同步寫回檔案，不阻塞 UI
+    saveArticle(migrated).catch((err) =>
+      console.warn('frontmatter 移轉寫回失敗:', err)
+    )
+    return migrated
+  }
+
   function setCurrentArticle(article: Article | null) {
     // 在切換文章前自動儲存前一篇文章
     const previousArticle = currentArticle.value;
     if (previousArticle && previousArticle !== article) {
       autoSaveService.saveOnArticleSwitch(previousArticle);
+    }
+
+    // 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+    if (article) {
+      article = migrateArticleFrontmatter(article);
     }
 
     currentArticle.value = article;

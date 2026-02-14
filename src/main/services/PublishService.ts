@@ -355,10 +355,10 @@ export class PublishService {
   private convertFrontmatter(frontmatter: Record<string, any>): Record<string, any> {
     const converted: Record<string, any> = { ...frontmatter }
 
-    // date 欄位 = 公開/發佈時間（欄位名沿用 blog 框架，語意非建立時間）
-    // 若 date 已有值則直接沿用；若無值（發佈前為空）則填入當下時間
-    if (!converted.date) {
-      converted.date = new Date().toISOString().split('T')[0]
+    // pubDate = 公開/發佈時間（圓桌 #007：date 改為 pubDate）
+    // 若 pubDate 已有值則直接沿用；若無值則填入當日日期
+    if (!converted.pubDate) {
+      converted.pubDate = new Date().toISOString().split('T')[0]
     }
 
     // 處理標籤

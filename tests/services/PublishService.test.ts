@@ -202,7 +202,7 @@ describe('PublishService', () => {
       expect(writtenContent).toContain('title: 測試文章')
     })
 
-    it('應該在 date 缺少時自動填入當日日期', async () => {
+    it('應該在 pubDate 缺少時自動填入當日日期', async () => {
       mockArticle.frontmatter = {
         title: '測試'
       }
@@ -211,20 +211,20 @@ describe('PublishService', () => {
 
       const writeCall = mockFileService.writeFile.mock.calls[0]
       const writtenContent = writeCall[1]
-      expect(writtenContent).toContain('date:')
+      expect(writtenContent).toContain('pubDate:')
     })
 
-    it('應該在 date 已有值時直接沿用', async () => {
+    it('應該在 pubDate 已有值時直接沿用', async () => {
       mockArticle.frontmatter = {
         title: '測試',
-        date: '2024-01-01'
+        pubDate: '2024-01-01'
       }
 
       await publishService.publishArticle(mockArticle, mockConfig)
 
       const writeCall = mockFileService.writeFile.mock.calls[0]
       const writtenContent = writeCall[1]
-      expect(writtenContent).toContain('date: 2024-01-01')
+      expect(writtenContent).toContain('pubDate: 2024-01-01')
     })
 
     it('應該處理陣列標籤', async () => {
