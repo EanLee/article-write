@@ -124,6 +124,7 @@ defineExpose({
 
 .markdown-preview :deep(code) {
   background-color: #f2f2f2;
+  color: #1f2937;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -131,6 +132,7 @@ defineExpose({
 
 .markdown-preview :deep(pre code) {
   background-color: transparent;
+  color: inherit;
   padding: 0;
 }
 
