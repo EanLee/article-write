@@ -90,6 +90,11 @@ export class AutoSaveService {
       return;
     }
 
+    // Dirty flag 快速路徑：狀態為 Saved 時直接跳過字串比較
+    if (this.saveState.value.status === SaveStatus.Saved) {
+      return;
+    }
+
     // 檢查內容是否有變更
     if (this.hasContentChanged(currentArticle)) {
       console.log(`自動儲存文章: ${currentArticle.title}`);

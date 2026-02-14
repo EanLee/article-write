@@ -74,10 +74,12 @@ describe('AutoSaveService', () => {
       autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback, 1000)
       autoSaveService.setCurrentArticle(mockArticle)
       
-      // 模擬內容變更
+      // 模擬內容變更（需呼叫 markAsModified 以更新 dirty flag）
       const modifiedArticle = { ...mockArticle, content: 'Modified content' }
       mockGetCurrentArticleCallback.mockReturnValue(modifiedArticle)
-      
+      autoSaveService.markAsModified()
+      vi.advanceTimersByTime(200) // 等待 debounce
+
       // 快進時間到自動儲存間隔
       vi.advanceTimersByTime(1000)
       
@@ -117,10 +119,12 @@ describe('AutoSaveService', () => {
       autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback, 1000)
       autoSaveService.setCurrentArticle(mockArticle)
       
-      // 修改內容
+      // 修改內容（需呼叫 markAsModified 以更新 dirty flag）
       const modifiedArticle = { ...mockArticle, content: 'New content' }
       mockGetCurrentArticleCallback.mockReturnValue(modifiedArticle)
-      
+      autoSaveService.markAsModified()
+      vi.advanceTimersByTime(200) // 等待 debounce
+
       vi.advanceTimersByTime(1000)
       
       expect(mockSaveCallback).toHaveBeenCalledWith(modifiedArticle)
@@ -130,13 +134,15 @@ describe('AutoSaveService', () => {
       autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback, 1000)
       autoSaveService.setCurrentArticle(mockArticle)
       
-      // 修改前置資料
+      // 修改前置資料（需呼叫 markAsModified 以更新 dirty flag）
       const modifiedArticle = {
         ...mockArticle,
         frontmatter: { ...mockArticle.frontmatter, tags: ['new-tag'] }
       }
       mockGetCurrentArticleCallback.mockReturnValue(modifiedArticle)
-      
+      autoSaveService.markAsModified()
+      vi.advanceTimersByTime(200) // 等待 debounce
+
       vi.advanceTimersByTime(1000)
       
       expect(mockSaveCallback).toHaveBeenCalledWith(modifiedArticle)
@@ -153,7 +159,9 @@ describe('AutoSaveService', () => {
       
       const modifiedArticle = { ...mockArticle, content: 'Modified content' }
       mockGetCurrentArticleCallback.mockReturnValue(modifiedArticle)
-      
+      autoSaveService.markAsModified()
+      vi.advanceTimersByTime(200) // 等待 debounce
+
       // 直接調用 performAutoSave 來測試錯誤處理
       await (autoSaveService as any).performAutoSave()
       
