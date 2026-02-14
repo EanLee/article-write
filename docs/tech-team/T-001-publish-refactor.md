@@ -127,18 +127,18 @@
 執行順序：
 
 Phase 1（可平行）：
-  Lin  — T-1：PublishService Leaf 路徑修正
-  Wei  — T-2、T-3、T-4：移除錯誤按鈕與邏輯
+  ✅ Lin  — T-1：PublishService Leaf 路徑修正
+  ✅ Wei  — T-2、T-3、T-4：移除錯誤按鈕與邏輯
 
 Phase 2（等 Phase 1 完成）：
-  Lin  — T-6：新增 syncAllPublished()
-  Lin  — T-7：IPC / preload 通道
+  ✅ Lin  — T-6：新增 syncAllPublished()
+  ✅ Lin  — T-7：IPC / preload 通道
 
 Phase 3（等 T-7 完成）：
-  Wei  — T-5：全域「同步到 Blog」按鈕串接
+  ✅ Wei  — T-5：全域「同步到 Blog」按鈕串接
 
 Phase 4（等全部完成）：
-  Sam  — T-8：更新 E2E_PUBLISH_FLOW.md
+  ✅ Sam  — T-8：更新 E2E_PUBLISH_FLOW.md
 ```
 
 **注意事項**：
