@@ -27,20 +27,43 @@
 - `.obsidian-callout`（`> [!NOTE]`）— 左側邊框區塊
 - `prose` 對 `table`、`blockquote` 的預設樣式
 
-## 修正方向
+## 原因分析（CSS-01）
 
-> ⏳ 待使用者確認具體問題後安排
+`@tailwindcss/typography` 的 `prose` class 會對 `code` 元素注入 color 樣式。由於 DaisyUI 的 base theme 在某些情境下讓文字色繼承為白色，而現有的 `:deep(code)` 樣式只設定了 `background-color: #f2f2f2`，**缺少明確的 `color` 宣告**，導致 prose 注入的白色文字疊在淺灰背景上，造成白字白底。
 
-可能方案：
-1. 調整 `PreviewPane.vue` 的 `:deep()` 樣式，明確覆蓋 prose 預設值
-2. 為 prose 設定 `prose-neutral` 或其他 variant 調整基礎色系
-3. 針對 Obsidian 特殊語法的 class 加入 `not-prose` 隔離
+## 修正方式（CSS-01）
+
+修改 `src/components/PreviewPane.vue`，在 `:deep(code)` 明確加入 `color: #1f2937`（深灰色），確保 inline code 文字在任何主題下都清晰可見。`pre code` 則改為 `color: inherit`，繼承語法高亮套件的顏色。
+
+```css
+/* 修正前 */
+.markdown-preview :deep(code) {
+  background-color: #f2f2f2;
+  padding: 0.125rem 0.25rem;
+  /* 缺少 color，被 prose 覆蓋 */
+}
+
+/* 修正後 */
+.markdown-preview :deep(code) {
+  background-color: #f2f2f2;
+  color: #1f2937;  /* 明確設定深灰，避免 prose 覆蓋 */
+  padding: 0.125rem 0.25rem;
+}
+```
+
+## 其他待確認問題
+
+可能的衝突點（尚未確認）：
+- `.obsidian-tag`（`#tag` 語法）— 藍色 badge 樣式
+- `.obsidian-highlight`（`==text==`）— 黃色背景
+- `.obsidian-callout`（`> [!NOTE]`）— 左側邊框區塊
+- `prose` 對 `table`、`blockquote` 的預設樣式
 
 ## 相關 Commit
 
-> ⏳ 待修復後補充
+- `4d0ec27`: fix(ui): 修復 Preview inline code 文字全白不可見問題（CSS-01）
 
 ---
 
-> **狀態**: 已記錄，待使用者確認具體問題後排入修復
+> **狀態**: CSS-01 已修復，待使用者驗證；其他樣式衝突待觀察
 > **回報者**: Jordan（端對端驗收時發現）
