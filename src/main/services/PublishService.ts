@@ -1,6 +1,7 @@
 import { join } from 'path'
 import { promises as fs } from 'fs'
 import type { Article } from '../../types/index.js'
+import { ArticleStatus } from '../../types/index.js'
 import { FileService } from './FileService.js'
 
 /**
@@ -154,7 +155,7 @@ export class PublishService {
       try {
         const raw = await this.fileService.readFile(filePath)
         const article = this.parseArticleFromFile(raw, filePath)
-        if (article && article.status === 'published') {
+        if (article && article.status === ArticleStatus.Published) {
           publishedArticles.push(article)
         }
       } catch {
@@ -213,7 +214,8 @@ export class PublishService {
         return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''
       }
 
-      const status = get('status') || 'draft'
+      const statusRaw = get('status') || 'draft'
+      const status = statusRaw === 'published' ? ArticleStatus.Published : ArticleStatus.Draft
       const title = get('title') || '未命名'
       const slug = get('slug') || ''
       const rawContent = raw.slice(fmMatch[0].length).trim()
@@ -223,7 +225,7 @@ export class PublishService {
         title,
         slug: slug || title.toLowerCase().replace(/\s+/g, '-'),
         filePath,
-        status: status as 'draft' | 'published',
+        status,
         category: (get('category') as any) || 'Software',
         lastModified: new Date(),
         content: rawContent,
