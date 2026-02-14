@@ -78,6 +78,9 @@ export class PublishService {
       this.validateConfig(config)
       onProgress?.('驗證配置', 10)
 
+      // 驗證目標路徑（前置檢查：存在性與寫入權限）
+      await this.validateTargetDir(config.targetBlogDir)
+
       // 驗證文章
       this.validateArticle(article)
       onProgress?.('驗證文章', 20)
@@ -118,13 +121,12 @@ export class PublishService {
         warnings: warnings.length > 0 ? warnings : undefined
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '未知錯誤'
-      errors.push(errorMessage)
-      console.error('Failed to publish article:', error)
+      const userMessage = this.classifyPublishError(error)
+      errors.push(userMessage)
 
       return {
         success: false,
-        message: `發布失敗: ${errorMessage}`,
+        message: userMessage,
         errors
       }
     }
@@ -243,6 +245,46 @@ export class PublishService {
       }
     } catch {
       return null
+    }
+  }
+
+  /**
+   * 前置檢查目標路徑：存在性與寫入權限
+   */
+  private async validateTargetDir(dir: string): Promise<void> {
+    const { exists, writable } = await this.fileService.checkWritable(dir)
+    if (!exists) {
+      throw new Error(`目標路徑不存在：${dir}，請到設定確認部落格路徑`)
+    }
+    if (!writable) {
+      throw new Error(`目標路徑沒有寫入權限：${dir}`)
+    }
+  }
+
+  /**
+   * 將錯誤轉換為使用者可理解的中文訊息
+   * 覆蓋五種常見失敗情境：路徑不存在、無寫入權限、磁碟空間不足、檔案被佔用、解析失敗
+   */
+  private classifyPublishError(error: unknown): string {
+    if (!(error instanceof Error)) {
+      return '同步時發生未知錯誤'
+    }
+
+    const cause = (error as any).cause as NodeJS.ErrnoException | undefined
+    const code = cause?.code ?? (error as NodeJS.ErrnoException).code
+
+    switch (code) {
+      case 'ENOENT':
+        return `目標路徑不存在，請到設定確認部落格路徑`
+      case 'EACCES':
+      case 'EPERM':
+        return `沒有寫入權限，請確認對目標資料夾有寫入權限`
+      case 'ENOSPC':
+        return `磁碟空間不足，無法寫入文章`
+      case 'EBUSY':
+        return `目標檔案正在使用中，請關閉後再試`
+      default:
+        return error.message
     }
   }
 
