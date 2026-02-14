@@ -2,7 +2,7 @@
 
 > **日期**: 2026-02-14
 > **決策者**: Alex（PM）、Taylor（CTO）、Jordan（User）、Sam（Ops）、Lisa（Marketing）
-> **狀態**: ✅ 決策完成，進入執行
+> **狀態**: ✅ 決策修訂完成（Spike 確認路徑 A：直接遷移 CodeMirror 6）
 
 ---
 
@@ -70,8 +70,48 @@
 
 ---
 
-## 後續追蹤
+## 決策修訂（2026-02-14 後）
 
-- AI-01~03 完成後，Jordan 進行驗收
-- 驗收通過後更新 MVP_STATUS.md，UX-02 標記完成
-- AI-05 在 v0.2 後半前完成，作為 CodeMirror 6 遷移的入場券
+### 質疑：兩步走的重複成本
+
+討論中，決策者提出合理質疑：
+
+> 「強化後再改底層框架為 CodeMirror 6，這樣異動的成本會不會太大？」
+
+**技術分析確認**：第一步（textarea 強化）的所有 keydown 邏輯，在遷移 CodeMirror 6 時會 100% 丟棄重寫。1.5 天的開發成本屬於一次性消耗品代碼。
+
+**修訂決定**：在正式開始 AI-01~03 之前，先做 **1 天的 CodeMirror 6 整合 Spike**，以實測資料決定路徑。
+
+### Spike 決策框架
+
+| 路徑 | 觸發條件 | 結果 |
+|------|---------|------|
+| **A：直接遷移 CM6** | Vue wrapper < 150 行、v-model 正常、ObsidianSyntaxService 可移植、預估 ≤ 3 週 | 取消 textarea 強化，直接開始 CM6 Sprint |
+| **B：先強化 textarea** | 任一：整合阻塞、reactive 問題、移植複雜度 > 2 週、預估 > 4 週 | 先做 1.5 天 textarea 強化，CM6 排 v0.3 |
+| **C：部分遷移（混合）** | CM6 可行但 ObsidianSyntaxService 移植難度過高 | 另開圓桌討論 |
+
+### Spike 參考文件
+
+`docs/tech-team/2026-02-14-codemirror6-spike-plan.md`
+
+### Spike 完成：確認路徑 A
+
+**選擇路徑 A：直接遷移 CodeMirror 6，取消 textarea 強化**
+
+| Spike 驗證項目 | 結果 |
+|--------------|------|
+| Vue wrapper 行數（126 行） | ✅ < 150 行 |
+| v-model 雙向綁定 | ✅ 正常，無 reactive 循環 |
+| ObsidianSyntaxService 移植 | ✅ Autocomplete 可直接包裝，wikilink 高亮為可選 |
+| `closeBrackets` + `indentWithTab` | ✅ 現成 Extension，開箱即用 |
+| Bundle size 增量 | ✅ ~270 KB gzip（遠低於 Monaco 2MB+）|
+| 預估總工時 | ✅ 7~9 天（≤ 2 週）|
+
+詳細數據見：`docs/tech-team/2026-02-14-codemirror6-spike-plan.md`
+
+## 後續追蹤（修訂後）
+
+- **取消** AI-01~03（textarea 強化，避免產生廢棄代碼）
+- **直接開始** CodeMirror 6 遷移 Sprint（目標 1.5~2 週）
+- AI-05 提前執行（已由 Spike 取代，視需要補充 Adapter 設計文件）
+- 遷移完成後 Jordan 驗收，UX-02 標記完成
