@@ -10,13 +10,13 @@
 
 | 編號 | 話題 | 發起日期 | 狀態 | 決策類型 | 檔案 |
 |------|------|---------|------|---------|------|
-| 001 | 產品推出策略與規劃 | 2026-02-03 | ✅ 已決策 | 全體一致 | [topic-001-product-launch-strategy](./topic-001-product-launch-strategy/) |
-| 002 | Week 2 進度回顧 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-002-progress-review-week2](./topic-002-progress-review-week2/) |
-| 003 | 緊急進度回顧 | 2026-02-06 | ✅ 已決策 | 全體一致 | [2026-02-06-emergency-progress-review](./2026-02-06-emergency-progress-review.md) |
-| 004 | 現實重組與計畫調整 | 2026-02-12 | ✅ 已決策 | 全體一致 | [2026-02-12-reality-reset-meeting](./2026-02-12-reality-reset-meeting.md) |
-| 005 | Week 3 進度回報與方向修正 | 2026-02-13 | ✅ 已決策 | 全體一致 | [2026-02-13-week3-progress-review](./2026-02-13-week3-progress-review.md) |
-| 006 | 發布機制落差確認 | 2026-02-14 | ✅ 已決策 | 全體一致 | [2026-02-14-publish-mechanism-clarification](./2026-02-14-publish-mechanism-clarification.md) |
-| 007 | Frontmatter 時間欄位命名釐清 | 2026-02-14 | ✅ 已決策 | 全體一致 | [2026-02-14-frontmatter-date-fields](./2026-02-14-frontmatter-date-fields.md) |
+| 001 | 產品推出策略與規劃 | 2026-02-03 | ✅ 已決策 | 全體一致 | [topic-001-2026-02-03-product-launch-strategy](./topic-001-2026-02-03-product-launch-strategy/) |
+| 002 | Week 2 進度回顧 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-002-2026-02-06-progress-review-week2](./topic-002-2026-02-06-progress-review-week2/) |
+| 003 | 緊急進度檢討與方向修正 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-003-2026-02-06-emergency-progress-review](./topic-003-2026-02-06-emergency-progress-review/) |
+| 004 | 現實重組與計畫調整 | 2026-02-12 | ✅ 已決策 | 全體一致 | [topic-004-2026-02-12-reality-reset](./topic-004-2026-02-12-reality-reset/) |
+| 005 | Week 3 進度回報與方向修正 | 2026-02-13 | ✅ 已決策 | 全體一致 | [topic-005-2026-02-13-week3-progress-review](./topic-005-2026-02-13-week3-progress-review/) |
+| 006 | 發布機制落差確認 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-006-2026-02-14-publish-mechanism](./topic-006-2026-02-14-publish-mechanism/) |
+| 007 | Frontmatter 時間欄位命名釐清 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-007-2026-02-14-frontmatter-date-fields](./topic-007-2026-02-14-frontmatter-date-fields/) |
 
 ---
 
