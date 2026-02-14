@@ -313,16 +313,16 @@ export const useArticleStore = defineStore("article", () => {
    * ⚠️ 這個函數會執行實際的檔案寫入操作
    * 成功後會自動更新 store 狀態
    */
-  async function saveArticle(article: Article) {
+  async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
     try {
       if (typeof window === "undefined" || !window.electronAPI) {
         throw new Error("Electron API not available");
       }
 
-      // 更新 lastModified timestamp
+      // 更新 lastModified timestamp（migration 存檔時不更新，避免排序跳動）
       const articleToSave = {
         ...article,
-        lastModified: new Date(),
+        lastModified: options?.preserveLastModified ? article.lastModified : new Date(),
       };
 
       // ⚠️ 關鍵：告訴 FileWatchService 忽略接下來的變化
@@ -478,8 +478,8 @@ export const useArticleStore = defineStore("article", () => {
     if (!dirty) {return article}
 
     const migrated = { ...article, frontmatter: fm }
-    // 非同步寫回檔案，不阻塞 UI
-    saveArticle(migrated).catch((err) =>
+    // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
       console.warn('frontmatter 移轉寫回失敗:', err)
     )
     return migrated
