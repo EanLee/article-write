@@ -37,25 +37,27 @@
 
 ---
 
-## 行動項目
+## ✅ Action Items
+
+> 每個 Action Item 必須有明確的負責人和完成條件，否則不算正式 Action Item。
 
 ### 下一個 Sprint（「讓 Jordan 跑起來」Sprint）
 
-| # | 行動項目 | 負責 | 優先級 | 備註 |
-|---|---------|------|--------|------|
-| 1 | 建立 `MVP_STATUS.md`，一頁清單呈現 MVP 完成度 | Alex | P0 | 包含每個功能的 Done 定義 |
-| 2 | PublishService 補錯誤分類與有意義的用戶反饋 UI | Lin（服務）+ Wei（UI）| P0 | 不只是 console.error |
-| 3 | 完成 Electron 打包設定（electron-builder）| Lin | P0 | 可產出 .exe/.app 安裝包 |
-| 4 | 撰寫 Smoke Test Checklist（5 個核心操作）| Taylor | P0 | 打包前驗證用 |
-| 5 | Jordan 執行端對端驗收測試 | Jordan | P0 | 打包完成後執行 |
+| # | 行動項目 | 負責人 | 優先級 | 完成條件 | 狀態 |
+|---|---------|-------|-------|---------|------|
+| 1 | 建立 `MVP_STATUS.md` | Alex | P0 | 文件建立，列出所有 MVP 功能、每個功能的 Done 定義、當前狀態 | ⏳ 待開始 |
+| 2 | PublishService 補錯誤分類與用戶反饋 UI | Lin | P0 | 同步失敗時 UI 顯示「文章《XXX》同步失敗：[原因]」，覆蓋五種常見失敗情境 | ⏳ 待開始 |
+| 3 | 完成 Electron 打包設定（electron-builder）| Lin | P0 | 可在 Windows/macOS 上產出可安裝的 .exe/.app，Jordan 可直接安裝執行 | ⏳ 待開始 |
+| 4 | 撰寫 Smoke Test Checklist（5 個核心操作）| Taylor | P0 | 文件建立，列出打包版本上線前必須通過的 5 個核心操作驗證項目 | ⏳ 待開始 |
+| 5 | 執行端對端驗收測試 | Jordan | P0 | 在打包版本上完整跑通「設定路徑 → 編輯文章 → 同步到 Astro 資料夾」，回報成功或問題清單 | ⏳ 待開始（等打包完成）|
 
 ### 流程改善（持續執行）
 
-| # | 行動項目 | 負責 | 優先級 | 備註 |
-|---|---------|------|--------|------|
-| 6 | PR checklist 加入「失敗路徑清單」欄位 | Sam + Taylor | P1 | 每個 PR 都要列出可能失敗的情境 |
-| 7 | PR checklist 加入「技術文件是否已 review」欄位 | Taylor | P1 | 防止評估文件被忽略 |
-| 8 | 建立 `docs/screenshots/` 截圖規範，功能完成後截圖 | Lisa | P1 | 行銷素材的起點 |
+| # | 行動項目 | 負責人 | 優先級 | 完成條件 | 狀態 |
+|---|---------|-------|-------|---------|------|
+| 6 | PR checklist 加入「失敗路徑清單」欄位 | Sam | P1 | CLAUDE.md 或 PR template 更新，包含失敗路徑填寫規範 | ⏳ 待開始 |
+| 7 | PR checklist 加入「技術文件是否已 review」欄位 | Taylor | P1 | CLAUDE.md 或 PR template 更新，要求 PR 前確認相關技術評估文件 | ⏳ 待開始 |
+| 8 | 建立 `docs/screenshots/` 截圖規範 | Lisa | P1 | 規範文件建立，說明截圖時機（功能完成後）、命名規則、存放位置 | ⏳ 待開始 |
 
 ### 維持原決策
 
