@@ -48,7 +48,7 @@
 | 1 | 建立 `MVP_STATUS.md` | Alex | P0 | 文件建立，列出所有 MVP 功能、每個功能的 Done 定義、當前狀態 | ⏳ 待開始 |
 | 2 | PublishService 補錯誤分類與用戶反饋 UI | Lin | P0 | 同步失敗時 UI 顯示「文章《XXX》同步失敗：[原因]」，覆蓋五種常見失敗情境 | ⏳ 待開始 |
 | 3 | 完成 Electron 打包設定（electron-builder）| Lin | P0 | 可在 Windows/macOS 上產出可安裝的 .exe/.app，Jordan 可直接安裝執行 | ⏳ 待開始 |
-| 4 | 撰寫 Smoke Test Checklist（5 個核心操作）| Taylor | P0 | 文件建立，列出打包版本上線前必須通過的 5 個核心操作驗證項目 | ⏳ 待開始 |
+| 4 | 撰寫 Smoke Test Checklist（5 個核心操作）| Taylor | P0 | 文件建立，列出打包版本上線前必須通過的 5 個核心操作驗證項目 | ✅ 完成（`docs/testing/smoke-test-checklist.md`）|
 | 5 | 執行端對端驗收測試 | Jordan | P0 | 在打包版本上完整跑通「設定路徑 → 編輯文章 → 同步到 Astro 資料夾」，回報成功或問題清單 | ⏳ 待開始（等打包完成）|
 
 ### 流程改善（持續執行）
