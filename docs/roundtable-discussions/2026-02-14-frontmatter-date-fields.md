@@ -182,11 +182,14 @@
 
 | 偵測條件 | 自動處理 |
 |---------|---------|
-| frontmatter 無 `created` | 自動填入當下時間並寫回檔案 |
-| frontmatter 有 `date`，無 `pubDate` | 將 `date` 值複製到 `pubDate`，移除 `date` |
-| frontmatter 有 `date` 且有 `pubDate` | 保留 `pubDate`，移除 `date` |
-| frontmatter 無 `date` 也無 `pubDate` | 不處理（同步輸出時再填） |
-| frontmatter 已是 `pubDate` | 不處理 |
+| 無 `created`，`date` 有值 | 以 `date` 的值填入 `created`（date 是目前最接近建立時間的資訊） |
+| 無 `created`，`date` 無值 | 填入當下時間作為 `created` |
+| 有 `date`，無 `pubDate` | 將 `date` 值複製到 `pubDate`，移除 `date` |
+| 有 `date`，有 `pubDate` | 保留 `pubDate`，移除 `date` |
+| 無 `date`，無 `pubDate` | 不處理（同步輸出時再填） |
+| 已有 `pubDate`，無 `date` | 不處理 |
+
+> ⚠️ 注意執行順序：先處理 `created`（此時 `date` 尚未移除），再處理 `date → pubDate` 移轉。
 
 **原則**：自動轉換，但**不改變語意**——`date` 的值原本就是發佈時間，移轉到 `pubDate` 是正確對應。
 
