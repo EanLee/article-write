@@ -75,6 +75,7 @@ const articleService = getArticleService();
 // Reactive data
 const content = ref('');
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
+const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref('');
@@ -256,6 +257,11 @@ watch(content, (newContent) => {
 });
 
 function scheduleAutoSave() {
+    // 文章載入期間不觸發自動儲存（避免開啟文件即誤觸儲存）
+    if (isLoadingArticle.value) {
+        return;
+    }
+
     if (autoSaveTimer.value) {
         clearTimeout(autoSaveTimer.value);
     }
@@ -581,6 +587,8 @@ watch(
     () => articleStore.currentArticle,
     (newArticle) => {
         if (newArticle) {
+            // 設定載入旗標，防止 content watcher 在初始化時誤觸 AutoSave
+            isLoadingArticle.value = true;
             content.value = newArticle.content;
             // 更新 raw content
             rawContent.value = markdownService.combineContent(
@@ -590,6 +598,10 @@ watch(
             if (showPreview.value) {
                 updatePreview();
             }
+            // 使用 nextTick 確保 content watcher 執行完畢後才解除旗標
+            nextTick(() => {
+                isLoadingArticle.value = false;
+            });
         }
     },
     { immediate: true }
