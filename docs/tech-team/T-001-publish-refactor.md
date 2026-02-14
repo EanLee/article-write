@@ -18,7 +18,7 @@
 | 5 | 新增全域「同步到 Blog」按鈕（位置：`ArticleManagement.vue` 頂部） | Wei | ✅ 完成 |
 | 6 | `PublishService` — 新增 `syncAllPublished()` 全量同步方法 | Lin | ✅ 完成 |
 | 7 | IPC / preload — 新增 `syncAllPublished` 通道 | Lin | ✅ 完成 |
-| 8 | `E2E_PUBLISH_FLOW.md` — 更新文件 | Sam | 🔄 下一步 |
+| 8 | `E2E_PUBLISH_FLOW.md` — 更新文件 | Sam | ✅ 完成 |
 
 ---
 
