@@ -82,6 +82,28 @@ Obsidian 輸入時很滑順——括號自動補全、Tab 鍵縮排、Markdown �
 
 ---
 
+## 🔁 Part 4：補充討論 — 排版問題深挖（觸發：Jordan 追加回報）
+
+**Jordan**：我補充一個問題。Preview 的問題不只是個別語法沒渲染——整體排版看起來就像純文字檔在看。標題沒有大小層次，段落沒有間距，清單沒有縮排樣式。我貼一段有標題、有清單、有程式碼的文章，右邊的預覽跟左邊的 raw text 幾乎一模一樣。
+
+**Taylor**：好，這讓我往更底層看。`PreviewPane.vue` 用了 `prose prose-sm` 這個 class，這是 `@tailwindcss/typography` plugin 提供的排版系統——它會把 `h1`、`h2`、`p`、`ul`、`code` 這些 HTML 元素全部套上正確的字型大小、行距、間距。**但我去看了 `package.json` 和 `src/style.css`，`@tailwindcss/typography` 根本沒有安裝，也沒有引入。** `prose` class 在整個 Tailwind 輸出裡是空的，等於零效果。
+
+**Alex**：所以不是渲染壞掉，是從來就沒有排版？
+
+**Taylor**：對。`markdown-it` 有正確把 Markdown 轉成 HTML——`#` 變成 `<h1>`，`-` 變成 `<ul><li>`，這個部分沒問題。問題是這些 HTML 元素沒有任何 CSS 樣式套用，瀏覽器預設樣式極其陽春，看起來就是文字檔。只要裝上 `@tailwindcss/typography` 並在 `style.css` 引入，`prose` class 就會生效，排版問題立刻解決。
+
+**Sam**：這個風險很低吧？就是裝一個 CSS plugin，不動邏輯層。
+
+**Taylor**：是的。`@tailwindcss/typography` 是純 CSS，不影響任何功能程式碼。安裝加設定，半小時內可以完成，效果是立竿見影的。
+
+**Jordan**：這個比我想的好修多了。那圖片問題是不同的事？
+
+**Taylor**：不同的。排版是 CSS plugin 沒裝；圖片是預覽 pipeline 沒有處理 `![[...]]` 語法。兩個獨立問題，都可以修，但性質不同。
+
+**Alex**：好，我們更新決策。
+
+---
+
 ## ✅ 收斂決策
 
 → 詳見 `decision.md`
