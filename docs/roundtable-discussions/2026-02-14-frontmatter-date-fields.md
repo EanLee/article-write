@@ -182,6 +182,7 @@
 
 | 偵測條件 | 自動處理 |
 |---------|---------|
+| frontmatter 無 `created` | 自動填入當下時間並寫回檔案 |
 | frontmatter 有 `date`，無 `pubDate` | 將 `date` 值複製到 `pubDate`，移除 `date` |
 | frontmatter 有 `date` 且有 `pubDate` | 保留 `pubDate`，移除 `date` |
 | frontmatter 無 `date` 也無 `pubDate` | 不處理（同步輸出時再填） |
