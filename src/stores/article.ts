@@ -407,7 +407,7 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-  async function moveToPublished(id: string) {
+  async function toggleStatus(id: string) {
     try {
       if (typeof window === "undefined" || !window.electronAPI) {
         throw new Error("Electron API not available");
@@ -418,33 +418,27 @@ export const useArticleStore = defineStore("article", () => {
         throw new Error("Article not found");
       }
 
-      if (article.status === ArticleStatus.Draft) {
-        // 更新 frontmatter 中的 status 欄位，不移動檔案
-        const updatedArticle = {
-          ...article,
-          status: ArticleStatus.Published,
-          frontmatter: {
-            ...article.frontmatter,
-            status: ArticleStatus.Published,
-          },
-          lastModified: new Date(),
-        };
+      const newStatus = article.status === ArticleStatus.Draft
+        ? ArticleStatus.Published
+        : ArticleStatus.Draft;
 
-        await saveArticle(updatedArticle);
+      const updatedArticle = {
+        ...article,
+        status: newStatus,
+        frontmatter: {
+          ...article.frontmatter,
+          status: newStatus,
+        },
+        lastModified: new Date(),
+      };
 
-        notify.success("發布成功", `「${article.title}」已設為公開`);
+      await saveArticle(updatedArticle);
 
-        // 背景備份：靜默觸發 git commit，失敗不影響使用者
-        const blogPath = configStore.config.paths.targetBlog;
-        if (blogPath) {
-          window.electronAPI
-            .gitAddCommitPush(blogPath, `backup: publish ${article.slug}`)
-            .catch((err: unknown) => console.warn("Git backup failed:", err));
-        }
-      }
+      const statusLabel = newStatus === ArticleStatus.Published ? "已發布" : "草稿";
+      notify.success("狀態已更新", `「${article.title}」已標記為${statusLabel}`);
     } catch (error) {
-      console.error("Failed to publish article:", error);
-      notify.error("發布失敗", error instanceof Error ? error.message : "無法發布文章");
+      console.error("Failed to toggle article status:", error);
+      notify.error("更新失敗", error instanceof Error ? error.message : "無法更新文章狀態");
       throw error;
     }
   }
@@ -566,7 +560,7 @@ export const useArticleStore = defineStore("article", () => {
     saveArticle,
     updateArticleInMemory,
     deleteArticle,
-    moveToPublished,
+    toggleStatus,
     setCurrentArticle,
     updateFilter,
     reloadArticle,

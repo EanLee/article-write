@@ -3,7 +3,7 @@
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
             :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
-            @move-to-published="moveToPublished" @publish-to-blog="handlePublishToBlog"
+            @toggle-status="toggleArticleStatus"
             @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
 
         <!-- Search/Replace Panel -->
@@ -41,21 +41,6 @@
         <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
             @update="handleFrontmatterUpdate" />
 
-        <!-- Git 操作指南 Modal -->
-        <dialog :class="{ 'modal': true, 'modal-open': showGitGuide }">
-            <div class="modal-box max-w-3xl">
-                <button
-                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    @click="showGitGuide = false"
-                >
-                    ✕
-                </button>
-                <GitOperationGuide v-if="gitCommands" :commands="gitCommands" />
-            </div>
-            <form method="dialog" class="modal-backdrop" @click="showGitGuide = false">
-                <button>close</button>
-            </form>
-        </dialog>
     </div>
 </template>
 
@@ -78,12 +63,7 @@ import { useSearchReplace } from '@/composables/useSearchReplace';
 import { useFocusMode } from '@/composables/useFocusMode';
 import { useSyncScroll } from '@/composables/useSyncScroll';
 import { getArticleService } from '@/services/ArticleService';
-import { notificationService } from '@/services/NotificationService';
 import type { Article } from '@/types';
-import type { PublishConfig, PublishResult } from '@/main/services/PublishService';
-import { generateGitCommands } from '@/utils/gitCommandGenerator';
-import type { GitCommands } from '@/utils/gitCommandGenerator';
-import GitOperationGuide from './GitOperationGuide.vue';
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -97,8 +77,6 @@ const content = ref('');
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
-const showGitGuide = ref(false);
-const gitCommands = ref<GitCommands | null>(null);
 const renderedContent = ref('');
 const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<'compose' | 'raw'>('compose');
@@ -331,90 +309,13 @@ async function saveArticle() {
     }
 }
 
-async function moveToPublished() {
-    if (articleStore.currentArticle) {
-        try {
-            await articleStore.moveToPublished(articleStore.currentArticle.id);
-        } catch {
-            // Failed to move article to published
-        }
-    }
-}
-
-async function handlePublishToBlog() {
+async function toggleArticleStatus() {
     const article = articleStore.currentArticle;
-    if (!article) {
-        notificationService.error('沒有文章可發布');
-        return;
-    }
-
-    // 先儲存當前內容
-    await saveArticle();
-
-    // 檢查配置
-    const config = configStore.config;
-    if (!config.paths.articlesDir || !config.paths.targetBlog) {
-        notificationService.error('請先在設定中配置文章目錄和部落格路徑');
-        return;
-    }
-
-    // 確認發布
-    if (!confirm(`確定要發布文章「${article.title}」到部落格嗎？`)) {
-        return;
-    }
-
+    if (!article) {return;}
     try {
-        const publishConfig: PublishConfig = {
-            articlesDir: config.paths.articlesDir,
-            targetBlogDir: config.paths.targetBlog,
-            imagesDir: config.paths.imagesDir
-        };
-
-        notificationService.info('正在發布文章...');
-
-        const result: PublishResult = await window.electronAPI.publishArticle(
-            article,
-            publishConfig,
-            (step: string, progress: number) => {
-                console.log(`發布進度: ${step} - ${progress}%`);
-            }
-        );
-
-        if (result.success) {
-            notificationService.success(`成功發布文章: ${article.title}`);
-
-            // 生成 Git 指令並顯示操作指南
-            if (result.targetPath) {
-                // 計算相對於 Astro 專案的路徑
-                const relativePath = result.targetPath.replace(/\\/g, '/');
-                const pathParts = relativePath.split('/');
-                const relativeToProject = pathParts.slice(pathParts.indexOf('src')).join('/');
-
-                gitCommands.value = generateGitCommands(article, relativeToProject);
-                showGitGuide.value = true;
-            }
-
-            // 如果有警告，顯示警告訊息
-            if (result.warnings && result.warnings.length > 0) {
-                console.warn('發布警告:', result.warnings);
-                result.warnings.forEach(warning => {
-                    notificationService.warning(warning);
-                });
-            }
-        } else {
-            notificationService.error(`發布失敗: ${result.message}`);
-
-            // 顯示詳細錯誤
-            if (result.errors && result.errors.length > 0) {
-                result.errors.forEach(error => {
-                    notificationService.error(error);
-                });
-            }
-        }
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '未知錯誤';
-        notificationService.error(`發布失敗: ${errorMessage}`);
-        console.error('Failed to publish article:', error);
+        await articleStore.toggleStatus(article.id);
+    } catch {
+        // 狀態切換失敗靜默處理
     }
 }
 

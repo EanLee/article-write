@@ -423,7 +423,7 @@ Content`
     })
   })
 
-  describe('moveToPublished - 設為已發布', () => {
+  describe('toggleStatus - 切換發布狀態', () => {
     it('應該更新 frontmatter status 並保持檔案位置不變', async () => {
       const store = useArticleStore()
 
@@ -459,7 +459,7 @@ Content to publish`)
 
       store.articles.push(article)
 
-      await store.moveToPublished('move-test')
+      await store.toggleStatus('move-test')
 
       // 應該寫入同一個路徑（不移動檔案）
       expect(window.electronAPI.writeFile).toHaveBeenCalled()
