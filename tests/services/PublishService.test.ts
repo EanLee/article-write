@@ -10,7 +10,8 @@ const mockFileService = {
   writeFile: vi.fn(),
   copyFile: vi.fn(),
   createDirectory: vi.fn(),
-  exists: vi.fn()
+  exists: vi.fn(),
+  checkWritable: vi.fn()
 }
 
 describe('PublishService', () => {
@@ -58,6 +59,7 @@ describe('PublishService', () => {
     mockFileService.copyFile.mockResolvedValue(undefined)
     mockFileService.createDirectory.mockResolvedValue(undefined)
     mockFileService.exists.mockResolvedValue(false) // Default: directories/files don't exist
+    mockFileService.checkWritable.mockResolvedValue({ exists: true, writable: true }) // Default: target dir exists and writable
   })
 
   describe('publishArticle', () => {
@@ -329,7 +331,59 @@ describe('PublishService', () => {
       const result = await publishService.publishArticle(mockArticle, mockConfig)
 
       expect(result.success).toBe(false)
-      expect(result.message).toContain('失敗')
+      expect(result.message).toBeTruthy()
+    })
+
+    describe('五種常見失敗情境', () => {
+      it('情境一：目標路徑不存在 → 顯示引導訊息', async () => {
+        mockFileService.checkWritable.mockResolvedValue({ exists: false, writable: false })
+
+        const result = await publishService.publishArticle(mockArticle, mockConfig)
+
+        expect(result.success).toBe(false)
+        expect(result.message).toContain('目標路徑不存在')
+        expect(result.message).toContain('請到設定確認部落格路徑')
+      })
+
+      it('情境二：目標路徑沒有寫入權限 → 顯示權限說明', async () => {
+        mockFileService.checkWritable.mockResolvedValue({ exists: true, writable: false })
+
+        const result = await publishService.publishArticle(mockArticle, mockConfig)
+
+        expect(result.success).toBe(false)
+        expect(result.message).toContain('沒有寫入權限')
+      })
+
+      it('情境三：磁碟空間不足（ENOSPC）→ 顯示磁碟空間說明', async () => {
+        const enospc = new Error('ENOSPC: no space left on device')
+        ;(enospc as any).cause = Object.assign(new Error(), { code: 'ENOSPC' })
+        mockFileService.writeFile.mockRejectedValue(enospc)
+
+        const result = await publishService.publishArticle(mockArticle, mockConfig)
+
+        expect(result.success).toBe(false)
+        expect(result.message).toContain('磁碟空間不足')
+      })
+
+      it('情境四：檔案被佔用（EBUSY）→ 顯示檔案佔用說明', async () => {
+        const ebusy = new Error('EBUSY: resource busy or locked')
+        ;(ebusy as any).cause = Object.assign(new Error(), { code: 'EBUSY' })
+        mockFileService.writeFile.mockRejectedValue(ebusy)
+
+        const result = await publishService.publishArticle(mockArticle, mockConfig)
+
+        expect(result.success).toBe(false)
+        expect(result.message).toContain('目標檔案正在使用中')
+      })
+
+      it('情境五：未知錯誤 → 顯示原始錯誤訊息', async () => {
+        mockFileService.writeFile.mockRejectedValue(new Error('Unexpected error XYZ'))
+
+        const result = await publishService.publishArticle(mockArticle, mockConfig)
+
+        expect(result.success).toBe(false)
+        expect(result.message).toContain('Unexpected error XYZ')
+      })
     })
   })
 
