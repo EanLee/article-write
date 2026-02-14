@@ -2,65 +2,62 @@
 
 > **建立日期**: 2026-02-03
 > **目的**: 記錄所有跨角色討論、決策過程和執行結果
-> **規則**: 參考 [圓桌會議運作規則](../multi-role-analysis/ROUNDTABLE_RULES.md)
+> **規則**: 參考 [圓桌會議運作規則](./ROUNDTABLE_RULES.md)
 
 ---
 
 ## 📋 討論索引
 
-| 編號 | 話題 | 發起日期 | 狀態 | 決策類型 | 目錄 |
+| 編號 | 話題 | 發起日期 | 狀態 | 決策類型 | 檔案 |
 |------|------|---------|------|---------|------|
-| 001 | 產品推出策略與規劃 | 2026-02-03 | ✅ 已決策 | 全體一致 | [topic-001-product-launch-strategy](./topic-001-product-launch-strategy/) |
+| 000 | 初始系統多角色評估 | 2026-02-02 | ✅ 已決策 | 全體一致 | [topic-000-2026-02-02-initial-system-evaluation](./topic-000-2026-02-02-initial-system-evaluation/) |
+| 001 | 產品推出策略與規劃 | 2026-02-03 | ✅ 已決策 | 全體一致 | [topic-001-2026-02-03-product-launch-strategy](./topic-001-2026-02-03-product-launch-strategy/) |
+| 002 | Week 2 進度回顧 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-002-2026-02-06-progress-review-week2](./topic-002-2026-02-06-progress-review-week2/) |
+| 003 | 緊急進度檢討與方向修正 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-003-2026-02-06-emergency-progress-review](./topic-003-2026-02-06-emergency-progress-review/) |
+| 004 | 現實重組與計畫調整 | 2026-02-12 | ✅ 已決策 | 全體一致 | [topic-004-2026-02-12-reality-reset](./topic-004-2026-02-12-reality-reset/) |
+| 005 | Week 3 進度回報與方向修正 | 2026-02-13 | ✅ 已決策 | 全體一致 | [topic-005-2026-02-13-week3-progress-review](./topic-005-2026-02-13-week3-progress-review/) |
+| 006 | 發布機制落差確認 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-006-2026-02-14-publish-mechanism](./topic-006-2026-02-14-publish-mechanism/) |
+| 007 | Frontmatter 時間欄位命名釐清 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-007-2026-02-14-frontmatter-date-fields](./topic-007-2026-02-14-frontmatter-date-fields/) |
+| 008 | Sprint Retrospective — 瓶頸識別與改善行動 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-008-2026-02-14-sprint-retro](./topic-008-2026-02-14-sprint-retro/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 1
-**已決策**: 1
+**總討論數**: 9
+**已決策**: 9
 **討論中**: 0
-**已實作**: 0
-**已結案**: 0
-
----
-
-## 🏆 決策類型分布
-
-| 決策類型 | 次數 | 百分比 |
-|---------|------|--------|
-| 全體一致 | 1 | 100% |
-| 多數共識 | 0 | 0% |
-| 分歧但可行 | 0 | 0% |
-| 延後決策 | 0 | 0% |
-
----
-
-## 🎯 高優先級議題
-
-*暫無高優先級議題*
-
-<!--
-範例：
-- ⛔ [發布功能實作](./topic-001-publish-priority/) - P0, 期限: 2026-02-17
--->
-
----
-
-## 🔄 進行中的討論
-
-*暫無進行中的討論*
-
-<!--
-範例：
-- 🔄 [AI 功能範圍](./topic-002-ai-scope/) - 已進行 2 輪討論
--->
 
 ---
 
 ## ✅ 最近完成的決策
 
-- ✅ [產品推出策略與規劃](./topic-001-product-launch-strategy/) - 2026-02-03, 全體一致
-  - 品牌改名為 MarkFlow
+- ✅ [#008 Sprint Retrospective — 瓶頸識別與改善行動](./topic-008-2026-02-14-sprint-retro/) - 2026-02-14, 全體一致
+  - 識別四個核心瓶頸：無可交付物、進度不透明、錯誤路徑缺失、文件未入流程
+  - 下一個 Sprint = 「讓 Jordan 真正跑起來」：打包 + 穩定化 + 端對端驗證
+  - 行動項目：MVP_STATUS.md、錯誤反饋 UI、electron-builder 打包、Smoke Test Checklist
+
+- ✅ [#007 Frontmatter 時間欄位命名釐清](./topic-007-2026-02-14-frontmatter-date-fields/) - 2026-02-14, 全體一致
+  - `date` 改為 `pubDate`（符合 Astro 慣例，語意為發佈時間）
+  - 新增 `created`（建立時間，WriteFlow 首次開啟時自動填入）
+  - `lastmod` 保持不變
+
+- ✅ [#006 發布機制落差確認](./topic-006-2026-02-14-publish-mechanism/) - 2026-02-14, 全體一致
+  - WriteFlow 是主工具，Obsidian vault 為資料來源
+  - 發布 = 手動觸發的全量同步
+  - 輸出採用 Leaf 結構（`{slug}/index.md` + `{slug}/images/`）
+
+- ✅ [#005 Week 3 進度回報與方向修正](./topic-005-2026-02-13-week3-progress-review/) - 2026-02-13, 全體一致
+  - git 操作維持背景化，不做 UI
+  - MVP 發布定義為本地同步（不含自動 push）
+  - 核心缺口：端到端發布流程未驗證
+
+- ✅ [#004 現實重組與計畫調整](./topic-004-2026-02-12-reality-reset/) - 2026-02-12, 全體一致
+  - 延後發布至 2026-03-15
+  - 建立彈性開發機制
+
+- ✅ [#001 產品推出策略與規劃](./topic-001-2026-02-03-product-launch-strategy/) - 2026-02-03, 全體一致
+  - 品牌改名為 WriteFlow
   - 3 週 MVP 時程
   - Week 5 開始 Alpha 推廣
 
@@ -68,66 +65,11 @@
 
 ## 📚 參考資料
 
-- [圓桌會議運作規則](../multi-role-analysis/ROUNDTABLE_RULES.md) - 了解如何發起討論和記錄
-- [初次圓桌會議記錄](../multi-role-analysis/ROUNDTABLE_MEETING.md) - 參考範例
-- [綜合分析報告](../multi-role-analysis/COMPREHENSIVE_ANALYSIS.md) - 產品整體評估
+- [圓桌會議運作規則](./ROUNDTABLE_RULES.md)
+- [角色卡](./CHARACTER_CARDS.md)
+- [初始系統評估（topic-000）](./topic-000-2026-02-02-initial-system-evaluation/)
 
 ---
 
-## 🚀 如何開始討論
-
-### 1. 提出議題
-
-向 AI 助手提出問題或議題，例如：
-```
-我想討論一個問題：是否應該實作深色模式？
-```
-
-### 2. 多角色回應
-
-AI 助手會以五個角色的視角進行分析和回應。
-
-### 3. 延續討論
-
-可以繼續提出問題或回應：
-```
-我同意技術長的觀點，但行銷的擔憂也有道理。
-有沒有折衷方案？
-```
-
-### 4. 記錄與決策
-
-討論會自動記錄到對應的話題目錄中，並形成決策文件。
-
----
-
-## 💡 討論建議
-
-### 適合討論的議題
-
-✅ 新功能提議和評估
-✅ 技術選型和架構決策
-✅ 優先級排序和資源分配
-✅ 使用者體驗改善
-✅ 品牌和行銷策略
-✅ 風險評估和問題解決
-
-### 不適合的議題
-
-❌ 純技術實作細節（應該在技術文件討論）
-❌ 個人偏好（缺乏客觀標準）
-❌ 已有明確答案的問題
-❌ 與產品無關的議題
-
----
-
-## 📞 聯絡方式
-
-**問題回報**: 透過 GitHub Issues
-**改進建議**: 透過 Pull Request 或 Discussions
-
----
-
-**文件版本**: v1.0
-**最後更新**: 2026-02-03
-**維護者**: Development Team
+**文件版本**: v2.0
+**最後更新**: 2026-02-14

@@ -57,6 +57,11 @@ describe('Conversion Integration Tests', () => {
       imageSourceDir: '/test/obsidian-vault/images'
     }
 
+    // 預設：目錄路徑 isDirectory: true，檔案路徑 isDirectory: false
+    vi.mocked(mockFileSystem.getFileStats).mockImplementation(async (path: string) => {
+      return { isDirectory: !path.endsWith('.md'), mtime: Date.now() }
+    })
+
     // Mock Electron API
     global.window = {
       electronAPI: {
@@ -123,15 +128,8 @@ Obsidian 圖片語法：
 
       // Mock 目錄掃描
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
-        if (path.includes('Software')) {
-          return ['test-article.md']
-        }
-        if (path.includes('growth')) {
-          return []
-        }
-        if (path.includes('management')) {
-          return []
-        }
+        if (path === config.sourceDir) {return ['Software']}
+        if (path.includes('Software')) {return ['test-article.md']}
         return []
       })
 
@@ -220,9 +218,8 @@ Obsidian 圖片語法：
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(testArticle)
 
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
-        if (path.includes('Software')) {
-          return ['missing-image.md']
-        }
+        if (path === config.sourceDir) {return ['Software']}
+        if (path.includes('Software')) {return ['missing-image.md']}
         return []
       })
 
@@ -298,6 +295,7 @@ Obsidian 圖片語法：
 
       // Mock 目錄掃描
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
+        if (path === config.sourceDir) {return ['Software', 'growth', 'management']}
         if (path.includes('Software')) {return ['software-1.md']}
         if (path.includes('growth')) {return ['growth-1.md']}
         if (path.includes('management')) {return ['management-1.md']}
@@ -355,6 +353,7 @@ Obsidian 圖片語法：
       })
 
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
+        if (path === config.sourceDir) {return ['Software']}
         if (path.includes('Software')) {return ['success.md', 'fail.md']}
         return []
       })
@@ -414,8 +413,8 @@ Obsidian 圖片語法：
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(testArticle)
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
-        if (path.includes('Software')) {
-return ['syntax-test.md']}
+        if (path === config.sourceDir) {return ['Software']}
+        if (path.includes('Software')) {return ['syntax-test.md']}
         return []
       })
       vi.mocked(mockFileSystem.fileExists).mockResolvedValue(true)
@@ -478,6 +477,7 @@ return ['syntax-test.md']}
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(specialArticle)
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
+        if (path === config.sourceDir) {return ['Software']}
         if (path.includes('Software')) {return ['special.md']}
         return []
       })
@@ -509,6 +509,7 @@ return ['syntax-test.md']}
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(longArticle)
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
+        if (path === config.sourceDir) {return ['Software']}
         if (path.includes('Software')) {return ['long.md']}
         return []
       })
@@ -546,9 +547,8 @@ return ['syntax-test.md']}
       })
 
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {
-        if (path.includes('Software')) {
-          return ['article-1.md', 'article-2.md', 'article-3.md']
-        }
+        if (path === config.sourceDir) {return ['Software']}
+        if (path.includes('Software')) {return ['article-1.md', 'article-2.md', 'article-3.md']}
         return []
       })
 

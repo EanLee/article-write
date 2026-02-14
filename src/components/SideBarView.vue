@@ -1,42 +1,42 @@
 <template>
-  <div class="sidebar-view" :style="{ width: `${width}px` }">
-    <!-- Header with tabs -->
-    <div class="sidebar-header">
-      <div class="sidebar-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: modelValue === SidebarView.Articles }"
-          @click="$emit('update:modelValue', SidebarView.Articles)"
-        >
-          <FileText :size="14" />
-          <span>文章列表</span>
-        </button>
-        <button
-          class="tab-btn"
-          :class="{ active: modelValue === SidebarView.Frontmatter }"
-          :disabled="!hasCurrentArticle"
-          @click="$emit('update:modelValue', SidebarView.Frontmatter)"
-        >
-          <Info :size="14" />
-          <span>文章資訊</span>
-        </button>
+  <div
+    class="sidebar-view"
+    :class="{ 'sidebar-collapsed': isCollapsed || focusMode }"
+    :style="isCollapsed || focusMode ? {} : { width: `${width}px` }"
+  >
+    <template v-if="!isCollapsed && !focusMode">
+      <!-- Header with tabs -->
+      <div class="sidebar-header">
+        <div class="sidebar-tabs">
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Articles }"
+            @click="$emit('update:modelValue', SidebarView.Articles)"
+          >
+            <FileText :size="14" />
+            <span>文章列表</span>
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Frontmatter }"
+            :disabled="!hasCurrentArticle"
+            @click="$emit('update:modelValue', SidebarView.Frontmatter)"
+          >
+            <Info :size="14" />
+            <span>文章資訊</span>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Content -->
-    <div class="sidebar-content">
-      <!-- 文章列表視圖 -->
-      <ArticleListTree v-if="modelValue === SidebarView.Articles" />
+      <!-- Content -->
+      <div class="sidebar-content">
+        <ArticleListTree v-if="modelValue === SidebarView.Articles" />
+        <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+      </div>
 
-      <!-- Frontmatter 視圖 -->
-      <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
-    </div>
-
-    <!-- Resize Handle -->
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+      <!-- Resize Handle -->
+      <div class="resize-handle" @mousedown="startResize"></div>
+    </template>
   </div>
 </template>
 
@@ -45,10 +45,14 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { FileText, Info } from 'lucide-vue-next'
 import { SidebarView } from '@/types'
 import { useArticleStore } from '@/stores/article'
+import { useFocusMode } from '@/composables/useFocusMode'
 import ArticleListTree from './ArticleListTree.vue'
 import FrontmatterView from './FrontmatterView.vue'
 
+defineProps<{ isCollapsed: boolean }>()
+
 const articleStore = useArticleStore()
+const { focusMode } = useFocusMode()
 const modelValue = defineModel<SidebarView>({ default: SidebarView.Articles })
 
 const MIN_WIDTH = 200
@@ -67,9 +71,8 @@ function startResize(e: MouseEvent) {
 }
 
 function handleMouseMove(e: MouseEvent) {
-  if (!isResizing.value) {return}
-
-  const newWidth = e.clientX - 48 // 扣除 ActivityBar 的寬度
+  if (!isResizing.value) { return }
+  const newWidth = e.clientX - 48
   if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
     width.value = newWidth
   }
@@ -78,13 +81,11 @@ function handleMouseMove(e: MouseEvent) {
 function stopResize() {
   if (isResizing.value) {
     isResizing.value = false
-    // 儲存寬度到 localStorage
     localStorage.setItem(STORAGE_KEY, width.value.toString())
   }
 }
 
 onMounted(() => {
-  // 載入儲存的寬度
   const savedWidth = localStorage.getItem(STORAGE_KEY)
   if (savedWidth) {
     const parsed = parseInt(savedWidth, 10)
@@ -112,6 +113,13 @@ onUnmounted(() => {
   height: 100%;
   flex-shrink: 0;
   position: relative;
+  overflow: hidden;
+  transition: width 0.15s ease;
+}
+
+.sidebar-collapsed {
+  width: 0 !important;
+  border-right: none;
 }
 
 .sidebar-header {
@@ -164,7 +172,6 @@ onUnmounted(() => {
   overflow-x: hidden;
 }
 
-/* Resize Handle */
 .resize-handle {
   position: absolute;
   right: 0;

@@ -89,32 +89,21 @@
             </button>
           </div>
 
-          <!-- 移至已發布資料夾 -->
-          <div
-            v-if="article?.status === 'draft'"
-            class="tooltip tooltip-bottom"
-            data-tip="移至已發布資料夾"
-          >
-            <button
-              class="btn btn-xs btn-success gap-1"
-              @click="$emit('move-to-published')"
-            >
-              <Upload :size="14" />
-              <span class="hidden lg:inline text-xs">發佈</span>
-            </button>
-          </div>
-
-          <!-- 發布到部落格 -->
+          <!-- 文章狀態切換 -->
           <div
             class="tooltip tooltip-bottom"
-            data-tip="發布到部落格 (Ctrl+Shift+P)"
+            :data-tip="article?.status === 'published' ? '改為草稿' : '標記為已發布'"
           >
             <button
-              class="btn btn-xs btn-primary gap-1"
-              @click="$emit('publish-to-blog')"
+              class="btn btn-xs gap-1"
+              :class="article?.status === 'published' ? 'btn-ghost' : 'btn-success'"
+              @click="$emit('toggle-status')"
             >
-              <Send :size="14" />
-              <span class="hidden lg:inline text-xs">發布</span>
+              <Upload v-if="article?.status === 'draft'" :size="14" />
+              <FileEdit v-else :size="14" />
+              <span class="hidden lg:inline text-xs">
+                {{ article?.status === 'published' ? '改為草稿' : '標記發布' }}
+              </span>
             </button>
           </div>
 
@@ -146,8 +135,7 @@ import {
   FileCode,
   FileEdit,
   Maximize,
-  Minimize,
-  Send
+  Minimize
 } from 'lucide-vue-next'
 import SaveStatusIndicator from '@/components/SaveStatusIndicator.vue'
 
@@ -166,8 +154,7 @@ const props = withDefaults(defineProps<Props>(), {
 defineEmits<{
   'toggle-preview': []
   'edit-frontmatter': []
-  'move-to-published': []
-  'publish-to-blog': []
+  'toggle-status': []
   'toggle-editor-mode': []
   'toggle-focus-mode': []
 }>()

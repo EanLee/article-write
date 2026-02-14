@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="h-screen flex bg-base-100">
-    <!-- Activity Bar (Mode Selector) -->
-    <ActivityBar v-model="currentMode" @open-settings="showSettings = true" />
+    <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
+    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -9,7 +9,7 @@
       <template v-if="currentMode === ViewMode.Editor">
         <div class="flex flex-1 overflow-hidden">
           <!-- Sidebar -->
-          <SideBarView v-model="sidebarView" />
+          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" />
 
           <!-- Editor Content -->
           <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
@@ -38,8 +38,6 @@
               <MainEditor />
             </div>
 
-            <!-- 伺服器控制面板 -->
-            <ServerControlPanel />
           </main>
         </div>
       </template>
@@ -60,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
@@ -70,15 +69,27 @@ import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
-import ServerControlPanel from "@/components/ServerControlPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
+const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
 const sidebarView = ref<SidebarView>(SidebarView.Articles);
+const sidebarCollapsed = ref(false);
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+}
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault();
+    toggleSidebar();
+  }
+}
 
 // 從管理模式切換回編輯模式
 function switchToEditorMode() {
@@ -104,10 +115,12 @@ onMounted(async () => {
 
   // 監聽頁面關閉事件
   window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("keydown", handleGlobalKeydown);
 });
 
 onUnmounted(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
+  window.removeEventListener("keydown", handleGlobalKeydown);
 });
 </script>
 

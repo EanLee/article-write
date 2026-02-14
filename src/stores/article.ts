@@ -186,8 +186,8 @@ export const useArticleStore = defineStore("article", () => {
       const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
 
       if (existingIndex !== -1) {
-        // 更新現有文章
-        articles.value[existingIndex] = article;
+        // 更新現有文章，保留原有 id（避免 UI 組件因 id 變動而重新掛載）
+        articles.value[existingIndex] = { ...article, id: articles.value[existingIndex].id };
 
         if (currentArticle.value && normalizePath(currentArticle.value.filePath) === normalizedPath) {
           currentArticle.value = article;
@@ -313,16 +313,16 @@ export const useArticleStore = defineStore("article", () => {
    * ⚠️ 這個函數會執行實際的檔案寫入操作
    * 成功後會自動更新 store 狀態
    */
-  async function saveArticle(article: Article) {
+  async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
     try {
       if (typeof window === "undefined" || !window.electronAPI) {
         throw new Error("Electron API not available");
       }
 
-      // 更新 lastModified timestamp
+      // 更新 lastModified timestamp（migration 存檔時不更新，避免排序跳動）
       const articleToSave = {
         ...article,
-        lastModified: new Date(),
+        lastModified: options?.preserveLastModified ? article.lastModified : new Date(),
       };
 
       // ⚠️ 關鍵：告訴 FileWatchService 忽略接下來的變化
@@ -407,7 +407,7 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-  async function moveToPublished(id: string) {
+  async function toggleStatus(id: string) {
     try {
       if (typeof window === "undefined" || !window.electronAPI) {
         throw new Error("Electron API not available");
@@ -418,34 +418,71 @@ export const useArticleStore = defineStore("article", () => {
         throw new Error("Article not found");
       }
 
-      if (article.status === "draft") {
-        const vaultPath = configStore.config.paths.articlesDir;
-        if (!vaultPath) {
-          throw new Error("Obsidian vault path not configured");
-        }
+      const newStatus = article.status === ArticleStatus.Draft
+        ? ArticleStatus.Published
+        : ArticleStatus.Draft;
 
-        // Create new path
-        const publishPath = `${vaultPath}/Publish/${article.category}`;
-        const newFilePath = `${publishPath}/${article.slug}.md`;
+      const updatedArticle = {
+        ...article,
+        status: newStatus,
+        frontmatter: {
+          ...article.frontmatter,
+          status: newStatus,
+        },
+        lastModified: new Date(),
+      };
 
-        // Ensure publish directory exists
-        await window.electronAPI.createDirectory(publishPath);
+      await saveArticle(updatedArticle);
 
-        // 使用 ArticleService 移動文章（包含備份和檔案操作）
-        await articleService.moveArticle(article, newFilePath);
-
-        // 更新 store 中的文章狀態
-        article.status = ArticleStatus.Published;
-        article.filePath = newFilePath;
-        article.lastModified = new Date();
-
-        notify.success("發布成功", `「${article.title}」已移至發布區`);
-      }
+      const statusLabel = newStatus === ArticleStatus.Published ? "已發布" : "草稿";
+      notify.success("狀態已更新", `「${article.title}」已標記為${statusLabel}`);
     } catch (error) {
-      console.error("Failed to move article to published:", error);
-      notify.error("發布失敗", error instanceof Error ? error.message : "無法移動文章");
+      console.error("Failed to toggle article status:", error);
+      notify.error("更新失敗", error instanceof Error ? error.message : "無法更新文章狀態");
       throw error;
     }
+  }
+
+
+  /**
+   * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+   * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
+   */
+  function migrateArticleFrontmatter(article: Article): Article {
+    const fm = { ...article.frontmatter }
+    let dirty = false
+
+    // 1. 補上 created（建立時間）
+    // 順序必須在 date 移轉前執行，因為要讀取 date 的值
+    if (!fm.created) {
+      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
+      dirty = true
+    }
+
+    // 2. 移轉 date → pubDate
+    const legacyDate = (fm as any).date
+    if (legacyDate !== undefined) {
+      if (!fm.pubDate) {
+        fm.pubDate = legacyDate
+      }
+      delete (fm as any).date
+      dirty = true
+    }
+
+    // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
+    if (fm.title === undefined) { fm.title = ''; dirty = true }
+    if (fm.description === undefined) { fm.description = ''; dirty = true }
+    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
+    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
+
+    if (!dirty) {return article}
+
+    const migrated = { ...article, frontmatter: fm }
+    // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
+      console.warn('frontmatter 移轉寫回失敗:', err)
+    )
+    return migrated
   }
 
   function setCurrentArticle(article: Article | null) {
@@ -453,6 +490,11 @@ export const useArticleStore = defineStore("article", () => {
     const previousArticle = currentArticle.value;
     if (previousArticle && previousArticle !== article) {
       autoSaveService.saveOnArticleSwitch(previousArticle);
+    }
+
+    // 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+    if (article) {
+      article = migrateArticleFrontmatter(article);
     }
 
     currentArticle.value = article;
@@ -565,11 +607,14 @@ export const useArticleStore = defineStore("article", () => {
     saveArticle,
     updateArticleInMemory,
     deleteArticle,
-    moveToPublished,
+    toggleStatus,
     setCurrentArticle,
     updateFilter,
     reloadArticle,
     saveCurrentArticle,
     initializeAutoSave,
+    // 內部方法（供測試使用）
+    reloadArticleFromDisk,
+    removeArticleFromMemory,
   };
 });

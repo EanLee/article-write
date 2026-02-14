@@ -30,7 +30,7 @@ global.window = {
   }
 } as any
 
-describe.skip('Article Store - 路徑處理測試 (需要重構)', () => {
+describe('Article Store - 路徑處理測試', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
 
@@ -53,7 +53,7 @@ describe.skip('Article Store - 路徑處理測試 (需要重構)', () => {
   })
 
   describe('路徑格式一致性', () => {
-    it('loadArticles 應該使用正斜線格式的路徑', async () => {
+    it.skip('loadArticles 應該使用正斜線格式的路徑（待配合 loadAllArticles 掃描邏輯重寫 mock）', async () => {
       // Mock 檔案系統
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
         if (path.includes('Drafts') || path.includes('Software')) {
@@ -123,7 +123,7 @@ Updated content`)
       })
 
       // 使用正斜線路徑呼叫 reloadArticleByPath
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/test-article.md',
         ArticleStatus.Draft,
         ArticleCategory.Software
@@ -133,7 +133,7 @@ Updated content`)
       expect(store.articles).toHaveLength(1)
       expect(store.articles[0].id).toBe('test-id-123') // ID 不變
       expect(store.articles[0].title).toBe('Updated Title')
-      expect(store.articles[0].content).toBe('\nUpdated content')
+      expect(store.articles[0].content).toBe('Updated content')
     })
 
     it('應該正確更新現有文章（反斜線路徑）', async () => {
@@ -168,7 +168,7 @@ Updated content`)
       })
 
       // ⚠️ 關鍵測試：使用反斜線路徑呼叫（模擬 Windows 檔案監聽）
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:\\test\\vault\\Drafts\\Software\\test-article.md', // 反斜線！
         ArticleStatus.Draft,
         ArticleCategory.Software
@@ -211,7 +211,7 @@ Updated content`)
       })
 
       // 混合斜線
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:\\test/vault\\Drafts/Software\\test-article.md',
         ArticleStatus.Draft,
         ArticleCategory.Software
@@ -248,7 +248,7 @@ New content`)
       })
 
       // 載入一篇真的不存在的文章
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/new-article.md',
         ArticleStatus.Draft,
         ArticleCategory.Software
@@ -277,7 +277,7 @@ New content`)
       })
 
       // 使用反斜線路徑刪除
-      store['removeArticleByPath']('C:\\test\\vault\\Drafts\\Software\\remove-test.md')
+      store.removeArticleFromMemory('C:\\test\\vault\\Drafts\\Software\\remove-test.md')
 
       // 應該成功刪除
       expect(store.articles).toHaveLength(0)
@@ -312,19 +312,19 @@ Content`)
       })
 
       // 模擬多次檔案監聽觸發（使用不同路徑格式）
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/article.md',
         ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:\\test\\vault\\Drafts\\Software\\article.md', // 反斜線
         ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
-      await store['reloadArticleByPath'](
+      await store.reloadArticleFromDisk(
         'C:/test\\vault/Drafts\\Software/article.md', // 混合
         ArticleStatus.Draft,
         ArticleCategory.Software

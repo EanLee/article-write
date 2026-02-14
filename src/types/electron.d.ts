@@ -44,7 +44,7 @@ export interface ElectronAPI {
   getConfig: () => Promise<any>
   setConfig: (config: any) => Promise<void>
   validateArticlesDir: (path: string) => Promise<{ valid: boolean; message: string }>
-  validateAstroBlog: (path: string) => Promise<{ valid: boolean; message: string }>
+  validateAstroBlog: (path: string) => Promise<{ valid: boolean; warning?: boolean; message: string }>
 
   // 程序管理
   startDevServer: (projectPath: string) => Promise<void>

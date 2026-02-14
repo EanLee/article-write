@@ -92,7 +92,8 @@ describe('PublishService', () => {
 
       expect(mockFileService.writeFile).toHaveBeenCalled()
       const writeCall = mockFileService.writeFile.mock.calls[0]
-      expect(writeCall[0]).toContain('test-article.md')
+      expect(writeCall[0]).toContain('test-article')
+      expect(writeCall[0]).toContain('index.md')
     })
 
     it('應該建立目標目錄', async () => {
@@ -190,6 +191,24 @@ describe('PublishService', () => {
       const writtenContent = writeCall[1]
       expect(writtenContent).toContain('![image.png](./images/image.png)')
     })
+
+    it('圖片存在時應使用 Leaf 結構複製到 {slug}/images/', async () => {
+      mockArticle.content = '![[photo.png]]'
+      // 讓圖片來源存在
+      mockFileService.exists.mockResolvedValue(true)
+
+      await publishService.publishArticle(mockArticle, mockConfig)
+
+      // 驗證 copyFile 被呼叫，且目標路徑符合 Leaf 結構
+      expect(mockFileService.copyFile).toHaveBeenCalledWith(
+        expect.stringContaining('photo.png'), // 來源：imagesDir/photo.png
+        expect.stringContaining(`test-article`) // 目標：{targetBlogDir}/test-article/images/photo.png
+      )
+      // 更嚴格：目標路徑應包含 /images/
+      const copyArgs = mockFileService.copyFile.mock.calls[0]
+      expect(copyArgs[1]).toContain('images')
+      expect(copyArgs[1]).toContain('photo.png')
+    })
   })
 
   describe('Frontmatter 轉換', () => {
@@ -201,7 +220,7 @@ describe('PublishService', () => {
       expect(writtenContent).toContain('title: 測試文章')
     })
 
-    it('應該添加 pubDate 如果缺少', async () => {
+    it('應該在 pubDate 缺少時自動填入當日日期', async () => {
       mockArticle.frontmatter = {
         title: '測試'
       }
@@ -213,18 +232,17 @@ describe('PublishService', () => {
       expect(writtenContent).toContain('pubDate:')
     })
 
-    it('應該轉換 publishDate 為 pubDate', async () => {
+    it('應該在 pubDate 已有值時直接沿用', async () => {
       mockArticle.frontmatter = {
         title: '測試',
-        publishDate: '2024-01-01'
+        pubDate: '2024-01-01'
       }
 
       await publishService.publishArticle(mockArticle, mockConfig)
 
       const writeCall = mockFileService.writeFile.mock.calls[0]
       const writtenContent = writeCall[1]
-      expect(writtenContent).toContain('pubDate:')
-      expect(writtenContent).not.toContain('publishDate:')
+      expect(writtenContent).toContain('pubDate: 2024-01-01')
     })
 
     it('應該處理陣列標籤', async () => {

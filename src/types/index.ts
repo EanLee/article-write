@@ -84,10 +84,23 @@ export interface Article {
 }
 
 export interface Frontmatter {
-  title: string
+  title?: string  // 草稿可能尚未填寫標題
   description?: string
-  date: string
+  /**
+   * 建立時間。
+   * WriteFlow 首次開啟文章時自動填入：
+   * - 若原有 `date` 欄位有值 → 沿用 `date` 的值（date 是最接近建立時間的資訊）
+   * - 若無任何時間資訊 → 填入當下時間
+   */
+  created?: string
+  /**
+   * 公開/發佈時間。
+   * ⚠️ 欄位名稱 `pubDate` 符合 Astro 等部落格框架慣例（圓桌 #007）。
+   * 發佈前可能為空；PublishService 同步時若為空則自動填入當日日期。
+   */
+  pubDate?: string
   lastmod?: string
+  status?: ArticleStatus     // 文章狀態，未設定預設為 draft
   tags?: string[]        // 改為可選，防止 undefined 導致崩潰
   categories?: string[]  // 改為可選，防止 undefined 導致崩潰
   slug?: string

@@ -299,6 +299,9 @@ export class MarkdownService {
       if (data.lastmod) {
         cleanData.lastmod = data.lastmod;
       }
+      if (data.status) {
+        cleanData.status = data.status;
+      }
       if (data.tags && data.tags.length > 0) {
         cleanData.tags = data.tags;
       }

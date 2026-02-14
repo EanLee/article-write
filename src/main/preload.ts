@@ -21,6 +21,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Publish operations
   publishArticle: (article: any, config: any, onProgress?: any) =>
     ipcRenderer.invoke('publish-article', article, config, onProgress),
+  syncAllPublished: (config: any) =>
+    ipcRenderer.invoke('sync-all-published', config),
+  onSyncProgress: (callback: (data: { current: number; total: number; title: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { current: number; total: number; title: string }) => {
+      callback(data)
+    }
+    ipcRenderer.on('sync-progress', listener)
+    return () => {
+      ipcRenderer.removeListener('sync-progress', listener)
+    }
+  },
 
   // Process management
   startDevServer: (projectPath: string) => ipcRenderer.invoke('start-dev-server', projectPath),
@@ -52,6 +63,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('file-change', listener)
     }
   },
+
+  // Git operations
+  gitStatus: (repoPath: string) => ipcRenderer.invoke('git-status', repoPath),
+  gitAdd: (repoPath: string, paths?: string[]) => ipcRenderer.invoke('git-add', repoPath, paths),
+  gitCommit: (repoPath: string, options: { message: string; addAll?: boolean }) =>
+    ipcRenderer.invoke('git-commit', repoPath, options),
+  gitPush: (repoPath: string, options?: { remote?: string; branch?: string }) =>
+    ipcRenderer.invoke('git-push', repoPath, options),
+  gitAddCommitPush: (repoPath: string, commitMessage: string) =>
+    ipcRenderer.invoke('git-add-commit-push', repoPath, commitMessage),
+  gitLog: (repoPath: string, count?: number) => ipcRenderer.invoke('git-log', repoPath, count),
 
   // Directory selection
   selectDirectory: (options?: { title?: string, defaultPath?: string }) =>

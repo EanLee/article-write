@@ -90,19 +90,28 @@ export class AutoSaveService {
       return;
     }
 
-    // 檢查內容是否有變更
-    if (this.hasContentChanged(currentArticle)) {
-      console.log(`自動儲存文章: ${currentArticle.title}`);
-      this.updateSaveState(SaveStatus.Saving);
-      try {
-        await this.saveCallback(currentArticle);
-        this.updateLastSavedContent(currentArticle);
-        this.updateSaveState(SaveStatus.Saved);
-      } catch (error) {
-        console.error("自動儲存失敗:", error);
-        this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
-        // 不重新拋出錯誤，讓自動儲存繼續運行
-      }
+    // Dirty flag 快速路徑：狀態為 Saved 時直接跳過字串比較
+    if (this.saveState.value.status === SaveStatus.Saved) {
+      return;
+    }
+
+    // 第三層：字串比對確認（處理 False Positive：使用者打了又刪回原狀）
+    if (!this.hasContentChanged(currentArticle)) {
+      // 內容實際未變更，靜默重置 dirty flag
+      this.updateSaveState(SaveStatus.Saved);
+      return;
+    }
+
+    console.log(`自動儲存文章: ${currentArticle.title}`);
+    this.updateSaveState(SaveStatus.Saving);
+    try {
+      await this.saveCallback(currentArticle);
+      this.updateLastSavedContent(currentArticle);
+      this.updateSaveState(SaveStatus.Saved);
+    } catch (error) {
+      console.error("自動儲存失敗:", error);
+      this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
+      // 不重新拋出錯誤，讓自動儲存繼續運行
     }
   }
 

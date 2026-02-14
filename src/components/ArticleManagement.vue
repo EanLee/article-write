@@ -28,6 +28,16 @@
 
       <div class="flex-1"></div>
 
+      <button
+        class="btn btn-outline btn-sm gap-2"
+        :class="{ 'loading': isSyncing }"
+        :disabled="isSyncing"
+        @click="handleSyncToBlog"
+      >
+        <RefreshCw v-if="!isSyncing" :size="16" />
+        {{ isSyncing ? `同步中 ${syncProgress.current}/${syncProgress.total}` : '同步到 Blog' }}
+      </button>
+
       <button class="btn btn-primary btn-sm gap-2" @click="handleCreateArticle">
         <FilePlus :size="16" />
         新增文章
@@ -122,14 +132,6 @@
             </td>
             <td @click.stop>
               <div class="flex gap-1 justify-center">
-                <button
-                  class="btn btn-xs btn-ghost text-success"
-                  :disabled="!canPublish(article)"
-                  @click="handlePublishArticle(article)"
-                  title="發布到部落格"
-                >
-                  <Send :size="14" />
-                </button>
                 <button class="btn btn-xs btn-ghost" @click="handleEditArticle(article)" title="編輯">
                   <Edit2 :size="14" />
                 </button>
@@ -171,21 +173,6 @@
       </select>
     </div>
 
-    <!-- Git 操作指南 Modal -->
-    <dialog :class="{ 'modal': true, 'modal-open': showGitGuide }">
-      <div class="modal-box max-w-3xl">
-        <button
-          class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-          @click="showGitGuide = false"
-        >
-          ✕
-        </button>
-        <GitOperationGuide v-if="gitCommands" :commands="gitCommands" />
-      </div>
-      <form method="dialog" class="modal-backdrop" @click="showGitGuide = false">
-        <button>close</button>
-      </form>
-    </dialog>
   </div>
 </template>
 
@@ -195,10 +182,8 @@ import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
 import type { Article } from '@/types'
-import type { PublishConfig, PublishResult } from '@/main/services/PublishService'
 import { notificationService } from '@/services/NotificationService'
-import { generateGitCommands } from '@/utils/gitCommandGenerator'
-import type { GitCommands } from '@/utils/gitCommandGenerator'
+
 import {
   FileText,
   FilePenLine,
@@ -210,9 +195,9 @@ import {
   Trash2,
   FilePlus,
   Filter,
-  Send
+  RefreshCw
 } from 'lucide-vue-next'
-import GitOperationGuide from './GitOperationGuide.vue'
+
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
@@ -221,11 +206,8 @@ const emit = defineEmits<{
   'edit-article': []
 }>()
 
-// 發布相關狀態
-const publishingArticleId = ref<string | null>(null)
-const publishProgress = ref<{ step: string; progress: number } | null>(null)
-const showGitGuide = ref(false)
-const gitCommands = ref<GitCommands | null>(null)
+const isSyncing = ref(false)
+const syncProgress = ref({ current: 0, total: 0 })
 
 // 分頁
 const currentPage = ref(1)
@@ -319,97 +301,45 @@ function handleDeleteArticle(article: Article) {
   }
 }
 
-// 檢查是否可以發布
-function canPublish(article: Article): boolean {
-  // 正在發布中的文章不能再次發布
-  if (publishingArticleId.value === article.id) {
-    return false
-  }
-
-  // 必須有標題和 slug
-  if (!article.title || !article.slug) {
-    return false
-  }
-
-  // 必須設定了路徑
-  const config = configStore.config
-  if (!config.paths.articlesDir || !config.paths.targetBlog) {
-    return false
-  }
-
-  return true
-}
-
-// 處理發布文章
-async function handlePublishArticle(article: Article) {
-  // 檢查配置
+// 同步所有已發布文章到 Blog
+async function handleSyncToBlog() {
   const config = configStore.config
   if (!config.paths.articlesDir || !config.paths.targetBlog) {
     notificationService.error('請先在設定中配置文章目錄和部落格路徑')
     return
   }
 
-  // 確認發布
-  if (!confirm(`確定要發布文章「${article.title}」到部落格嗎？`)) {
-    return
-  }
+  isSyncing.value = true
+  syncProgress.value = { current: 0, total: 0 }
 
-  publishingArticleId.value = article.id
-  publishProgress.value = { step: '準備發布', progress: 0 }
+  const unsubscribe = window.electronAPI.onSyncProgress((data) => {
+    syncProgress.value = { current: data.current, total: data.total }
+  })
 
   try {
-    const publishConfig: PublishConfig = {
+    const result = await window.electronAPI.syncAllPublished({
       articlesDir: config.paths.articlesDir,
       targetBlogDir: config.paths.targetBlog,
       imagesDir: config.paths.imagesDir
+    })
+
+    if (result.failed === 0) {
+      notificationService.success(`同步完成：${result.succeeded} 篇文章已輸出`)
+    } else {
+      notificationService.warning(`同步完成：${result.succeeded} 篇成功，${result.failed} 篇失敗`)
+      result.errors.forEach(err => notificationService.error(err))
     }
 
-    const result: PublishResult = await window.electronAPI.publishArticle(
-      article,
-      publishConfig,
-      (step: string, progress: number) => {
-        publishProgress.value = { step, progress }
-      }
-    )
-
-    if (result.success) {
-      notificationService.success(`成功發布文章: ${article.title}`)
-
-      // 生成 Git 指令並顯示操作指南
-      if (result.targetPath) {
-        // 計算相對於 Astro 專案的路徑
-        const relativePath = result.targetPath.replace(/\\/g, '/')
-        const pathParts = relativePath.split('/')
-        const relativeToProject = pathParts.slice(pathParts.indexOf('src')).join('/')
-
-        gitCommands.value = generateGitCommands(article, relativeToProject)
-        showGitGuide.value = true
-      }
-
-      // 如果有警告，顯示警告訊息
-      if (result.warnings && result.warnings.length > 0) {
-        console.warn('發布警告:', result.warnings)
-        result.warnings.forEach(warning => {
-          notificationService.warning(warning)
-        })
-      }
-    } else {
-      notificationService.error(`發布失敗: ${result.message}`)
-
-      // 顯示詳細錯誤
-      if (result.errors && result.errors.length > 0) {
-        result.errors.forEach(error => {
-          notificationService.error(error)
-        })
-      }
+    if (result.warnings.length > 0) {
+      result.warnings.forEach(w => notificationService.warning(w))
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '未知錯誤'
-    notificationService.error(`發布失敗: ${errorMessage}`)
-    console.error('Failed to publish article:', error)
+    const msg = error instanceof Error ? error.message : '未知錯誤'
+    notificationService.error(`同步失敗：${msg}`)
   } finally {
-    publishingArticleId.value = null
-    publishProgress.value = null
+    isSyncing.value = false
+    syncProgress.value = { current: 0, total: 0 }
+    unsubscribe()
   }
 }
 

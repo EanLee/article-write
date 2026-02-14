@@ -128,15 +128,15 @@
                     <span class="badge badge-ghost badge-sm">選填</span>
                   </div>
                   <p class="text-sm text-base-content/70 mb-3">
-                    您的靜態網站專案資料夾（將發布文章到此處）
+                    文章輸出目標資料夾（直接指向 content 資料夾，例如 Astro 的 <code class="font-mono text-xs bg-base-300 px-1 rounded">src/content/blog</code>）
                   </p>
                   <div class="join w-full">
                     <input
                       v-model="localConfig.paths.targetBlog"
                       type="text"
-                      placeholder="例如：C:\Users\你的名字\Projects\my-astro-blog"
+                      placeholder="例如：C:\Users\你的名字\Projects\my-blog\src\content\blog"
                       class="input input-bordered join-item flex-1"
-                      :class="{ 'input-error': localConfig.paths.targetBlog && !blogValidation.valid }"
+                      :class="{ 'input-error': localConfig.paths.targetBlog && !blogValidation.valid && !blogValidation.warning }"
                     />
                     <button class="btn btn-primary join-item" @click="selectBlogPath">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,11 +146,11 @@
                     </button>
                   </div>
                   <div v-if="localConfig.paths.targetBlog" class="flex items-center gap-2 mt-2">
-                    <div 
+                    <div
                       class="w-3 h-3 rounded-full"
-                      :class="blogValidation.valid ? 'bg-success' : 'bg-warning'"
+                      :class="blogValidation.valid && !blogValidation.warning ? 'bg-success' : blogValidation.warning ? 'bg-warning' : 'bg-error'"
                     ></div>
-                    <span class="text-xs" :class="blogValidation.valid ? 'text-success' : 'text-warning'">
+                    <span class="text-xs" :class="blogValidation.valid && !blogValidation.warning ? 'text-success' : blogValidation.warning ? 'text-warning' : 'text-error'">
                       {{ blogValidation.message }}
                     </span>
                   </div>
@@ -607,7 +607,7 @@ const autoSaveSeconds = computed({
 
 // Validation
 const articlesValidation = ref({ valid: false, message: '請選擇路徑' })
-const blogValidation = ref({ valid: false, message: '請選擇路徑' })
+const blogValidation = ref<{ valid: boolean; warning?: boolean; message: string }>({ valid: false, message: '請選擇路徑' })
 
 const canSave = computed(() => {
   // 只需要文章資料夾即可儲存，部落格路徑為選填

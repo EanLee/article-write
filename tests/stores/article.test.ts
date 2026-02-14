@@ -63,7 +63,7 @@ describe('Article Store', () => {
     const publishedArticle = await store.createArticle('Published Article', 'growth')
     
     // Move one to published
-    await store.moveToPublished(publishedArticle.id)
+    await store.toggleStatus(publishedArticle.id)
     
     expect(store.draftArticles).toHaveLength(1)
     expect(store.publishedArticles).toHaveLength(1)

@@ -51,7 +51,27 @@
       "mcp__plugin_serena_serena__find_referencing_symbols",
       "Bash(pnpm install:*)",
       "Bash(git mv:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(pnpm run test:unit:*)",
+      "Skill(commit-commands:commit)",
+      "Bash(pnpm vitest run:*)",
+      "mcp__plugin_serena_serena__list_memories",
+      "Bash(node dist/main/main/main.js:*)",
+      "Bash(cat:*)",
+      "mcp__plugin_serena_serena__execute_shell_command",
+      "Bash(Select-String:*)",
+      "Bash(Select-Object -Last 5)",
+      "mcp__plugin_serena_serena__insert_before_symbol",
+      "Bash(git -C C:/Repos/R log --oneline -15)",
+      "Bash(git rm:*)",
+      "Bash(git -C C:/Repos/R status --short)",
+      "Bash(git -C C:/Repos/R log --oneline -5)",
+      "Bash(Remove-Item \"C:/Repos/R/src/types/index.d.ts\", \"C:/Repos/R/src/types/index.js\" -Force)",
+      "Bash(git -C C:/Repos/R add \"docs/dev-notes/技術評估報告：部落格編輯器自動儲存機制.md\")",
+      "Bash(git -C C:/Repos/R commit -m \"docs\\(dev-notes\\): 新增部落格編輯器自動儲存機制技術評估報告\")",
+      "Bash(git -C C:/Repos/R status --short docs/roundtable-discussions/)",
+      "Bash(git -C:*)",
+      "Bash(git -C C:/Repos/R commit -m \"$\\(cat <<''EOF''\ndocs\\(roundtable\\): 強化 Action Items 規範，補完成條件、狀態追蹤欄位與填寫規則\n\n- decision.md 模板：Action Items 新增「完成條件」與「狀態」欄位，補充優先級與狀態說明\n- discussion.md 模板：移除舊的「下一步」區塊，改為正式 Action Items 摘要表格，附填寫規則\n- ROUNDTABLE_RULES.md：新增 Action Items 規範章節，定義合格條件、禁止事項\n- topic-008 decision.md：升級為新格式，每個 Action Item 補充具體可驗證的完成條件\nEOF\n\\)\")"
     ]
   }
 }

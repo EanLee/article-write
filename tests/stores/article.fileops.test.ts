@@ -56,20 +56,17 @@ describe('Article Store - 檔案操作測試', () => {
     it('應該正確載入包含系列資訊的文章', async () => {
       // Mock 檔案系統結構
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['test-article.md']
         }
         return []
@@ -102,20 +99,17 @@ Test content here`)
 
     it('應該正確載入沒有系列資訊的文章', async () => {
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['no-series.md']
         }
         return []
@@ -141,20 +135,17 @@ Content without series`)
 
     it('當檔案讀取失敗時應該繼續載入其他文章', async () => {
       window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
-        if (path.includes('Drafts') || path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
       window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
-        if (path === '/test/vault/Drafts') {
+        if (path === '/test/vault') {
           return ['Software']
         }
-        if (path === '/test/vault/Publish') {
-          return []
-        }
-        if (path.includes('Software')) {
+        if (path === '/test/vault/Software') {
           return ['good.md', 'bad.md', 'another-good.md']
         }
         return []
@@ -432,14 +423,15 @@ Content`
     })
   })
 
-  describe('moveToPublished - 移動到已發布', () => {
-    it('應該移動檔案並更新文章狀態', async () => {
+  describe('toggleStatus - 切換發布狀態', () => {
+    it('應該更新 frontmatter status 並保持檔案位置不變', async () => {
       const store = useArticleStore()
 
-      // Mock readFile 以模擬讀取原始檔案
+      // Mock readFile 以模擬讀取原始檔案（saveArticle 內部會讀取）
       window.electronAPI.readFile.mockResolvedValue(`---
 title: To Publish
 date: 2024-01-01
+status: draft
 tags: []
 categories:
   - Software
@@ -451,7 +443,7 @@ Content to publish`)
         id: 'move-test',
         title: 'To Publish',
         slug: 'to-publish',
-        filePath: '/test/vault/Drafts/Software/to-publish.md',
+        filePath: '/test/vault/Software/to-publish.md',
         status: ArticleStatus.Draft,
         category: ArticleCategory.Software,
         lastModified: new Date(),
@@ -459,6 +451,7 @@ Content to publish`)
         frontmatter: {
           title: 'To Publish',
           date: '2024-01-01',
+          status: ArticleStatus.Draft,
           tags: [],
           categories: ['Software']
         }
@@ -466,26 +459,22 @@ Content to publish`)
 
       store.articles.push(article)
 
-      await store.moveToPublished('move-test')
+      await store.toggleStatus('move-test')
 
-      // 應該讀取原始檔案
-      expect(window.electronAPI.readFile).toHaveBeenCalledWith(
-        '/test/vault/Drafts/Software/to-publish.md'
-      )
-
-      // 應該寫入新位置
+      // 應該寫入同一個路徑（不移動檔案）
       expect(window.electronAPI.writeFile).toHaveBeenCalled()
-      const [newPath] = window.electronAPI.writeFile.mock.calls[0]
-      expect(newPath).toContain('/Publish/Software/')
+      const [writtenPath, writtenContent] = window.electronAPI.writeFile.mock.calls[0]
+      expect(writtenPath).toBe('/test/vault/Software/to-publish.md')
 
-      // 應該刪除舊檔案
-      expect(window.electronAPI.deleteFile).toHaveBeenCalledWith(
-        '/test/vault/Drafts/Software/to-publish.md'
-      )
+      // 應該寫入 published status
+      expect(writtenContent).toContain('status: published')
+
+      // 不應該刪除檔案
+      expect(window.electronAPI.deleteFile).not.toHaveBeenCalled()
 
       // 應該更新 store 中的文章狀態
-      expect(store.articles[0].status).toBe('published')
-      expect(store.articles[0].filePath).toContain('/Publish/Software/')
+      expect(store.articles[0].status).toBe(ArticleStatus.Published)
+      expect(store.articles[0].filePath).toBe('/test/vault/Software/to-publish.md')
     })
   })
 

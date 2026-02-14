@@ -172,52 +172,56 @@ export class ArticleService {
     // 收集所有載入任務，稍後並行執行
     const loadTasks: Promise<Article | null>[] = [];
 
-    // 掃描 Drafts 和 Publish 兩個資料夾
-    const folders = [
-      { path: `${vaultPath}/Drafts`, status: ArticleStatus.Draft },
-      { path: `${vaultPath}/Publish`, status: ArticleStatus.Published },
-    ];
+    try {
+      // 掃描所有頂層資料夾（支援新結構 vaultPath/Category/*.md
+      // 以及舊結構 vaultPath/TopDir/Category/*.md，如 Drafts/Software/*.md）
+      const topEntries = await this.fileSystem.readDirectory(vaultPath);
 
-    // 第一階段：收集所有檔案路徑和元資料
-    for (const folder of folders) {
-      try {
-        // 檢查資料夾是否存在
-        const stats = await this.fileSystem.getFileStats(folder.path);
-        if (!stats?.isDirectory) {
-          continue;
-        }
+      for (const topEntry of topEntries) {
+        const topPath = `${vaultPath}/${topEntry}`;
+        const topStats = await this.fileSystem.getFileStats(topPath);
+        if (!topStats?.isDirectory) { continue; }
 
-        // 讀取分類資料夾 (Software, growth, management)
-        const categories = await this.fileSystem.readDirectory(folder.path);
+        // 先嘗試直接讀取此資料夾下的 .md 檔（新結構：vaultPath/Category/*.md）
+        const topFiles = await this.fileSystem.readDirectory(topPath);
+        const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
 
-        for (const category of categories) {
-          const categoryPath = `${folder.path}/${category}`;
-          const catStats = await this.fileSystem.getFileStats(categoryPath);
-          if (!catStats?.isDirectory) {
-            continue;
-          }
-
-          // 讀取分類下的 markdown 檔案
-          const files = await this.fileSystem.readDirectory(categoryPath);
-          const mdFiles = files.filter((f) => f.endsWith(".md"));
-
-          // 為每個檔案建立載入任務（不立即執行）
-          for (const file of mdFiles) {
-            const filePath = `${categoryPath}/${file}`;
-            // 建立 Promise 並加入任務列表
-            const loadTask = this.loadArticle(filePath, folder.status, category as ArticleCategory).catch((err) => {
+        if (directMdFiles.length > 0) {
+          // 有 .md 檔 → 此資料夾本身是 Category 資料夾
+          for (const file of directMdFiles) {
+            const filePath = `${topPath}/${file}`;
+            const loadTask = this.loadArticle(filePath, topEntry as ArticleCategory).catch((err) => {
               console.warn(`Failed to load article ${filePath}:`, err);
-              return null; // 載入失敗返回 null
+              return null;
             });
             loadTasks.push(loadTask);
           }
+        } else {
+          // 無 .md 檔 → 可能是舊結構的中間層（如 Drafts/、Publish/），再往下掃一層
+          for (const subEntry of topFiles) {
+            const subPath = `${topPath}/${subEntry}`;
+            const subStats = await this.fileSystem.getFileStats(subPath);
+            if (!subStats?.isDirectory) { continue; }
+
+            const subFiles = await this.fileSystem.readDirectory(subPath);
+            const subMdFiles = subFiles.filter((f) => f.endsWith(".md"));
+
+            for (const file of subMdFiles) {
+              const filePath = `${subPath}/${file}`;
+              const loadTask = this.loadArticle(filePath, subEntry as ArticleCategory).catch((err) => {
+                console.warn(`Failed to load article ${filePath}:`, err);
+                return null;
+              });
+              loadTasks.push(loadTask);
+            }
+          }
         }
-      } catch (err) {
-        console.warn(`Failed to scan ${folder.path}:`, err);
       }
+    } catch (err) {
+      console.warn(`Failed to scan vault ${vaultPath}:`, err);
     }
 
-    // 第二階段：並行執行所有載入任務（限制並發數避免過載）
+    // 並行執行所有載入任務（限制並發數避免過載）
     const loadedArticles = await this.loadInBatches(loadTasks, 10);
 
     // 過濾掉載入失敗的文章 (null 值)
@@ -252,7 +256,7 @@ export class ArticleService {
    * @param categoryFolder - 分類資料夾名稱
    * @returns 載入的文章
    */
-  async loadArticle(filePath: string, status: ArticleStatus, categoryFolder: ArticleCategory): Promise<Article> {
+  async loadArticle(filePath: string, categoryFolder: ArticleCategory): Promise<Article> {
     // 讀取檔案內容
     const content = await this.fileSystem.readFile(filePath);
     const { frontmatter, content: articleContent } = this.markdownService.parseMarkdown(content);
@@ -261,21 +265,24 @@ export class ArticleService {
     const fileStats = await this.fileSystem.getFileStats(filePath);
     const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date();
 
+    // 從 frontmatter 讀取 status，未設定預設為 Draft
+    const status: ArticleStatus =
+      frontmatter.status && Object.values(ArticleStatus).includes(frontmatter.status as ArticleStatus)
+        ? (frontmatter.status as ArticleStatus)
+        : ArticleStatus.Draft;
+
     // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
     let articleCategory: ArticleCategory;
     if (frontmatter.categories && frontmatter.categories.length > 0) {
-      // 從 frontmatter.categories 陣列取第一個有效值
       const firstCategory = frontmatter.categories[0];
       if (Object.values(ArticleCategory).includes(firstCategory as ArticleCategory)) {
         articleCategory = firstCategory as ArticleCategory;
       } else {
-        // 如果 categories 值不在 enum 中，使用資料夾名稱或預設值
         articleCategory = (
           Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
         ) as ArticleCategory;
       }
     } else {
-      // 沒有 frontmatter.categories，使用資料夾名稱或預設值
       articleCategory = (
         Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
       ) as ArticleCategory;

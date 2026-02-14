@@ -60,7 +60,22 @@ export class ConfigService {
         return { valid: false, message: '沒有讀寫權限' }
       }
 
-      return { valid: true, message: '有效的文章資料夾' }
+      // 檢查是否為 Obsidian Vault（可選，有 .obsidian 資料夾更好）
+      const obsidianPath = join(path, '.obsidian')
+      let isObsidianVault = false
+      try {
+        const obsidianStats = await fs.stat(obsidianPath)
+        isObsidianVault = obsidianStats.isDirectory()
+      } catch {
+        // .obsidian 不存在也沒關係，只是普通的 Markdown 資料夾
+        isObsidianVault = false
+      }
+
+      if (isObsidianVault) {
+        return { valid: true, message: '✓ 有效的 Obsidian Vault' }
+      } else {
+        return { valid: true, message: '✓ 有效的 Markdown 資料夾' }
+      }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }
@@ -73,32 +88,8 @@ export class ConfigService {
         return { valid: false, message: '路徑不是資料夾' }
       }
 
-      // Check for package.json
-      try {
-        const packageJsonPath = join(path, 'package.json')
-        const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'))
-        
-        // Check if it's an Astro project
-        const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies }
-        if (!dependencies.astro) {
-          return { valid: false, message: '不是 Astro 專案' }
-        }
-      } catch {
-        return { valid: false, message: '找不到 package.json 或格式錯誤' }
-      }
-
-      // Check for src/content/blog structure
-      try {
-        const blogPath = join(path, 'src', 'content', 'blog')
-        const blogStats = await fs.stat(blogPath)
-        if (!blogStats.isDirectory()) {
-          return { valid: false, message: '缺少 src/content/blog 資料夾' }
-        }
-      } catch {
-        return { valid: false, message: '缺少 src/content/blog 資料夾' }
-      }
-
-      return { valid: true, message: '有效的 Astro 部落格專案' }
+      // target 就是直接輸出的資料夾，不需要驗證 Astro 專案結構
+      return { valid: true, message: '✓ 有效的輸出資料夾' }
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }

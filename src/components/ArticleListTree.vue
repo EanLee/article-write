@@ -223,7 +223,7 @@ const seriesGroups = computed(() => {
       name: '_standalone',
       displayName: '📄 獨立文章',
       articles: [...standaloneArticles].sort((a, b) =>
-        new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
+        a.title.localeCompare(b.title, 'zh-TW')
       )
     })
   }

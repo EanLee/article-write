@@ -5,6 +5,7 @@ import { FileService } from './services/FileService.js'
 import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
 import { PublishService } from './services/PublishService.js'
+import { GitService } from './services/GitService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -17,6 +18,7 @@ const fileService = new FileService()
 const configService = new ConfigService()
 const processService = new ProcessService()
 const publishService = new PublishService(fileService)
+const gitService = new GitService()
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -84,6 +86,26 @@ app.whenReady().then(() => {
   ipcMain.handle('publish-article', async (_, article: any, config: any, onProgress?: any) => {
     return await publishService.publishArticle(article, config, onProgress)
   })
+
+  ipcMain.handle('sync-all-published', async (event, config: any) => {
+    return await publishService.syncAllPublished(config, (current, total, title) => {
+      event.sender.send('sync-progress', { current, total, title })
+    })
+  })
+
+  // Git Service
+  ipcMain.handle('git-status', (_, repoPath: string) => gitService.getStatus(repoPath))
+  ipcMain.handle('git-add', (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths))
+  ipcMain.handle('git-commit', (_, repoPath: string, options: { message: string; addAll?: boolean }) =>
+    gitService.commit(repoPath, options)
+  )
+  ipcMain.handle('git-push', (_, repoPath: string, options?: { remote?: string; branch?: string }) =>
+    gitService.push(repoPath, options)
+  )
+  ipcMain.handle('git-add-commit-push', (_, repoPath: string, commitMessage: string) =>
+    gitService.addCommitPush(repoPath, commitMessage)
+  )
+  ipcMain.handle('git-log', (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count))
 
   ipcMain.handle('start-dev-server', (_, projectPath: string) => processService.startDevServer(projectPath))
   ipcMain.handle('stop-dev-server', () => processService.stopDevServer())
