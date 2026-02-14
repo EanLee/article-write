@@ -12,13 +12,15 @@
 
         <!-- Editor Content -->
         <div class="flex flex-1 overflow-hidden">
-            <!-- 撰寫模式 -->
+            <!-- 撰寫模式（CodeMirror 6）-->
             <template v-if="editorMode === 'compose'">
-                <EditorPane ref="editorPaneRef" v-model="content" :show-preview="showPreview" :suggestions="suggestions"
-                    :show-suggestions="showSuggestions" :selected-suggestion-index="selectedSuggestionIndex"
+                <CodeMirrorEditor ref="editorPaneRef" v-model="content" :show-preview="showPreview"
+                    :suggestions="suggestions" :show-suggestions="showSuggestions"
+                    :selected-suggestion-index="selectedSuggestionIndex"
                     :syntax-errors="syntaxErrors" :image-validation-warnings="imageValidationWarnings"
-                    :dropdown-position="dropdownPosition" @insert-markdown="insertMarkdownSyntax"
-                    @insert-table="insertTable" @keydown="handleKeydown" @cursor-change="updateAutocomplete"
+                    :dropdown-position="dropdownPosition" :sync-scroll="syncEnabled"
+                    @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
+                    @keydown="handleKeydown" @cursor-change="updateAutocomplete"
                     @apply-suggestion="applySuggestion" @scroll="onEditorScroll"
                     @toggle-sync-scroll="toggleSyncScroll" />
             </template>
@@ -50,7 +52,7 @@ import { useArticleStore } from '@/stores/article';
 import { useConfigStore } from '@/stores/config';
 import { debounce } from 'lodash-es';
 import EditorHeader from './EditorHeader.vue';
-import EditorPane from './EditorPane.vue';
+import CodeMirrorEditor from './CodeMirrorEditor.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
 import SearchReplace from './SearchReplace.vue';
@@ -87,7 +89,7 @@ const rawContent = ref('');
 const { focusMode, toggleFocusMode } = useFocusMode();
 
 // Component references
-const editorPaneRef = ref<InstanceType<typeof EditorPane>>();
+const editorPaneRef = ref<InstanceType<typeof CodeMirrorEditor>>();
 const previewPaneRef = ref<InstanceType<typeof PreviewPane>>();
 
 // Get editorRef from EditorPane component
