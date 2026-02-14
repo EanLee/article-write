@@ -29,15 +29,42 @@ AutoSaveService 採用三層過濾策略（Dirty Flag → Timer → 字串比對
 - `isDirty` 旗標是否在載入時被意外設為 true
 - AutoSave timer 啟動時機是否早於內容穩定
 
+## 原因分析
+
+`MainEditor.vue` 中，`currentArticle` watcher（含 `immediate: true`）在文章載入時執行 `content.value = newArticle.content`，這觸發了 `content` watcher → `handleContentChange()` → `scheduleAutoSave()`。
+
+由於此時 `isLoadingArticle` 旗標不存在，系統不知道這是初始化賦值而非使用者輸入，導致 2 秒後 `saveArticle()` 被執行。
+
+```
+currentArticle watcher
+  └─ content.value = newArticle.content   ← 觸發 content watcher
+       └─ handleContentChange()
+            └─ scheduleAutoSave()          ← 誤觸：2秒後儲存
+```
+
 ## 修正方式
 
-> ⏳ 待安排
+在 `MainEditor.vue` 新增 `isLoadingArticle` flag：
+
+1. `currentArticle` watcher 開始設定 `content.value` 前，設 `isLoadingArticle.value = true`
+2. `scheduleAutoSave()` 開頭檢查此旗標，為 true 時直接返回
+3. `nextTick()` 後恢復 `isLoadingArticle.value = false`，確保使用者後續編輯仍能正常觸發 AutoSave
+
+```ts
+// currentArticle watcher
+isLoadingArticle.value = true;
+content.value = newArticle.content;
+nextTick(() => { isLoadingArticle.value = false; });
+
+// scheduleAutoSave
+if (isLoadingArticle.value) return;
+```
 
 ## 相關 Commit
 
-> ⏳ 待修復後補充
+- `53104d1`: fix(editor): 修復開啟文件時 AutoSave 誤觸儲存（BUG-01）
 
 ---
 
-> **狀態**: 已記錄，待排入下一 Sprint 修復
+> **狀態**: 已修復，待使用者驗證
 > **回報者**: Jordan（端對端驗收時發現）
