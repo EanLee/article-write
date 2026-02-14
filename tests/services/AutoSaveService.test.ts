@@ -96,6 +96,27 @@ describe('AutoSaveService', () => {
       expect(mockSaveCallback).not.toHaveBeenCalled()
     })
 
+    it('False Positive：使用者打了又刪回原狀，應重置 dirty flag 而不儲存', async () => {
+      autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback, 1000)
+      autoSaveService.setCurrentArticle(mockArticle)
+
+      // 使用者打字（markAsModified），但 callback 仍回傳原始文章（內容實際沒變）
+      autoSaveService.markAsModified()
+      vi.advanceTimersByTime(200) // 等待 debounce
+
+      // saveState 應為 Modified
+      expect(autoSaveService.saveState.value.status).toBe('modified')
+
+      // 觸發自動儲存
+      vi.advanceTimersByTime(1000)
+      await Promise.resolve()
+
+      // 不應該呼叫儲存
+      expect(mockSaveCallback).not.toHaveBeenCalled()
+      // dirty flag 應被重置為 Saved
+      expect(autoSaveService.saveState.value.status).toBe('saved')
+    })
+
     it('應該在文章切換時自動儲存前一篇文章', async () => {
       autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback)
       
