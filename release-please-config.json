@@ -4,6 +4,8 @@
   "packages": {
     ".": {
       "release-type": "node",
+      "bootstrap-sha": "61d4e4af1c07b4219f56ed311bf34f8af43984be",
+      "release-as": "0.1.0",
       "changelog-sections": [
         { "type": "feat", "section": "✨ 新功能" },
         { "type": "fix", "section": "🐛 錯誤修復" },
