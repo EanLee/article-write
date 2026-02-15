@@ -14,15 +14,13 @@ class MetadataCacheService {
   private cache: MetadataCache | null = null
   private markdownService = new MarkdownService()
 
-  private getVaultRoot(articlesDir: string): string {
+  private getCacheDir(articlesDir: string): string {
     const normalized = articlesDir.replace(/\\/g, '/').replace(/\/$/, '')
-    const parts = normalized.split('/')
-    parts.pop()
-    return parts.join('/')
+    return `${normalized}/${CACHE_DIR}`
   }
 
   private getCachePath(articlesDir: string): string {
-    return `${this.getVaultRoot(articlesDir)}/${CACHE_DIR}/${CACHE_FILE}`
+    return `${this.getCacheDir(articlesDir)}/${CACHE_FILE}`
   }
 
   async load(articlesDir: string): Promise<MetadataCache | null> {
@@ -89,7 +87,7 @@ class MetadataCacheService {
   }
 
   private async save(articlesDir: string, cache: MetadataCache): Promise<void> {
-    const cacheDir = `${this.getVaultRoot(articlesDir)}/${CACHE_DIR}`
+    const cacheDir = this.getCacheDir(articlesDir)
     try {
       await electronFileSystem.createDirectory(cacheDir)
     } catch {
