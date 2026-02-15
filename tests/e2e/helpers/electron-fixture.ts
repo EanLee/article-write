@@ -58,7 +58,8 @@ export type ElectronFixtures = {
 
 export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplication; testVaultPath: string }>({
   // worker scope：整個測試檔案共用一個 App 實例
-  testVaultPath: [async (_fixtures, use) => {
+  // eslint-disable-next-line no-empty-pattern
+  testVaultPath: [async ({}, use) => {
     const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), 'writeflow-test-'))
     await use(vaultPath)
     fs.rmSync(vaultPath, { recursive: true, force: true })
