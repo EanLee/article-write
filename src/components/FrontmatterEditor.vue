@@ -196,12 +196,12 @@ const newKeyword = ref('')
 // 分類 combobox
 const categoryInput = ref('')
 const showCategoryDropdown = ref(false)
+const allCategories = ref<string[]>([])
 
 const filteredCategories = computed(() => {
-  const all = metadataCacheService.getCategories()
   const q = categoryInput.value.trim().toLowerCase()
-  if (!q) { return all }
-  return all.filter(c => c.toLowerCase().includes(q))
+  if (!q) { return allCategories.value }
+  return allCategories.value.filter(c => c.toLowerCase().includes(q))
 })
 
 function onCategoryInput() {
@@ -342,6 +342,8 @@ watch(
       localArticle.value = JSON.parse(JSON.stringify(props.article))
       publishDate.value = props.article.frontmatter.date || new Date().toISOString().split('T')[0]
       categoryInput.value = props.article.category || ''
+      // 載入分類清單（每次開啟同步一次，確保拿到最新 cache）
+      allCategories.value = metadataCacheService.getCategories()
     }
   }
 )
