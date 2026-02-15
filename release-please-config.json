@@ -4,7 +4,7 @@
   "packages": {
     ".": {
       "release-type": "node",
-      "bootstrap-sha": "7c1a794058f3155753074b2328baac221e8b98ab",
+      "bootstrap-sha": "3ebef1dac5d863b4f34b5c4d7ed6c96ec8e87405",
       "release-as": "0.1.0",
       "changelog-sections": [
         { "type": "feat", "section": "✨ 新功能" },
