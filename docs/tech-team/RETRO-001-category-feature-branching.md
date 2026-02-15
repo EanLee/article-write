@@ -58,13 +58,16 @@ combobox 能顯示、能輸入，但存不進去——這不叫完成，應該�
 
 ### Sam：結論與改善方向
 
-**Sam**：我同意大家的診斷。兩個問題：
+**Sam**：我同意大家的診斷。三個問題：
 
 **問題 1：設計評估遺漏型別相容性驗證**
 T-005 評估完整度不夠，沒有 spike 現有資料結構。
 
 **問題 2：「功能完成」的定義不明確**
 `feature/metadata-cache` 合併時，分類 combobox 實際上無法儲存自訂值，但因為 UI 看起來有在動，就當作完成了。
+
+**問題 3：驗收失敗後開了新 branch 而非在原 branch 修復**
+使用者驗收回報「分類無法儲存」後，正確做法是回到 `feature/metadata-cache` 繼續修，等驗收通過才 merge。但實際上另開了 `feature/category-string-type`，違反了 CLAUDE.md 已有的驗收失敗處理規則。
 
 ---
 
@@ -74,12 +77,14 @@ T-005 評估完整度不夠，沒有 spike 現有資料結構。
 |---|------|---------|------|
 | 1 | 設計評估遺漏型別相容性 | T-XXX 設計討論加入「相關資料結構型別驗證」步驟 | Sam |
 | 2 | 功能完成定義不清 | CLAUDE.md 加入：feature branch 合併前必須 end-to-end 驗證功能真正可用 | Sam |
-| 3 | Bug 修復不應開新 branch | 若是同一需求延伸發現的問題，在原 branch 修復，不另開 branch | 全員 |
+| 3 | 驗收失敗後不應開新 branch | CLAUDE.md 強化：驗收失敗必須回原 branch 修復，明確禁止另開 branch | Sam |
 
 ---
 
 ## 修改 CLAUDE.md
 
-以下規則待補入 CLAUDE.md：
+以下規則已補入 CLAUDE.md v1.7.0：
 
 > **Feature Branch 完成定義**：合併前必須確認功能 end-to-end 可用，不只是 UI 有顯示。若實作過程發現需要修改其他層（型別、服務層等），應在同一 branch 內完成，不另開 branch。
+
+> **驗收失敗處理**：使用者驗收回報問題後，必須回到原 feature branch 繼續修復，**禁止另開新 branch**。等使用者確認驗收通過，才能 merge 到 develop。
