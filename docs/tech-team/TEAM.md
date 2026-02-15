@@ -13,6 +13,7 @@
 | Sam | Tech Lead | 架構決策、技術審查、跨模組整合 |
 | Wei | Frontend Engineer | Vue 組件、UI 互動、Renderer 層 |
 | Lin | Services Engineer | Main Process、Service 層、IPC 通訊 |
+| Alex | UI/UX Designer | 使用者體驗、視覺設計規範、元件設計系統 |
 
 ---
 
