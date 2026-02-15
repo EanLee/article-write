@@ -3,43 +3,35 @@
     <div class="modal-box w-11/12 max-w-2xl max-h-[90vh] flex flex-col">
       <h3 class="font-bold text-lg mb-4 flex-shrink-0">編輯前置資料</h3>
 
-      <form v-if="localArticle" @submit.prevent="handleSave" class="space-y-4 overflow-y-auto flex-1 pr-1">
+      <form v-if="localArticle" @submit.prevent="handleSave" class="space-y-3 overflow-y-auto flex-1 pr-1">
         <!-- 標題 -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">標題 *</span>
-          </label>
+        <div>
+          <label class="block text-sm font-medium mb-1">標題 *</label>
           <input
             v-model="localArticle.frontmatter.title"
             type="text"
             placeholder="文章標題"
-            class="input input-bordered"
+            class="input input-bordered w-full"
             @input="updateSlug"
           />
         </div>
 
         <!-- 網址代稱 + 分類（同行） -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">網址代稱</span>
-            </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">網址代稱</label>
             <input
               v-model="localArticle.slug"
               type="text"
               placeholder="自動生成"
-              class="input input-bordered"
+              class="input input-bordered w-full"
             />
-            <label class="label py-0.5">
-              <span class="label-text-alt">留空將根據標題自動生成</span>
-            </label>
+            <p class="text-xs text-base-content/50 mt-1">留空將根據標題自動生成</p>
           </div>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">分類</span>
-            </label>
-            <select v-model="localArticle.category" class="select select-bordered">
+          <div>
+            <label class="block text-sm font-medium mb-1">分類</label>
+            <select v-model="localArticle.category" class="select select-bordered w-full">
               <option value="">選擇分類</option>
               <option value="Software">Software</option>
               <option value="growth">Growth</option>
@@ -49,66 +41,56 @@
         </div>
 
         <!-- 描述 -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text font-medium">描述</span>
-          </label>
+        <div>
+          <label class="block text-sm font-medium mb-1">描述</label>
           <textarea
             v-model="localArticle.frontmatter.description"
-            class="textarea textarea-bordered"
+            class="textarea textarea-bordered w-full"
             rows="2"
             placeholder="文章描述（可選）"
           ></textarea>
         </div>
 
         <!-- 發布日期 + 系列（同行） -->
-        <div class="grid grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">發布日期</span>
-            </label>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">發布日期</label>
             <input
               v-model="publishDate"
               type="date"
-              class="input input-bordered"
+              class="input input-bordered w-full"
             />
           </div>
 
-          <div class="form-control col-span-1">
-            <label class="label">
-              <span class="label-text font-medium">系列名稱</span>
-            </label>
+          <div>
+            <label class="block text-sm font-medium mb-1">系列名稱</label>
             <input
               v-model="localArticle.frontmatter.series"
               type="text"
-              placeholder="例如：Vue 3 進階教學"
-              class="input input-bordered"
+              placeholder="例如：Vue 3 系列"
+              class="input input-bordered w-full"
             />
           </div>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">系列順序</span>
-            </label>
+          <div>
+            <label class="block text-sm font-medium mb-1">系列順序</label>
             <input
               v-model.number="localArticle.frontmatter.seriesOrder"
               type="number"
               min="1"
               placeholder="1"
-              class="input input-bordered"
+              class="input input-bordered w-full"
               :disabled="!localArticle.frontmatter.series"
             />
           </div>
         </div>
 
         <!-- 標籤 + 關鍵字（同行） -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">標籤</span>
-            </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">標籤</label>
             <div class="flex flex-wrap gap-1 min-h-8 mb-2">
-              <div
+              <span
                 v-for="tag in localArticle.frontmatter.tags"
                 :key="tag"
                 class="badge badge-primary gap-1"
@@ -116,14 +98,12 @@
                 {{ tag }}
                 <button
                   type="button"
-                  class="cursor-pointer hover:opacity-70"
+                  class="cursor-pointer leading-none hover:opacity-60"
                   @click="removeTag(tag)"
-                >
-                  ✕
-                </button>
-              </div>
+                >×</button>
+              </span>
             </div>
-            <div class="join">
+            <div class="join w-full">
               <input
                 v-model="newTag"
                 type="text"
@@ -131,22 +111,14 @@
                 class="input input-bordered input-sm join-item flex-1"
                 @keyup.enter="addTag"
               />
-              <button
-                type="button"
-                class="btn btn-primary btn-sm join-item"
-                @click="addTag"
-              >
-                新增
-              </button>
+              <button type="button" class="btn btn-primary btn-sm join-item" @click="addTag">新增</button>
             </div>
           </div>
 
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text font-medium">SEO 關鍵字</span>
-            </label>
+          <div>
+            <label class="block text-sm font-medium mb-1">SEO 關鍵字</label>
             <div class="flex flex-wrap gap-1 min-h-8 mb-2">
-              <div
+              <span
                 v-for="keyword in localArticle.frontmatter.keywords"
                 :key="keyword"
                 class="badge badge-secondary gap-1"
@@ -154,14 +126,12 @@
                 {{ keyword }}
                 <button
                   type="button"
-                  class="cursor-pointer hover:opacity-70"
+                  class="cursor-pointer leading-none hover:opacity-60"
                   @click="removeKeyword(keyword)"
-                >
-                  ✕
-                </button>
-              </div>
+                >×</button>
+              </span>
             </div>
-            <div class="join">
+            <div class="join w-full">
               <input
                 v-model="newKeyword"
                 type="text"
@@ -169,13 +139,7 @@
                 class="input input-bordered input-sm join-item flex-1"
                 @keyup.enter="addKeyword"
               />
-              <button
-                type="button"
-                class="btn btn-secondary btn-sm join-item"
-                @click="addKeyword"
-              >
-                新增
-              </button>
+              <button type="button" class="btn btn-secondary btn-sm join-item" @click="addKeyword">新增</button>
             </div>
           </div>
         </div>
