@@ -115,7 +115,7 @@ test.describe.skip("文章列表 - 滾動位置保持 (需要 Playwright 環境)
   });
 });
 
-test.describe("文章列表 - 防止重複文章", () => {
+test.describe.skip("文章列表 - 防止重複文章 (需遷移至 electron-fixture)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -197,7 +197,7 @@ test.describe("文章列表 - 防止重複文章", () => {
   });
 });
 
-test.describe("文章列表 - 排序穩定性", () => {
+test.describe.skip("文章列表 - 排序穩定性 (需遷移至 electron-fixture)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -264,7 +264,7 @@ test.describe("文章列表 - 排序穩定性", () => {
   });
 });
 
-test.describe("文章列表 - 分頁功能", () => {
+test.describe.skip("文章列表 - 分頁功能 (需遷移至 electron-fixture)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
