@@ -2,7 +2,7 @@
 
 **日期**: 2026-02-15
 **負責人**: Sam（Tech Lead）
-**狀態**: 📋 規劃中（等待決策）
+**狀態**: ✅ 完成（採用方案 B：release-please）
 
 ---
 
@@ -239,8 +239,20 @@ pnpm exec conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0
 
 ---
 
-## 等待決策
+## 決策結果
 
-- [ ] 確認採用方案 A 或方案 B
-- [ ] 若採用方案 A：確認是否補齊歷史 CHANGELOG（從第一個 tag 開始）
-- [ ] 若採用方案 B：確認願意接受「合併 Release PR 才觸發建置」的流程變更
+**採用方案 B（release-please）**，理由：不想手動管理版本號，由工具根據 commit 自動遞增。
+
+### 實作內容
+
+| 檔案 | 說明 |
+|------|------|
+| `.github/workflows/release-please.yml` | 監聽 push to main，管理 Release PR + CHANGELOG + tag |
+| `.github/workflows/build.yml` | 監聽 tag 建立，觸發三平台建置並附上安裝檔 |
+| `release-please-config.json` | release-please 設定，含中文 CHANGELOG 分組標題 |
+| `.release-please-manifest.json` | 記錄目前版本號（初始 0.1.0） |
+| `.github/workflows/release.yml` | 已刪除，由新的兩個 workflow 取代 |
+
+### 相關 Commit
+
+見下方「相關 Commit」區段。
