@@ -1,6 +1,6 @@
 {
   "name": "writeflow",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "WriteFlow - A writing and publishing tool for content creators. Seamlessly publish from Obsidian to Astro blogs.",
   "main": "dist/main/main.js",
   "scripts": {
