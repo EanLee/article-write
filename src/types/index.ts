@@ -9,13 +9,13 @@ export enum ArticleStatus {
 }
 
 /**
- * 文章分類
+ * 內建分類常數（供參考，不作為型別限制）
  */
-export enum ArticleCategory {
-  Software = 'Software',
-  Growth = 'growth',
-  Management = 'management'
-}
+export const ArticleCategory = {
+  Software: 'Software',
+  Growth: 'growth',
+  Management: 'management',
+} as const
 
 /**
  * 篩選器狀態選項（包含 "全部"）
@@ -80,7 +80,7 @@ export interface Article {
   frontmatter: Frontmatter
   content: string
   lastModified: Date
-  category: ArticleCategory
+  category: string
 }
 
 export interface Frontmatter {

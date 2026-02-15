@@ -14,7 +14,7 @@
  */
 
 import type { Article, Frontmatter } from "@/types";
-import { ArticleStatus, ArticleCategory } from "@/types";
+import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { backupService as defaultBackupService } from "./BackupService";
@@ -190,7 +190,7 @@ export class ArticleService {
           // 有 .md 檔 → 此資料夾本身是 Category 資料夾
           for (const file of directMdFiles) {
             const filePath = `${topPath}/${file}`;
-            const loadTask = this.loadArticle(filePath, topEntry as ArticleCategory).catch((err) => {
+            const loadTask = this.loadArticle(filePath, topEntry).catch((err) => {
               console.warn(`Failed to load article ${filePath}:`, err);
               return null;
             });
@@ -208,7 +208,7 @@ export class ArticleService {
 
             for (const file of subMdFiles) {
               const filePath = `${subPath}/${file}`;
-              const loadTask = this.loadArticle(filePath, subEntry as ArticleCategory).catch((err) => {
+              const loadTask = this.loadArticle(filePath, subEntry).catch((err) => {
                 console.warn(`Failed to load article ${filePath}:`, err);
                 return null;
               });
@@ -256,7 +256,7 @@ export class ArticleService {
    * @param categoryFolder - 分類資料夾名稱
    * @returns 載入的文章
    */
-  async loadArticle(filePath: string, categoryFolder: ArticleCategory): Promise<Article> {
+  async loadArticle(filePath: string, categoryFolder: string): Promise<Article> {
     // 讀取檔案內容
     const content = await this.fileSystem.readFile(filePath);
     const { frontmatter, content: articleContent } = this.markdownService.parseMarkdown(content);
@@ -272,20 +272,11 @@ export class ArticleService {
         : ArticleStatus.Draft;
 
     // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
-    let articleCategory: ArticleCategory;
+    let articleCategory: string;
     if (frontmatter.categories && frontmatter.categories.length > 0) {
-      const firstCategory = frontmatter.categories[0];
-      if (Object.values(ArticleCategory).includes(firstCategory as ArticleCategory)) {
-        articleCategory = firstCategory as ArticleCategory;
-      } else {
-        articleCategory = (
-          Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
-        ) as ArticleCategory;
-      }
+      articleCategory = frontmatter.categories[0];
     } else {
-      articleCategory = (
-        Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
-      ) as ArticleCategory;
+      articleCategory = categoryFolder || '';
     }
 
     // 從檔案路徑取得檔案名稱（不含副檔名）

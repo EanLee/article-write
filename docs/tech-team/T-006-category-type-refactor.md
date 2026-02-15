@@ -13,9 +13,9 @@
 |---|------|------|------|
 | 1 | 評估影響範圍 | Sam | ✅ 完成 |
 | 2 | 決定型別策略 | Sam | ✅ 完成 |
-| 3 | 實作型別修改與服務層調整 | Lin | 🔲 待實作 |
-| 4 | 更新 FrontmatterEditor combobox | Wei | 🔲 待實作 |
-| 5 | 驗證現有測試通過 | Lin | 🔲 待實作 |
+| 3 | 實作型別修改與服務層調整 | Lin | ✅ 完成 |
+| 4 | 更新 FrontmatterEditor combobox | Wei | ✅ 完成 |
+| 5 | 驗證現有測試通過 | Lin | ✅ 完成 |
 
 ---
 
@@ -90,3 +90,7 @@ combobox 儲存後，`article.category` 是字串，`ArticleList` 和 `ArticleMa
 ## 相關 Commit
 
 _待 Lin 實作後補充_
+
+## 相關 Commit
+
+- `a32cfaa`: refactor(types): 將 Article.category 從 enum 改為 string，支援自訂分類

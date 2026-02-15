@@ -1,5 +1,5 @@
 import type { Article, ConversionConfig } from '@/types'
-import { ArticleStatus, ArticleCategory } from '@/types'
+import { ArticleStatus } from '@/types'
 import type { IFileSystem } from '@/types/IFileSystem'
 import { electronFileSystem } from './ElectronFileSystem'
 import { articleService as defaultArticleService, ArticleService } from './ArticleService'
@@ -204,7 +204,7 @@ export class ConverterService {
         for (const file of mdFiles) {
           const filePath = `${entryPath}/${file}`
           try {
-            const article = await this.articleService.loadArticle(filePath, entry as ArticleCategory)
+            const article = await this.articleService.loadArticle(filePath, entry)
             if (article.status === ArticleStatus.Published) {
               articles.push(article)
             }
@@ -617,18 +617,16 @@ export class ConverterService {
     articlesByCategory: Record<string, number>
   }> {
     const articles = await this.scanPublishedArticles(sourceDir)
+    const articlesByCategory: Record<string, number> = {}
+    articles.forEach(article => {
+      const cat = article.category || 'uncategorized'
+      articlesByCategory[cat] = (articlesByCategory[cat] ?? 0) + 1
+    })
+
     const stats = {
       totalArticles: articles.length,
-      articlesByCategory: {
-        Software: 0,
-        growth: 0,
-        management: 0
-      }
+      articlesByCategory,
     }
-
-    articles.forEach(article => {
-      stats.articlesByCategory[article.category]++
-    })
 
     return stats
   }
@@ -901,7 +899,7 @@ export class ConverterService {
         if (file.endsWith('.md')) {
           const filePath = this.joinPath(categoryPath, file)
           try {
-            const article = await this.articleService.loadArticle(filePath, category as ArticleCategory)
+            const article = await this.articleService.loadArticle(filePath, category)
             if (article.status === ArticleStatus.Published) {
               articles.push(article)
             }
