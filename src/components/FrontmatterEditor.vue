@@ -29,14 +29,30 @@
             <p class="text-xs text-base-content/50 mt-1">留空將根據標題自動生成</p>
           </div>
 
-          <div>
+          <div class="relative">
             <label class="block text-sm font-medium mb-1">分類</label>
-            <select v-model="localArticle.category" class="select select-bordered w-full">
-              <option value="">選擇分類</option>
-              <option value="Software">Software</option>
-              <option value="growth">Growth</option>
-              <option value="management">Management</option>
-            </select>
+            <input
+              v-model="categoryInput"
+              type="text"
+              placeholder="輸入或選擇分類"
+              class="input input-bordered w-full"
+              @input="onCategoryInput"
+              @focus="showCategoryDropdown = true"
+              @blur="onCategoryBlur"
+            />
+            <ul
+              v-if="showCategoryDropdown && filteredCategories.length"
+              class="absolute z-10 w-full mt-1 bg-base-100 border border-base-300 rounded-box shadow-md max-h-40 overflow-y-auto"
+            >
+              <li
+                v-for="cat in filteredCategories"
+                :key="cat"
+                class="px-3 py-2 cursor-pointer hover:bg-base-200 text-sm"
+                @mousedown.prevent="selectCategory(cat)"
+              >
+                {{ cat }}
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -154,9 +170,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Article } from '@/types'
 import { autoSaveService } from '@/services/AutoSaveService'
+import { metadataCacheService } from '@/services/MetadataCacheService'
 
 interface Props {
   modelValue: boolean
@@ -175,6 +192,37 @@ const localArticle = ref<Article | null>(null)
 const publishDate = ref('')
 const newTag = ref('')
 const newKeyword = ref('')
+
+// 分類 combobox
+const categoryInput = ref('')
+const showCategoryDropdown = ref(false)
+const allCategories = ref<string[]>([])
+
+const filteredCategories = computed(() => {
+  const q = categoryInput.value.trim().toLowerCase()
+  if (!q) { return allCategories.value }
+  return allCategories.value.filter(c => c.toLowerCase().includes(q))
+})
+
+function onCategoryInput() {
+  if (localArticle.value) {
+    localArticle.value.category = categoryInput.value as Article['category']
+  }
+  showCategoryDropdown.value = true
+}
+
+function selectCategory(category: string) {
+  categoryInput.value = category
+  if (localArticle.value) {
+    localArticle.value.category = category as Article['category']
+  }
+  showCategoryDropdown.value = false
+}
+
+function onCategoryBlur() {
+  // 延遲關閉，讓點擊選項的事件先觸發
+  setTimeout(() => { showCategoryDropdown.value = false }, 150)
+}
 
 // Methods
 function updateSlug() {
@@ -274,6 +322,7 @@ watch(
       // Create a deep copy to avoid mutating the original
       localArticle.value = JSON.parse(JSON.stringify(newArticle))
       publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split('T')[0]
+      categoryInput.value = newArticle.category || ''
       
       // Ensure keywords array exists
       if (!localArticle.value!.frontmatter.keywords) {
@@ -292,6 +341,9 @@ watch(
       // Reset local article when dialog opens
       localArticle.value = JSON.parse(JSON.stringify(props.article))
       publishDate.value = props.article.frontmatter.date || new Date().toISOString().split('T')[0]
+      categoryInput.value = props.article.category || ''
+      // 載入分類清單（每次開啟同步一次，確保拿到最新 cache）
+      allCategories.value = metadataCacheService.getCategories()
     }
   }
 )

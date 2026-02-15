@@ -62,6 +62,7 @@ import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
+import { metadataCacheService } from "@/services/MetadataCacheService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "lucide-vue-next";
 
@@ -111,6 +112,14 @@ onMounted(async () => {
   // 只要有 articlesDir 就載入文章（targetBlog 是發布用的，不影響文章載入）
   if (configStore.config.paths.articlesDir) {
     await articleStore.loadArticles();
+    // 背景載入 metadata cache，載入失敗則自動掃描
+    const articlesDir = configStore.config.paths.articlesDir;
+    const cached = await metadataCacheService.load(articlesDir);
+    if (!cached) {
+      metadataCacheService.scan(articlesDir).catch((e) =>
+        console.warn('Metadata cache scan failed:', e)
+      );
+    }
   }
 
   // 監聽頁面關閉事件

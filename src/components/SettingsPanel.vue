@@ -540,12 +540,25 @@
 
       <!-- Footer Actions -->
       <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300">
-        <button class="btn btn-ghost" @click="resetToDefaults">
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost" @click="resetToDefaults">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          重設為預設值
-        </button>
+            重設為預設值
+          </button>
+          <button class="btn btn-ghost btn-sm" @click="rescanMetadata" :disabled="isScanning">
+            <svg v-if="isScanning" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            重新掃描 Metadata
+          </button>
+          <span v-if="scanMessage" class="text-xs text-base-content/60">{{ scanMessage }}</span>
+        </div>
         <div class="flex gap-2">
           <button class="btn btn-ghost" @click="handleClose">取消</button>
           <button 
@@ -568,6 +581,7 @@
 import { ref, computed, watch } from 'vue'
 import { useConfigStore } from '@/stores/config'
 import { useArticleStore } from '@/stores/article'
+import { metadataCacheService } from '@/services/MetadataCacheService'
 import type { AppConfig } from '@/types'
 
 interface Props {
@@ -613,6 +627,29 @@ const canSave = computed(() => {
   // 只需要文章資料夾即可儲存，部落格路徑為選填
   return !!localConfig.value.paths.articlesDir
 })
+
+// Metadata scan
+const isScanning = ref(false)
+const scanMessage = ref('')
+
+async function rescanMetadata() {
+  const articlesDir = configStore.config.paths.articlesDir
+  if (!articlesDir) {
+    scanMessage.value = '請先設定文章資料夾'
+    return
+  }
+  isScanning.value = true
+  scanMessage.value = ''
+  try {
+    const result = await metadataCacheService.scan(articlesDir)
+    scanMessage.value = `完成：${result.categories.length} 個分類、${result.tags.length} 個標籤`
+  } catch (e) {
+    scanMessage.value = '掃描失敗，請確認文章資料夾是否正確'
+    console.error(e)
+  } finally {
+    isScanning.value = false
+  }
+}
 
 // Methods
 async function selectArticlesPath() {

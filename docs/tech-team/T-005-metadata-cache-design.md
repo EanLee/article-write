@@ -15,9 +15,9 @@
 | 2 | 確認觸發掃描時機 | Sam | ✅ 決策完成 |
 | 3 | 確認收集內容範圍 | Wei | ✅ 決策完成 |
 | 4 | 確認 FrontmatterEditor combobox 互動設計 | Alex | ✅ 決策完成 |
-| 5 | 實作 MetadataCacheService | Lin | 🔲 待實作 |
-| 6 | 實作 FrontmatterEditor combobox | Wei | 🔲 待實作 |
-| 7 | 設定頁新增「重新掃描」按鈕 | Wei | 🔲 待實作 |
+| 5 | 實作 MetadataCacheService | Lin | ✅ 完成 |
+| 6 | 實作 FrontmatterEditor combobox | Wei | ✅ 完成 |
+| 7 | 設定頁新增「重新掃描」按鈕 | Wei | ✅ 完成 |
 
 ---
 
@@ -89,5 +89,12 @@
 
 - [UX-001 表單設計規範](./UX-001-form-design-system.md)
 - `src/components/FrontmatterEditor.vue`
-- `src/services/MetadataCacheService.ts`（待建立）
-- `.writeflow/metadata-cache.json`（vault cache 檔，待生成）
+- `src/services/MetadataCacheService.ts`
+- `.writeflow/metadata-cache.json`（vault 執行期生成）
+
+## 相關 Commit
+
+- `c7a145c`: feat(service): 新增 MetadataCacheService
+- `8803560`: feat(app): 開啟 vault 時背景自動載入或掃描 metadata cache
+- `b99b270`: feat(ui): 分類欄位改為 combobox
+- `9c2cc08`: feat(ui): 設定頁新增「重新掃描 Metadata」按鈕
