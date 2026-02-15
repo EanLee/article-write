@@ -1,6 +1,6 @@
 import * as chokidar from "chokidar";
 import type { Article, FileSystemItem } from "@/types";
-import { ArticleStatus, ArticleCategory } from "@/types";
+import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { electronFileSystem } from "./ElectronFileSystem";
@@ -38,7 +38,7 @@ export class FileScannerService {
 
       for (const filePath of files) {
         try {
-          const article = await this.parseMarkdownFile(filePath, status);
+          const article = await this.parseMarkdownFile(filePath, status, directoryPath);
           if (article) {
             articles.push(article);
           }
@@ -61,13 +61,13 @@ export class FileScannerService {
    * @param {'draft' | 'published'} status - 文章狀態
    * @returns {Promise<Article | null>} 解析後的文章物件，失敗時返回 null
    */
-  async parseMarkdownFile(filePath: string, status: ArticleStatus): Promise<Article | null> {
+  async parseMarkdownFile(filePath: string, status: ArticleStatus, rootDir?: string): Promise<Article | null> {
     try {
       const content = await this.fileSystem.readFile(filePath);
       const parsed = this.markdownService.parseFrontmatter(content);
 
       const fileName = this.getBasename(filePath, ".md");
-      const category = this.extractCategoryFromPath(filePath);
+      const category = this.extractCategoryFromPath(filePath, rootDir);
       const stats = await this.fileSystem.getFileStats(filePath);
 
       // Log parsing errors but continue processing
@@ -138,21 +138,27 @@ export class FileScannerService {
    * @param {string} filePath - 檔案路徑
    * @returns {'Software' | 'growth' | 'management'} 文章分類
    */
-  private extractCategoryFromPath(filePath: string): ArticleCategory {
-    const normalizedPath = filePath.replace(/\\/g, "/");
+  private extractCategoryFromPath(filePath: string, rootDir?: string): string {
+    const normalized = filePath.replace(/\\/g, "/");
 
-    if (normalizedPath.includes("/Software/")) {
-      return ArticleCategory.Software;
-    }
-    if (normalizedPath.includes("/growth/")) {
-      return ArticleCategory.Growth;
-    }
-    if (normalizedPath.includes("/management/")) {
-      return ArticleCategory.Management;
+    if (rootDir) {
+      const root = rootDir.replace(/\\/g, "/").replace(/\/$/, "");
+      const relative = normalized.startsWith(root)
+        ? normalized.slice(root.length + 1)
+        : normalized;
+      // 第一個路徑片段就是分類資料夾
+      const firstSegment = relative.split("/")[0];
+      // 若第一段就是檔案（含 .md），代表文章在根目錄下，無分類
+      if (firstSegment && !firstSegment.endsWith(".md")) {
+        return firstSegment;
+      }
+      return "";
     }
 
-    // Default to Software if no category found
-    return ArticleCategory.Software;
+    // 無 rootDir 時回退：取倒數第二個路徑片段
+    const parts = normalized.split("/");
+    const fileIndex = parts.length - 1;
+    return fileIndex >= 1 ? parts[fileIndex - 1] : "";
   }
 
   /**
