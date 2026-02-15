@@ -9,7 +9,8 @@ import { GitService } from './services/GitService.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const isDev = !app.isPackaged
+const isTest = process.env.NODE_ENV === 'test'
+const isDev = !app.isPackaged && !isTest
 
 let mainWindow: BrowserWindow
 
