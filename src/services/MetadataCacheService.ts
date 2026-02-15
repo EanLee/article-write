@@ -1,6 +1,5 @@
 import { electronFileSystem } from './ElectronFileSystem'
-import { FileScannerService } from './FileScannerService'
-import { ArticleStatus } from '@/types'
+import { MarkdownService } from './MarkdownService'
 
 export interface MetadataCache {
   lastScanned: string
@@ -13,54 +12,34 @@ const CACHE_FILE = 'metadata-cache.json'
 
 class MetadataCacheService {
   private cache: MetadataCache | null = null
-  private fileScannerService: FileScannerService
-
-  constructor() {
-    this.fileScannerService = new FileScannerService()
-  }
-
-  private getCachePath(articlesDir: string): string {
-    const vaultRoot = this.getVaultRoot(articlesDir)
-    return `${vaultRoot}/${CACHE_DIR}/${CACHE_FILE}`
-  }
+  private markdownService = new MarkdownService()
 
   private getVaultRoot(articlesDir: string): string {
-    // articlesDir 通常是 vault 下的某個子目錄，往上一層取得 vault 根目錄
     const normalized = articlesDir.replace(/\\/g, '/').replace(/\/$/, '')
     const parts = normalized.split('/')
     parts.pop()
     return parts.join('/')
   }
 
+  private getCachePath(articlesDir: string): string {
+    return `${this.getVaultRoot(articlesDir)}/${CACHE_DIR}/${CACHE_FILE}`
+  }
+
   async load(articlesDir: string): Promise<MetadataCache | null> {
-    const cachePath = this.getCachePath(articlesDir)
     try {
-      const content = await electronFileSystem.readFile(cachePath)
+      const content = await electronFileSystem.readFile(this.getCachePath(articlesDir))
       this.cache = JSON.parse(content) as MetadataCache
       return this.cache
     } catch {
-      // cache 不存在或讀取失敗，回傳 null
       return null
     }
   }
 
   async scan(articlesDir: string): Promise<MetadataCache> {
-    const articles = await this.fileScannerService.scanMarkdownFiles(
-      articlesDir,
-      ArticleStatus.Draft
-    )
-
     const categoriesSet = new Set<string>()
     const tagsSet = new Set<string>()
 
-    for (const article of articles) {
-      if (article.category) {
-        categoriesSet.add(article.category)
-      }
-      for (const tag of article.frontmatter.tags ?? []) {
-        tagsSet.add(tag)
-      }
-    }
+    await this.collectFromDir(articlesDir, categoriesSet, tagsSet)
 
     const newCache: MetadataCache = {
       lastScanned: new Date().toISOString(),
@@ -73,18 +52,53 @@ class MetadataCacheService {
     return newCache
   }
 
-  private async save(articlesDir: string, cache: MetadataCache): Promise<void> {
-    const vaultRoot = this.getVaultRoot(articlesDir)
-    const cacheDir = `${vaultRoot}/${CACHE_DIR}`
+  private async collectFromDir(
+    dir: string,
+    categories: Set<string>,
+    tags: Set<string>
+  ): Promise<void> {
+    let items: string[]
+    try {
+      items = await electronFileSystem.readDirectory(dir)
+    } catch {
+      return
+    }
 
+    for (const item of items) {
+      const fullPath = `${dir}/${item}`.replace(/\/+/g, '/')
+      const stats = await electronFileSystem.getFileStats(fullPath)
+
+      if (stats?.isDirectory) {
+        await this.collectFromDir(fullPath, categories, tags)
+      } else if (item.endsWith('.md')) {
+        try {
+          const content = await electronFileSystem.readFile(fullPath)
+          const { frontmatter } = this.markdownService.parseFrontmatter(content)
+
+          if (frontmatter.categories?.length) {
+            frontmatter.categories.forEach((c: string) => categories.add(c))
+          }
+          if (frontmatter.tags?.length) {
+            frontmatter.tags.forEach((t: string) => tags.add(t))
+          }
+        } catch {
+          // 單一檔案解析失敗，繼續處理其他檔案
+        }
+      }
+    }
+  }
+
+  private async save(articlesDir: string, cache: MetadataCache): Promise<void> {
+    const cacheDir = `${this.getVaultRoot(articlesDir)}/${CACHE_DIR}`
     try {
       await electronFileSystem.createDirectory(cacheDir)
     } catch {
       // 資料夾已存在，忽略
     }
-
-    const cachePath = `${cacheDir}/${CACHE_FILE}`
-    await electronFileSystem.writeFile(cachePath, JSON.stringify(cache, null, 2))
+    await electronFileSystem.writeFile(
+      `${cacheDir}/${CACHE_FILE}`,
+      JSON.stringify(cache, null, 2)
+    )
   }
 
   getCache(): MetadataCache | null {
