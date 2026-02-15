@@ -1,389 +1,551 @@
-import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
-import type { Article, ArticleFilter } from '@/types'
-import { MarkdownService } from '@/services/MarkdownService'
-import { autoSaveService } from '@/services/AutoSaveService'
-import { useConfigStore } from './config'
+import { defineStore } from "pinia";
+import { ref, computed, watch } from "vue";
+import type { Article, ArticleFilter } from "@/types";
+import { ArticleStatus, ArticleCategory, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
+import { markdownService } from "@/services/MarkdownService";
+import { autoSaveService } from "@/services/AutoSaveService";
+import { notify } from "@/services/NotificationService";
+import { useConfigStore } from "./config";
+import { getArticleService } from "@/services/ArticleService";
+import { normalizePath } from "@/utils/path";
+import { fileWatchService } from "@/services/FileWatchService";
 
-export const useArticleStore = defineStore('article', () => {
-  // Services
-  const _markdownService = new MarkdownService()
-  const configStore = useConfigStore()
+export const useArticleStore = defineStore("article", () => {
+  // 使用服務單例
+  const articleService = getArticleService();
+  const configStore = useConfigStore();
 
   // State
-  const articles = ref<Article[]>([])
-  const currentArticle = ref<Article | null>(null)
+  const articles = ref<Article[]>([]);
+  const currentArticle = ref<Article | null>(null);
   const filter = ref<ArticleFilter>({
-    status: 'all',
-    category: 'all',
+    status: ArticleFilterStatus.All,
+    category: ArticleFilterCategory.All,
     tags: [],
-    searchText: ''
-  })
-  const loading = ref(false)
-  const watchingFiles = ref(false)
+    searchText: "",
+  });
+  const loading = ref(false);
 
   // Getters
   const filteredArticles = computed(() => {
-    return articles.value.filter(article => {
-      // Status filter
-      if (filter.value.status !== 'all' && article.status !== filter.value.status) {
-        return false
-      }
+    // 單次遍歷，合併所有過濾條件（優化從 O(n×m) 到 O(n)）
+    const statusFilter = filter.value.status;
+    const categoryFilter = filter.value.category;
+    const tagsFilter = filter.value.tags;
+    const searchText = filter.value.searchText?.toLowerCase();
 
-      // Category filter
-      if (filter.value.category !== 'all' && article.category !== filter.value.category) {
-        return false
-      }
+    return articles.value
+      .filter((article) => {
+        // 狀態過濾 - 早期返回
+        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as ArticleStatus)) {
+          return false;
+        }
 
-      // Tags filter
-      if (filter.value.tags.length > 0) {
-        const hasMatchingTag = filter.value.tags.some(tag => 
-          article.frontmatter.tags.includes(tag)
-        )
-        if (!hasMatchingTag) {return false}
-      }
+        // 分類過濾 - 早期返回
+        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as ArticleCategory)) {
+          return false;
+        }
 
-      // Search text filter
-      if (filter.value.searchText) {
-        const searchLower = filter.value.searchText.toLowerCase()
-        const titleMatch = article.title.toLowerCase().includes(searchLower)
-        const contentMatch = article.content.toLowerCase().includes(searchLower)
-        if (!titleMatch && !contentMatch) {return false}
-      }
+        // 標籤過濾 - 早期返回
+        if (tagsFilter.length > 0) {
+          const hasMatchingTag =
+            article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && tagsFilter.some((tag) => article.frontmatter.tags!.includes(tag));
+          if (!hasMatchingTag) {
+            return false;
+          }
+        }
 
-      return true
-    })
-  })
+        // 搜尋文字過濾 - 早期返回優化
+        if (searchText) {
+          const titleMatch = article.title.toLowerCase().includes(searchText);
+          if (titleMatch) {
+            return true;
+          } // 早期返回，避免不必要的內容搜尋
 
-  const draftArticles = computed(() => 
-    articles.value.filter(article => article.status === 'draft')
-  )
+          const contentMatch = (article.content || "").toLowerCase().includes(searchText);
+          if (!contentMatch) {
+            return false;
+          }
+        }
 
-  const publishedArticles = computed(() => 
-    articles.value.filter(article => article.status === 'published')
-  )
+        return true;
+      })
+      .sort((a, b) => {
+        // 按標題字母順序排序（穩定排序，不會因儲存而跳動）
+        return a.title.localeCompare(b.title, "zh-TW");
+      });
+  });
+
+  const draftArticles = computed(() => articles.value.filter((article) => article.status === "draft"));
+
+  const publishedArticles = computed(() => articles.value.filter((article) => article.status === "published"));
 
   const allTags = computed(() => {
-    const tagSet = new Set<string>()
-    articles.value.forEach(article => {
-      article.frontmatter.tags.forEach(tag => tagSet.add(tag))
-    })
-    return Array.from(tagSet).sort()
-  })
+    // 使用 flatMap 優化：從三次遍歷減少到一次
+    // 舊方法：forEach → forEach → Array.from = O(n×m + k)
+    // 新方法：flatMap → Set → spread = O(n×m + k) 但常數更小
+    return [
+      ...new Set(articles.value.flatMap((article) => (article.frontmatter.tags && Array.isArray(article.frontmatter.tags) ? article.frontmatter.tags : []))),
+    ].sort();
+  });
 
   // Actions
   async function loadArticles() {
-    loading.value = true
+    loading.value = true;
     try {
-      const vaultPath = configStore.config.paths.obsidianVault
+      const vaultPath = configStore.config.paths.articlesDir;
       if (!vaultPath) {
-        console.warn('Obsidian vault path not configured')
-        articles.value = []
-        loading.value = false
-        return
+        console.warn("Obsidian vault path not configured");
+        articles.value = [];
+        loading.value = false;
+        return;
       }
 
-      console.log('開始載入文章，Vault 路徑:', vaultPath)
+      console.log("開始載入文章，Vault 路徑:", vaultPath);
 
       // Check if we're running in Electron environment
-      if (typeof window === 'undefined' || !window.electronAPI) {
-        console.warn('Running in browser mode - using mock articles')
-        articles.value = []
-        loading.value = false
-        return
+      if (typeof window === "undefined" || !window.electronAPI) {
+        console.warn("Running in browser mode - using mock articles");
+        articles.value = [];
+        loading.value = false;
+        return;
       }
 
-      const loadedArticles: Article[] = []
-      
-      // Scan both Drafts and Publish folders
-      const folders = [
-        { path: `${vaultPath}/Drafts`, status: 'draft' as const },
-        { path: `${vaultPath}/Publish`, status: 'published' as const }
-      ]
-      
-      for (const folder of folders) {
-        try {
-          // Check if folder exists
-          const stats = await window.electronAPI.getFileStats(folder.path)
-          if (!stats?.isDirectory) {
-            continue
-          }
-          
-          // Read categories (Software, growth, management)
-          const categories = await window.electronAPI.readDirectory(folder.path)
-          
-          for (const category of categories) {
-            const categoryPath = `${folder.path}/${category}`
-            const catStats = await window.electronAPI.getFileStats(categoryPath)
-            if (!catStats?.isDirectory) continue
-            
-            // Read markdown files in category
-            const files = await window.electronAPI.readDirectory(categoryPath)
-            const mdFiles = files.filter(f => f.endsWith('.md'))
-            
-            for (const file of mdFiles) {
-              const filePath = `${categoryPath}/${file}`
-              try {
-                const content = await window.electronAPI.readFile(filePath)
-                const { frontmatter, content: articleContent } = _markdownService.parseMarkdown(content)
-                
-                // Get file stats for accurate lastModified time
-                const fileStats = await window.electronAPI.getFileStats(filePath)
-                const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date()
-                
-                const article: Article = {
-                  id: generateId(),
-                  title: frontmatter.title || file.replace('.md', ''),
-                  slug: file.replace('.md', ''),
-                  filePath,
-                  status: folder.status,
-                  category: category as 'Software' | 'growth' | 'management',
-                  lastModified,
-                  content: articleContent,
-                  frontmatter
-                }
-                
-                loadedArticles.push(article)
-              } catch (err) {
-                console.warn(`Failed to load article ${filePath}:`, err)
-              }
-            }
-          }
-        } catch (err) {
-          console.warn(`Failed to scan ${folder.path}:`, err)
-        }
-      }
-      
-      articles.value = loadedArticles
-      
-      // Start watching for file changes if not already watching
-      if (!watchingFiles.value) {
-        startFileWatching()
-      }
+      // 使用 ArticleService 載入所有文章
+      const loadedArticles = await articleService.loadAllArticles(vaultPath);
+      articles.value = loadedArticles;
+
+      console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
+
+      // 設置檔案監聽
+      await setupFileWatching(vaultPath);
     } catch (error) {
-      console.error('Failed to load articles:', error)
+      console.error("Failed to load articles:", error);
       // Don't throw error, just log it and continue with empty articles
-      articles.value = []
+      articles.value = [];
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
-  async function createArticle(title: string, category: 'Software' | 'growth' | 'management'): Promise<Article> {
+  /**
+   * 設置檔案監聽
+   */
+  async function setupFileWatching(vaultPath: string) {
     try {
-      if (typeof window === 'undefined' || !window.electronAPI) {
-        throw new Error('Electron API not available')
+      // 開始監聽
+      await fileWatchService.startWatching(vaultPath);
+
+      // 訂閱檔案變化事件
+      fileWatchService.subscribe((event) => {
+        handleFileChangeEvent(event);
+      });
+
+      console.log("FileWatchService: 檔案監聽已啟動");
+    } catch (error) {
+      console.error("Failed to setup file watching:", error);
+    }
+  }
+
+  /**
+   * 處理檔案變化事件
+   */
+  async function handleFileChangeEvent(event: { event: string; path: string }) {
+    const { event: type, path: filePath } = event;
+
+    // 解析路徑以判斷是哪個資料夾的哪個分類
+    const pathInfo = parseArticlePath(filePath, configStore.config.paths.articlesDir);
+    if (!pathInfo) {
+      return; // 不是文章檔案，忽略
+    }
+
+    console.log(`檔案變化：${type} - ${filePath}`);
+
+    switch (type) {
+      case "add":
+      case "change":
+        // 重新載入該文章
+        await reloadArticleFromDisk(filePath, pathInfo.status, pathInfo.category);
+        break;
+
+      case "unlink":
+        // 從 Store 移除
+        removeArticleFromMemory(filePath);
+        break;
+    }
+  }
+
+  /**
+   * 從磁碟重新載入文章
+   */
+  async function reloadArticleFromDisk(filePath: string, status: ArticleStatus, category: ArticleCategory) {
+    try {
+      const article = await articleService.loadArticle(filePath, status, category);
+
+      const normalizedPath = normalizePath(filePath);
+      const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
+
+      if (existingIndex !== -1) {
+        // 更新現有文章，保留原有 id（避免 UI 組件因 id 變動而重新掛載）
+        articles.value[existingIndex] = { ...article, id: articles.value[existingIndex].id };
+
+        if (currentArticle.value && normalizePath(currentArticle.value.filePath) === normalizedPath) {
+          currentArticle.value = article;
+          notify.info("檔案已更新", "外部修改已同步");
+        }
+      } else {
+        // 新增文章
+        articles.value.push(article);
+        notify.info("新增文章", `偵測到新文章：${article.title}`);
       }
-      
-      const vaultPath = configStore.config.paths.obsidianVault
-      if (!vaultPath) {
-        throw new Error('Obsidian vault path not configured')
+    } catch (error) {
+      console.warn(`Failed to reload article ${filePath}:`, error);
+    }
+  }
+
+  /**
+   * 從記憶體移除文章
+   */
+  function removeArticleFromMemory(filePath: string) {
+    const normalizedPath = normalizePath(filePath);
+    const index = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
+
+    if (index !== -1) {
+      const article = articles.value[index];
+      articles.value.splice(index, 1);
+
+      if (currentArticle.value && normalizePath(currentArticle.value.filePath) === normalizedPath) {
+        currentArticle.value = null;
       }
 
-      const slug = generateSlug(title)
-      const now = new Date()
-      
-      const article: Article = {
-        id: generateId(),
-        title,
-        slug,
-        filePath: '', // Will be set by file service
-        status: 'draft',
-        category,
-        lastModified: now,
-        content: '',
-        frontmatter: {
-          title,
-          date: now.toISOString().split('T')[0],
-          tags: [],
-          categories: [category]
-        }
+      notify.info("文章已移除", `偵測到文章被刪除：${article.title}`);
+    }
+  }
+
+  /**
+   * 解析文章路徑，取得狀態和分類
+   */
+  function parseArticlePath(filePath: string, vaultPath: string): { status: ArticleStatus; category: ArticleCategory } | null {
+    const relativePath = normalizePath(filePath).replace(normalizePath(vaultPath), "").replace(/^\//, "");
+
+    const parts = relativePath.split("/");
+    if (parts.length < 3 || !parts[2].endsWith(".md")) {
+      return null;
+    }
+
+    const [statusFolder, category] = parts;
+    const status = statusFolder === "Publish" ? ArticleStatus.Published : ArticleStatus.Draft;
+
+    if (!["Software", "growth", "management"].includes(category)) {
+      return null;
+    }
+
+    return {
+      status,
+      category: category as ArticleCategory,
+    };
+  }
+
+  async function createArticle(title: string, category: ArticleCategory): Promise<Article> {
+    try {
+      if (typeof window === "undefined" || !window.electronAPI) {
+        throw new Error("Electron API not available");
       }
+
+      const vaultPath = configStore.config.paths.articlesDir;
+      if (!vaultPath) {
+        throw new Error("Obsidian vault path not configured");
+      }
+
+      const slug = articleService.generateSlug(title);
+      const now = new Date();
 
       // Create directory structure
-      const categoryPath = `${vaultPath}/Drafts/${article.category}`
-      article.filePath = `${categoryPath}/${article.slug}.md`
-      
+      const categoryPath = `${vaultPath}/Drafts/${category}`;
+      const filePath = `${categoryPath}/${slug}.md`;
+
       // Ensure directory exists
-      await window.electronAPI.createDirectory(categoryPath)
-      
-      // Generate initial markdown content
-      const markdownContent = _markdownService.generateMarkdown(article.frontmatter, article.content)
-      
-      // Write file
-      await window.electronAPI.writeFile(article.filePath, markdownContent)
-      
-      articles.value.push(article)
-      return article
+      await window.electronAPI.createDirectory(categoryPath);
+
+      const article: Article = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2), // 內聯生成 ID
+        title,
+        slug,
+        filePath,
+        status: ArticleStatus.Draft,
+        category,
+        lastModified: now,
+        content: "",
+        frontmatter: {
+          title,
+          date: now.toISOString().split("T")[0],
+          tags: [],
+          categories: [category],
+        },
+      };
+
+      // 標記：忽略接下來的檔案變化（因為是我們自己建立的）
+      fileWatchService.ignoreNextChange(article.filePath, 5000);
+
+      // 使用 ArticleService 儲存新文章
+      const result = await articleService.saveArticle(article, {
+        skipConflictCheck: true, // 新文章不需要檢查衝突
+      });
+
+      if (!result.success) {
+        throw result.error || new Error("Failed to create article");
+      }
+
+      // 儲存成功，加入 store
+      articles.value.push(article);
+      notify.success("建立成功", `已建立「${title}」`);
+      return article;
     } catch (error) {
-      console.error('Failed to create article:', error)
-      throw error
+      console.error("Failed to create article:", error);
+      notify.error("建立失敗", error instanceof Error ? error.message : "無法建立文章");
+      throw error;
     }
   }
 
-  async function updateArticle(updatedArticle: Article) {
+  /**
+   * 儲存文章到磁碟（使用 ArticleService）
+   *
+   * ⚠️ 這個函數會執行實際的檔案寫入操作
+   * 成功後會自動更新 store 狀態
+   */
+  async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
     try {
-      if (typeof window === 'undefined' || !window.electronAPI) {
-        throw new Error('Electron API not available')
+      if (typeof window === "undefined" || !window.electronAPI) {
+        throw new Error("Electron API not available");
       }
-      
-      // Update lastModified timestamp
-      updatedArticle.lastModified = new Date()
-      
-      // Generate markdown content
-      const markdownContent = _markdownService.generateMarkdown(
-        updatedArticle.frontmatter,
-        updatedArticle.content
-      )
-      
-      // Save to file
-      await window.electronAPI.writeFile(updatedArticle.filePath, markdownContent)
-      
-      // Update in store
-      const index = articles.value.findIndex(a => a.id === updatedArticle.id)
-      if (index !== -1) {
-        articles.value[index] = { ...updatedArticle }
+
+      // 更新 lastModified timestamp（migration 存檔時不更新，避免排序跳動）
+      const articleToSave = {
+        ...article,
+        lastModified: options?.preserveLastModified ? article.lastModified : new Date(),
+      };
+
+      // ⚠️ 關鍵：告訴 FileWatchService 忽略接下來的變化
+      fileWatchService.ignoreNextChange(articleToSave.filePath, 5000);
+
+      // 使用 ArticleService 儲存（包含備份、衝突檢測、檔案寫入）
+      const result = await articleService.saveArticle(articleToSave);
+
+      if (result.success) {
+        // 儲存成功，只更新記憶體中的狀態，不觸發 reload
+        updateArticleInMemory(articleToSave);
+      } else if (result.conflict) {
+        // 檔案衝突
+        notify.warning("檔案衝突", "檔案在外部被修改，建議重新載入", {
+          action: {
+            label: "重新載入",
+            callback: () => reloadArticle(article.id),
+          },
+        });
+        throw new Error("File conflict detected");
+      } else if (result.error) {
+        throw result.error;
       }
     } catch (error) {
-      console.error('Failed to update article:', error)
-      throw error
+      console.error("Failed to save article:", error);
+      notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
+      throw error;
+    }
+  }
+
+  /**
+   * 更新文章狀態（僅記憶體中，不寫入檔案）
+   *
+   * ⚠️ 這個函數只更新 store 狀態，不會寫入檔案
+   * 如需儲存到磁碟，請使用 saveArticle()
+   */
+  /**
+   * 更新文章在記憶體中的狀態
+   * ⚠️ 只更新 Store，不寫入檔案
+   */
+  function updateArticleInMemory(updatedArticle: Article) {
+    const index = articles.value.findIndex((a) => a.id === updatedArticle.id);
+    if (index !== -1) {
+      // 只更新必要的欄位，減少響應式觸發
+      articles.value[index] = updatedArticle;
+    }
+
+    // 如果更新的是當前文章，也更新 currentArticle
+    if (currentArticle.value?.id === updatedArticle.id) {
+      currentArticle.value = updatedArticle;
     }
   }
 
   async function deleteArticle(id: string) {
     try {
-      if (typeof window === 'undefined' || !window.electronAPI) {
-        throw new Error('Electron API not available')
-      }
-      
-      const article = articles.value.find(a => a.id === id)
-      if (!article) {
-        throw new Error('Article not found')
+      if (typeof window === "undefined" || !window.electronAPI) {
+        throw new Error("Electron API not available");
       }
 
-      // Delete file from file system
-      await window.electronAPI.deleteFile(article.filePath)
-      
-      // Remove from store
-      const index = articles.value.findIndex(a => a.id === id)
+      const article = articles.value.find((a) => a.id === id);
+      if (!article) {
+        throw new Error("Article not found");
+      }
+
+      // 使用 ArticleService 刪除文章（包含備份）
+      await articleService.deleteArticle(article);
+
+      // 從 store 移除
+      const index = articles.value.findIndex((a) => a.id === id);
       if (index !== -1) {
-        articles.value.splice(index, 1)
+        articles.value.splice(index, 1);
         if (currentArticle.value?.id === id) {
-          currentArticle.value = null
+          currentArticle.value = null;
         }
       }
+
+      notify.success("刪除成功", `已刪除「${article.title}」`);
     } catch (error) {
-      console.error('Failed to delete article:', error)
-      throw error
+      console.error("Failed to delete article:", error);
+      notify.error("刪除失敗", error instanceof Error ? error.message : "無法刪除文章");
+      throw error;
     }
   }
 
-  async function moveToPublished(id: string) {
+  async function toggleStatus(id: string) {
     try {
-      if (typeof window === 'undefined' || !window.electronAPI) {
-        throw new Error('Electron API not available')
+      if (typeof window === "undefined" || !window.electronAPI) {
+        throw new Error("Electron API not available");
       }
-      
-      const article = articles.value.find(a => a.id === id)
+
+      const article = articles.value.find((a) => a.id === id);
       if (!article) {
-        throw new Error('Article not found')
+        throw new Error("Article not found");
       }
 
-      if (article.status === 'draft') {
-        const vaultPath = configStore.config.paths.obsidianVault
-        if (!vaultPath) {
-          throw new Error('Obsidian vault path not configured')
-        }
+      const newStatus = article.status === ArticleStatus.Draft
+        ? ArticleStatus.Published
+        : ArticleStatus.Draft;
 
-        // Create new path
-        const publishPath = `${vaultPath}/Publish/${article.category}`
-        const newFilePath = `${publishPath}/${article.slug}.md`
-        
-        // Ensure publish directory exists
-        await window.electronAPI.createDirectory(publishPath)
-        
-        // Read current content
-        const content = await window.electronAPI.readFile(article.filePath)
-        
-        // Write to new location
-        await window.electronAPI.writeFile(newFilePath, content)
-        
-        // Delete old file
-        await window.electronAPI.deleteFile(article.filePath)
-        
-        // Update article in store
-        article.status = 'published'
-        article.filePath = newFilePath
-        article.lastModified = new Date()
-      }
+      const updatedArticle = {
+        ...article,
+        status: newStatus,
+        frontmatter: {
+          ...article.frontmatter,
+          status: newStatus,
+        },
+        lastModified: new Date(),
+      };
+
+      await saveArticle(updatedArticle);
+
+      const statusLabel = newStatus === ArticleStatus.Published ? "已發布" : "草稿";
+      notify.success("狀態已更新", `「${article.title}」已標記為${statusLabel}`);
     } catch (error) {
-      console.error('Failed to move article to published:', error)
-      throw error
+      console.error("Failed to toggle article status:", error);
+      notify.error("更新失敗", error instanceof Error ? error.message : "無法更新文章狀態");
+      throw error;
     }
+  }
+
+
+  /**
+   * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+   * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
+   */
+  function migrateArticleFrontmatter(article: Article): Article {
+    const fm = { ...article.frontmatter }
+    let dirty = false
+
+    // 1. 補上 created（建立時間）
+    // 順序必須在 date 移轉前執行，因為要讀取 date 的值
+    if (!fm.created) {
+      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
+      dirty = true
+    }
+
+    // 2. 移轉 date → pubDate
+    const legacyDate = (fm as any).date
+    if (legacyDate !== undefined) {
+      if (!fm.pubDate) {
+        fm.pubDate = legacyDate
+      }
+      delete (fm as any).date
+      dirty = true
+    }
+
+    // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
+    if (fm.title === undefined) { fm.title = ''; dirty = true }
+    if (fm.description === undefined) { fm.description = ''; dirty = true }
+    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
+    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
+
+    if (!dirty) {return article}
+
+    const migrated = { ...article, frontmatter: fm }
+    // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
+      console.warn('frontmatter 移轉寫回失敗:', err)
+    )
+    return migrated
   }
 
   function setCurrentArticle(article: Article | null) {
     // 在切換文章前自動儲存前一篇文章
-    const previousArticle = currentArticle.value
+    const previousArticle = currentArticle.value;
     if (previousArticle && previousArticle !== article) {
-      autoSaveService.saveOnArticleSwitch(previousArticle)
+      autoSaveService.saveOnArticleSwitch(previousArticle);
     }
-    
-    currentArticle.value = article
-    
+
+    // 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
+    if (article) {
+      article = migrateArticleFrontmatter(article);
+    }
+
+    currentArticle.value = article;
+
     // 設定新的當前文章到自動儲存服務
-    autoSaveService.setCurrentArticle(article)
+    autoSaveService.setCurrentArticle(article);
   }
 
   function updateFilter(newFilter: Partial<ArticleFilter>) {
-    filter.value = { ...filter.value, ...newFilter }
-  }
-
-  /**
-   * Start watching for file system changes
-   */
-  function startFileWatching() {
-    const vaultPath = configStore.config.paths.obsidianVault
-    if (!vaultPath || watchingFiles.value) { return }
-
-    // Check if we're running in Electron environment
-    if (typeof window === 'undefined' || !window.electronAPI) {
-      return
-    }
-
-    // TODO: Implement file watching using Electron API
-    // For now, skip file watching to prevent crashes
-
-    watchingFiles.value = true
-  }
-
-  /**
-   * Stop watching for file system changes
-   */
-  function stopFileWatching() {
-    // TODO: Implement file watching cleanup using Electron API
-    // For now, skip file watching cleanup
-    watchingFiles.value = false
+    filter.value = { ...filter.value, ...newFilter };
   }
 
   /**
    * Reload a specific article from file system
    */
   async function reloadArticle(id: string) {
-    const article = articles.value.find(a => a.id === id)
-    if (!article) {return}
+    const article = articles.value.find((a) => a.id === id);
+    if (!article) {
+      return;
+    }
 
-    // TODO: Implement article reloading using Electron API
-    // For now, skip article reloading
-    const reloadedArticle = null
-    if (reloadedArticle) {
-      const index = articles.value.findIndex(a => a.id === id)
+    if (typeof window === "undefined" || !window.electronAPI) {
+      return;
+    }
+
+    try {
+      const content = await window.electronAPI.readFile(article.filePath);
+      const { frontmatter, content: articleContent } = markdownService.parseMarkdown(content);
+      const fileStats = await window.electronAPI.getFileStats(article.filePath);
+      const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date();
+
+      const reloadedArticle: Article = {
+        ...article,
+        title: frontmatter.title || article.title,
+        content: articleContent,
+        frontmatter,
+        lastModified,
+      };
+
+      const index = articles.value.findIndex((a) => a.id === id);
       if (index !== -1) {
-        articles.value[index] = reloadedArticle
+        articles.value[index] = reloadedArticle;
         if (currentArticle.value?.id === id) {
-          currentArticle.value = reloadedArticle
+          currentArticle.value = reloadedArticle;
         }
       }
+
+      notify.success("重新載入成功", `已重新載入「${reloadedArticle.title}」`);
+    } catch (error) {
+      console.error("Failed to reload article:", error);
+      notify.error("重新載入失敗", "無法重新載入文章");
     }
   }
 
@@ -392,53 +554,39 @@ export const useArticleStore = defineStore('article', () => {
    */
   async function saveCurrentArticle() {
     if (currentArticle.value) {
-      await updateArticle(currentArticle.value)
+      await saveArticle(currentArticle.value);
     }
-  }
-
-  // Helper functions
-  function generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-  }
-
-  function generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2)
   }
 
   // 初始化自動儲存服務
   function initializeAutoSave() {
-    const config = configStore.config
-    const interval = config.editorConfig.autoSaveInterval || 30000
-    
+    const config = configStore.config;
+    const interval = config.editorConfig.autoSaveInterval || 30000;
+
     autoSaveService.initialize(
-      updateArticle,
+      saveArticle, // ✅ 使用新的 saveArticle 函數（會寫入檔案）
       () => currentArticle.value,
-      interval
-    )
-    
+      interval,
+    );
+
     // 根據設定啟用或停用自動儲存
-    autoSaveService.setEnabled(config.editorConfig.autoSave)
+    autoSaveService.setEnabled(config.editorConfig.autoSave);
   }
 
   // 監聽設定變更以更新自動儲存
   watch(
     () => configStore.config.editorConfig,
     (newConfig) => {
-      autoSaveService.setEnabled(newConfig.autoSave)
-      autoSaveService.setInterval(newConfig.autoSaveInterval || 30000)
+      autoSaveService.setEnabled(newConfig.autoSave);
+      autoSaveService.setInterval(newConfig.autoSaveInterval || 30000);
     },
-    { deep: true }
-  )
+    { deep: true },
+  );
 
   // 初始化自動儲存（延遲執行以確保 configStore 已載入）
   setTimeout(() => {
-    initializeAutoSave()
-  }, 100)
+    initializeAutoSave();
+  }, 100);
 
   return {
     // State
@@ -446,26 +594,27 @@ export const useArticleStore = defineStore('article', () => {
     currentArticle,
     filter,
     loading,
-    watchingFiles,
-    
+
     // Getters
     filteredArticles,
     draftArticles,
     publishedArticles,
     allTags,
-    
+
     // Actions
     loadArticles,
     createArticle,
-    updateArticle,
+    saveArticle,
+    updateArticleInMemory,
     deleteArticle,
-    moveToPublished,
+    toggleStatus,
     setCurrentArticle,
     updateFilter,
-    startFileWatching,
-    stopFileWatching,
     reloadArticle,
     saveCurrentArticle,
-    initializeAutoSave
-  }
-})
+    initializeAutoSave,
+    // 內部方法（供測試使用）
+    reloadArticleFromDisk,
+    removeArticleFromMemory,
+  };
+});

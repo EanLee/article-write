@@ -6,7 +6,7 @@ export const useConfigStore = defineStore('config', () => {
   // State
   const config = ref<AppConfig>({
     paths: {
-      obsidianVault: '',
+      articlesDir: '',
       targetBlog: '',
       imagesDir: ''
     },
@@ -36,7 +36,8 @@ export const useConfigStore = defineStore('config', () => {
       const loadedConfig = await window.electronAPI.getConfig()
       if (loadedConfig) {
         config.value = loadedConfig
-        isConfigured.value = !!(loadedConfig.paths.obsidianVault && loadedConfig.paths.targetBlog)
+        // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+        isConfigured.value = !!loadedConfig.paths.articlesDir
       }
     } catch (error) {
       console.error('Failed to load config:', error)
@@ -53,7 +54,8 @@ export const useConfigStore = defineStore('config', () => {
       if (typeof window === 'undefined' || !window.electronAPI || typeof window.electronAPI.setConfig !== 'function') {
         console.warn('Running in browser mode - config not saved')
         config.value = newConfig
-        isConfigured.value = !!(newConfig.paths.obsidianVault && newConfig.paths.targetBlog)
+        // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+        isConfigured.value = !!newConfig.paths.articlesDir
         loading.value = false
         return
       }
@@ -62,7 +64,8 @@ export const useConfigStore = defineStore('config', () => {
       const plainConfig = JSON.parse(JSON.stringify(newConfig))
       await window.electronAPI.setConfig(plainConfig)
       config.value = newConfig
-      isConfigured.value = !!(newConfig.paths.obsidianVault && newConfig.paths.targetBlog)
+      // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
+      isConfigured.value = !!newConfig.paths.articlesDir
     } catch (error) {
       console.error('Failed to save config:', error)
       throw error
@@ -87,16 +90,16 @@ export const useConfigStore = defineStore('config', () => {
     await saveConfig(updatedConfig)
   }
 
-  async function validateObsidianVault(path: string) {
+  async function validateArticlesDir(path: string) {
     if (!path.trim()) {
       return { valid: false, message: '請選擇路徑' }
     }
 
-    if (!window.electronAPI || typeof window.electronAPI.validateObsidianVault !== 'function') {
+    if (!window.electronAPI || typeof window.electronAPI.validateArticlesDir !== 'function') {
       return { valid: true, message: '瀏覽器模式 - 跳過驗證' }
     }
 
-    return await window.electronAPI.validateObsidianVault(path)
+    return await window.electronAPI.validateArticlesDir(path)
   }
 
   async function validateAstroBlog(path: string) {
@@ -122,7 +125,7 @@ export const useConfigStore = defineStore('config', () => {
     saveConfig,
     updatePaths,
     updateEditorConfig,
-    validateObsidianVault,
+    validateArticlesDir,
     validateAstroBlog
   }
 })

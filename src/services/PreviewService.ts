@@ -84,7 +84,7 @@ export class PreviewService {
     } catch (error) {
       // Log error for debugging but don't use console in production
       if (typeof window !== 'undefined' && (window as unknown).__DEV__) {
-        // eslint-disable-next-line no-console
+         
         console.error('Preview rendering error:', error)
       }
       return this.renderErrorFallback(content, error)

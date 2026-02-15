@@ -22,7 +22,7 @@
     </div>
 
     <!-- Preview Content -->
-    <div class="flex-1 overflow-y-auto">
+    <div ref="previewContainerRef" class="flex-1 overflow-y-auto" @scroll="handleScroll">
       <div class="p-4 prose prose-sm max-w-none markdown-preview obsidian-preview" v-html="renderedContent"></div>
     </div>
 
@@ -72,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface PreviewStats {
   wordCount: number
   characterCount: number
@@ -94,6 +96,21 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const emit = defineEmits<{
+  'scroll': []
+}>()
+
+const previewContainerRef = ref<HTMLElement>()
+
+function handleScroll() {
+  emit('scroll')
+}
+
+// Expose ref for parent component to access
+defineExpose({
+  previewContainerRef
+})
 </script>
 
 <style scoped>
@@ -107,6 +124,7 @@ defineProps<Props>()
 
 .markdown-preview :deep(code) {
   background-color: #f2f2f2;
+  color: #1f2937;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -114,6 +132,7 @@ defineProps<Props>()
 
 .markdown-preview :deep(pre code) {
   background-color: transparent;
+  color: inherit;
   padding: 0;
 }
 

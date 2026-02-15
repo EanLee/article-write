@@ -385,9 +385,12 @@ export class ObsidianSyntaxService {
   private updateTags(): void {
     this.tags.clear()
     this.articles.forEach(article => {
-      article.frontmatter.tags.forEach(tag => {
-        this.tags.add(tag)
-      })
+      // 防禦性檢查：確保 tags 存在且為陣列
+      if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
+        article.frontmatter.tags.forEach(tag => {
+          this.tags.add(tag)
+        })
+      }
     })
   }
 

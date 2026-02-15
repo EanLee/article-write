@@ -20,7 +20,7 @@ interface Window {
     // Config operations
     getConfig: () => Promise<any>
     setConfig: (config: any) => Promise<void>
-    validateObsidianVault: (path: string) => Promise<{ valid: boolean; message: string }>
+    validateArticlesDir: (path: string) => Promise<{ valid: boolean; message: string }>
     validateAstroBlog: (path: string) => Promise<{ valid: boolean; message: string }>
     
     // Directory selection

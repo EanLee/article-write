@@ -1,86 +1,127 @@
 <template>
-  <div id="app" class="h-screen flex flex-col bg-base-100">
-    <!-- Header -->
-    <header class="navbar bg-base-200 shadow-sm">
-      <div class="navbar-start">
-        <h1 class="text-xl font-bold">部落格撰寫應用程式</h1>
-      </div>
-      <div class="navbar-end">
-        <button 
-          class="btn btn-primary btn-sm"
-          @click="showSettings = true"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          設定
-        </button>
-      </div>
-    </header>
+  <div id="app" class="h-screen flex bg-base-100">
+    <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
+    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
 
-    <!-- Main Content -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Sidebar -->
-      <aside class="w-80 bg-base-200 border-r border-base-300 overflow-y-auto">
-        <ArticleList />
-      </aside>
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Editor Mode -->
+      <template v-if="currentMode === ViewMode.Editor">
+        <div class="flex flex-1 overflow-hidden">
+          <!-- Sidebar -->
+          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" />
 
-      <!-- Content Area -->
-      <main class="flex-1 bg-base-100">
-        <div v-if="!configStore.config.paths.obsidianVault" class="flex items-center justify-center h-full p-8">
-          <div class="card w-96 bg-base-100 shadow-xl">
-            <div class="card-body">
-              <h2 class="card-title">歡迎使用部落格撰寫應用程式</h2>
-              <p>請先設定您的 Obsidian Vault 路徑。</p>
-              <div class="card-actions justify-end">
-                <button class="btn btn-primary" @click="showSettings = true">
-                  開始設定
-                </button>
+          <!-- Editor Content -->
+          <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
+            <div v-if="!configStore.config.paths.articlesDir" class="flex items-center justify-center h-full p-8">
+              <div class="card w-96 bg-base-100 shadow-xl">
+                <div class="card-body">
+                  <h2 class="card-title">歡迎使用 WriteFlow</h2>
+                  <p>讓寫作更流暢。請先設定您的文章資料夾路徑開始使用。</p>
+                  <div class="card-actions justify-end">
+                    <button class="btn btn-primary" @click="showSettings = true">
+                      開始設定
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div v-else-if="!articleStore.currentArticle" class="flex items-center justify-center h-full">
-          <div class="text-center">
-            <div class="text-6xl mb-4">📝</div>
-            <p class="text-lg text-base-content/70">請選擇一篇文章開始編輯</p>
-          </div>
-        </div>
+            <div v-else-if="!articleStore.currentArticle" class="flex items-center justify-center h-full">
+              <div class="text-center">
+                <FileText :size="64" class="mx-auto mb-4 text-base-content/30" />
+                <p class="text-lg text-base-content/70">請選擇一篇文章開始編輯</p>
+              </div>
+            </div>
 
-        <div v-else class="h-full">
-          <MainEditor />
+            <div v-else class="h-full flex flex-col">
+              <MainEditor />
+            </div>
+
+          </main>
         </div>
-      </main>
+      </template>
+
+      <!-- Management Mode -->
+      <template v-else-if="currentMode === ViewMode.Management">
+        <ArticleManagement @edit-article="switchToEditorMode" />
+      </template>
     </div>
 
     <!-- Settings Modal -->
     <SettingsPanel v-model="showSettings" />
+
+    <!-- Toast Notifications -->
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useConfigStore } from '@/stores/config'
-import { useArticleStore } from '@/stores/article'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useFocusMode } from "@/composables/useFocusMode";
+import { useConfigStore } from "@/stores/config";
+import { useArticleStore } from "@/stores/article";
+import { autoSaveService } from "@/services/AutoSaveService";
+import { ViewMode, SidebarView } from "@/types";
+import { FileText } from "lucide-vue-next";
 
-import ArticleList from '@/components/ArticleList.vue'
-import MainEditor from '@/components/MainEditor.vue'
-import SettingsPanel from '@/components/SettingsPanel.vue'
+import ActivityBar from "@/components/ActivityBar.vue";
+import SideBarView from "@/components/SideBarView.vue";
+import MainEditor from "@/components/MainEditor.vue";
+import SettingsPanel from "@/components/SettingsPanel.vue";
+import ToastContainer from "@/components/ToastContainer.vue";
+import ArticleManagement from "@/components/ArticleManagement.vue";
 
-const configStore = useConfigStore()
-const articleStore = useArticleStore()
-const showSettings = ref(false)
+const configStore = useConfigStore();
+const articleStore = useArticleStore();
+const { focusMode } = useFocusMode();
+const showSettings = ref(false);
+const currentMode = ref<ViewMode>(ViewMode.Editor);
+const sidebarView = ref<SidebarView>(SidebarView.Articles);
+const sidebarCollapsed = ref(false);
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+}
+
+function handleGlobalKeydown(e: KeyboardEvent) {
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault();
+    toggleSidebar();
+  }
+}
+
+// 從管理模式切換回編輯模式
+function switchToEditorMode() {
+  currentMode.value = ViewMode.Editor;
+}
+
+// 頁面關閉前檢查未儲存變更
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (autoSaveService.hasUnsavedChanges()) {
+    e.preventDefault();
+    e.returnValue = "您有未儲存的變更，確定要離開嗎？";
+    return e.returnValue;
+  }
+}
 
 onMounted(async () => {
-  await configStore.loadConfig()
-  
-  // 只要有 obsidianVault 就載入文章（targetBlog 是發布用的，不影響文章載入）
-  if (configStore.config.paths.obsidianVault) {
-    await articleStore.loadArticles()
+  await configStore.loadConfig();
+
+  // 只要有 articlesDir 就載入文章（targetBlog 是發布用的，不影響文章載入）
+  if (configStore.config.paths.articlesDir) {
+    await articleStore.loadArticles();
   }
-})
+
+  // 監聽頁面關閉事件
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("keydown", handleGlobalKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
+  window.removeEventListener("keydown", handleGlobalKeydown);
+});
 </script>
 
 <style scoped>
