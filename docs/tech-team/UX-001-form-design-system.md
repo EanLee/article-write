@@ -150,4 +150,4 @@
 
 ## 參考 Commit
 
-_待 Wei 套用後補充_
+- `b2f42f5`: feat(ui): 套用 UX-001 規範重構 FrontmatterEditor 表單樣式
