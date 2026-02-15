@@ -81,3 +81,27 @@ Supported file patterns: pnpm-lock.yaml
 ### 相關 Commit
 
 - `18e752e`: fix(ci): 改用 actions/cache 手動快取 pnpm store
+
+---
+
+## 追加修復 (2026-02-15) — Build Workflow 未觸發
+
+### 發現的新問題
+
+合併 Release PR #11 後，`v1.0.0` tag 成功建立，但 `build.yml` 完全未被觸發。
+
+### 原因分析
+
+`build.yml` 使用 `on: push: tags: 'v*'` 觸發。
+release-please 透過 **GitHub API 呼叫 `POST /repos/{owner}/{repo}/git/refs`** 建立 tag，
+這不是 `git push tag` 指令，GitHub Actions 的 `push` 事件不會被觸發。
+
+### 追加修正方式
+
+將觸發條件改為 `on: release: types: [created]`。
+release-please 在建立 tag 的同時也會建立 GitHub Release，
+`release: created` 事件可以正確捕捉到。
+
+### 相關 Commit
+
+- `dd49f16`: fix(ci): 修正 build workflow 觸發條件為 release created
