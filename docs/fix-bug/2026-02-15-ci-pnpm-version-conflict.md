@@ -52,3 +52,32 @@ Remove one of these versions to avoid version mismatch errors like ERR_PNPM_BAD_
 ## 相關 Commit
 
 - `6367c88`: fix(ci): 移除 workflow 中重複的 pnpm version 設定
+
+---
+
+## 追加修復 (2026-02-15)
+
+### 發現的新問題
+
+修復版本衝突後，CI 仍然失敗，錯誤訊息變為：
+
+```
+##[error]Dependencies lock file is not found in /home/runner/work/article-write/article-write.
+Supported file patterns: pnpm-lock.yaml
+```
+
+### 原因分析
+
+`setup-node@v4` 的 `cache: 'pnpm'` 功能在設定 Node.js 的同時呼叫 `pnpm store path` 驗證 lock file。pnpm store 路徑輸出帶有非預期內容，導致 setup-node 無法正確定位 `pnpm-lock.yaml`。
+
+### 追加修正方式
+
+移除 `setup-node` 的 `cache: 'pnpm'`，改為手動快取：
+1. 執行 `pnpm store path` 取得實際路徑輸出到 `GITHUB_OUTPUT`
+2. 用 `actions/cache@v4` 明確快取該路徑，以 `pnpm-lock.yaml` hash 為 key
+
+此方式完全繞開 `setup-node` 的 cache 整合，直接管理 pnpm store cache。
+
+### 相關 Commit
+
+- `18e752e`: fix(ci): 改用 actions/cache 手動快取 pnpm store
