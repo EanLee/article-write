@@ -49,8 +49,8 @@
           </svg>
           編輯器
         </a>
-        <a 
-          role="tab" 
+        <a
+          role="tab"
           class="tab relative"
           :class="{ 'tab-active': activeTab === 'git' }"
           @click="activeTab = 'git'"
@@ -60,6 +60,17 @@
           </svg>
           Git 發布
           <span class="badge badge-xs badge-warning ml-1">即將推出</span>
+        </a>
+        <a
+          role="tab"
+          class="tab"
+          :class="{ 'tab-active': activeTab === 'ai' }"
+          @click="activeTab = 'ai'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m1.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI 設定
         </a>
       </div>
 
@@ -432,6 +443,48 @@
           </div>
         </div>
 
+        <!-- AI Settings Tab -->
+        <div v-show="activeTab === 'ai'" class="space-y-4">
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h4 class="font-semibold text-lg mb-2">Claude API Key</h4>
+              <p class="text-sm text-base-content/70 mb-4">
+                輸入您的 Anthropic API Key 以啟用 AI 輔助功能（SEO 生成等）。
+                Key 將加密儲存於本機，不會上傳至任何伺服器。
+              </p>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">API Key</span>
+                </label>
+                <div class="join w-full">
+                  <input
+                    v-model="aiApiKey"
+                    type="password"
+                    placeholder="sk-ant-..."
+                    class="input input-bordered join-item flex-1"
+                  />
+                  <button class="btn btn-primary join-item" @click="saveApiKey" :disabled="!aiApiKey.trim()">
+                    儲存
+                  </button>
+                </div>
+                <label class="label">
+                  <span class="label-text-alt text-success" v-if="aiKeySaved">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ aiKeyStatus }}</span>
+                </label>
+              </div>
+              <div class="alert alert-info mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm">前往 <strong>Anthropic Console</strong> 取得 API Key</p>
+                  <p class="text-xs text-base-content/60 mt-1">console.anthropic.com → API Keys → Create Key</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Git Settings Tab -->
         <div v-show="activeTab === 'git'" class="space-y-4">
           <div class="card bg-base-100 border border-base-300">
@@ -598,6 +651,27 @@ const emit = defineEmits<Emits>()
 const configStore = useConfigStore()
 const articleStore = useArticleStore()
 const activeTab = ref('basic')
+
+// AI Settings
+const aiApiKey = ref('')
+const aiKeySaved = ref(false)
+const aiKeyStatus = ref('')
+
+async function loadAiKeyStatus() {
+  if (window.electronAPI) {
+    const has = await window.electronAPI.aiHasApiKey('claude')
+    aiKeyStatus.value = has ? 'API Key 已設定' : '尚未設定'
+  }
+}
+
+async function saveApiKey() {
+  if (!aiApiKey.value.trim()) {return}
+  await window.electronAPI.aiSetApiKey('claude', aiApiKey.value.trim())
+  aiApiKey.value = ''
+  aiKeySaved.value = true
+  aiKeyStatus.value = 'API Key 已設定'
+  setTimeout(() => { aiKeySaved.value = false }, 3000)
+}
 const localConfig = ref<AppConfig>({
   paths: {
     articlesDir: '',
@@ -793,6 +867,7 @@ watch(
       // Load current config when dialog opens
       localConfig.value = JSON.parse(JSON.stringify(configStore.config))
       await validatePaths()
+      await loadAiKeyStatus()
     }
   }
 )

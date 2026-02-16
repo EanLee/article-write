@@ -4,12 +4,15 @@
     class="frontmatter-panel bg-base-100 border-b border-base-300"
   >
     <!-- 折疊/展開控制列 -->
-    <div class="panel-header flex items-center justify-between px-4 py-2 bg-base-200 cursor-pointer hover:bg-base-300" @click="toggleExpanded">
+    <div class="panel-header flex items-center justify-between px-4 py-2 bg-base-200 cursor-pointer hover:bg-base-300" @click.stop="toggleExpanded">
       <div class="flex items-center gap-2">
         <component :is="expanded ? ChevronDown : ChevronRight" :size="16" />
         <span class="font-semibold text-sm">Frontmatter</span>
       </div>
-      <span class="text-xs text-base-content/60">{{ expanded ? '點擊收合' : '點擊展開' }}</span>
+      <div class="flex items-center gap-2" @click.stop>
+        <SEOGenerateButton :article="article" @seo-generated="onSeoGenerated" @open-settings="emit('open-settings')" />
+        <span class="text-xs text-base-content/60">{{ expanded ? '點擊收合' : '點擊展開' }}</span>
+      </div>
     </div>
 
     <!-- 表格內容 -->
@@ -139,11 +142,21 @@ import {
   ChevronDown,
   ChevronRight
 } from 'lucide-vue-next'
+import SEOGenerateButton from './SEOGenerateButton.vue'
 
 defineProps<{
   visible: boolean
   article: Article | null
 }>()
+
+const emit = defineEmits<{
+  (e: 'seo-generated', result: { slug: string; metaDescription: string; keywords: string[] }): void
+  (e: 'open-settings'): void
+}>()
+
+function onSeoGenerated(result: { slug: string; metaDescription: string; keywords: string[] }) {
+  emit('seo-generated', result)
+}
 
 const expanded = ref(true)
 
