@@ -73,7 +73,7 @@ export interface ElectronAPI {
   searchBuildIndex: (articlesDir: string) => Promise<number>
 
   // AI
-  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }) => Promise<{
+  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: 'claude' | 'gemini') => Promise<{
     success: boolean
     data?: { slug: string; metaDescription: string; keywords: string[] }
     code?: string
@@ -81,6 +81,7 @@ export interface ElectronAPI {
   }>
   aiSetApiKey: (provider: string, key: string) => Promise<void>
   aiHasApiKey: (provider: string) => Promise<boolean>
+  aiGetActiveProvider: () => Promise<'claude' | 'gemini' | null>
 }
 
 /**

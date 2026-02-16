@@ -445,11 +445,13 @@
 
         <!-- AI Settings Tab -->
         <div v-show="activeTab === 'ai'" class="space-y-4">
+
+          <!-- Claude -->
           <div class="card bg-base-100 border border-base-300">
             <div class="card-body">
               <h4 class="font-semibold text-lg mb-2">Claude API Key</h4>
               <p class="text-sm text-base-content/70 mb-4">
-                輸入您的 Anthropic API Key 以啟用 AI 輔助功能（SEO 生成等）。
+                輸入您的 Anthropic API Key 以啟用 Claude AI 功能。
                 Key 將加密儲存於本機，不會上傳至任何伺服器。
               </p>
               <div class="form-control">
@@ -463,13 +465,13 @@
                     placeholder="sk-ant-..."
                     class="input input-bordered join-item flex-1"
                   />
-                  <button class="btn btn-primary join-item" @click="saveApiKey" :disabled="!aiApiKey.trim()">
+                  <button class="btn btn-primary join-item" @click="saveApiKey('claude')" :disabled="!aiApiKey.trim()">
                     儲存
                   </button>
                 </div>
                 <label class="label">
-                  <span class="label-text-alt text-success" v-if="aiKeySaved">✓ API Key 已儲存</span>
-                  <span class="label-text-alt text-base-content/50" v-else>{{ aiKeyStatus }}</span>
+                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'claude'">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ claudeKeyStatus }}</span>
                 </label>
               </div>
               <div class="alert alert-info mt-2">
@@ -483,6 +485,47 @@
               </div>
             </div>
           </div>
+
+          <!-- Gemini -->
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h4 class="font-semibold text-lg mb-2">Gemini API Key</h4>
+              <p class="text-sm text-base-content/70 mb-4">
+                輸入您的 Google AI Studio API Key 以啟用 Gemini AI 功能。
+                Key 將加密儲存於本機，不會上傳至任何伺服器。
+              </p>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">API Key</span>
+                </label>
+                <div class="join w-full">
+                  <input
+                    v-model="geminiApiKey"
+                    type="password"
+                    placeholder="AIza..."
+                    class="input input-bordered join-item flex-1"
+                  />
+                  <button class="btn btn-primary join-item" @click="saveApiKey('gemini')" :disabled="!geminiApiKey.trim()">
+                    儲存
+                  </button>
+                </div>
+                <label class="label">
+                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'gemini'">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ geminiKeyStatus }}</span>
+                </label>
+              </div>
+              <div class="alert alert-info mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm">前往 <strong>Google AI Studio</strong> 取得 API Key</p>
+                  <p class="text-xs text-base-content/60 mt-1">aistudio.google.com → Get API Key</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Git Settings Tab -->
@@ -654,23 +697,33 @@ const activeTab = ref('basic')
 
 // AI Settings
 const aiApiKey = ref('')
-const aiKeySaved = ref(false)
-const aiKeyStatus = ref('')
+const geminiApiKey = ref('')
+const aiKeySaved = ref<'claude' | 'gemini' | null>(null)
+const claudeKeyStatus = ref('')
+const geminiKeyStatus = ref('')
 
 async function loadAiKeyStatus() {
   if (window.electronAPI) {
-    const has = await window.electronAPI.aiHasApiKey('claude')
-    aiKeyStatus.value = has ? 'API Key 已設定' : '尚未設定'
+    const hasClaude = await window.electronAPI.aiHasApiKey('claude')
+    const hasGemini = await window.electronAPI.aiHasApiKey('gemini')
+    claudeKeyStatus.value = hasClaude ? 'API Key 已設定' : '尚未設定'
+    geminiKeyStatus.value = hasGemini ? 'API Key 已設定' : '尚未設定'
   }
 }
 
-async function saveApiKey() {
-  if (!aiApiKey.value.trim()) {return}
-  await window.electronAPI.aiSetApiKey('claude', aiApiKey.value.trim())
-  aiApiKey.value = ''
-  aiKeySaved.value = true
-  aiKeyStatus.value = 'API Key 已設定'
-  setTimeout(() => { aiKeySaved.value = false }, 3000)
+async function saveApiKey(provider: 'claude' | 'gemini') {
+  const key = provider === 'claude' ? aiApiKey.value.trim() : geminiApiKey.value.trim()
+  if (!key) { return }
+  await window.electronAPI.aiSetApiKey(provider, key)
+  if (provider === 'claude') {
+    aiApiKey.value = ''
+    claudeKeyStatus.value = 'API Key 已設定'
+  } else {
+    geminiApiKey.value = ''
+    geminiKeyStatus.value = 'API Key 已設定'
+  }
+  aiKeySaved.value = provider
+  setTimeout(() => { aiKeySaved.value = null }, 3000)
 }
 const localConfig = ref<AppConfig>({
   paths: {

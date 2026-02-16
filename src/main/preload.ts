@@ -99,10 +99,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('search:build-index', articlesDir),
 
   // AI
-  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }) =>
-    ipcRenderer.invoke('ai:generate-seo', input),
+  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: 'claude' | 'gemini') =>
+    ipcRenderer.invoke('ai:generate-seo', input, provider),
   aiSetApiKey: (provider: string, key: string) =>
     ipcRenderer.invoke('ai:set-api-key', provider, key),
   aiHasApiKey: (provider: string) =>
-    ipcRenderer.invoke('ai:get-has-api-key', provider)
+    ipcRenderer.invoke('ai:get-has-api-key', provider),
+  aiGetActiveProvider: () =>
+    ipcRenderer.invoke('ai:get-active-provider')
 })
