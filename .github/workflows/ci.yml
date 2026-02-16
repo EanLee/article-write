@@ -13,6 +13,8 @@ jobs:
   test:
     name: 單元測試
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -50,6 +52,8 @@ jobs:
   e2e:
     name: E2E 測試
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
