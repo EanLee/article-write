@@ -62,6 +62,11 @@ export interface ElectronAPI {
 
   // 目錄選擇
   selectDirectory: (options?: { title?: string; defaultPath?: string }) => Promise<string | null>
+
+  // Auto-Update
+  onUpdateAvailable: (callback: (data: { version: string }) => void) => () => void
+  onUpdateDownloaded: (callback: (data: { version: string }) => void) => () => void
+  installUpdate: () => Promise<void>
 }
 
 /**

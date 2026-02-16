@@ -77,5 +77,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Directory selection
   selectDirectory: (options?: { title?: string, defaultPath?: string }) =>
-    ipcRenderer.invoke('select-directory', options)
+    ipcRenderer.invoke('select-directory', options),
+
+  // Auto-Update
+  onUpdateAvailable: (callback: (data: { version: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { version: string }) => callback(data)
+    ipcRenderer.on('update-available', listener)
+    return () => ipcRenderer.removeListener('update-available', listener)
+  },
+  onUpdateDownloaded: (callback: (data: { version: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { version: string }) => callback(data)
+    ipcRenderer.on('update-downloaded', listener)
+    return () => ipcRenderer.removeListener('update-downloaded', listener)
+  },
+  installUpdate: () => ipcRenderer.invoke('install-update')
 })
