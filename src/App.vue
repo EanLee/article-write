@@ -39,6 +39,13 @@
             </div>
 
           </main>
+
+          <!-- AI Panel（Editor Mode，不限是否選文章） -->
+          <AIPanelView
+            v-if="currentMode === ViewMode.Editor && aiPanelStore.isOpen"
+            :article="articleStore.currentArticle"
+            @open-settings="showSettings = true"
+          />
         </div>
       </template>
 
@@ -73,6 +80,7 @@ import { FileText } from "lucide-vue-next";
 import SearchPanel from "@/components/SearchPanel.vue";
 import { useSearchStore } from "@/stores/search";
 import { useAIPanelStore } from "@/stores/aiPanel";
+import AIPanelView from "@/components/AIPanelView.vue";
 import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";

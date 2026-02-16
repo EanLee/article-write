@@ -38,8 +38,6 @@
             <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
                 :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
 
-            <!-- AI Panel -->
-            <AIPanelView v-if="aiPanelStore.isOpen" :article="articleStore.currentArticle" />
         </div>
 
         <!-- Frontmatter Editor Modal -->
@@ -59,8 +57,6 @@ import CodeMirrorEditor from './CodeMirrorEditor.vue';
 import PreviewPane from './PreviewPane.vue';
 import FrontmatterEditor from './FrontmatterEditor.vue';
 import SearchReplace from './SearchReplace.vue';
-import AIPanelView from './AIPanelView.vue';
-import { useAIPanelStore } from '@/stores/aiPanel';
 import { useServices } from '@/composables/useServices';
 import { useAutocomplete } from '@/composables/useAutocomplete';
 import { useEditorShortcuts } from '@/composables/useEditorShortcuts';
@@ -74,7 +70,6 @@ import type { Article } from '@/types';
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
-const aiPanelStore = useAIPanelStore();
 
 // 使用服務單例
 const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, imageService } = useServices();
