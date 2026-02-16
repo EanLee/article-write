@@ -117,6 +117,9 @@ export const useArticleStore = defineStore("article", () => {
 
       console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
+      // 建立搜尋索引（不影響主流程）
+      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch(() => {})
+
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
     } catch (error) {

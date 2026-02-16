@@ -53,6 +53,9 @@
 
     <!-- Toast Notifications -->
     <ToastContainer />
+
+    <!-- 全文搜尋面板 -->
+    <SearchPanel />
   </div>
 </template>
 
@@ -67,6 +70,8 @@ import { notificationService } from "@/services/NotificationService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "lucide-vue-next";
 
+import SearchPanel from "@/components/SearchPanel.vue";
+import { useSearchStore } from "@/stores/search";
 import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
@@ -81,6 +86,7 @@ const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
 const sidebarView = ref<SidebarView>(SidebarView.Articles);
 const sidebarCollapsed = ref(false);
+const searchStore = useSearchStore();
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -90,6 +96,10 @@ function handleGlobalKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === 'b') {
     e.preventDefault();
     toggleSidebar();
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+    e.preventDefault();
+    searchStore.open();
   }
 }
 

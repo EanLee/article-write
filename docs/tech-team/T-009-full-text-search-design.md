@@ -2,7 +2,7 @@
 
 **日期**: 2026-02-16
 **負責人**: Lin（Services Engineer）
-**狀態**: 🚧 進行中
+**狀態**: ✅ 完成
 
 ## 任務背景
 
@@ -126,4 +126,11 @@ src/components/SearchPanel.vue         ← 新建
 
 ## 相關 Commit
 
-> 待實作後補充
+- `1f05e75`: feat(types): 新增 SearchQuery、SearchResult 型別定義
+- `f96275b`: feat(service): 實作 SearchService — 全文搜尋核心邏輯
+- `2bdad48`: feat(ipc): 新增 search:query 與 search:build-index IPC handler
+- `35e048f`: feat(store): 新增 search store — 搜尋狀態管理
+- `8bfe7e4`: feat(ui): 新增 SearchPanel 浮動搜尋面板組件
+- `e8403f4`: feat(app): 整合全文搜尋 — Cmd/Ctrl+F 快捷鍵 + 啟動建立索引
+- `70584cd`: test(e2e): 新增全文搜尋 E2E 測試
+- `5508c5b`: fix(store): 使用 optional chaining 防止測試環境缺少 searchBuildIndex

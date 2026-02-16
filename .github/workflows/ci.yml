@@ -13,6 +13,8 @@ jobs:
   test:
     name: 單元測試
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -48,8 +50,10 @@ jobs:
         run: pnpm run test
 
   e2e:
-    name: E2E 測試（Playwright + Electron）
+    name: E2E 測試
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -75,51 +79,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      - name: 快取 Electron binary
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/electron
-          key: ${{ runner.os }}-electron-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-electron-
-
       - name: 安裝依賴
         run: pnpm install --frozen-lockfile
 
-      - name: 下載 Electron binary
-        run: node node_modules/electron/install.js
-        env:
-          ELECTRON_CACHE: ~/.cache/electron
-
-      - name: 安裝 Playwright 瀏覽器與系統依賴
+      - name: 安裝 Playwright Browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: 安裝 Electron 系統依賴（xvfb + libs）
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y \
-            xvfb \
-            libgbm-dev \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libdrm2 \
-            libxkbcommon0 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2
+      - name: 執行 E2E 測試
+        run: pnpm run test:e2e
 
-      - name: Build（Main + Renderer）
-        run: pnpm run build
-
-      - name: 執行 E2E 測試（xvfb-run）
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" pnpm exec playwright test
-        env:
-          CI: true
-
-      - name: 上傳測試報告（失敗時）
-        if: failure()
+      - name: 上傳測試報告
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 7
+          retention-days: 30

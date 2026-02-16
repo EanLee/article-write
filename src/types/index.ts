@@ -165,3 +165,24 @@ export interface SaveState {
   lastSavedAt: Date | null
   error: string | null
 }
+
+// ===== Search =====
+
+export interface SearchQuery {
+  query: string
+  filters?: {
+    category?: string
+    status?: ArticleStatus
+    tags?: string[]
+  }
+}
+
+export interface SearchResult {
+  id: string
+  filePath: string
+  title: string
+  matchSnippet: string  // 第一個命中片段，含前後文（約 100 字）
+  updatedAt: string     // ISO 8601，排序依據
+  category: string
+  status: ArticleStatus
+}
