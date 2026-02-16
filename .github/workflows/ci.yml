@@ -46,3 +46,67 @@ jobs:
 
       - name: 執行單元測試
         run: pnpm run test
+
+  e2e:
+    name: E2E 測試（Playwright + Electron）
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 安裝 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 取得 pnpm store 路徑
+        id: pnpm-cache
+        run: echo "store=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: 快取 pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: 安裝依賴
+        run: pnpm install --frozen-lockfile
+
+      - name: 安裝 Playwright 瀏覽器與系統依賴
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: 安裝 Electron 系統依賴（xvfb + libs）
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            xvfb \
+            libgbm-dev \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libdrm2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2
+
+      - name: Build（Main + Renderer）
+        run: pnpm run build
+
+      - name: 執行 E2E 測試（xvfb-run）
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" pnpm exec playwright test
+        env:
+          CI: true
+
+      - name: 上傳測試報告（失敗時）
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
