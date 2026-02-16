@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { autoUpdater } from 'electron-updater'
+import pkg from 'electron-updater'
+const { autoUpdater } = pkg
 import { FileService } from './services/FileService.js'
 import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
