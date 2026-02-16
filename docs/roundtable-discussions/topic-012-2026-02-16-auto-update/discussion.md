@@ -32,110 +32,39 @@
 
 ### 第一輪討論 (2026-02-16)
 
-#### 🎯 PM（Alex Chen）的觀點
+**Alex**：「好，我先說明今天的議題。目前 WriteFlow 要更版，使用者得自己去發現新版、手動下載安裝檔、重新安裝覆蓋。我覺得這個體驗對一個生產力工具來說完全不可接受。業界統計手動更新轉換率大概只有 30%，意思是 70% 的使用者會一直卡在舊版——我們修了 bug，他們根本感受不到。Alpha 推廣前這個問題要解決。」
 
-**立場**: ✅ 支持
+**Jordan**：「你說到我心坎裡了。每次看到『有新版，請去下載』我的第一反應就是『等等再說』，然後就忘了。我現在 Obsidian 也是這樣，已經落後三個版本還沒更。WriteFlow 如果能像 VS Code 那樣自動幫我搞定，我對它的信任感會高很多。但我有一個底線：**不要強制重啟**。我不希望寫到一半 App 突然跳出來要我重開。」
 
-**理由**:
-1. 留存率直接相關：使用者不更版，就永遠用著有 bug 的舊版。Retention 數據失真。
-2. 業界統計，手動更新轉換率通常低於 30%，70% 使用者長期停留舊版。
-3. Alpha 推廣前若沒有 Auto-Update，Alpha 使用者每次都要手動裝，口碑差。
+**Lisa**：「這個功能的行銷價值非常高。Notion、Obsidian、VS Code 都有 Auto-Update，沒有這個功能在市場上根本說不過去。而且這是品牌保護——Alpha 使用者如果因為舊版 bug 留下負評，傷害遠比沒有 Auto-Update 大。Support 那邊也會感謝我們，『請先確認你是最新版』這句話能少說多少次。」
 
-**具體建議**:
-- 背景下載 + 使用者決定何時套用（不強制重啟）
-- 告知使用者「有新版本已就緒，下次啟動時自動套用」
+**Sam**：「我支持做，但有幾個問題要先講清楚。第一，更新失敗怎麼辦？網路斷線、GitHub 下載失敗，App 要有 graceful fallback，不能因為更新掛了就讓整個 App 無法使用。第二，更新的成功和失敗狀態要有 log，我需要能查。第三——Taylor，macOS Code Signing 的問題你說一下。」
 
-**優先級評估**: P1（Alpha 推廣前必須完成）
+**Taylor**：「Sam 點到了關鍵。macOS 沒有 Code Signing，不只是 Auto-Update 無法正常工作，Gatekeeper 根本可能在第一次安裝時就把 App 封鎖。這是個商業決策——Apple Developer 帳號一年 99 美元，要不要買是 Alex 決定的，不是技術問題。技術上，Windows 和 Linux 用 `electron-updater` 搭配 GitHub Releases 完全沒問題，零成本，我們的 `electron-builder` 已經裝好了，整合起來不複雜。」
 
----
+**Alex**：「macOS 的問題我理解。Alpha 階段先聚焦 Windows 和 Linux，macOS 暫緩——Alpha 測試者通常有能力繞過 Gatekeeper。Apple Developer 帳號的評估我來負責，v0.3 Beta 前給出決策。」
 
-#### 📢 Marketing（Lisa Wang）的觀點
+**Jordan**：「Taylor，我有個問題。如果我選了『下次啟動再更新』，App 會不會在我完全沒預期的時機突然跳出更新畫面？」
 
-**立場**: ✅ 強烈支持
+**Taylor**：「不會。標準做法是更新只在 App **啟動時**套用，不在運行中途強制重啟。你會看到的是：啟動 App 時短暫出現『正在安裝更新...』，然後進入主畫面。整個過程你是有預期的，不會突然被打斷。」
 
-**理由**:
-1. 推廣賣點：「App 自動更新，永遠保持最新版」是行銷差異化亮點。Notion、Obsidian、VS Code 都有 Auto-Update。
-2. 口碑保護：Alpha 使用者若因舊版 bug 留下負評，傷害遠比沒有 Auto-Update 大。
-3. 降低 Support 成本：消除「請先確認你是最新版」這類 support 問題。
-
-**潛在風險**:
-- 風險：若 Auto-Update 本身出 bug（更新失敗），傷害比沒有功能更大
+**Jordan**：「這樣可以接受。」
 
 ---
 
-#### 👤 User（Jordan Lee）的觀點
+### 第二輪討論
 
-**立場**: ✅ 非常需要
+**Lisa**：「有一個想法——更新完成後，能不能有個小彈窗顯示『這版的新功能』？像 Figma 那樣。對推廣很有幫助。」
 
-**核心痛點**: 每次看到「要手動下載新版」，第一反應是「等等再說」，然後就忘了。目前 Obsidian 也是這樣，有時 3 個版本前的東西才更新。
+**Taylor**：「技術上可行，但這不在 Auto-Update 的核心範圍。建議放到 Backlog，不要把它綁在這次的實作裡，不然範圍會失控。」
 
-**期望行為**:
-- 背景下載，不打斷工作
-- 有小通知告訴我「新版已就緒」
-- 讓我選「現在重啟」或「下次啟動時更新」
+**Alex**：「同意 Taylor。Changelog 彈窗 P3，先把核心更新機制做穩。」
 
-**底線**: **不要強制重啟**，不希望寫到一半突然被要求重開 App。
+**Sam**：「最後確認一件事：更新的行為模式——背景靜默下載，下載完成後通知使用者，讓使用者選擇『現在重啟』或『下次啟動』，對嗎？」
 
----
+**Alex**：「對，這是我們的共識。不打斷使用者工作，但讓他們知道有新版可用。」
 
-#### 🔧 Ops（Sam Liu）的觀點
-
-**立場**: ⚠️ 條件支持
-
-**支持理由**:
-1. 版本碎片化是維護噩夢：沒有 Auto-Update，一年後可能有三個版本同時在外面跑，Bug fix 要回頭相容多個版本。
-2. `electron-updater` 支援 release channel（stable/beta），出問題可快速切換避開壞版本。
-
-**條件**:
-1. 需要有 graceful fallback：更新失敗不能讓 App 掛掉
-2. 更新狀態需有 log（成功/失敗都要記錄）
-3. macOS Code Signing 問題需要在技術上確認
-
----
-
-#### 💻 CTO（Taylor Wu）的觀點
-
-**立場**: ✅ 支持，但要注意技術邊界
-
-**技術可行性確認**:
-- `electron-builder` 已安裝，`electron-updater` 是配套套件，整合簡單
-- GitHub Releases 作為 update server，零額外成本
-- `latest.yml` / `latest-mac.yml` / `latest-linux.yml` 由 `electron-builder` 自動產生
-
-**需要上層決策的三個問題**:
-1. **macOS Code Signing**：沒有 Apple Developer 帳號（$99/年），macOS Auto-Update 無法正常工作（Gatekeeper 攔截）——這是商業決策，不只是技術問題
-2. **更新頻率**：啟動時檢查 vs 定時背景輪詢
-3. **強制更新策略**：是否需要某些版本強制所有人更新
-
-**建議**:
-- Windows 和 Linux 先做（無 code signing 困難）
-- macOS 標記為「有限支援」直到簽名問題解決
-- 從啟動時檢查開始，不要過度設計
-
----
-
-### 第二輪討論（跨角色回應）
-
-**Sam 回應 Taylor（macOS）**:
-macOS Code Signing 問題是 macOS 支援的根本門檻，不只限於 Auto-Update。沒有簽名，`.dmg` 安裝後首次啟動就可能被 Gatekeeper 完全封鎖。
-
-**Alex 回應 Sam（macOS）**:
-v0.2 Alpha 優先做 Windows Auto-Update，macOS 暫時手動更新（Alpha 測試者通常懂怎麼繞過 Gatekeeper）。v0.3 Beta 再評估 Apple Developer 帳號。
-
-**Jordan 回應 Alex（強制重啟問題）**:
-背景下載 + 使用者決定方向贊同。擔心：如果選「下次啟動」，App 會不會在完全沒預期的時機跳出更新畫面？
-
-**Taylor 回應 Jordan（更新時機）**:
-標準做法是更新只在「App 啟動時」套用，不在運行中途強制重啟。啟動時「正在安裝更新...」再進入主畫面，這個 UX 可接受。
-
-**Lisa 補充（Changelog 彈窗）**:
-更新後能不能顯示「新版本亮點」？
-
-**Taylor 回應 Lisa**:
-技術上可行，但不在 Auto-Update 核心範圍。建議作為獨立功能放入 Backlog。
-
-**Alex（PM）決定**:
-Changelog 彈窗 P3，先做核心 Update 機制。
+**Taylor**：「那技術方向就清楚了。我來開 T-008，把 `electron-updater` 的實作方案整理出來。」
 
 ---
 
@@ -165,7 +94,7 @@ Changelog 彈窗 P3，先做核心 Update 機制。
 
 | 議題 | 分歧內容 | 處理方式 |
 |------|---------|---------|
-| macOS 支援 | 需要 code signing；Alpha 階段暫緩 | 漸進策略：Alpha 先跳過 macOS |
+| macOS 支援 | 需要 Code Signing；Alpha 階段暫緩 | 漸進策略：Alpha 先跳過 macOS |
 | 強制更新機制 | 是否需要？ | Alpha 階段全部軟提示，未來視需要再評估 |
 
 ---
@@ -174,6 +103,6 @@ Changelog 彈窗 P3，先做核心 Update 機制。
 
 | 項目 | 負責人 | 優先級 | 完成條件 |
 |------|-------|-------|---------|
-| 建立 T-008 技術討論文件，評估 `electron-updater` 實作方案 | Taylor（技術團隊） | P1 | T-008 文件完成，包含技術選型與實作計畫 |
+| 建立 T-008：`electron-updater` 技術方案評估與實作計畫 | Taylor（技術團隊） | P1 | T-008 文件完成，包含技術選型與實作計畫 |
 | 評估 Apple Developer 帳號費用與效益 | Alex（PM） | P2 | 給出購買/不購買決策，記錄至 T-008 |
 | Changelog 彈窗功能加入 Backlog | Alex（PM） | P3 | 加入 Backlog，排期再議 |
