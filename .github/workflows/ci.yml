@@ -82,6 +82,9 @@ jobs:
       - name: 安裝依賴
         run: pnpm install --frozen-lockfile
 
+      - name: 建置 Electron 主程序
+        run: pnpm run build:main
+
       - name: 安裝 Playwright Browsers
         run: pnpm exec playwright install --with-deps chromium
 

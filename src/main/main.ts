@@ -81,15 +81,15 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
 
-  autoUpdater.on('update-available', (info) => {
+  autoUpdater.on('update-available', (info: { version: string }) => {
     mainWindow?.webContents.send('update-available', { version: info.version })
   })
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-downloaded', (info: { version: string }) => {
     mainWindow?.webContents.send('update-downloaded', { version: info.version })
   })
 
-  autoUpdater.on('error', (err) => {
+  autoUpdater.on('error', (err: Error) => {
     // 更新失敗不影響 App，僅 log
     console.error('[AutoUpdater] error:', err.message)
   })
