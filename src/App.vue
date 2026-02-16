@@ -63,6 +63,7 @@ import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { metadataCacheService } from "@/services/MetadataCacheService";
+import { notificationService } from "@/services/NotificationService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "lucide-vue-next";
 
@@ -106,6 +107,35 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
   }
 }
 
+let unsubscribeUpdateAvailable: (() => void) | null = null
+let unsubscribeUpdateDownloaded: (() => void) | null = null
+
+function setupUpdateListeners() {
+  if (!window.electronAPI?.onUpdateAvailable) {return}
+
+  unsubscribeUpdateAvailable = window.electronAPI.onUpdateAvailable(({ version }) => {
+    notificationService.info(
+      `新版本 v${version} 下載中`,
+      '下載完成後將通知您',
+      { duration: 5000 }
+    )
+  })
+
+  unsubscribeUpdateDownloaded = window.electronAPI.onUpdateDownloaded(({ version }) => {
+    notificationService.info(
+      `新版本 v${version} 已就緒`,
+      '重啟 App 即可套用更新',
+      {
+        duration: 0,
+        action: {
+          label: '立刻重啟',
+          callback: () => window.electronAPI.installUpdate()
+        }
+      }
+    )
+  })
+}
+
 onMounted(async () => {
   await configStore.loadConfig();
 
@@ -125,11 +155,16 @@ onMounted(async () => {
   // 監聽頁面關閉事件
   window.addEventListener("beforeunload", handleBeforeUnload);
   window.addEventListener("keydown", handleGlobalKeydown);
+
+  // 監聽 Auto-Update 事件
+  setupUpdateListeners();
 });
 
 onUnmounted(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
   window.removeEventListener("keydown", handleGlobalKeydown);
+  unsubscribeUpdateAvailable?.()
+  unsubscribeUpdateDownloaded?.()
 });
 </script>
 
