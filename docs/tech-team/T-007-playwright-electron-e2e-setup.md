@@ -4,6 +4,7 @@
 > **主持**: Sam（Tech Lead）
 > **參與**: Wei（Frontend）、Lin（Services）、Alex（UI/UX）
 > **背景**: 圓桌 #011 Q-01 — 建立 E2E 測試環境，為 Q-02/Q-03/Q-04 打地基
+> **狀態**: ✅ 完成（Q-01 ～ Q-04 + Q-06 全部完成）
 
 ---
 
@@ -172,6 +173,23 @@ export default defineConfig({
 
 ## 後續任務
 
-- **Q-01**（Lin）：依本討論實作環境建置
-- **Q-02/Q-03/Q-04**（Lin）：環境建立後依序實作三個 Happy Path
-- **Q-06**（Sam）：CI Pipeline + xvfb 可行性評估
+| 任務 | 負責人 | 狀態 | Branch |
+|------|--------|------|--------|
+| Q-01 Playwright + Electron 環境建置 | Lin | ✅ 完成 | `feature/q01-playwright-setup` |
+| Q-02 編輯器核心流程 E2E | Lin | ✅ 完成 | `feature/q02-e2e-editor-flow` |
+| Q-03 同步發布流程 E2E | Lin | ✅ 完成 | `feature/q03-e2e-publish-flow` |
+| Q-04 設定路徑流程 E2E | Lin | ✅ 完成 | `feature/q04-e2e-settings-path` |
+| Q-05 Store 單元測試補強 | Lin | ✅ 完成 | `feature/q05-store-unit-tests` |
+| Q-06 CI Pipeline + xvfb | Sam/Lin | ✅ 完成 | `feature/q06-ci-pipeline` |
+
+### Q-06 實作摘要（2026-02-16）
+
+在 `.github/workflows/ci.yml` 新增獨立的 `e2e` job：
+
+- **虛擬顯示器**：`xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24"`
+- **系統依賴**：`xvfb`、`libgbm-dev`、`libnss3`、`libatk-bridge2.0-0` 等 Electron 必要 libs
+- **Playwright 瀏覽器**：`playwright install --with-deps chromium`
+- **Build 整合**：E2E job 內部執行 `pnpm run build`，不依賴 `test` job 產物
+- **失敗報告**：測試失敗時自動上傳 `playwright-report/` artifact（7 天）
+
+相關 Commit：`dc78333`
