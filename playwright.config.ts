@@ -27,7 +27,7 @@ export default defineConfig({
 
   use: {
     // Base URL
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3002',
 
     // 截圖設定
     screenshot: 'only-on-failure',
@@ -41,8 +41,8 @@ export default defineConfig({
 
   // 測試前啟動開發伺服器
   webServer: {
-    command: 'pnpm run dev',
-    url: 'http://localhost:5173',
+    command: process.env.CI ? 'pnpm run dev:renderer' : 'pnpm run dev',
+    url: 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
