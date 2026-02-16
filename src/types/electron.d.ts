@@ -71,6 +71,16 @@ export interface ElectronAPI {
   // Search
   searchQuery: (query: import('./index').SearchQuery) => Promise<import('./index').SearchResult[]>
   searchBuildIndex: (articlesDir: string) => Promise<number>
+
+  // AI
+  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }) => Promise<{
+    success: boolean
+    data?: { slug: string; metaDescription: string; keywords: string[] }
+    code?: string
+    message?: string
+  }>
+  aiSetApiKey: (provider: string, key: string) => Promise<void>
+  aiHasApiKey: (provider: string) => Promise<boolean>
 }
 
 /**
