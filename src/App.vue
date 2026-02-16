@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="h-screen flex bg-base-100">
     <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
-    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
+    <ActivityBar v-if="!focusMode" v-model="currentMode" :ai-panel-open="aiPanelStore.isOpen" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" @toggle-ai-panel="aiPanelStore.toggle()" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -72,6 +72,7 @@ import { FileText } from "lucide-vue-next";
 
 import SearchPanel from "@/components/SearchPanel.vue";
 import { useSearchStore } from "@/stores/search";
+import { useAIPanelStore } from "@/stores/aiPanel";
 import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
@@ -82,6 +83,7 @@ import ArticleManagement from "@/components/ArticleManagement.vue";
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
 const { focusMode } = useFocusMode();
+const aiPanelStore = useAIPanelStore();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
 const sidebarView = ref<SidebarView>(SidebarView.Articles);
