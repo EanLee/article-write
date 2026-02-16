@@ -90,5 +90,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-downloaded', listener)
     return () => ipcRenderer.removeListener('update-downloaded', listener)
   },
-  installUpdate: () => ipcRenderer.invoke('install-update')
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+
+  // Search
+  searchQuery: (query: { query: string; filters?: { category?: string; status?: string; tags?: string[] } }) =>
+    ipcRenderer.invoke('search:query', query),
+  searchBuildIndex: (articlesDir: string) =>
+    ipcRenderer.invoke('search:build-index', articlesDir)
 })

@@ -8,6 +8,8 @@ import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
 import { PublishService } from './services/PublishService.js'
 import { GitService } from './services/GitService.js'
+import { SearchService } from './services/SearchService.js'
+import type { SearchQuery } from '../types/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -25,6 +27,7 @@ const configService = new ConfigService()
 const processService = new ProcessService()
 const publishService = new PublishService(fileService)
 const gitService = new GitService()
+const searchService = new SearchService()
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -141,12 +144,27 @@ app.whenReady().then(() => {
   ipcMain.handle('stop-dev-server', () => processService.stopDevServer())
   ipcMain.handle('get-server-status', () => processService.getServerStatus())
   
+  // 搜尋
+  ipcMain.handle('search:query', (_event, query: SearchQuery) => {
+    return searchService.search(query)
+  })
+  ipcMain.handle('search:build-index', async (_event, articlesDir: string) => {
+    await searchService.buildIndex(articlesDir)
+    return searchService.getIndexSize()
+  })
+
   // 檔案監聽
   ipcMain.handle('start-file-watching', (_, watchPath: string) => {
     fileService.startWatching(watchPath, (event, filePath) => {
       // 只監聽 .md 檔案
       if (filePath.endsWith('.md')) {
         mainWindow?.webContents.send('file-change', { event, path: filePath })
+        // 增量更新搜尋索引
+        if (event === 'unlink') {
+          searchService.removeFile(filePath)
+        } else {
+          searchService.updateFile(filePath).catch(() => {})
+        }
       }
     })
     return true
