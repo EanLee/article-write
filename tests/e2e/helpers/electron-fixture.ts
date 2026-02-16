@@ -12,8 +12,8 @@
  * - 需明確過濾 DevTools 視窗，取得真正的 App 主視窗
  */
 
-import { test as base, expect } from '@playwright/test'
-import { _electron as electron, ElectronApplication, Page } from 'playwright'
+import { test as base, expect, _electron as electron } from '@playwright/test'
+import type { ElectronApplication, Page } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import os from 'os'
