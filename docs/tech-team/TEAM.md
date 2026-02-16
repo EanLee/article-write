@@ -43,6 +43,6 @@
 | T-005 | Metadata Cache 設計評估（分類/標籤快取） | 2026-02-15 | ✅ 完成 |
 | T-006 | Article.category 型別重構（enum → string） | 2026-02-15 | ✅ 完成 |
 | T-007 | Playwright + Electron E2E 測試環境建置方案評估 | 2026-02-15 | ✅ 完成 |
-| T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | 🚧 進行中 |
+| T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | ✅ 完成 |
 | UX-001 | 表單設計規範 | 2026-02-15 | ✅ 完成 |
 | RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | ✅ 完成 |
