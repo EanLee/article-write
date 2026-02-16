@@ -925,6 +925,65 @@ T-XXX-任務簡短描述.md
 
 ---
 
+## 圓桌會議規則
+
+### 發起前必須做（不可跳過）
+
+1. 讀 `docs/roundtable-discussions/README.md` 確認最新議題編號
+2. 讀最近 2~3 個 `decision.md` 掌握已決策事項與待辦 Action Items
+3. 讀 `docs/tech-team/TEAM.md` 確認技術現況
+4. 確認 codebase 實際狀態（`src/` 有什麼、`git log` 最近做了什麼）
+5. **未備妥材料禁止開會**（`docs/roundtable-discussions/ROUNDTABLE_RULES.md` 明確規定）
+
+### 主持人
+
+**Alex（PM）永遠是主持人**，由 Alex 開場點出議題。
+
+### 角色 Sub-agent 模式（必須）
+
+每個角色派發**獨立 sub-agent**（並行 Task tool），五個角色缺一不可：
+
+| 角色 | 代表 |
+|------|------|
+| Alex | PM，主持人 |
+| Lisa | Marketing |
+| Jordan | User |
+| Sam | Ops/Tech Lead |
+| Taylor | CTO |
+
+每個 agent 收到：**專案現況 + 角色特質（參考 CHARACTER_CARDS.md）+ 今天議題**。
+
+### 討論格式（必須）
+
+- 全程對話體：`Alex：「...」`，不用報告格式
+- 每輪 agents 回應後，**立即同步寫入 `discussion.md`**，不累積到最後才寫
+- 每輪寫完立即 commit
+
+### 文件建立時機
+
+- 討論**開始時**立即建立 `topic-NNN` 資料夾與 `discussion.md`
+- 決策完成後建立 `decision.md`
+- 同步更新 `docs/roundtable-discussions/README.md` 索引
+
+---
+
+## 技術會議規則
+
+### 角色 Sub-agent 模式（必須）
+
+技術會議角色：Sam（Tech Lead，主持）、Lin（Services）、Wei（Frontend）、Alex（UI/UX）
+
+每個角色派發**獨立 sub-agent**（並行 Task tool）。
+
+### 討論記錄（必須即時）
+
+- 技術會議開始時立即建立 `T-XXX` 文件，**「討論記錄」章節即時寫入對話**
+- 不能只記結論，必須包含各角色完整對話過程
+- 每輪結束後立即 commit，不累積到最後才寫
+- 討論完成後補充「設計決策」章節，更新 `TEAM.md` 索引
+
+---
+
 ## 工具偏好
 
 - **優先使用**：Context7 和 Serena MCP 工具
@@ -940,5 +999,5 @@ T-XXX-任務簡短描述.md
 
 ---
 
-**最後更新**: 2026-02-15
-**版本**: 1.7.0
+**最後更新**: 2026-02-16
+**版本**: 1.8.0
