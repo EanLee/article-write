@@ -34,3 +34,8 @@ coverage/
 
 # ESLint cache
 .eslintcache
+
+# Playwright
+playwright-report/
+test-results/
+/playwright/.cache/
