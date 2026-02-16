@@ -67,6 +67,10 @@ export interface ElectronAPI {
   onUpdateAvailable: (callback: (data: { version: string }) => void) => () => void
   onUpdateDownloaded: (callback: (data: { version: string }) => void) => () => void
   installUpdate: () => Promise<void>
+
+  // Search
+  searchQuery: (query: import('./index').SearchQuery) => Promise<import('./index').SearchResult[]>
+  searchBuildIndex: (articlesDir: string) => Promise<number>
 }
 
 /**
