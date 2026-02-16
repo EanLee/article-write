@@ -22,13 +22,14 @@
 | 009 | 編輯器 UX 體驗問題 — 優先級與行動方案 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-009-2026-02-14-ux-review](./topic-009-2026-02-14-ux-review/) |
 | 010 | 編輯器底層框架選型（CodeMirror 6 vs textarea 強化） | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-010-2026-02-14-editor-ux-decision](./topic-010-2026-02-14-editor-ux-decision/) |
 | 011 | v0.2 Sprint 方向決策：品質鞏固 vs 功能擴展 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-011-2026-02-14-quality-sprint-planning](./topic-011-2026-02-14-quality-sprint-planning/) |
+| 012 | 線上自動更新機制評估（Auto-Update） | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-012-2026-02-16-auto-update](./topic-012-2026-02-16-auto-update/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 12
-**已決策**: 12
+**總討論數**: 13
+**已決策**: 13
 **討論中**: 0
 
 ---
