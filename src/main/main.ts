@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { autoUpdater } from 'electron-updater'
+import pkg from 'electron-updater'
+const { autoUpdater } = pkg
 import { FileService } from './services/FileService.js'
 import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
@@ -12,6 +13,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const isTest = process.env.NODE_ENV === 'test'
 const isDev = !app.isPackaged && !isTest
+
+// 停用 Autofill 功能以消除 DevTools protocol 警告
+app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')
 
 let mainWindow: BrowserWindow
 

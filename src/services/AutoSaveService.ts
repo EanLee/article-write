@@ -226,6 +226,10 @@ export class AutoSaveService {
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
 
+    if (!this.initialized) {
+      return;
+    }
+
     if (enabled) {
       this.startAutoSave();
     } else {
