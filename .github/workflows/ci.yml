@@ -82,6 +82,11 @@ jobs:
       - name: 安裝依賴
         run: pnpm install --frozen-lockfile
 
+      - name: 安裝 Electron 二進制檔案
+        run: |
+          cd node_modules/electron
+          node install.js
+
       - name: 建置 Electron 主程序
         run: pnpm run build:main
 
