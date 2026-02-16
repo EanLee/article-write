@@ -14,6 +14,9 @@ const __dirname = dirname(__filename)
 const isTest = process.env.NODE_ENV === 'test'
 const isDev = !app.isPackaged && !isTest
 
+// 停用 Autofill 功能以消除 DevTools protocol 警告
+app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')
+
 let mainWindow: BrowserWindow
 
 // 模組級別服務實例，確保整個應用生命週期使用同一實例
