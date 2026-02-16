@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { autoUpdater } from 'electron-updater'
 import { FileService } from './services/FileService.js'
 import { ConfigService } from './services/ConfigService.js'
 import { ProcessService } from './services/ProcessService.js'
@@ -66,8 +67,32 @@ function createWindow() {
   }
 }
 
+function setupAutoUpdater() {
+  // 開發模式不執行更新檢查
+  if (isDev) {return}
+
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-available', { version: info.version })
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow?.webContents.send('update-downloaded', { version: info.version })
+  })
+
+  autoUpdater.on('error', (err) => {
+    // 更新失敗不影響 App，僅 log
+    console.error('[AutoUpdater] error:', err.message)
+  })
+
+  autoUpdater.checkForUpdates()
+}
+
 app.whenReady().then(() => {
   createWindow()
+  setupAutoUpdater()
   
   // Register IPC handlers
   ipcMain.handle('read-file', (_, path: string) => fileService.readFile(path))
@@ -128,6 +153,11 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('is-file-watching', () => fileService.isWatching())
   
+  // Auto-Update
+  ipcMain.handle('install-update', () => {
+    autoUpdater.quitAndInstall()
+  })
+
   // Directory selection
   ipcMain.handle('select-directory', async (_, options?: { title?: string, defaultPath?: string }) => {
     const result = await dialog.showOpenDialog(mainWindow, {

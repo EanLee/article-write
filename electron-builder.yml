@@ -2,6 +2,13 @@ appId: com.writeflow.app
 productName: WriteFlow
 copyright: Copyright © 2026 WriteFlow
 
+# Auto-Update：使用 GitHub Releases 作為 update server
+# build 時自動產生 latest.yml / latest-linux.yml
+publish:
+  provider: github
+  owner: EanLee
+  repo: article-write
+
 # 打包輸出目錄
 directories:
   output: release
