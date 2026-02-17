@@ -97,7 +97,7 @@ export class ConfigService {
     }
   }
 
-  setApiKey(provider: 'claude' | 'gemini', key: string): void {
+  setApiKey(provider: 'claude' | 'gemini' | 'openai', key: string): void {
     let keys: Record<string, string> = {}
     try {
       const raw = readFileSync(this.aiKeysPath, 'utf-8')
@@ -113,7 +113,7 @@ export class ConfigService {
     writeFileSync(this.aiKeysPath, JSON.stringify(keys))
   }
 
-  getApiKey(provider: 'claude' | 'gemini'): string | null {
+  getApiKey(provider: 'claude' | 'gemini' | 'openai'): string | null {
     try {
       const raw = readFileSync(this.aiKeysPath, 'utf-8')
       const keys: Record<string, string> = JSON.parse(raw)
@@ -129,7 +129,7 @@ export class ConfigService {
     }
   }
 
-  hasApiKey(provider: 'claude' | 'gemini'): boolean {
+  hasApiKey(provider: 'claude' | 'gemini' | 'openai'): boolean {
     return this.getApiKey(provider) !== null
   }
 

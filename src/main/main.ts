@@ -199,7 +199,7 @@ app.whenReady().then(() => {
   })
 
   // AI Service
-  ipcMain.handle('ai:generate-seo', async (_, input: SEOGenerationInput, provider?: 'claude' | 'gemini') => {
+  ipcMain.handle('ai:generate-seo', async (_, input: SEOGenerationInput, provider?: 'claude' | 'gemini' | 'openai') => {
     try {
       const data = await aiService.generateSEO(input, provider)
       return { success: true, data }
@@ -211,10 +211,10 @@ app.whenReady().then(() => {
     }
   })
   ipcMain.handle('ai:set-api-key', (_, provider: string, key: string) => {
-    configService.setApiKey(provider as 'claude' | 'gemini', key)
+    configService.setApiKey(provider as 'claude' | 'gemini' | 'openai', key)
   })
   ipcMain.handle('ai:get-has-api-key', (_, provider: string) => {
-    return configService.hasApiKey(provider as 'claude' | 'gemini')
+    return configService.hasApiKey(provider as 'claude' | 'gemini' | 'openai')
   })
   ipcMain.handle('ai:get-active-provider', () => {
     return aiService.getActiveProvider()

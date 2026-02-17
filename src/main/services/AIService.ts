@@ -1,28 +1,28 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { ClaudeProvider, GeminiProvider } from './AIProvider/index.js'
+import { AIProviderFactory } from './AIProvider/AIProviderFactory.js'
 import { AIError, AIErrorCode } from './AIProvider/types.js'
 import type { SEOGenerationInput, SEOGenerationResult } from './AIProvider/types.js'
+import type { AIProviderName } from './AIProvider/AIProviderFactory.js'
 import type { ConfigService } from './ConfigService.js'
 
-export type AIProvider = 'claude' | 'gemini'
+export type { AIProviderName }
 
 export class AIService {
   constructor(private configService: ConfigService) {}
 
-  async generateSEO(input: SEOGenerationInput, provider?: AIProvider): Promise<SEOGenerationResult> {
+  async generateSEO(input: SEOGenerationInput, provider?: AIProviderName): Promise<SEOGenerationResult> {
     const activeProvider = provider ?? this.resolveProvider()
     if (!activeProvider) {
-      throw new AIError(AIErrorCode.KeyMissing, '請先在設定中輸入 Claude 或 Gemini API Key')
+      throw new AIError(AIErrorCode.KeyMissing, '請先在設定中輸入 Claude、Gemini 或 OpenAI API Key')
     }
 
     const key = this.configService.getApiKey(activeProvider)
     if (!key) {
-      throw new AIError(AIErrorCode.KeyMissing, `${activeProvider === 'claude' ? 'Claude' : 'Gemini'} API Key 未設定`)
+      const names: Record<AIProviderName, string> = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI' }
+      throw new AIError(AIErrorCode.KeyMissing, `${names[activeProvider]} API Key 未設定`)
     }
 
-    const providerInstance = activeProvider === 'gemini'
-      ? new GeminiProvider(key)
-      : new ClaudeProvider(key)
+    const providerInstance = AIProviderFactory.create(activeProvider, key)
 
     try {
       return await providerInstance.generateSEO(input)
@@ -35,14 +35,15 @@ export class AIService {
     }
   }
 
-  /** 自動選擇有 Key 的 provider（優先 Claude） */
-  resolveProvider(): AIProvider | null {
+  /** 自動選擇有 Key 的 provider（優先順序：Claude → Gemini → OpenAI） */
+  resolveProvider(): AIProviderName | null {
     if (this.configService.hasApiKey('claude')) { return 'claude' }
     if (this.configService.hasApiKey('gemini')) { return 'gemini' }
+    if (this.configService.hasApiKey('openai')) { return 'openai' }
     return null
   }
 
-  getActiveProvider(): AIProvider | null {
+  getActiveProvider(): AIProviderName | null {
     return this.resolveProvider()
   }
 }

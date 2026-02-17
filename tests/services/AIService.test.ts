@@ -24,6 +24,13 @@ vi.mock('../../src/main/services/AIProvider/GeminiProvider.js', () => ({
   }
 }))
 
+// Mock OpenAIProvider
+vi.mock('../../src/main/services/AIProvider/OpenAIProvider.js', () => ({
+  OpenAIProvider: class MockOpenAIProvider {
+    generateSEO = mockGenerateSEO
+  }
+}))
+
 // Mock @anthropic-ai/sdk
 vi.mock('@anthropic-ai/sdk', () => ({
   default: {
@@ -95,6 +102,19 @@ describe('AIService', () => {
     mockGenerateSEO.mockResolvedValue(mockResult)
 
     const result = await aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'gemini')
+    expect(result).toEqual(mockResult)
+  })
+
+  it('OpenAI provider 正常生成 SEO', async () => {
+    mockGetApiKey.mockReturnValue('sk-openai-test')
+    const mockResult = {
+      slug: 'test-article',
+      metaDescription: '測試文章描述',
+      keywords: ['關鍵字1', '關鍵字2', '關鍵字3', '關鍵字4', '關鍵字5']
+    }
+    mockGenerateSEO.mockResolvedValue(mockResult)
+
+    const result = await aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'openai')
     expect(result).toEqual(mockResult)
   })
 })
