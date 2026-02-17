@@ -1,8 +1,8 @@
 <template>
   <div v-if="modelValue" class="modal modal-open">
-    <div class="modal-box w-11/12 max-w-5xl max-h-[90vh]">
+    <div class="modal-box w-11/12 max-w-5xl max-h-[90vh] flex flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Tabs -->
-      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200">
+      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200 flex-shrink-0">
         <a 
           role="tab" 
           class="tab"
@@ -38,8 +38,19 @@
           </svg>
           部落格框架
         </a>
-        <a 
-          role="tab" 
+        <a
+          role="tab"
+          class="tab"
+          :class="{ 'tab-active': activeTab === 'ai' }"
+          @click="activeTab = 'ai'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m1.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI 設定
+        </a>
+        <a
+          role="tab"
           class="tab"
           :class="{ 'tab-active': activeTab === 'editor' }"
           @click="activeTab = 'editor'"
@@ -61,21 +72,10 @@
           Git 發布
           <span class="badge badge-xs badge-warning ml-1">即將推出</span>
         </a>
-        <a
-          role="tab"
-          class="tab"
-          :class="{ 'tab-active': activeTab === 'ai' }"
-          @click="activeTab = 'ai'"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m1.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          AI 設定
-        </a>
       </div>
 
       <!-- Tab Content -->
-      <div class="overflow-y-auto max-h-[calc(90vh-240px)]">
+      <div class="flex-1 overflow-y-auto">
         <!-- Basic Settings Tab -->
         <div v-show="activeTab === 'basic'" class="space-y-4">
           <!-- Articles Directory Card -->
@@ -675,7 +675,7 @@
       </div>
 
       <!-- Footer Actions -->
-      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300">
+      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300 flex-shrink-0">
         <div class="flex items-center gap-2">
           <button class="btn btn-ghost" @click="resetToDefaults">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -722,6 +722,7 @@ import type { AppConfig } from '@/types'
 
 interface Props {
   modelValue: boolean
+  initialTab?: string
 }
 
 interface Emits {
@@ -958,6 +959,8 @@ watch(
   () => props.modelValue,
   async (isOpen) => {
     if (isOpen) {
+      // Set active tab (from initialTab prop or default to 'basic')
+      activeTab.value = props.initialTab ?? 'basic'
       // Load current config when dialog opens
       localConfig.value = JSON.parse(JSON.stringify(configStore.config))
       await validatePaths()

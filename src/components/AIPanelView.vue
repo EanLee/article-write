@@ -38,7 +38,7 @@
           <!-- No API Key -->
           <div v-if="!hasApiKey" class="text-center space-y-2">
             <p class="text-xs text-base-content/60">需要 API Key 才能使用 AI 功能</p>
-            <button class="btn btn-xs btn-outline" @click="$emit('open-settings')">⚙ 前往設定</button>
+            <button class="btn btn-xs btn-outline" @click="$emit('open-settings', 'ai')">⚙ 前往設定</button>
           </div>
 
           <div v-else class="space-y-3">
@@ -107,7 +107,7 @@ defineProps<{
 }>()
 
 defineEmits<{
-  'open-settings': []
+  'open-settings': [tab?: string]
 }>()
 
 const aiPanelStore = useAIPanelStore()
