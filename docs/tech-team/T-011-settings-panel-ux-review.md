@@ -127,4 +127,5 @@ watch(() => props.modelValue, (isOpen) => {
 
 ## 相關 Commit
 
-<!-- 實作完成後填入 -->
+- 61d5556: docs(tech-team): 新增 T-011 Settings Panel UX 評估文件
+- 098e4d9: fix(ui): 修復 SettingsPanel 雙 scrollbar 並改善 AI tab 發現性
