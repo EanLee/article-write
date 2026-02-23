@@ -45,8 +45,8 @@ test.describe('全文搜尋流程', () => {
       return app !== null && app.children.length > 0
     }, { timeout: 15000 })
 
-    // 等待文章列表載入
-    await window.waitForTimeout(2000)
+    // 等待文章列表載入（檢查是否有文章項目）
+    await window.locator('.article-tree-item').first().waitFor({ timeout: 10000 })
   })
 
   test('Ctrl+F 開啟搜尋面板', async ({ window }) => {
@@ -71,7 +71,14 @@ test.describe('全文搜尋流程', () => {
   test('輸入關鍵字後顯示搜尋結果或無結果訊息', async ({ window }) => {
     await window.keyboard.press('Control+f')
     await window.fill('input[placeholder="搜尋文章內容..."]', 'test')
-    await window.waitForTimeout(400) // 等待 debounce + IPC
+    
+    // 等待搜尋結果更新（檢查是否有結果列表或無結果訊息）
+    await window.waitForFunction(() => {
+      const resultsList = document.querySelector('ul li')
+      const noResultsMsg = document.querySelector('text=找不到')
+      return resultsList !== null || noResultsMsg !== null
+    }, { timeout: 5000 })
+    
     // 有結果列表或顯示「找不到」訊息，兩者皆可
     const hasResults = await window.locator('ul li').count()
     const noResults = await window.locator('text=找不到').count()
