@@ -67,7 +67,7 @@ export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplica
 
   electronApp: [async ({ testVaultPath }, use) => {
     const app = await electron.launch({
-      args: [MAIN_JS],
+      args: ['--no-sandbox', MAIN_JS],
       env: {
         ...process.env,
         NODE_ENV: 'test',
