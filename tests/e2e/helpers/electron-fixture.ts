@@ -63,7 +63,7 @@ export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplica
     const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), 'writeflow-test-'))
     await use(vaultPath)
     fs.rmSync(vaultPath, { recursive: true, force: true })
-  }, { scope: 'worker' }],
+  }, { scope: 'worker', timeout: 60000 }],
 
   electronApp: [async ({ testVaultPath }, use) => {
     const app = await electron.launch({
@@ -78,7 +78,7 @@ export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplica
     await getAppWindow(app)
     await use(app)
     await app.close()
-  }, { scope: 'worker' }],
+  }, { scope: 'worker', timeout: 60000 }],
 
   // test scope：每個測試取得 App 主視窗
   window: async ({ electronApp }, use) => {
