@@ -10,8 +10,8 @@ export default defineConfig({
   // 最大失敗次數
   maxFailures: process.env.CI ? 10 : undefined,
 
-  // 測試超時時間
-  timeout: 30000,
+  // 測試超時時間（增加到 90 秒以適應 Electron 應用在 CI 環境中的啟動時間）
+  timeout: 90000,
 
   // 測試重試次數
   retries: process.env.CI ? 2 : 0,
