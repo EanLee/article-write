@@ -66,18 +66,26 @@ export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplica
   }, { scope: 'worker', timeout: 60000 }],
 
   electronApp: [async ({ testVaultPath }, use) => {
+    // 每個 worker 使用獨立的 userData 目錄，避免並行測試共享 config.json 產生競態
+    const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'writeflow-userdata-'))
     const app = await electron.launch({
-      args: ['--no-sandbox', MAIN_JS],
+      args: ['--no-sandbox', `--user-data-dir=${userDataPath}`, MAIN_JS],
       env: {
         ...process.env,
         NODE_ENV: 'test',
         TEST_VAULT_PATH: testVaultPath,
       },
     })
-    // 預先等待 App 主視窗載入完成
-    await getAppWindow(app)
+    // 預先等待 App 主視窗載入完成，並自動接受 beforeunload 對話框
+    const win = await getAppWindow(app)
+    win.on('dialog', dialog => dialog.accept())
     await use(app)
-    await app.close()
+    try {
+      await app.close()
+    } catch {
+      // 關閉時若有殘留對話框則忽略
+    }
+    fs.rmSync(userDataPath, { recursive: true, force: true })
   }, { scope: 'worker', timeout: 60000 }],
 
   // test scope：每個測試取得 App 主視窗

@@ -75,8 +75,8 @@ test.describe('全文搜尋流程', () => {
     // 等待搜尋結果更新（檢查是否有結果列表或無結果訊息）
     await window.waitForFunction(() => {
       const resultsList = document.querySelector('ul li')
-      const noResultsMsg = document.querySelector('text=找不到')
-      return resultsList !== null || noResultsMsg !== null
+      const noResultsMsg = document.body.textContent?.includes('找不到')
+      return resultsList !== null || !!noResultsMsg
     }, { timeout: 5000 })
     
     // 有結果列表或顯示「找不到」訊息，兩者皆可
