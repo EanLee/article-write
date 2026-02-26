@@ -70,7 +70,9 @@ function createWindow() {
 
   if (loadFromDevServer) {
     mainWindow.loadURL('http://localhost:3002')
-    if (isDev) mainWindow.webContents.openDevTools()
+    if (isDev) {
+      mainWindow.webContents.openDevTools()
+    }
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -78,7 +80,9 @@ function createWindow() {
 
 function setupAutoUpdater() {
   // 開發/測試模式不執行更新檢查
-  if (isDev || isTest) {return}
+  if (isDev || isTest) {
+    return
+  }
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
