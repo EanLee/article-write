@@ -43,7 +43,7 @@ test.describe('全文搜尋流程', () => {
     await window.waitForFunction(() => {
       const app = document.getElementById('app')
       return app !== null && app.children.length > 0
-    }, { timeout: 15000 })
+    }, undefined, { timeout: 15000 })
 
     // 等待文章列表載入（檢查是否有文章項目）
     await window.locator('.article-tree-item').first().waitFor({ timeout: 10000 })
@@ -77,7 +77,7 @@ test.describe('全文搜尋流程', () => {
       const resultsList = document.querySelector('ul li')
       const noResultsMsg = document.body.textContent?.includes('找不到')
       return resultsList !== null || !!noResultsMsg
-    }, { timeout: 5000 })
+    }, undefined, { timeout: 5000 })
     
     // 有結果列表或顯示「找不到」訊息，兩者皆可
     const hasResults = await window.locator('ul li').count()

@@ -18,7 +18,7 @@ test.describe('設定路徑流程', () => {
     await window.waitForFunction(() => {
       const app = document.getElementById('app')
       return app !== null && app.children.length > 0
-    }, { timeout: 15000 })
+    }, undefined, { timeout: 15000 })
 
     // Step 1: 點擊設定按鈕（ActivityBar 底部）
     await window.locator('.activity-item[title="設定"]').click()
@@ -46,7 +46,7 @@ test.describe('設定路徑流程', () => {
     await window.waitForFunction(() => {
       const app = document.getElementById('app')
       return app !== null && app.children.length > 0
-    }, { timeout: 15000 })
+    }, undefined, { timeout: 15000 })
     await window.waitForTimeout(1000)
 
     // Step 7: 重新開啟設定，確認路徑保留

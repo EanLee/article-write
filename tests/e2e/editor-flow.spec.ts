@@ -43,9 +43,7 @@ test.describe('編輯器核心流程', () => {
     await window.waitForFunction(() => {
       const app = document.getElementById('app')
       return app !== null && app.children.length > 0
-    }, { timeout: 15000 })
-
-    // 等待文章列表載入（articlesDir 已設定，應直接進入編輯畫面）
+    }, undefined, { timeout: 15000 })
     await window.waitForTimeout(2000)
   })
 

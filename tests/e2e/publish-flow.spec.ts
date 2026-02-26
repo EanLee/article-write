@@ -50,7 +50,7 @@ test.describe('同步發布流程', () => {
     await window.waitForFunction(() => {
       const app = document.getElementById('app')
       return app !== null && app.children.length > 0
-    }, { timeout: 15000 })
+    }, undefined, { timeout: 15000 })
     await window.waitForTimeout(2000)
   })
 
