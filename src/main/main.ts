@@ -15,6 +15,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const isTest = process.env.NODE_ENV === 'test'
 const isDev = !app.isPackaged && !isTest
+// In both dev and test modes, load renderer from the Vite dev server
+const loadFromDevServer = isDev || isTest
 
 // 停用 Autofill 功能以消除 DevTools protocol 警告
 app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')
@@ -46,7 +48,7 @@ function createWindow() {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          isDev
+          loadFromDevServer
             ? // 開發模式：允許 Vite 開發伺服器和熱更新
               "default-src 'self'; " +
               "script-src 'self' 'unsafe-inline' http://localhost:3002; " +
@@ -66,17 +68,17 @@ function createWindow() {
     })
   })
 
-  if (isDev) {
+  if (loadFromDevServer) {
     mainWindow.loadURL('http://localhost:3002')
-    mainWindow.webContents.openDevTools()
+    if (isDev) mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 
 function setupAutoUpdater() {
-  // 開發模式不執行更新檢查
-  if (isDev) {return}
+  // 開發/測試模式不執行更新檢查
+  if (isDev || isTest) {return}
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true

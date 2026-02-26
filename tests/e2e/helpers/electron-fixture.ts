@@ -40,7 +40,8 @@ async function getAppWindow(app: ElectronApplication): Promise<Page> {
             const app = document.getElementById('app')
             return app !== null && app.children.length > 0
           },
-          { timeout: 20000 }
+          undefined,
+          { timeout: 30000 }
         )
         return win
       }
