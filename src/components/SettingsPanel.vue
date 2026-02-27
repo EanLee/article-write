@@ -1,8 +1,8 @@
 <template>
   <div v-if="modelValue" class="modal modal-open">
-    <div class="modal-box w-11/12 max-w-5xl max-h-[90vh]">
+    <div class="modal-box w-11/12 max-w-5xl max-h-[90vh] flex flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Tabs -->
-      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200">
+      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200 flex-shrink-0">
         <a 
           role="tab" 
           class="tab"
@@ -38,8 +38,8 @@
           </svg>
           部落格框架
         </a>
-        <a 
-          role="tab" 
+        <a
+          role="tab"
           class="tab"
           :class="{ 'tab-active': activeTab === 'editor' }"
           @click="activeTab = 'editor'"
@@ -49,8 +49,19 @@
           </svg>
           編輯器
         </a>
-        <a 
-          role="tab" 
+        <a
+          role="tab"
+          class="tab"
+          :class="{ 'tab-active': activeTab === 'ai' }"
+          @click="activeTab = 'ai'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m1.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI 設定
+        </a>
+        <a
+          role="tab"
           class="tab relative"
           :class="{ 'tab-active': activeTab === 'git' }"
           @click="activeTab = 'git'"
@@ -64,7 +75,7 @@
       </div>
 
       <!-- Tab Content -->
-      <div class="overflow-y-auto max-h-[calc(90vh-240px)]">
+      <div class="flex-1 overflow-y-auto">
         <!-- Basic Settings Tab -->
         <div v-show="activeTab === 'basic'" class="space-y-4">
           <!-- Articles Directory Card -->
@@ -432,6 +443,131 @@
           </div>
         </div>
 
+        <!-- AI Settings Tab -->
+        <div v-show="activeTab === 'ai'" class="space-y-4">
+
+          <!-- Claude -->
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h4 class="font-semibold text-lg mb-2">Claude API Key</h4>
+              <p class="text-sm text-base-content/70 mb-4">
+                輸入您的 Anthropic API Key 以啟用 Claude AI 功能。
+                Key 將加密儲存於本機，不會上傳至任何伺服器。
+              </p>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">API Key</span>
+                </label>
+                <div class="join w-full">
+                  <input
+                    v-model="aiApiKey"
+                    type="password"
+                    placeholder="sk-ant-..."
+                    class="input input-bordered join-item flex-1"
+                  />
+                  <button class="btn btn-primary join-item" @click="saveApiKey('claude')" :disabled="!aiApiKey.trim()">
+                    儲存
+                  </button>
+                </div>
+                <label class="label">
+                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'claude'">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ claudeKeyStatus }}</span>
+                </label>
+              </div>
+              <div class="alert alert-info mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm">前往 <strong>Anthropic Console</strong> 取得 API Key</p>
+                  <p class="text-xs text-base-content/60 mt-1">console.anthropic.com → API Keys → Create Key</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gemini -->
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h4 class="font-semibold text-lg mb-2">Gemini API Key</h4>
+              <p class="text-sm text-base-content/70 mb-4">
+                輸入您的 Google AI Studio API Key 以啟用 Gemini AI 功能。
+                Key 將加密儲存於本機，不會上傳至任何伺服器。
+              </p>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">API Key</span>
+                </label>
+                <div class="join w-full">
+                  <input
+                    v-model="geminiApiKey"
+                    type="password"
+                    placeholder="AIza..."
+                    class="input input-bordered join-item flex-1"
+                  />
+                  <button class="btn btn-primary join-item" @click="saveApiKey('gemini')" :disabled="!geminiApiKey.trim()">
+                    儲存
+                  </button>
+                </div>
+                <label class="label">
+                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'gemini'">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ geminiKeyStatus }}</span>
+                </label>
+              </div>
+              <div class="alert alert-info mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm">前往 <strong>Google AI Studio</strong> 取得 API Key</p>
+                  <p class="text-xs text-base-content/60 mt-1">aistudio.google.com → Get API Key</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OpenAI -->
+          <div class="card bg-base-100 border border-base-300">
+            <div class="card-body">
+              <h4 class="font-semibold text-lg mb-2">OpenAI API Key</h4>
+              <p class="text-sm text-base-content/70 mb-4">
+                輸入您的 OpenAI API Key 以啟用 GPT AI 功能。
+                Key 將加密儲存於本機，不會上傳至任何伺服器。
+              </p>
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">API Key</span>
+                </label>
+                <div class="join w-full">
+                  <input
+                    v-model="openaiApiKey"
+                    type="password"
+                    placeholder="sk-..."
+                    class="input input-bordered join-item flex-1"
+                  />
+                  <button class="btn btn-primary join-item" @click="saveApiKey('openai')" :disabled="!openaiApiKey.trim()">
+                    儲存
+                  </button>
+                </div>
+                <label class="label">
+                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'openai'">✓ API Key 已儲存</span>
+                  <span class="label-text-alt text-base-content/50" v-else>{{ openaiKeyStatus }}</span>
+                </label>
+              </div>
+              <div class="alert alert-info mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm">前往 <strong>OpenAI Platform</strong> 取得 API Key</p>
+                  <p class="text-xs text-base-content/60 mt-1">platform.openai.com → API Keys → Create Key</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         <!-- Git Settings Tab -->
         <div v-show="activeTab === 'git'" class="space-y-4">
           <div class="card bg-base-100 border border-base-300">
@@ -539,7 +675,7 @@
       </div>
 
       <!-- Footer Actions -->
-      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300">
+      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300 flex-shrink-0">
         <div class="flex items-center gap-2">
           <button class="btn btn-ghost" @click="resetToDefaults">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -586,6 +722,7 @@ import type { AppConfig } from '@/types'
 
 interface Props {
   modelValue: boolean
+  initialTab?: string
 }
 
 interface Emits {
@@ -598,6 +735,38 @@ const emit = defineEmits<Emits>()
 const configStore = useConfigStore()
 const articleStore = useArticleStore()
 const activeTab = ref('basic')
+
+// AI Settings
+const aiApiKey = ref('')
+const geminiApiKey = ref('')
+const openaiApiKey = ref('')
+const aiKeySaved = ref<'claude' | 'gemini' | 'openai' | null>(null)
+const claudeKeyStatus = ref('')
+const geminiKeyStatus = ref('')
+const openaiKeyStatus = ref('')
+
+async function loadAiKeyStatus() {
+  if (window.electronAPI) {
+    const hasClaude = await window.electronAPI.aiHasApiKey('claude')
+    const hasGemini = await window.electronAPI.aiHasApiKey('gemini')
+    const hasOpenAI = await window.electronAPI.aiHasApiKey('openai')
+    claudeKeyStatus.value = hasClaude ? 'API Key 已設定' : '尚未設定'
+    geminiKeyStatus.value = hasGemini ? 'API Key 已設定' : '尚未設定'
+    openaiKeyStatus.value = hasOpenAI ? 'API Key 已設定' : '尚未設定'
+  }
+}
+
+async function saveApiKey(provider: 'claude' | 'gemini' | 'openai') {
+  const keyMap = { claude: aiApiKey, gemini: geminiApiKey, openai: openaiApiKey }
+  const statusMap = { claude: claudeKeyStatus, gemini: geminiKeyStatus, openai: openaiKeyStatus }
+  const key = keyMap[provider].value.trim()
+  if (!key) { return }
+  await window.electronAPI.aiSetApiKey(provider, key)
+  keyMap[provider].value = ''
+  statusMap[provider].value = 'API Key 已設定'
+  aiKeySaved.value = provider
+  setTimeout(() => { aiKeySaved.value = null }, 3000)
+}
 const localConfig = ref<AppConfig>({
   paths: {
     articlesDir: '',
@@ -790,9 +959,12 @@ watch(
   () => props.modelValue,
   async (isOpen) => {
     if (isOpen) {
+      // Set active tab (from initialTab prop or default to 'basic')
+      activeTab.value = props.initialTab ?? 'basic'
       // Load current config when dialog opens
       localConfig.value = JSON.parse(JSON.stringify(configStore.config))
       await validatePaths()
+      await loadAiKeyStatus()
     }
   }
 )

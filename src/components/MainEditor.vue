@@ -37,6 +37,7 @@
             <!-- Preview Pane -->
             <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
                 :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
+
         </div>
 
         <!-- Frontmatter Editor Modal -->

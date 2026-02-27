@@ -9,7 +9,9 @@ import { ProcessService } from './services/ProcessService.js'
 import { PublishService } from './services/PublishService.js'
 import { GitService } from './services/GitService.js'
 import { SearchService } from './services/SearchService.js'
+import { AIService, AIError } from './services/AIService.js'
 import type { SearchQuery } from '../types/index.js'
+import type { SEOGenerationInput } from './services/AIProvider/types.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -30,6 +32,7 @@ const processService = new ProcessService()
 const publishService = new PublishService(fileService)
 const gitService = new GitService()
 const searchService = new SearchService()
+const aiService = new AIService(configService)
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -199,6 +202,28 @@ app.whenReady().then(() => {
     }
     
     return result.filePaths[0]
+  })
+
+  // AI Service
+  ipcMain.handle('ai:generate-seo', async (_, input: SEOGenerationInput, provider?: 'claude' | 'gemini' | 'openai') => {
+    try {
+      const data = await aiService.generateSEO(input, provider)
+      return { success: true, data }
+    } catch (e) {
+      if (e instanceof AIError) {
+        return { success: false, code: e.code, message: e.message }
+      }
+      return { success: false, code: 'AI_API_ERROR', message: String(e) }
+    }
+  })
+  ipcMain.handle('ai:set-api-key', (_, provider: string, key: string) => {
+    configService.setApiKey(provider as 'claude' | 'gemini' | 'openai', key)
+  })
+  ipcMain.handle('ai:get-has-api-key', (_, provider: string) => {
+    return configService.hasApiKey(provider as 'claude' | 'gemini' | 'openai')
+  })
+  ipcMain.handle('ai:get-active-provider', () => {
+    return aiService.getActiveProvider()
   })
 
   app.on('activate', () => {

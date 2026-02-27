@@ -45,5 +45,8 @@
 | T-007 | Playwright + Electron E2E 測試環境建置方案評估 | 2026-02-15 | ✅ 完成 |
 | T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | ✅ 完成 |
 | T-009 | 全文搜尋功能設計 | 2026-02-16 | ✅ 完成 |
+| T-010 | AI Service 技術架構設計 | 2026-02-16 | ✅ 完成 |
+| T-011 | Settings Panel UX 評估（scrollbar / AI tab 發現性） | 2026-02-17 | ✅ 完成 |
+| T-012 | AI Panel Phase 2/3 + 使用者自訂 Prompt 設計 | 2026-02-17 | ✅ 完成 |
 | UX-001 | 表單設計規範 | 2026-02-15 | ✅ 完成 |
 | RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | ✅ 完成 |

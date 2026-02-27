@@ -17,6 +17,14 @@
     <div class="activity-bottom">
       <button
         class="activity-item"
+        :class="{ active: props.aiPanelOpen }"
+        title="AI 助手"
+        @click="$emit('toggle-ai-panel')"
+      >
+        <Sparkles :size="24" />
+      </button>
+      <button
+        class="activity-item"
         title="設定"
         @click="$emit('open-settings')"
       >
@@ -27,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { Edit3, LayoutDashboard, Settings } from 'lucide-vue-next'
+import { Edit3, LayoutDashboard, Settings, Sparkles } from 'lucide-vue-next'
 import { ViewMode } from '@/types'
 
 interface ActivityItem {
@@ -44,9 +52,14 @@ const items: ActivityItem[] = [
 
 const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
 
+const props = defineProps<{
+  aiPanelOpen?: boolean
+}>()
+
 const emit = defineEmits<{
   'open-settings': []
   'toggle-sidebar': []
+  'toggle-ai-panel': []
 }>()
 
 function handleClick(id: ViewMode) {

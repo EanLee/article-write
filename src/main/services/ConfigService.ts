@@ -1,6 +1,6 @@
-import { promises as fs } from 'fs'
+import { promises as fs, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { app } from 'electron'
+import { app, safeStorage } from 'electron'
 
 interface PathValidationResult {
   valid: boolean
@@ -22,10 +22,12 @@ interface AppConfig {
 
 export class ConfigService {
   private configPath: string
+  private aiKeysPath: string
 
   constructor() {
     const userDataPath = app.getPath('userData')
     this.configPath = join(userDataPath, 'config.json')
+    this.aiKeysPath = join(userDataPath, 'ai-keys.json')
   }
 
   async getConfig(): Promise<AppConfig> {
@@ -93,6 +95,42 @@ export class ConfigService {
     } catch {
       return { valid: false, message: '無法存取路徑' }
     }
+  }
+
+  setApiKey(provider: 'claude' | 'gemini' | 'openai', key: string): void {
+    let keys: Record<string, string> = {}
+    try {
+      const raw = readFileSync(this.aiKeysPath, 'utf-8')
+      keys = JSON.parse(raw)
+    } catch {
+      // 檔案不存在或解析失敗，使用空物件
+    }
+    if (safeStorage.isEncryptionAvailable()) {
+      keys[provider] = safeStorage.encryptString(key).toString('base64')
+    } else {
+      keys[provider] = Buffer.from(key).toString('base64')
+    }
+    writeFileSync(this.aiKeysPath, JSON.stringify(keys))
+  }
+
+  getApiKey(provider: 'claude' | 'gemini' | 'openai'): string | null {
+    try {
+      const raw = readFileSync(this.aiKeysPath, 'utf-8')
+      const keys: Record<string, string> = JSON.parse(raw)
+      const encoded = keys[provider]
+      if (!encoded) {return null}
+      if (safeStorage.isEncryptionAvailable()) {
+        return safeStorage.decryptString(Buffer.from(encoded, 'base64'))
+      } else {
+        return Buffer.from(encoded, 'base64').toString('utf-8')
+      }
+    } catch {
+      return null
+    }
+  }
+
+  hasApiKey(provider: 'claude' | 'gemini' | 'openai'): boolean {
+    return this.getApiKey(provider) !== null
   }
 
   private getDefaultConfig(): AppConfig {
