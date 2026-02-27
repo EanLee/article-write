@@ -119,5 +119,11 @@ describe('SearchService', () => {
       expect(results).toHaveLength(1)
       expect(results[0].title).toBe('D')
     })
+
+    it('tags 篩選大小寫不敏感', () => {
+      const results = service.search({ query: 'keyword', filters: { tags: ['Vue', 'TYPESCRIPT'] } })
+      expect(results).toHaveLength(1)
+      expect(results[0].title).toBe('A')
+    })
   })
 })

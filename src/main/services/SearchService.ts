@@ -181,7 +181,9 @@ export class SearchService {
       if (
         query.filters?.tags &&
         query.filters.tags.length > 0 &&
-        !query.filters.tags.every((t) => entry.tags.includes(t))
+        !query.filters.tags.every((t) =>
+          entry.tags.some(tag => tag.toLowerCase() === t.toLowerCase())
+        )
       ) {continue}
 
       const titleMatch = entry.title.toLowerCase().includes(keyword)
