@@ -13,6 +13,7 @@ interface IndexEntry {
   updatedAt: string
   category: string
   status: ArticleStatus
+  tags: string[]        // frontmatter tags / keywords
   wikilinks: string[]   // [[...]] 解析結果，預留給 topic-014
 }
 
@@ -58,21 +59,24 @@ export class SearchService {
   private async indexFile(filePath: string): Promise<void> {
     try {
       const raw = await this.fs.readFile(filePath, 'utf-8')
-      const { title, updatedAt, category, status, content } = this.parseMarkdown(raw)
+      const { title, updatedAt, category, status, tags, content } = this.parseMarkdown(raw)
       const wikilinks = this.extractWikilinks(raw)
-      const id = filePath
+      // 正規化路徑：統一使用正斜線作為 Map key，確保跨平台一致性
+      const normalizedPath = filePath.replace(/\\/g, '/')
+      const id = normalizedPath
 
-      this.index.set(filePath, {
+      this.index.set(normalizedPath, {
         id,
-        filePath,
+        filePath: normalizedPath,
         title,
         content,
         updatedAt,
         category,
         status,
+        tags,
         wikilinks
       })
-      this.wikilinkMap.set(filePath, wikilinks)
+      this.wikilinkMap.set(normalizedPath, wikilinks)
     } catch {
       // 跳過無法讀取的檔案
     }
@@ -83,6 +87,7 @@ export class SearchService {
     updatedAt: string
     category: string
     status: ArticleStatus
+    tags: string[]
     content: string
   } {
     const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
@@ -90,6 +95,7 @@ export class SearchService {
     let updatedAt = new Date().toISOString()
     let category = ''
     let status = ArticleStatus.Draft
+    let tags: string[] = []
     let body = raw
 
     if (fmMatch) {
@@ -107,6 +113,38 @@ export class SearchService {
 
       const pubMatch = fm.match(/^published:\s*true/m)
       if (pubMatch) {status = ArticleStatus.Published}
+
+      // 解析 tags / keywords：支援 YAML 陣列（inline 或多行）與逗號分隔字串
+      // 使用 [^\S\n]* 避免跨行匹配，確保只匹配同一行的內容
+      const tagsMatch = fm.match(/^(?:tags|keywords):[^\S\n]*(.+)$/m)
+      if (tagsMatch) {
+        const raw = tagsMatch[1].trim()
+        if (raw.startsWith('[')) {
+          // inline YAML array: [tag1, tag2]
+          tags = raw
+            .slice(1, -1)
+            .split(',')
+            .map((t) => t.trim().replace(/^["']|["']$/g, ''))
+            .filter(Boolean)
+        } else {
+          // 逗號分隔字串: tag1, tag2
+          tags = raw
+            .split(',')
+            .map((t) => t.trim().replace(/^["']|["']$/g, ''))
+            .filter(Boolean)
+        }
+      } else {
+        // 多行 YAML 陣列：
+        // tags:
+        //   - tag1
+        //   - tag2
+        const multilineMatch = fm.match(/^(?:tags|keywords):\s*\n((?:\s+-\s+.+\n?)+)/m)
+        if (multilineMatch) {
+          tags = [...multilineMatch[1].matchAll(/^\s+-\s+(.+)$/gm)]
+            .map((m) => m[1].trim().replace(/^["']|["']$/g, ''))
+            .filter(Boolean)
+        }
+      }
     }
 
     // 去掉 markdown 語法，只留純文字
@@ -120,7 +158,7 @@ export class SearchService {
       .replace(/\[\[([^\]]+)\]\]/g, '$1')    // wikilinks
       .trim()
 
-    return { title, updatedAt, category, status, content }
+    return { title, updatedAt, category, status, tags, content }
   }
 
   private extractWikilinks(raw: string): string[] {
@@ -140,6 +178,13 @@ export class SearchService {
     for (const entry of this.index.values()) {
       if (query.filters?.status && entry.status !== query.filters.status) {continue}
       if (query.filters?.category && entry.category !== query.filters.category) {continue}
+      if (
+        query.filters?.tags &&
+        query.filters.tags.length > 0 &&
+        !query.filters.tags.every((t) =>
+          entry.tags.some(tag => tag.toLowerCase() === t.toLowerCase())
+        )
+      ) {continue}
 
       const titleMatch = entry.title.toLowerCase().includes(keyword)
       const contentIdx = entry.content.toLowerCase().indexOf(keyword)
@@ -182,15 +227,17 @@ export class SearchService {
   }
 
   removeFile(filePath: string): void {
-    this.index.delete(filePath)
-    this.wikilinkMap.delete(filePath)
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    this.index.delete(normalizedPath)
+    this.wikilinkMap.delete(normalizedPath)
   }
 
   /**
    * 取得某篇文章的 wikilink（預留給 topic-014）
    */
   getWikilinks(filePath: string): string[] {
-    return this.wikilinkMap.get(filePath) ?? []
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    return this.wikilinkMap.get(normalizedPath) ?? []
   }
 
   getIndexSize(): number {

@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AIError, AIErrorCode } from '../../src/main/services/AIProvider/types.js'
 
+// Mock @sentry/electron/main（Vitest 執行於 Node 環境，無法載入 Electron）
+vi.mock('@sentry/electron/main', () => ({
+  init: vi.fn(),
+  captureException: vi.fn(),
+}))
+
 // Mock ConfigService
 const mockGetApiKey = vi.fn()
 const mockHasApiKey = vi.fn()

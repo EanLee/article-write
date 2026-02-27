@@ -1,3 +1,4 @@
+import { initSentry } from './sentry.js'
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -19,6 +20,9 @@ const isTest = process.env.NODE_ENV === 'test'
 const isDev = !app.isPackaged && !isTest
 // In both dev and test modes, load renderer from the Vite dev server
 const loadFromDevServer = isDev || isTest
+
+// 盡早初始化 Sentry，確保能捕捉啟動階段的錯誤
+initSentry()
 
 // 停用 Autofill 功能以消除 DevTools protocol 警告
 app.commandLine.appendSwitch('disable-features', 'AutofillServerCommunication')

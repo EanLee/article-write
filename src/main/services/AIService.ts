@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/electron/main'
 import Anthropic from '@anthropic-ai/sdk'
 import { AIProviderFactory } from './AIProvider/AIProviderFactory.js'
 import { AIError, AIErrorCode } from './AIProvider/types.js'
@@ -27,11 +28,18 @@ export class AIService {
     try {
       return await providerInstance.generateSEO(input)
     } catch (e) {
-      if (e instanceof AIError) { throw e }
-      if (e instanceof Anthropic.APIConnectionTimeoutError) {
-        throw new AIError(AIErrorCode.Timeout, '請求逾時，請稍後再試')
+      if (e instanceof AIError) {
+        Sentry.captureException(e, { tags: { ai_error_code: e.code } })
+        throw e
       }
-      throw new AIError(AIErrorCode.ApiError, String(e))
+      if (e instanceof Anthropic.APIConnectionTimeoutError) {
+        const timeoutError = new AIError(AIErrorCode.Timeout, '請求逾時，請稍後再試')
+        Sentry.captureException(timeoutError, { tags: { ai_error_code: timeoutError.code } })
+        throw timeoutError
+      }
+      const apiError = new AIError(AIErrorCode.ApiError, String(e))
+      Sentry.captureException(apiError, { tags: { ai_error_code: apiError.code } })
+      throw apiError
     }
   }
 

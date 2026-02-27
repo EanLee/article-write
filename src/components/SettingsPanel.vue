@@ -1,6 +1,6 @@
 <template>
   <div v-if="modelValue" class="modal modal-open">
-    <div class="modal-box w-11/12 max-w-5xl max-h-[90vh] flex flex-col">
+    <div class="modal-box w-11/12 max-w-5xl h-[82vh] max-h-[90vh] flex flex-col">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6 flex-shrink-0">
         <div>
@@ -446,124 +446,124 @@
         <!-- AI Settings Tab -->
         <div v-show="activeTab === 'ai'" class="space-y-4">
 
-          <!-- Claude -->
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-              <h4 class="font-semibold text-lg mb-2">Claude API Key</h4>
-              <p class="text-sm text-base-content/70 mb-4">
-                輸入您的 Anthropic API Key 以啟用 Claude AI 功能。
-                Key 將加密儲存於本機，不會上傳至任何伺服器。
-              </p>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-semibold">API Key</span>
-                </label>
-                <div class="join w-full">
-                  <input
-                    v-model="aiApiKey"
-                    type="password"
-                    placeholder="sk-ant-..."
-                    class="input input-bordered join-item flex-1"
-                  />
-                  <button class="btn btn-primary join-item" @click="saveApiKey('claude')" :disabled="!aiApiKey.trim()">
-                    儲存
-                  </button>
-                </div>
-                <label class="label">
-                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'claude'">✓ API Key 已儲存</span>
-                  <span class="label-text-alt text-base-content/50" v-else>{{ claudeKeyStatus }}</span>
-                </label>
-              </div>
-              <div class="alert alert-info mt-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                  <p class="text-sm">前往 <strong>Anthropic Console</strong> 取得 API Key</p>
-                  <p class="text-xs text-base-content/60 mt-1">console.anthropic.com → API Keys → Create Key</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p class="text-sm text-base-content/70">
+            至少設定一個 AI Provider 的 API Key 即可啟用 AI 功能。Key 加密儲存於本機，不上傳任何伺服器。
+          </p>
 
-          <!-- Gemini -->
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-              <h4 class="font-semibold text-lg mb-2">Gemini API Key</h4>
-              <p class="text-sm text-base-content/70 mb-4">
-                輸入您的 Google AI Studio API Key 以啟用 Gemini AI 功能。
-                Key 將加密儲存於本機，不會上傳至任何伺服器。
-              </p>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-semibold">API Key</span>
-                </label>
-                <div class="join w-full">
-                  <input
-                    v-model="geminiApiKey"
-                    type="password"
-                    placeholder="AIza..."
-                    class="input input-bordered join-item flex-1"
-                  />
-                  <button class="btn btn-primary join-item" @click="saveApiKey('gemini')" :disabled="!geminiApiKey.trim()">
-                    儲存
-                  </button>
-                </div>
-                <label class="label">
-                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'gemini'">✓ API Key 已儲存</span>
-                  <span class="label-text-alt text-base-content/50" v-else>{{ geminiKeyStatus }}</span>
-                </label>
-              </div>
-              <div class="alert alert-info mt-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                  <p class="text-sm">前往 <strong>Google AI Studio</strong> 取得 API Key</p>
-                  <p class="text-xs text-base-content/60 mt-1">aistudio.google.com → Get API Key</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div class="card bg-base-100 border border-base-300 overflow-hidden">
 
-          <!-- OpenAI -->
-          <div class="card bg-base-100 border border-base-300">
-            <div class="card-body">
-              <h4 class="font-semibold text-lg mb-2">OpenAI API Key</h4>
-              <p class="text-sm text-base-content/70 mb-4">
-                輸入您的 OpenAI API Key 以啟用 GPT AI 功能。
-                Key 將加密儲存於本機，不會上傳至任何伺服器。
-              </p>
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-semibold">API Key</span>
-                </label>
-                <div class="join w-full">
-                  <input
-                    v-model="openaiApiKey"
-                    type="password"
-                    placeholder="sk-..."
-                    class="input input-bordered join-item flex-1"
-                  />
-                  <button class="btn btn-primary join-item" @click="saveApiKey('openai')" :disabled="!openaiApiKey.trim()">
-                    儲存
+            <!-- Claude -->
+            <div>
+              <div class="flex items-center gap-4 px-5 py-4">
+                <div class="flex-1 flex items-center gap-3">
+                  <span class="font-semibold">Claude</span>
+                  <span class="text-xs text-base-content/40">Anthropic</span>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full"
+                      :class="claudeKeyStatus === 'API Key 已設定' ? 'bg-success' : 'bg-base-300'"></span>
+                    <span class="text-sm"
+                      :class="claudeKeyStatus === 'API Key 已設定' ? 'text-success' : 'text-base-content/40'">
+                      {{ claudeKeyStatus === 'API Key 已設定' ? '已設定' : '尚未設定' }}
+                    </span>
+                  </div>
+                  <button class="btn btn-sm min-w-20"
+                    :class="expandedProvider === 'claude' ? 'btn-ghost' : claudeKeyStatus === 'API Key 已設定' ? 'btn-ghost' : 'btn-primary'"
+                    @click="toggleProvider('claude')">
+                    {{ expandedProvider === 'claude' ? '收起' : claudeKeyStatus === 'API Key 已設定' ? '重新設定' : '設定' }}
                   </button>
                 </div>
-                <label class="label">
-                  <span class="label-text-alt text-success" v-if="aiKeySaved === 'openai'">✓ API Key 已儲存</span>
-                  <span class="label-text-alt text-base-content/50" v-else>{{ openaiKeyStatus }}</span>
-                </label>
               </div>
-              <div class="alert alert-info mt-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                  <p class="text-sm">前往 <strong>OpenAI Platform</strong> 取得 API Key</p>
-                  <p class="text-xs text-base-content/60 mt-1">platform.openai.com → API Keys → Create Key</p>
+              <div v-if="expandedProvider === 'claude'" class="px-5 pb-4 border-t border-base-300 bg-base-200/30">
+                <div class="flex gap-2 mt-3">
+                  <input v-model="aiApiKey" type="password" placeholder="sk-ant-..."
+                    class="input input-bordered input-sm flex-1" />
+                  <button class="btn btn-primary btn-sm" @click="saveApiKey('claude')" :disabled="!aiApiKey.trim()">儲存</button>
                 </div>
+                <p class="mt-2 text-xs text-base-content/50">
+                  <span v-if="aiKeySaved === 'claude'" class="text-success mr-2">✓ 已儲存</span>
+                  取得 Key：console.anthropic.com → API Keys → Create Key
+                </p>
               </div>
             </div>
+
+            <div class="border-t border-base-300"></div>
+
+            <!-- Gemini -->
+            <div>
+              <div class="flex items-center gap-4 px-5 py-4">
+                <div class="flex-1 flex items-center gap-3">
+                  <span class="font-semibold">Gemini</span>
+                  <span class="text-xs text-base-content/40">Google AI Studio</span>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full"
+                      :class="geminiKeyStatus === 'API Key 已設定' ? 'bg-success' : 'bg-base-300'"></span>
+                    <span class="text-sm"
+                      :class="geminiKeyStatus === 'API Key 已設定' ? 'text-success' : 'text-base-content/40'">
+                      {{ geminiKeyStatus === 'API Key 已設定' ? '已設定' : '尚未設定' }}
+                    </span>
+                  </div>
+                  <button class="btn btn-sm min-w-20"
+                    :class="expandedProvider === 'gemini' ? 'btn-ghost' : geminiKeyStatus === 'API Key 已設定' ? 'btn-ghost' : 'btn-primary'"
+                    @click="toggleProvider('gemini')">
+                    {{ expandedProvider === 'gemini' ? '收起' : geminiKeyStatus === 'API Key 已設定' ? '重新設定' : '設定' }}
+                  </button>
+                </div>
+              </div>
+              <div v-if="expandedProvider === 'gemini'" class="px-5 pb-4 border-t border-base-300 bg-base-200/30">
+                <div class="flex gap-2 mt-3">
+                  <input v-model="geminiApiKey" type="password" placeholder="AIza..."
+                    class="input input-bordered input-sm flex-1" />
+                  <button class="btn btn-primary btn-sm" @click="saveApiKey('gemini')" :disabled="!geminiApiKey.trim()">儲存</button>
+                </div>
+                <p class="mt-2 text-xs text-base-content/50">
+                  <span v-if="aiKeySaved === 'gemini'" class="text-success mr-2">✓ 已儲存</span>
+                  取得 Key：aistudio.google.com → Get API Key
+                </p>
+              </div>
+            </div>
+
+            <div class="border-t border-base-300"></div>
+
+            <!-- OpenAI -->
+            <div>
+              <div class="flex items-center gap-4 px-5 py-4">
+                <div class="flex-1 flex items-center gap-3">
+                  <span class="font-semibold">OpenAI</span>
+                  <span class="text-xs text-base-content/40">OpenAI Platform</span>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full"
+                      :class="openaiKeyStatus === 'API Key 已設定' ? 'bg-success' : 'bg-base-300'"></span>
+                    <span class="text-sm"
+                      :class="openaiKeyStatus === 'API Key 已設定' ? 'text-success' : 'text-base-content/40'">
+                      {{ openaiKeyStatus === 'API Key 已設定' ? '已設定' : '尚未設定' }}
+                    </span>
+                  </div>
+                  <button class="btn btn-sm min-w-20"
+                    :class="expandedProvider === 'openai' ? 'btn-ghost' : openaiKeyStatus === 'API Key 已設定' ? 'btn-ghost' : 'btn-primary'"
+                    @click="toggleProvider('openai')">
+                    {{ expandedProvider === 'openai' ? '收起' : openaiKeyStatus === 'API Key 已設定' ? '重新設定' : '設定' }}
+                  </button>
+                </div>
+              </div>
+              <div v-if="expandedProvider === 'openai'" class="px-5 pb-4 border-t border-base-300 bg-base-200/30">
+                <div class="flex gap-2 mt-3">
+                  <input v-model="openaiApiKey" type="password" placeholder="sk-..."
+                    class="input input-bordered input-sm flex-1" />
+                  <button class="btn btn-primary btn-sm" @click="saveApiKey('openai')" :disabled="!openaiApiKey.trim()">儲存</button>
+                </div>
+                <p class="mt-2 text-xs text-base-content/50">
+                  <span v-if="aiKeySaved === 'openai'" class="text-success mr-2">✓ 已儲存</span>
+                  取得 Key：platform.openai.com → API Keys → Create new secret key
+                </p>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -744,6 +744,11 @@ const aiKeySaved = ref<'claude' | 'gemini' | 'openai' | null>(null)
 const claudeKeyStatus = ref('')
 const geminiKeyStatus = ref('')
 const openaiKeyStatus = ref('')
+const expandedProvider = ref<'claude' | 'gemini' | 'openai' | null>(null)
+
+function toggleProvider(provider: 'claude' | 'gemini' | 'openai') {
+  expandedProvider.value = expandedProvider.value === provider ? null : provider
+}
 
 async function loadAiKeyStatus() {
   if (window.electronAPI) {
@@ -765,7 +770,10 @@ async function saveApiKey(provider: 'claude' | 'gemini' | 'openai') {
   keyMap[provider].value = ''
   statusMap[provider].value = 'API Key 已設定'
   aiKeySaved.value = provider
-  setTimeout(() => { aiKeySaved.value = null }, 3000)
+  setTimeout(() => {
+    aiKeySaved.value = null
+    expandedProvider.value = null
+  }, 2000)
 }
 const localConfig = ref<AppConfig>({
   paths: {
@@ -961,6 +969,7 @@ watch(
     if (isOpen) {
       // Set active tab (from initialTab prop or default to 'basic')
       activeTab.value = props.initialTab ?? 'basic'
+      expandedProvider.value = null
       // Load current config when dialog opens
       localConfig.value = JSON.parse(JSON.stringify(configStore.config))
       await validatePaths()
