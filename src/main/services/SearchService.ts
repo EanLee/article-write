@@ -60,11 +60,13 @@ export class SearchService {
       const raw = await this.fs.readFile(filePath, 'utf-8')
       const { title, updatedAt, category, status, content } = this.parseMarkdown(raw)
       const wikilinks = this.extractWikilinks(raw)
-      const id = filePath
+      // 正規化路徑：統一使用正斜線作為 Map key，確保跨平台一致性
+      const normalizedPath = filePath.replace(/\\/g, '/')
+      const id = normalizedPath
 
-      this.index.set(filePath, {
+      this.index.set(normalizedPath, {
         id,
-        filePath,
+        filePath: normalizedPath,
         title,
         content,
         updatedAt,
@@ -72,7 +74,7 @@ export class SearchService {
         status,
         wikilinks
       })
-      this.wikilinkMap.set(filePath, wikilinks)
+      this.wikilinkMap.set(normalizedPath, wikilinks)
     } catch {
       // 跳過無法讀取的檔案
     }
@@ -182,15 +184,17 @@ export class SearchService {
   }
 
   removeFile(filePath: string): void {
-    this.index.delete(filePath)
-    this.wikilinkMap.delete(filePath)
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    this.index.delete(normalizedPath)
+    this.wikilinkMap.delete(normalizedPath)
   }
 
   /**
    * 取得某篇文章的 wikilink（預留給 topic-014）
    */
   getWikilinks(filePath: string): string[] {
-    return this.wikilinkMap.get(filePath) ?? []
+    const normalizedPath = filePath.replace(/\\/g, '/')
+    return this.wikilinkMap.get(normalizedPath) ?? []
   }
 
   getIndexSize(): number {
