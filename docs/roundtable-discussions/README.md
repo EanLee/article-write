@@ -22,18 +22,25 @@
 | 009 | 編輯器 UX 體驗問題 — 優先級與行動方案 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-009-2026-02-14-ux-review](./topic-009-2026-02-14-ux-review/) |
 | 010 | 編輯器底層框架選型（CodeMirror 6 vs textarea 強化） | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-010-2026-02-14-editor-ux-decision](./topic-010-2026-02-14-editor-ux-decision/) |
 | 011 | v0.2 Sprint 方向決策：品質鞏固 vs 功能擴展 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-011-2026-02-14-quality-sprint-planning](./topic-011-2026-02-14-quality-sprint-planning/) |
+| 012 | 部落格改善與收入轉化策略（SEO × 行銷 × Blogger × 學習者）| 2026-02-27 | ✅ 已決策 | 多數共識 | [topic-012-2026-02-27-blogger-improvement-monetization](./topic-012-2026-02-27-blogger-improvement-monetization/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 12
-**已決策**: 12
+**總討論數**: 13
+**已決策**: 13
 **討論中**: 0
 
 ---
 
 ## ✅ 最近完成的決策
+
+- ✅ [#012 部落格改善與收入轉化策略（SEO × 行銷 × Blogger × 學習者）](./topic-012-2026-02-27-blogger-improvement-monetization/) - 2026-02-27, 多數共識
+  - 選定「工程師效率工作流」作為核心主題定位
+  - 三階段商業化路徑：基礎建設 → 內容強化 → 付費產品
+  - 立即行動：Google Search Console、電子報、Affiliate 聯盟連結
+  - WriteFlow 工具 + 部落格可形成「工具 × 內容」雙引擎飛輪
 
 - ✅ [#008 Sprint Retrospective — 瓶頸識別與改善行動](./topic-008-2026-02-14-sprint-retro/) - 2026-02-14, 全體一致
   - 識別四個核心瓶頸：無可交付物、進度不透明、錯誤路徑缺失、文件未入流程
@@ -75,4 +82,4 @@
 ---
 
 **文件版本**: v2.0
-**最後更新**: 2026-02-14
+**最後更新**: 2026-02-27
