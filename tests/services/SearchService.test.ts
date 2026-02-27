@@ -64,4 +64,60 @@ describe('SearchService', () => {
     const results = service.search({ query: '' })
     expect(results).toEqual([])
   })
+
+  describe('tags 篩選', () => {
+    beforeEach(async () => {
+      mockReaddir.mockResolvedValue(['a.md', 'b.md', 'c.md'])
+      mockReadFile
+        .mockResolvedValueOnce(
+          '---\ntitle: A\ndate: 2026-01-01\ntags: [vue, typescript]\n---\nkeyword'
+        )
+        .mockResolvedValueOnce(
+          '---\ntitle: B\ndate: 2026-01-02\ntags: [vue]\n---\nkeyword'
+        )
+        .mockResolvedValueOnce(
+          '---\ntitle: C\ndate: 2026-01-03\n---\nkeyword'
+        )
+      await service.buildIndex(mockArticlesDir)
+    })
+
+    it('以單一 tag 篩選，只回傳含該 tag 的文章', () => {
+      const results = service.search({ query: 'keyword', filters: { tags: ['typescript'] } })
+      expect(results).toHaveLength(1)
+      expect(results[0].title).toBe('A')
+    })
+
+    it('以多個 tags 篩選，文章須同時包含所有指定 tag', () => {
+      const results = service.search({ query: 'keyword', filters: { tags: ['vue', 'typescript'] } })
+      expect(results).toHaveLength(1)
+      expect(results[0].title).toBe('A')
+    })
+
+    it('篩選條件不符時回傳空陣列', () => {
+      const results = service.search({ query: 'keyword', filters: { tags: ['react'] } })
+      expect(results).toHaveLength(0)
+    })
+
+    it('tags 篩選為空陣列時不過濾，回傳所有符合的文章', () => {
+      const results = service.search({ query: 'keyword', filters: { tags: [] } })
+      expect(results).toHaveLength(3)
+    })
+
+    it('無 tags 的文章在無 tags 篩選時也能被搜尋到', () => {
+      const results = service.search({ query: 'keyword' })
+      expect(results).toHaveLength(3)
+    })
+
+    it('解析多行 YAML 陣列格式的 tags', async () => {
+      service = new SearchService(mockFs)
+      mockReaddir.mockResolvedValue(['d.md'])
+      mockReadFile.mockResolvedValueOnce(
+        '---\ntitle: D\ndate: 2026-01-01\ntags:\n  - vue\n  - typescript\n---\nkeyword'
+      )
+      await service.buildIndex(mockArticlesDir)
+      const results = service.search({ query: 'keyword', filters: { tags: ['typescript'] } })
+      expect(results).toHaveLength(1)
+      expect(results[0].title).toBe('D')
+    })
+  })
 })
