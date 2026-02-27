@@ -129,8 +129,8 @@ function highlightKeyword(text: string, keyword: string): string {
               <!-- 標題 + 日期 -->
               <div class="flex items-center justify-between mb-1">
                 <span
-                  class="font-medium text-base-content"
-                  v-html="highlightKeyword(result.title, searchStore.query)"
+                  :class="['font-medium', index === searchStore.selectedIndex ? 'text-base-content' : 'text-base-content/50']"
+                  v-html="index === searchStore.selectedIndex ? highlightKeyword(result.title, searchStore.query) : result.title"
                 />
                 <span class="text-xs text-base-content/40 ml-2 shrink-0">
                   {{ new Date(result.updatedAt).toLocaleDateString('zh-TW') }}
@@ -138,8 +138,8 @@ function highlightKeyword(text: string, keyword: string): string {
               </div>
               <!-- Snippet -->
               <p
-                class="text-sm text-base-content/60 line-clamp-2"
-                v-html="highlightKeyword(result.matchSnippet, searchStore.query)"
+                :class="['text-sm line-clamp-2', index === searchStore.selectedIndex ? 'text-base-content/60' : 'text-base-content/35']"
+                v-html="index === searchStore.selectedIndex ? highlightKeyword(result.matchSnippet, searchStore.query) : result.matchSnippet"
               />
             </li>
           </ul>
