@@ -17,7 +17,12 @@ function isProd(): boolean {
 export function initSentry(): void {
   const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
 
-  if (!isProd() || !dsn) {
+  if (!isProd()) {
+    return
+  }
+
+  if (!dsn) {
+    console.warn('[Sentry] VITE_SENTRY_DSN is not configured in production')
     return
   }
 
