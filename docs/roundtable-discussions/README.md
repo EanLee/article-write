@@ -26,28 +26,35 @@
 | 013 | v0.2 後半 Sprint 方向決策 | 2026-02-16 | ✅ 已決策 | 多數共識 | [topic-013-2026-02-16-next-sprint-direction](./topic-013-2026-02-16-next-sprint-direction/) |
 | 014 | AI API 串接評估 | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-014-2026-02-16-ai-api-integration](./topic-014-2026-02-16-ai-api-integration/) |
 | 015 | AI Panel 設計 | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-015-2026-02-16-ai-panel-design](./topic-015-2026-02-16-ai-panel-design/) |
+| 016 | 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-016-2026-02-27-blog-content-analysis](./topic-016-2026-02-27-blog-content-analysis/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 15
-**已決策**: 15
+**總討論數**: 16
+**已決策**: 16
 **討論中**: 0
 
 ---
 
 ## ✅ 最近完成的決策
 
+- ✅ [#016 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度](./topic-016-2026-02-27-blog-content-analysis/) - 2026-02-27, 全體一致
+  - 從 SEO、行銷、學習者三個角度定義文章品質 checklist
+  - AI 建議格式：具體可行、帶優先級標記（🔴🟡🟢），不做抽象評分
+  - 確認 Phase 2 文章建議功能設計方向，補充 topic-015 決策
+  - 新增 Casey Lin（SEO 專家）和 Morgan Chen（學習者）角色卡
+
+- ✅ [#015 AI Panel 設計](./topic-015-2026-02-16-ai-panel-design/) - 2026-02-16, 全體一致
+  - AI Panel 分三個 Section：SEO 助手（完成）、文章建議（Phase 2）、寫作助手（Phase 3）
+  - 每個 Section 狀態獨立（loading / error / result 互不干擾）
+  - 結果可一鍵套用到 articleStore
+
 - ✅ [#008 Sprint Retrospective — 瓶頸識別與改善行動](./topic-008-2026-02-14-sprint-retro/) - 2026-02-14, 全體一致
   - 識別四個核心瓶頸：無可交付物、進度不透明、錯誤路徑缺失、文件未入流程
   - 下一個 Sprint = 「讓 Jordan 真正跑起來」：打包 + 穩定化 + 端對端驗證
   - 行動項目：MVP_STATUS.md、錯誤反饋 UI、electron-builder 打包、Smoke Test Checklist
-
-- ✅ [#007 Frontmatter 時間欄位命名釐清](./topic-007-2026-02-14-frontmatter-date-fields/) - 2026-02-14, 全體一致
-  - `date` 改為 `pubDate`（符合 Astro 慣例，語意為發佈時間）
-  - 新增 `created`（建立時間，WriteFlow 首次開啟時自動填入）
-  - `lastmod` 保持不變
 
 - ✅ [#006 發布機制落差確認](./topic-006-2026-02-14-publish-mechanism/) - 2026-02-14, 全體一致
   - WriteFlow 是主工具，Obsidian vault 為資料來源
@@ -79,4 +86,4 @@
 ---
 
 **文件版本**: v2.0
-**最後更新**: 2026-02-16
+**最後更新**: 2026-02-27
