@@ -19,8 +19,11 @@ test.describe('SEO 生成功能', () => {
     // 點擊 AI tab
     await aiTab.click()
 
+    // 等待 AI tab 變為 active（確認 Vue 響應式狀態已更新）
+    await expect(aiTab).toHaveClass(/tab-active/)
+
     // 確認有 API Key 輸入框
-    await expect(modal.locator('input[type="password"]')).toBeVisible()
+    await expect(modal.locator('input[type="password"]').first()).toBeVisible()
   })
 
   test('API Key 未設定時 Frontmatter Panel 顯示引導按鈕', async ({ window, testVaultPath }) => {
