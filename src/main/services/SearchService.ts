@@ -1,7 +1,7 @@
 import { promises as defaultFs } from 'fs'
 import { join } from 'path'
-import type { SearchQuery, SearchResult } from '../../types'
-import { ArticleStatus } from '../../types'
+import type { SearchQuery, SearchResult } from '../../types/index.js'
+import { ArticleStatus } from '../../types/index.js'
 
 type FsLike = Pick<typeof defaultFs, 'readdir' | 'readFile'>
 
