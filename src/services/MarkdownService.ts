@@ -2,15 +2,12 @@ import MarkdownIt from "markdown-it";
 import * as yaml from "js-yaml";
 import hljs from "highlight.js";
 import markdownItHighlightjs from "markdown-it-highlightjs";
-// @ts-ignore - Using custom type declarations
 import markdownItToc from "markdown-it-table-of-contents";
-// @ts-ignore - Using custom type declarations
 import markdownItTaskLists from "markdown-it-task-lists";
-// @ts-ignore - Using custom type declarations
 import markdownItMark from "markdown-it-mark";
-// @ts-ignore - Using custom type declarations
 import markdownItFootnote from "markdown-it-footnote";
 import type { Frontmatter } from "@/types";
+import { generateSlug } from "@/utils/slugUtils";
 
 /**
  * 解析後的 Markdown 內容介面
@@ -396,17 +393,12 @@ export class MarkdownService {
   }
 
   /**
-   * 從標題產生有效的 slug
+   * 從標題產生有效的 slug（統一改用 slugUtils）
    * @param {string} title - 文章標題
    * @returns {string} 產生的 slug
    */
   generateSlugFromTitle(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "");
+    return generateSlug(title);
   }
 
   /**

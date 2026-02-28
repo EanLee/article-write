@@ -19,8 +19,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   validateAstroBlog: (path: string) => ipcRenderer.invoke('validate-astro-blog', path),
 
   // Publish operations
-  publishArticle: (article: any, config: any, onProgress?: any) =>
-    ipcRenderer.invoke('publish-article', article, config, onProgress),
+  publishArticle: (article: any, config: any) =>
+    ipcRenderer.invoke('publish-article', article, config),
+  // 發布進度事件（IPC 無法傳遞函式，改為 event-based 推播模式）
+  onPublishProgress: (callback: (data: { step: string; progress: number }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { step: string; progress: number }) => {
+      callback(data)
+    }
+    ipcRenderer.on('publish-progress', listener)
+    return () => {
+      ipcRenderer.removeListener('publish-progress', listener)
+    }
+  },
   syncAllPublished: (config: any) =>
     ipcRenderer.invoke('sync-all-published', config),
   onSyncProgress: (callback: (data: { current: number; total: number; title: string }) => void) => {

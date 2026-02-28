@@ -9,6 +9,7 @@ import { useConfigStore } from "./config";
 import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
 import { fileWatchService } from "@/services/FileWatchService";
+import { logger } from "@/utils/logger";
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -131,17 +132,25 @@ export const useArticleStore = defineStore("article", () => {
   /**
    * 設置檔案監聽
    */
+  let fileChangeUnsubscribe: (() => void) | null = null;
+
   async function setupFileWatching(vaultPath: string) {
     try {
-      // 開始監聽
+      // 先取消舊訂閱（避免每次 loadArticles 累積監聲者）
+      if (fileChangeUnsubscribe) {
+        fileChangeUnsubscribe();
+        fileChangeUnsubscribe = null;
+      }
+
+      // 開始監聲
       await fileWatchService.startWatching(vaultPath);
 
-      // 訂閱檔案變化事件
-      fileWatchService.subscribe((event) => {
+      // 訂閱檔案變化事件，並保存取消訂閱函式
+      fileChangeUnsubscribe = fileWatchService.subscribe((event) => {
         handleFileChangeEvent(event);
       });
 
-      console.log("FileWatchService: 檔案監聽已啟動");
+      logger.info("FileWatchService: 檔案監聲已啟動");
     } catch (error) {
       console.error("Failed to setup file watching:", error);
     }
@@ -268,7 +277,7 @@ export const useArticleStore = defineStore("article", () => {
       await window.electronAPI.createDirectory(categoryPath);
 
       const article: Article = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2), // 內聯生成 ID
+        id: articleService.generateId(filePath), // 確定性 ID：與 loadArticle 保持一致
         title,
         slug,
         filePath,
@@ -583,10 +592,17 @@ export const useArticleStore = defineStore("article", () => {
     { deep: true },
   );
 
-  // 初始化自動儲存（延遲執行以確保 configStore 已載入）
-  setTimeout(() => {
-    initializeAutoSave();
-  }, 100);
+  // 初始化自動儲存（等待 articlesDir 設定就緒後執行，取代不可靠的 setTimeout）
+  const _autoSaveInitWatcher = watch(
+    () => configStore.config.paths.articlesDir,
+    (articlesDir) => {
+      if (articlesDir) {
+        initializeAutoSave();
+        _autoSaveInitWatcher(); // 只執行一次，完成後自動取消監聲
+      }
+    },
+    { immediate: true },
+  );
 
   return {
     // State

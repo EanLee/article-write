@@ -83,8 +83,12 @@ app.whenReady().then(() => {
   ipcMain.handle('validate-astro-blog', (_, path: string) => configService.validateAstroBlog(path))
 
   // Publish Service
-  ipcMain.handle('publish-article', async (_, article: any, config: any, onProgress?: any) => {
-    return await publishService.publishArticle(article, config, onProgress)
+  ipcMain.handle('publish-article', async (event, article: any, config: any) => {
+    // 注意：IPC 無法傳遞函式，不能利用 onProgress 參數
+    // 轉掘為 event.sender.send 事件推播模式，讓 Renderer 端監聽 'publish-progress' 事件
+    return await publishService.publishArticle(article, config, (step, progress) => {
+      event.sender.send('publish-progress', { step, progress })
+    })
   })
 
   ipcMain.handle('sync-all-published', async (event, config: any) => {

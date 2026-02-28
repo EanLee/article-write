@@ -62,7 +62,7 @@ export class AutoSaveService {
       this.performAutoSave();
     }, this.autoSaveInterval);
 
-    console.log(`自動儲存已啟動，間隔: ${this.autoSaveInterval / 1000} 秒`);
+    logger.info(`自動儲存已啟動，間隔: ${this.autoSaveInterval / 1000} 秒`);
   }
 
   /**
@@ -102,14 +102,14 @@ export class AutoSaveService {
       return;
     }
 
-    console.log(`自動儲存文章: ${currentArticle.title}`);
+    logger.debug(`自動儲存文章: ${currentArticle.title}`);
     this.updateSaveState(SaveStatus.Saving);
     try {
       await this.saveCallback(currentArticle);
       this.updateLastSavedContent(currentArticle);
       this.updateSaveState(SaveStatus.Saved);
     } catch (error) {
-      console.error("自動儲存失敗:", error);
+      logger.error("自動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
       // 不重新拋出錯誤，讓自動儲存繼續運行
     }
@@ -132,29 +132,22 @@ export class AutoSaveService {
     try {
       // 檢查前一篇文章是否有變更
       const hasChanged = this.hasContentChanged(previousArticle);
-      const currentContent = previousArticle.content;
-      const currentFrontmatter = JSON.stringify(previousArticle.frontmatter);
 
-      console.group(`🔍 切換文章檢查: ${previousArticle.title}`);
-      console.log("hasChanged:", hasChanged);
-      console.log("currentContent length:", currentContent?.length);
-      console.log("lastSavedContent length:", this.lastSavedContent?.length);
-      console.log("content相等?:", currentContent === this.lastSavedContent);
-      console.log("currentFrontmatter:", currentFrontmatter);
-      console.log("lastSavedFrontmatter:", this.lastSavedFrontmatter);
-      console.log("frontmatter相等?:", currentFrontmatter === this.lastSavedFrontmatter);
-      console.groupEnd();
+      logger.debug(`切換文章檢查: ${previousArticle.title}`, {
+        hasChanged,
+        contentChanged: previousArticle.content !== this.lastSavedContent,
+      });
 
       if (hasChanged) {
-        console.log(`✅ 內容已變更，執行自動儲存: ${previousArticle.title}`);
+        logger.debug(`內容已變更，執行自動儲存: ${previousArticle.title}`);
         this.updateSaveState(SaveStatus.Saving);
         await this.saveCallback(previousArticle);
         this.updateSaveState(SaveStatus.Saved);
       } else {
-        console.log(`⏭️  內容無變更，跳過儲存: ${previousArticle.title}`);
+        logger.debug(`內容無變更，跳過儲存: ${previousArticle.title}`);
       }
     } catch (error) {
-      console.error("切換文章時自動儲存失敗:", error);
+      logger.error("切換文章時自動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
     }
   }
@@ -175,13 +168,13 @@ export class AutoSaveService {
     try {
       const currentArticle = this.getCurrentArticleCallback();
       if (currentArticle) {
-        console.log(`手動儲存文章: ${currentArticle.title}`);
+        logger.debug(`手動儲存文章: ${currentArticle.title}`);
         await this.saveCallback(currentArticle);
         this.updateLastSavedContent(currentArticle);
         this.updateSaveState(SaveStatus.Saved);
       }
     } catch (error) {
-      console.error("手動儲存失敗:", error);
+      logger.error("手動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
       throw error;
     }
@@ -326,7 +319,7 @@ export class AutoSaveService {
     this.saveCallback = null;
     this.getCurrentArticleCallback = null;
     this.lastSavedContent = "";
-    this.lastSavedFrontmatter = "";
+    this.lastSavedFrontmatter = {}; // 正確的空 Partial<Frontmatter>
     this.saveState.value = {
       status: SaveStatus.Saved,
       lastSavedAt: null,

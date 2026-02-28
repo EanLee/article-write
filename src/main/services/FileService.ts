@@ -75,12 +75,12 @@ export class FileService {
     }
   }
 
-  async getFileStats(filePath: string): Promise<{ isDirectory: boolean; mtime: string } | null> {
+  async getFileStats(filePath: string): Promise<{ isDirectory: boolean; mtime: number } | null> {
     try {
       const stats = await fs.stat(filePath)
       return {
         isDirectory: stats.isDirectory(),
-        mtime: stats.mtime.toISOString()
+        mtime: stats.mtime.getTime() // 回傳毫秒時間戳，與 IFileSystem.FileStats.mtime: number 一致
       }
     } catch {
       return null

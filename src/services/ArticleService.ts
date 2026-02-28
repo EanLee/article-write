@@ -20,6 +20,7 @@ import { MarkdownService } from "./MarkdownService";
 import { backupService as defaultBackupService } from "./BackupService";
 import type { BackupService } from "./BackupService";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { generateSlug as utilGenerateSlug } from "@/utils/slugUtils";
 
 export class ArticleService {
   private fileSystem: IFileSystem;
@@ -292,7 +293,7 @@ export class ArticleService {
     const fileName = filePath.split("/").pop()?.replace(".md", "") || "untitled";
 
     const article: Article = {
-      id: this.generateId(),
+      id: this.generateId(filePath), // 確定性 ID：同一檔案永遠相同，穩定 Vue :key
       title: frontmatter.title || fileName,
       slug: frontmatter.slug || fileName,
       filePath,
@@ -337,32 +338,28 @@ export class ArticleService {
   }
 
   /**
-   * 產生唯一 ID
+   * 產生確定性的文章 ID
+   * 使用 filePath 的简單 hash，確保同一檔案永遠得到相同 ID
+   * 修復問題：非確定性 ID 導致 Vue v-for :key 不穩定、清單元件重挂載
    */
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  generateId(filePath: string): string {
+    // 簡易 hash：fnv1a-like，對路徑字串的邏算速度平衡
+    let hash = 2166136261;
+    for (let i = 0; i < filePath.length; i++) {
+      hash ^= filePath.charCodeAt(i);
+      hash = (hash * 16777619) >>> 0; // FNV prime, 32-bit unsigned
+    }
+    return hash.toString(36);
   }
 
   /**
-   * 從標題產生 slug
-   *
-   * @param title - 文章標題
-   * @returns URL-safe 的 slug
-   */
-  /**
-   * 從標題產生 slug
+   * 從標題產生 slug（統一改用 slugUtils）
    *
    * @param title - 文章標題
    * @returns URL-safe 的 slug
    */
   generateSlug(title: string): string {
-    return title
-      .trim() // 先 trim 前後空格
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, ""); // 移除前後的 -
+    return utilGenerateSlug(title);
   }
 
   /**

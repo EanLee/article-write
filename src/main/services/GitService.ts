@@ -1,7 +1,7 @@
-import { exec } from 'child_process'
+import { execFile } from 'child_process'
 import { promisify } from 'util'
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 export interface GitResult {
   success: boolean
@@ -29,7 +29,7 @@ export class GitService {
    */
   async getStatus(repoPath: string): Promise<GitResult> {
     try {
-      const { stdout } = await execAsync('git status --short', { cwd: repoPath })
+      const { stdout } = await execFileAsync('git', ['status', '--short'], { cwd: repoPath })
       return {
         success: true,
         output: stdout.trim()
@@ -49,9 +49,8 @@ export class GitService {
    * @param paths - 要 add 的路徑，預設為 '.'（全部）
    */
   async add(repoPath: string, paths: string[] = ['.']): Promise<GitResult> {
-    const pathArgs = paths.map(p => `"${p}"`).join(' ')
     try {
-      const { stdout, stderr } = await execAsync(`git add ${pathArgs}`, { cwd: repoPath })
+      const { stdout, stderr } = await execFileAsync('git', ['add', ...paths], { cwd: repoPath })
       return {
         success: true,
         output: (stdout + stderr).trim()
@@ -69,15 +68,11 @@ export class GitService {
    */
   async commit(repoPath: string, options: GitCommitOptions): Promise<GitResult> {
     const { message, addAll = false } = options
-    const addFlag = addAll ? '-a ' : ''
-    // 轉義 message 中的雙引號
-    const escapedMessage = message.replace(/"/g, '\\"')
+    // 使用 execFile 參數陣列，徹底避免 shell 注入
+    const args = addAll ? ['commit', '-am', message] : ['commit', '-m', message]
 
     try {
-      const { stdout, stderr } = await execAsync(
-        `git commit ${addFlag}-m "${escapedMessage}"`,
-        { cwd: repoPath }
-      )
+      const { stdout, stderr } = await execFileAsync('git', args, { cwd: repoPath })
       return {
         success: true,
         output: (stdout + stderr).trim()
@@ -99,13 +94,10 @@ export class GitService {
    */
   async push(repoPath: string, options: GitPushOptions = {}): Promise<GitResult> {
     const { remote = 'origin', branch = '' } = options
-    const branchArg = branch ? ` ${branch}` : ''
+    const args = branch ? ['push', remote, branch] : ['push', remote]
 
     try {
-      const { stdout, stderr } = await execAsync(
-        `git push ${remote}${branchArg}`,
-        { cwd: repoPath }
-      )
+      const { stdout, stderr } = await execFileAsync('git', args, { cwd: repoPath })
       return {
         success: true,
         output: (stdout + stderr).trim()
@@ -166,8 +158,9 @@ export class GitService {
    */
   async getLog(repoPath: string, count = 5): Promise<GitResult> {
     try {
-      const { stdout } = await execAsync(
-        `git log --oneline -${count}`,
+      const safeCount = Math.max(1, Math.min(100, Math.floor(count))) // 防止參數注入
+      const { stdout } = await execFileAsync(
+        'git', ['log', '--oneline', `-${safeCount}`],
         { cwd: repoPath }
       )
       return { success: true, output: stdout.trim() }

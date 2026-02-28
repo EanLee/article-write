@@ -4,6 +4,7 @@ import { ArticleStatus, ArticleCategory } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { generateSlug } from "@/utils/slugUtils";
 
 /**
  * 檔案掃描服務類別
@@ -169,17 +170,11 @@ export class FileScannerService {
   }
 
   /**
-   * 從標題產生 URL 友善的 slug
-   * @param {string} title - 文章標題
-   * @returns {string} URL slug
+   * 從標題產生 URL 友善的 slug（統一使用 slugUtils）
+   * @deprecated 請改用 generateSlug from '@/utils/slugUtils'
    */
   private generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
+    return generateSlug(title);
   }
 
   /**
