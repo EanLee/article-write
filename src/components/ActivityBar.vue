@@ -18,6 +18,7 @@
       <button
         class="activity-item"
         title="設定"
+        data-testid="btn-settings"
         @click="$emit('open-settings')"
       >
         <Settings :size="24" />

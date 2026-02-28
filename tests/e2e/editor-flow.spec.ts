@@ -49,7 +49,7 @@ test.describe('編輯器核心流程', () => {
 
   test('開啟文章 → 編輯內容 → Ctrl+S → 顯示已儲存', async ({ window }) => {
     // Step 1: 確認文章列表有出現測試文章
-    const articleRow = window.locator('.article-tree-item').filter({ hasText: 'E2E 測試文章' })
+    const articleRow = window.locator('[data-testid="article-tree-item"]').filter({ hasText: 'E2E 測試文章' })
     await expect(articleRow).toBeVisible({ timeout: 10000 })
 
     // Step 2: 點擊文章開啟編輯器
@@ -67,14 +67,14 @@ test.describe('編輯器核心流程', () => {
     // Step 5: 按 Ctrl+S 手動儲存
     await window.keyboard.press('Control+s')
 
-    // Step 6: 確認 SaveStatusIndicator 顯示「已儲存」
-    const saveStatus = window.locator('.flex.items-center.gap-1\\.5').filter({ hasText: '已儲存' })
+    // Step 6: 確認 SaveStatusIndicator 顯示「已儲存」（使用 data-testid，不依賴 CSS class）
+    const saveStatus = window.locator('[data-testid="save-status"]').filter({ hasText: '已儲存' })
     await expect(saveStatus).toBeVisible({ timeout: 10000 })
   })
 
   test('編輯後 Ctrl+S，檔案內容應實際寫入磁碟', async ({ window, testVaultPath }) => {
     // Step 1: 開啟文章
-    const articleRow = window.locator('.article-tree-item').filter({ hasText: 'E2E 測試文章' })
+    const articleRow = window.locator('[data-testid="article-tree-item"]').filter({ hasText: 'E2E 測試文章' })
     await expect(articleRow).toBeVisible({ timeout: 10000 })
     await articleRow.click()
 
@@ -87,8 +87,8 @@ test.describe('編輯器核心流程', () => {
     // Step 3: Ctrl+S 儲存
     await window.keyboard.press('Control+s')
 
-    // Step 4: 等待儲存完成
-    const saveStatus = window.locator('.flex.items-center.gap-1\\.5').filter({ hasText: '已儲存' })
+    // Step 4: 等待儲存完成（使用 data-testid，不依賴 CSS class）
+    const saveStatus = window.locator('[data-testid="save-status"]').filter({ hasText: '已儲存' })
     await expect(saveStatus).toBeVisible({ timeout: 10000 })
 
     // Step 5: 輪詢驗證檔案內容確實更新（取代固定等待，避免 IPC writeFile 尚未完成的競態）

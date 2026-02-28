@@ -8,6 +8,7 @@
     <!-- 一般模式：顯示圖示和文字 -->
     <div
       v-else
+      data-testid="save-status"
       class="flex items-center gap-1.5 rounded-lg transition-all font-medium"
       :class="[
         statusClass,
