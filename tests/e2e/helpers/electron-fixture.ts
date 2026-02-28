@@ -12,94 +12,116 @@
  * - 需明確過濾 DevTools 視窗，取得真正的 App 主視窗
  */
 
-import { test as base, expect, _electron as electron } from '@playwright/test'
-import type { ElectronApplication, Page } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import os from 'os'
-import fs from 'fs'
+import { test as base, expect, _electron as electron } from "@playwright/test";
+import type { ElectronApplication, Page } from "@playwright/test";
+import path from "path";
+import { fileURLToPath } from "url";
+import os from "os";
+import fs from "fs";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const ROOT = path.resolve(__dirname, '../../..')
-const MAIN_JS = path.join(ROOT, 'dist/main/main.js')
+const ROOT = path.resolve(__dirname, "../../..");
+const MAIN_JS = path.join(ROOT, "dist/main/main.js");
 
 /** 取得 App 主視窗（排除 DevTools） */
 async function getAppWindow(app: ElectronApplication): Promise<Page> {
   // 等待視窗出現，最多嘗試 10 秒
-  const deadline = Date.now() + 10000
+  const deadline = Date.now() + 10000;
   while (Date.now() < deadline) {
-    const windows = app.windows()
+    const windows = app.windows();
     for (const win of windows) {
-      const url = win.url()
-      if (!url.startsWith('devtools://')) {
+      const url = win.url();
+      if (!url.startsWith("devtools://")) {
         // 等待 Vue App 掛載（#app 元素有子元素）
         await win.waitForFunction(
           () => {
-            const app = document.getElementById('app')
-            return app !== null && app.children.length > 0
+            const app = document.getElementById("app");
+            return app !== null && app.children.length > 0;
           },
           undefined,
-          { timeout: 30000 }
-        )
-        return win
+          { timeout: 30000 },
+        );
+        return win;
       }
     }
-    await new Promise(resolve => setTimeout(resolve, 200))
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  throw new Error('無法找到 App 主視窗（非 DevTools）')
+  throw new Error("無法找到 App 主視窗（非 DevTools）");
 }
 
 export type WorkerFixtures = {
-  electronApp: ElectronApplication
-  testVaultPath: string
-}
+  electronApp: ElectronApplication;
+  testVaultPath: string;
+};
 
 export type TestFixtures = {
-  window: Page
-}
+  window: Page;
+};
 
 /** 所有 fixture 的聯合型別（供外部使用） */
-export type ElectronFixtures = TestFixtures & WorkerFixtures
+export type ElectronFixtures = TestFixtures & WorkerFixtures;
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
   // worker scope：整個測試檔案共用一個 App 實例
-  // eslint-disable-next-line no-empty-pattern
-  testVaultPath: [async ({}, use) => {
-    const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), 'writeflow-test-'))
-    await use(vaultPath)
-    fs.rmSync(vaultPath, { recursive: true, force: true })
-  }, { scope: 'worker', timeout: 60000 }],
+  testVaultPath: [
+    // eslint-disable-next-line no-empty-pattern
+    async ({}, use) => {
+      const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), "writeflow-test-"));
+      await use(vaultPath);
+      fs.rmSync(vaultPath, { recursive: true, force: true });
+    },
+    { scope: "worker", timeout: 60000 },
+  ],
 
-  electronApp: [async ({ testVaultPath }, use) => {
-    // 每個 worker 使用獨立的 userData 目錄，避免並行測試共享 config.json 產生競態
-    const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), 'writeflow-userdata-'))
-    const app = await electron.launch({
-      args: ['--no-sandbox', `--user-data-dir=${userDataPath}`, MAIN_JS],
-      env: {
-        ...process.env,
-        NODE_ENV: 'test',
-        TEST_VAULT_PATH: testVaultPath,
-      },
-    })
-    // 預先等待 App 主視窗載入完成，並自動接受 beforeunload 對話框
-    const win = await getAppWindow(app)
-    win.on('dialog', dialog => dialog.accept())
-    await use(app)
-    try {
-      await app.close()
-    } catch {
-      // 關閉時若有殘留對話框則忽略
-    }
-    fs.rmSync(userDataPath, { recursive: true, force: true })
-  }, { scope: 'worker', timeout: 60000 }],
+  electronApp: [
+    async ({ testVaultPath }, use) => {
+      // 每個 worker 使用獨立的 userData 目錄，避免並行測試共享 config.json 產生競態
+      const userDataPath = fs.mkdtempSync(path.join(os.tmpdir(), "writeflow-userdata-"));
+
+      // 預先寫入完整 config.json，避免測試啟動時觸碰真實設定檔或進入初始化流程
+      const testConfig = {
+        paths: {
+          articlesDir: testVaultPath,
+          targetBlog: "",
+          imagesDir: "",
+        },
+        editorConfig: {
+          autoSave: false,
+          autoSaveInterval: 30000,
+          theme: "light",
+        },
+      };
+      fs.writeFileSync(path.join(userDataPath, "config.json"), JSON.stringify(testConfig, null, 2), "utf-8");
+
+      const app = await electron.launch({
+        args: ["--no-sandbox", `--user-data-dir=${userDataPath}`, MAIN_JS],
+        env: {
+          ...process.env,
+          NODE_ENV: "test",
+          TEST_VAULT_PATH: testVaultPath,
+        },
+      });
+      // 預先等待 App 主視窗載入完成，並自動接受 beforeunload 對話框
+      const win = await getAppWindow(app);
+      win.on("dialog", (dialog) => dialog.accept());
+      await use(app);
+      try {
+        await app.close();
+      } catch {
+        // 關閉時若有殘留對話框則忽略
+      }
+      fs.rmSync(userDataPath, { recursive: true, force: true });
+    },
+    { scope: "worker", timeout: 60000 },
+  ],
 
   // test scope：每個測試取得 App 主視窗
   window: async ({ electronApp }, use) => {
-    const page = await getAppWindow(electronApp)
-    await use(page)
+    const page = await getAppWindow(electronApp);
+    await use(page);
   },
-})
+});
 
-export { expect }
+export { expect };

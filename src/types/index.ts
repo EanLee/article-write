@@ -9,13 +9,14 @@ export enum ArticleStatus {
 }
 
 /**
- * 文章分類
+ * 文章分類（向後相容常數，實際值為 string）
+ * @deprecated 分類改由 frontmatter.category 自由定義，此常數僅作為參考預設值
  */
-export enum ArticleCategory {
-  Software = "Software",
-  Growth = "growth",
-  Management = "management",
-}
+export const ArticleCategory = {
+  Software: "Software",
+  Growth: "growth",
+  Management: "management",
+} as const;
 
 /**
  * 篩選器狀態選項（包含 "全部"）
@@ -28,12 +29,10 @@ export enum ArticleFilterStatus {
 
 /**
  * 篩選器分類選項（包含 "全部"）
+ * 實際分類清單由文章的 frontmatter.category 動態決定
  */
 export enum ArticleFilterCategory {
   All = "all",
-  Software = "Software",
-  Growth = "growth",
-  Management = "management",
 }
 
 /**
@@ -80,7 +79,8 @@ export interface Article {
   frontmatter: Frontmatter;
   content: string;
   lastModified: Date;
-  category: ArticleCategory;
+  /** 文章分類，來自 frontmatter.category（任意字串） */
+  category: string;
 }
 
 export interface Frontmatter {
@@ -111,6 +111,8 @@ export interface Frontmatter {
   status?: ArticleStatus; // 文章狀態，未設定預設為 draft
   tags?: string[]; // 改為可選，防止 undefined 導致崩潰
   categories?: string[]; // 改為可選，防止 undefined 導致崩潰
+  /** 文章分類（單一字串，由使用者自由定義；取代 folder-based 分類） */
+  category?: string;
   slug?: string;
   keywords?: string[];
   draft?: boolean; // Astro/Hugo frontmatter 發布標記
@@ -143,7 +145,8 @@ export interface AppConfig {
 // Filter and UI state
 export interface ArticleFilter {
   status: ArticleFilterStatus;
-  category: ArticleFilterCategory;
+  /** 分類篩選器；ArticleFilterCategory.All ("all") 表示顯示全部 */
+  category: string;
   tags: string[];
   searchText: string;
 }

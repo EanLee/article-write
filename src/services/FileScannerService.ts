@@ -1,6 +1,6 @@
 import * as chokidar from "chokidar";
 import type { Article, FileSystemItem } from "@/types";
-import { ArticleStatus, ArticleCategory } from "@/types";
+import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { electronFileSystem } from "./ElectronFileSystem";
@@ -68,7 +68,9 @@ export class FileScannerService {
       const parsed = this.markdownService.parseFrontmatter(content);
 
       const fileName = this.getBasename(filePath, ".md");
-      const category = this.extractCategoryFromPath(filePath);
+      // 優先使用 frontmatter.category（使用者自訂），備選從路徑取得資料夾名稱
+      const folderCategory = this.extractCategoryFromPath(filePath);
+      const category = parsed.frontmatter.category || folderCategory;
       const stats = await this.fileSystem.getFileStats(filePath);
 
       // Log parsing errors but continue processing
@@ -91,6 +93,7 @@ export class FileScannerService {
           lastmod: parsed.frontmatter.lastmod,
           tags: parsed.frontmatter.tags || [],
           categories: parsed.frontmatter.categories || [category],
+          category: parsed.frontmatter.category || folderCategory,
           slug: parsed.frontmatter.slug,
           keywords: parsed.frontmatter.keywords || [],
         },
@@ -135,25 +138,30 @@ export class FileScannerService {
   }
 
   /**
-   * 從檔案路徑中提取分類
+   * 從檔案路徑中提取分類資料夾名稱（当 frontmatter.category 未設定時的備選）
    * @param {string} filePath - 檔案路徑
-   * @returns {'Software' | 'growth' | 'management'} 文章分類
+   * @returns {string} 資料夾名稱（作為備用分類）
    */
-  private extractCategoryFromPath(filePath: string): ArticleCategory {
+  private extractCategoryFromPath(filePath: string): string {
     const normalizedPath = filePath.replace(/\\/g, "/");
+    const parts = normalizedPath.split("/");
 
-    if (normalizedPath.includes("/Software/")) {
-      return ArticleCategory.Software;
-    }
-    if (normalizedPath.includes("/growth/")) {
-      return ArticleCategory.Growth;
-    }
-    if (normalizedPath.includes("/management/")) {
-      return ArticleCategory.Management;
+    // 忽略檔案名稱，取倒數第二段作為分類資料夾
+    // 例: /vault/Software/article.md → 'Software'
+    // 例: /vault/Drafts/growth/article.md → 'growth'
+    if (parts.length >= 2) {
+      const folderName = parts[parts.length - 2];
+      // 跳過常見的中間層資料夾（Drafts, Publish, Posts 等）
+      if (!["Drafts", "Publish", "Posts", "drafts", "publish", "posts"].includes(folderName)) {
+        return folderName;
+      }
+      // 如果是中間層，取再上一層
+      if (parts.length >= 3) {
+        return parts[parts.length - 3];
+      }
     }
 
-    // Default to Software if no category found
-    return ArticleCategory.Software;
+    return "uncategorized";
   }
 
   /**

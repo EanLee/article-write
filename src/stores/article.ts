@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
 import type { Article, ArticleFilter } from "@/types";
-import { ArticleStatus, ArticleCategory, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
 import { markdownService } from "@/services/MarkdownService";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { notify } from "@/services/NotificationService";
@@ -43,7 +43,7 @@ export const useArticleStore = defineStore("article", () => {
         }
 
         // 分類過濾 - 早期返回
-        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as unknown as ArticleCategory)) {
+        if (categoryFilter !== ArticleFilterCategory.All && article.category !== categoryFilter) {
           return false;
         }
 
@@ -88,6 +88,11 @@ export const useArticleStore = defineStore("article", () => {
     return [
       ...new Set(articles.value.flatMap((article) => (article.frontmatter.tags && Array.isArray(article.frontmatter.tags) ? article.frontmatter.tags : []))),
     ].sort();
+  });
+
+  /** 從所有文章的 frontmatter.category 動態得出獨特分類清單 */
+  const allCategories = computed(() => {
+    return [...new Set(articles.value.map((a) => a.category).filter(Boolean))].sort();
   });
 
   // Actions
@@ -188,7 +193,7 @@ export const useArticleStore = defineStore("article", () => {
    * 從磁碟重新載入文章
    * 注意：status 改由 ArticleService.loadArticle 從 frontmatter 讀取
    */
-  async function reloadArticleFromDisk(filePath: string, category: ArticleCategory) {
+  async function reloadArticleFromDisk(filePath: string, category: string) {
     try {
       const article = await articleService.loadArticle(filePath, category);
 
@@ -235,7 +240,7 @@ export const useArticleStore = defineStore("article", () => {
   /**
    * 解析文章路徑，取得狀態和分類
    */
-  function parseArticlePath(filePath: string, vaultPath: string): { status: ArticleStatus; category: ArticleCategory } | null {
+  function parseArticlePath(filePath: string, vaultPath: string): { status: ArticleStatus; category: string } | null {
     const relativePath = normalizePath(filePath).replace(normalizePath(vaultPath), "").replace(/^\//, "");
 
     const parts = relativePath.split("/");
@@ -246,17 +251,17 @@ export const useArticleStore = defineStore("article", () => {
     const [statusFolder, category] = parts;
     const status = statusFolder === "Publish" ? ArticleStatus.Published : ArticleStatus.Draft;
 
-    if (!["Software", "growth", "management"].includes(category)) {
+    if (!category || category.trim() === "") {
       return null;
     }
 
     return {
       status,
-      category: category as ArticleCategory,
+      category,
     };
   }
 
-  async function createArticle(title: string, category: ArticleCategory): Promise<Article> {
+  async function createArticle(title: string, category: string): Promise<Article> {
     try {
       if (typeof window === "undefined" || !window.electronAPI) {
         throw new Error("Electron API not available");
@@ -626,6 +631,7 @@ export const useArticleStore = defineStore("article", () => {
     draftArticles,
     publishedArticles,
     allTags,
+    allCategories,
 
     // Actions
     loadArticles,
