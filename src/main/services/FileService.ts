@@ -20,7 +20,8 @@ export class FileService {
       await fs.mkdir(dirname(filePath), { recursive: true });
       await fs.writeFile(filePath, content, "utf-8");
     } catch (err) {
-      throw new Error(`Failed to write file: ${filePath}`, { cause: err });
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to write file: ${filePath}: ${reason}`);
     }
   }
 
@@ -93,7 +94,8 @@ export class FileService {
       await fs.mkdir(dirname(targetPath), { recursive: true });
       await fs.copyFile(sourcePath, targetPath);
     } catch (err) {
-      throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}`, { cause: err });
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}: ${reason}`);
     }
   }
 
