@@ -12,7 +12,9 @@ import { GitService } from "./services/GitService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const isDev = !app.isPackaged;
+// E2E 測試時 (NODE_ENV=test)，強制使用 loadFile 載入 dist/renderer/index.html
+// 避免依賴需另行啟動的 dev server，並防止 pnpm run dev 同時啟動的 Electron 實例衝突
+const isDev = !app.isPackaged && process.env.NODE_ENV !== "test";
 
 let mainWindow: BrowserWindow;
 
@@ -30,7 +32,10 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: join(__dirname, "preload.js"),
+      // sandbox: false 允許 preload 使用 ESM import 語法
+      // 安全性由 contextIsolation: true 保障（renderer 無法存取 preload 的 Node.js API）
+      sandbox: false,
+      preload: join(__dirname, "../preload/preload.js"),
     },
   });
 

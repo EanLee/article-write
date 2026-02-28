@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="h-screen flex bg-base-100">
+  <div class="h-screen flex bg-base-100">
     <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
     <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
 

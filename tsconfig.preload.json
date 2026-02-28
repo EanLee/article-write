@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "lib": ["ES2020"],
     "declaration": true,
     "strict": true,
@@ -9,13 +9,13 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
     "skipLibCheck": true,
     "rootDir": "src/main",
-    "outDir": "dist/main",
+    "outDir": "dist/preload",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types"],
     "types": ["node"]

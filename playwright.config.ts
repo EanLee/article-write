@@ -31,9 +31,6 @@ export default defineConfig({
   ],
 
   use: {
-    // Base URL
-    baseURL: 'http://localhost:3002',
-
     // 截圖設定
     screenshot: 'only-on-failure',
 
@@ -42,16 +39,6 @@ export default defineConfig({
 
     // Trace
     trace: 'on-first-retry',
-  },
-
-  // 測試前啟動開發伺服器
-  // Electron 應用在開發模式下需要此服務提供前端頁面
-  webServer: {
-    command: process.env.CI ? 'pnpm run dev:renderer' : 'pnpm run dev',
-    url: 'http://localhost:3002',
-    // 修正：本地開發時重用現有伺服器，CI 環境也重用以避免端口衝突
-    reuseExistingServer: true,
-    timeout: 120000,
   },
 
   // 測試專案配置

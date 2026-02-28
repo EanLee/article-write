@@ -10,6 +10,7 @@ directories:
 # 包含的檔案（編譯後的產物）
 files:
   - dist/main/**
+  - dist/preload/**
   - dist/types/**
   - dist/renderer/**
   - package.json
