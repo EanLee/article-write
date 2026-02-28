@@ -81,10 +81,19 @@ export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplica
     const win = await getAppWindow(app)
     win.on('dialog', dialog => dialog.accept())
     await use(app)
-    try {
-      await app.close()
-    } catch {
-      // 關閉時若有殘留對話框則忽略
+    // 使用 race 確保 teardown 不超時：優先 graceful close，5 秒後強制 kill
+    let closedGracefully = false
+    await Promise.race([
+      app.close().then(() => { closedGracefully = true }).catch(() => {}),
+      new Promise<void>(resolve => setTimeout(resolve, 5000))
+    ])
+    // graceful close 超時時強制終止 Electron 程序
+    if (!closedGracefully) {
+      try {
+        app.process().kill()
+      } catch {
+        // 已關閉則忽略
+      }
     }
     fs.rmSync(userDataPath, { recursive: true, force: true })
   }, { scope: 'worker', timeout: 60000 }],
