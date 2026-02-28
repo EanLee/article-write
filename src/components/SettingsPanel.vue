@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelValue" class="modal modal-open">
+  <div v-if="modelValue" class="modal modal-open" data-testid="settings-modal">
     <div class="modal-box w-11/12 max-w-5xl max-h-[90vh]">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
@@ -7,7 +7,7 @@
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
         </div>
-        <button class="btn btn-sm btn-circle btn-ghost" @click="handleClose">
+        <button class="btn btn-sm btn-circle btn-ghost" data-testid="settings-close-button" @click="handleClose">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>

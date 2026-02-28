@@ -1,5 +1,10 @@
 <template>
-  <div class="flex items-center gap-2" :class="compact ? 'text-xs' : 'text-sm'">
+  <div
+    class="flex items-center gap-2"
+    :class="compact ? 'text-xs' : 'text-sm'"
+    data-testid="save-status-indicator"
+    :data-status="saveState.status"
+  >
     <!-- Icon Only 模式：僅顯示圖示 -->
     <div v-if="iconOnly" class="tooltip tooltip-bottom" :data-tip="statusText">
       <component :is="statusIcon" :size="compact ? 14 : 16" :class="[iconClass, statusColorClass]" />
@@ -15,7 +20,7 @@
       ]"
     >
       <component :is="statusIcon" :size="compact ? 12 : 16" :class="iconClass" />
-      <span :class="compact ? 'text-xs' : 'text-sm'">{{ statusText }}</span>
+      <span :class="compact ? 'text-xs' : 'text-sm'" data-testid="save-status-text">{{ statusText }}</span>
     </div>
 
     <!-- 最後儲存時間（非緊湊模式且非 icon-only） -->

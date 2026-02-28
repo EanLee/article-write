@@ -1,5 +1,7 @@
 /**
  * 設定面板功能 E2E 測試
+ *
+ * 選擇器策略：data-testid 優先（E2E 穩定性最高）
  */
 
 import { test, expect } from './helpers/electron-fixture'
@@ -7,9 +9,9 @@ import { test, expect } from './helpers/electron-fixture'
 test.describe('設定面板功能', () => {
   test('Settings 頁面能正常開啟並顯示 tabs', async ({ window }) => {
     // 開啟設定
-    await window.locator('.activity-item[title="設定"]').click()
+    await window.getByTestId('settings-button').click()
 
-    const modal = window.locator('.modal.modal-open')
+    const modal = window.getByTestId('settings-modal')
     await expect(modal).toBeVisible({ timeout: 5000 })
 
     // 確認標題存在
@@ -34,18 +36,17 @@ test.describe('設定面板功能', () => {
     const frameworkTab = tabs.filter({ hasText: '部落格框架' })
     await frameworkTab.click()
     await expect(frameworkTab).toHaveClass(/tab-active/)
-    
+
     // 關閉設定對話框
-    const closeBtn = modal.locator('button.btn-circle')
-    await closeBtn.click()
+    await window.getByTestId('settings-close-button').click()
     await expect(modal).not.toBeVisible()
   })
 
   test('Settings 頁面基本設定 tab 包含必要欄位', async ({ window }) => {
     // 開啟設定
-    await window.locator('.activity-item[title="設定"]').click()
+    await window.getByTestId('settings-button').click()
 
-    const modal = window.locator('.modal.modal-open')
+    const modal = window.getByTestId('settings-modal')
     await expect(modal).toBeVisible({ timeout: 5000 })
 
     // 切換到基本設定 tab

@@ -17,6 +17,7 @@
     <div class="activity-bottom">
       <button
         class="activity-item"
+        data-testid="settings-button"
         title="設定"
         @click="$emit('open-settings')"
       >
