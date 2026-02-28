@@ -1,19 +1,19 @@
-import type { Article } from '@/types'
+import type { Article } from "@/types";
 
 /**
  * Git 操作指令
  */
 export interface GitCommands {
   /** Git add 指令 */
-  add: string
+  add: string;
   /** Git commit 指令 */
-  commit: string
+  commit: string;
   /** Git push 指令 */
-  push: string
+  push: string;
   /** 完整的指令序列（用 && 連接） */
-  full: string
+  full: string;
   /** Commit message */
-  commitMessage: string
+  commitMessage: string;
 }
 
 /**
@@ -25,23 +25,23 @@ export interface GitCommands {
  */
 export function generateGitCommands(article: Article, targetPath: string): GitCommands {
   // 生成 commit message
-  const commitMessage = generateCommitMessage(article)
+  const commitMessage = generateCommitMessage(article);
 
   // 生成各個指令
-  const add = `git add "${targetPath}"`
-  const commit = `git commit -m "${escapeShellArg(commitMessage)}"`
-  const push = `git push`
+  const add = `git add "${targetPath}"`;
+  const commit = `git commit -m "${escapeShellArg(commitMessage)}"`;
+  const push = `git push`;
 
   // 完整指令（使用 && 連接）
-  const full = `${add} && ${commit} && ${push}`
+  const full = `${add} && ${commit} && ${push}`;
 
   return {
     add,
     commit,
     push,
     full,
-    commitMessage
-  }
+    commitMessage,
+  };
 }
 
 /**
@@ -51,23 +51,23 @@ export function generateGitCommands(article: Article, targetPath: string): GitCo
  * @returns Commit message
  */
 function generateCommitMessage(article: Article): string {
-  const { title, category } = article
-  const tags = article.frontmatter.tags
+  const { title, category } = article;
+  const tags = article.frontmatter.tags;
 
   // 判斷是新增還是更新
-  const type = 'docs'
-  const scope = getCategoryScope(category)
+  const type = "docs";
+  const scope = getCategoryScope(category);
 
   // 生成簡短描述
-  const subject = `新增文章 - ${title}`
+  const subject = `新增文章 - ${title}`;
 
   // 生成詳細描述（可選）
-  let body = ''
+  let body = "";
   if (tags && tags.length > 0) {
-    body = `\n\n標籤: ${tags.join(', ')}`
+    body = `\n\n標籤: ${tags.join(", ")}`;
   }
 
-  return `${type}(${scope}): ${subject}${body}`
+  return `${type}(${scope}): ${subject}${body}`;
 }
 
 /**
@@ -75,12 +75,12 @@ function generateCommitMessage(article: Article): string {
  */
 function getCategoryScope(category: string): string {
   const scopeMap: Record<string, string> = {
-    Software: 'tech',
-    growth: 'growth',
-    management: 'management'
-  }
+    Software: "tech",
+    growth: "growth",
+    management: "management",
+  };
 
-  return scopeMap[category] || 'blog'
+  return scopeMap[category] || "blog";
 }
 
 /**
@@ -88,7 +88,7 @@ function getCategoryScope(category: string): string {
  */
 function escapeShellArg(arg: string): string {
   // 轉義雙引號和反斜線
-  return arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return arg.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 /**
@@ -100,23 +100,23 @@ function escapeShellArg(arg: string): string {
 export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text)
-      return true
+      await navigator.clipboard.writeText(text);
+      return true;
     } else {
       // Fallback: 使用舊的 execCommand 方法
-      const textarea = document.createElement('textarea')
-      textarea.value = text
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      const success = document.execCommand('copy')
-      document.body.removeChild(textarea)
-      return success
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return success;
     }
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error)
-    return false
+    console.error("Failed to copy to clipboard:", error);
+    return false;
   }
 }
 
@@ -127,25 +127,25 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  * @returns 格式化的指令列表
  */
 export function formatGitCommandsForDisplay(commands: GitCommands): {
-  title: string
-  command: string
-  description: string
+  title: string;
+  command: string;
+  description: string;
 }[] {
   return [
     {
-      title: '1. 新增檔案到 Git',
+      title: "1. 新增檔案到 Git",
       command: commands.add,
-      description: '將發布的文章檔案加入 Git 追蹤'
+      description: "將發布的文章檔案加入 Git 追蹤",
     },
     {
-      title: '2. 提交變更',
+      title: "2. 提交變更",
       command: commands.commit,
-      description: '提交變更並使用標準化的 commit message'
+      description: "提交變更並使用標準化的 commit message",
     },
     {
-      title: '3. 推送到遠端',
+      title: "3. 推送到遠端",
       command: commands.push,
-      description: '將 commit 推送到遠端儲存庫'
-    }
-  ]
+      description: "將 commit 推送到遠端儲存庫",
+    },
+  ];
 }

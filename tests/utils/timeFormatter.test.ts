@@ -58,10 +58,10 @@ describe('calculateETA', () => {
       startTime: Date.now() - 5000 // 5 秒前開始
     })
 
-    expect(result.remainingSeconds).toBeGreaterThan(0)
-    expect(result.remainingSeconds).toBeLessThanOrEqual(10)
-    expect(result.speed).toBeGreaterThan(0)
-    expect(result.formattedETA).toContain('秒')
+    expect(result!.remainingSeconds).toBeGreaterThan(0)
+    expect(result!.remainingSeconds).toBeLessThanOrEqual(10)
+    expect(result!.speed).toBeGreaterThan(0)
+    expect(result!.formattedETA).toContain('秒')
   })
 
   it('當處理數為 0 時應該返回 null', () => {

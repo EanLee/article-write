@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { ConversionConfig } from '@/types'
 
 // Mock the Electron API
@@ -30,13 +30,13 @@ class TestableConverterService {
 
   convertWikiLinks(content: string): string {
     // Convert [[link|alias]] format
-    content = content.replace(/\[\[([^#\]|]+)\|([^\]]+)\]\]/g, (match, link, alias) => {
+    content = content.replace(/\[\[([^#\]|]+)\|([^\]]+)\]\]/g, (_match, link, alias) => {
       const slug = this.generateSlugFromTitle(link.trim())
       return `[${alias.trim()}](../${slug}/)`
     })
 
     // Convert [[link]] format
-    content = content.replace(/\[\[([^#\]]+)\]\]/g, (match, link) => {
+    content = content.replace(/\[\[([^#\]]+)\]\]/g, (_match, link) => {
       const trimmedLink = link.trim()
       const slug = this.generateSlugFromTitle(trimmedLink)
       return `[${trimmedLink}](../${slug}/)`
@@ -50,7 +50,7 @@ class TestableConverterService {
   }
 
   convertObsidianImages(content: string): string {
-    return content.replace(/!\[\[([^\]]+)\]\]/g, (match, imageName) => {
+    return content.replace(/!\[\[([^\]]+)\]\]/g, (_match, imageName) => {
       return `![${imageName}](./images/${imageName})`
     })
   }
@@ -71,14 +71,14 @@ class TestableConverterService {
 
   convertInternalLinks(content: string): string {
     // Handle links with anchors and aliases first [[file#section|alias]]
-    content = content.replace(/\[\[([^#\]|]+)#([^|\]]+)\|([^\]]+)\]\]/g, (match, file, section, alias) => {
+    content = content.replace(/\[\[([^#\]|]+)#([^|\]]+)\|([^\]]+)\]\]/g, (_match, file, section, alias) => {
       const slug = this.generateSlugFromTitle(file.trim())
       const anchor = section.trim().toLowerCase().replace(/\s+/g, '-')
       return `[${alias.trim()}](../${slug}/#${anchor})`
     })
 
     // Handle links with anchors [[file#section]]
-    content = content.replace(/\[\[([^#\]]+)#([^\]]+)\]\]/g, (match, file, section) => {
+    content = content.replace(/\[\[([^#\]]+)#([^\]]+)\]\]/g, (_match, file, section) => {
       const slug = this.generateSlugFromTitle(file.trim())
       const anchor = section.trim().toLowerCase().replace(/\s+/g, '-')
       return `[${file.trim()}#${section.trim()}](../${slug}/#${anchor})`

@@ -51,13 +51,19 @@ async function getAppWindow(app: ElectronApplication): Promise<Page> {
   throw new Error('無法找到 App 主視窗（非 DevTools）')
 }
 
-export type ElectronFixtures = {
+export type WorkerFixtures = {
   electronApp: ElectronApplication
-  window: Page
   testVaultPath: string
 }
 
-export const test = base.extend<ElectronFixtures, { electronApp: ElectronApplication; testVaultPath: string }>({
+export type TestFixtures = {
+  window: Page
+}
+
+/** 所有 fixture 的聯合型別（供外部使用） */
+export type ElectronFixtures = TestFixtures & WorkerFixtures
+
+export const test = base.extend<TestFixtures, WorkerFixtures>({
   // worker scope：整個測試檔案共用一個 App 實例
   // eslint-disable-next-line no-empty-pattern
   testVaultPath: [async ({}, use) => {

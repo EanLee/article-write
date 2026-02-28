@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Article Store - 路徑處理測試
  * 專門測試 Windows 路徑格式不一致問題，確保不會產生重複文章
  *
@@ -29,6 +29,8 @@ global.window = {
     onFileChange: vi.fn()
   }
 } as any
+// Typed mock accessor: env.d.ts types window.electronAPI as the real API; at test time these are vi.fn() mocks
+const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>
 
 describe('Article Store - 路徑處理測試', () => {
   beforeEach(() => {
@@ -40,9 +42,9 @@ describe('Article Store - 路徑處理測試', () => {
     vi.clearAllMocks()
 
     // 預設成功的 mock 實作
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.createDirectory.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue({
+    api.writeFile.mockResolvedValue(undefined)
+    api.createDirectory.mockResolvedValue(undefined)
+    api.getFileStats.mockResolvedValue({
       isDirectory: false,
       mtime: new Date('2024-01-01').getTime()
     })
@@ -55,14 +57,14 @@ describe('Article Store - 路徑處理測試', () => {
   describe('路徑格式一致性', () => {
     it.skip('loadArticles 應該使用正斜線格式的路徑（待配合 loadAllArticles 掃描邏輯重寫 mock）', async () => {
       // Mock 檔案系統
-      window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
+      api.getFileStats.mockImplementation(async (path: string) => {
         if (path.includes('Drafts') || path.includes('Software')) {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
-      window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
+      api.readDirectory.mockImplementation(async (path: string) => {
         if (path.includes('Drafts')) {
           return ['Software']
         }
@@ -72,7 +74,7 @@ describe('Article Store - 路徑處理測試', () => {
         return []
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Test Article
 ---
 Content`)
@@ -112,12 +114,12 @@ Content`)
       })
 
       // Mock 檔案讀取（更新後的內容）
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Updated Title
 ---
 Updated content`)
 
-      window.electronAPI.getFileStats.mockResolvedValue({
+      api.getFileStats.mockResolvedValue({
         isDirectory: false,
         mtime: new Date('2024-01-02').getTime()
       })
@@ -125,7 +127,6 @@ Updated content`)
       // 使用正斜線路徑呼叫 reloadArticleByPath
       await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/test-article.md',
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
@@ -157,12 +158,12 @@ Updated content`)
         }
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Updated Title
 ---
 Updated content`)
 
-      window.electronAPI.getFileStats.mockResolvedValue({
+      api.getFileStats.mockResolvedValue({
         isDirectory: false,
         mtime: new Date('2024-01-02').getTime()
       })
@@ -170,7 +171,6 @@ Updated content`)
       // ⚠️ 關鍵測試：使用反斜線路徑呼叫（模擬 Windows 檔案監聽）
       await store.reloadArticleFromDisk(
         'C:\\test\\vault\\Drafts\\Software\\test-article.md', // 反斜線！
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
@@ -200,12 +200,12 @@ Updated content`)
         }
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Updated Title
 ---
 Updated content`)
 
-      window.electronAPI.getFileStats.mockResolvedValue({
+      api.getFileStats.mockResolvedValue({
         isDirectory: false,
         mtime: new Date('2024-01-02').getTime()
       })
@@ -213,7 +213,6 @@ Updated content`)
       // 混合斜線
       await store.reloadArticleFromDisk(
         'C:\\test/vault\\Drafts/Software\\test-article.md',
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
@@ -237,12 +236,12 @@ Updated content`)
         frontmatter: { title: 'Existing Article', date: '2024-01-01', tags: [], categories: ['Software'] }
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: New Article
 ---
 New content`)
 
-      window.electronAPI.getFileStats.mockResolvedValue({
+      api.getFileStats.mockResolvedValue({
         isDirectory: false,
         mtime: new Date('2024-01-02').getTime()
       })
@@ -250,7 +249,6 @@ New content`)
       // 載入一篇真的不存在的文章
       await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/new-article.md',
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
@@ -301,12 +299,12 @@ New content`)
         frontmatter: { title: 'Article', date: '2024-01-01', tags: [], categories: ['Software'] }
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Article
 ---
 Content`)
 
-      window.electronAPI.getFileStats.mockResolvedValue({
+      api.getFileStats.mockResolvedValue({
         isDirectory: false,
         mtime: new Date('2024-01-02').getTime()
       })
@@ -314,19 +312,16 @@ Content`)
       // 模擬多次檔案監聽觸發（使用不同路徑格式）
       await store.reloadArticleFromDisk(
         'C:/test/vault/Drafts/Software/article.md',
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
       await store.reloadArticleFromDisk(
         'C:\\test\\vault\\Drafts\\Software\\article.md', // 反斜線
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 
       await store.reloadArticleFromDisk(
         'C:/test\\vault/Drafts\\Software/article.md', // 混合
-        ArticleStatus.Draft,
         ArticleCategory.Software
       )
 

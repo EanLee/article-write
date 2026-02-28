@@ -113,6 +113,7 @@ export interface Frontmatter {
   categories?: string[]; // 改為可選，防止 undefined 導致崩潰
   slug?: string;
   keywords?: string[];
+  draft?: boolean; // Astro/Hugo frontmatter 發布標記
   series?: string; // 系列名稱
   seriesOrder?: number; // 系列順序
 }

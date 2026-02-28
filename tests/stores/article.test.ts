@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useArticleStore } from '@/stores/article'
 import { useConfigStore } from '@/stores/config'
+import { ArticleCategory } from '@/types'
 
 // Mock the window.electronAPI
 global.window = {
@@ -16,6 +17,8 @@ global.window = {
     setConfig: vi.fn()
   }
 } as any
+// Typed mock accessor: env.d.ts types window.electronAPI as the real API; at test time these are vi.fn() mocks
+const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>
 
 describe('Article Store', () => {
   beforeEach(() => {
@@ -29,9 +32,9 @@ describe('Article Store', () => {
     vi.clearAllMocks()
     
     // Setup default mock implementations
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.createDirectory.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue(null)
+    api.writeFile.mockResolvedValue(undefined)
+    api.createDirectory.mockResolvedValue(undefined)
+    api.getFileStats.mockResolvedValue(null)
   })
 
   it('should initialize with empty articles array', () => {
@@ -42,7 +45,7 @@ describe('Article Store', () => {
 
   it('should create a new article', async () => {
     const store = useArticleStore()
-    const article = await store.createArticle('Test Article', 'Software')
+    const article = await store.createArticle('Test Article', ArticleCategory.Software)
     
     expect(article.title).toBe('Test Article')
     expect(article.category).toBe('Software')
@@ -52,15 +55,15 @@ describe('Article Store', () => {
 
   it('should generate slug from title', async () => {
     const store = useArticleStore()
-    const article = await store.createArticle('Hello World Test', 'Software')
+    const article = await store.createArticle('Hello World Test', ArticleCategory.Software)
     
     expect(article.slug).toBe('hello-world-test')
   })
 
   it('should filter articles by status', async () => {
     const store = useArticleStore()
-    await store.createArticle('Draft Article', 'Software')
-    const publishedArticle = await store.createArticle('Published Article', 'growth')
+    await store.createArticle('Draft Article', ArticleCategory.Software)
+    const publishedArticle = await store.createArticle('Published Article', ArticleCategory.Growth)
     
     // Move one to published
     await store.toggleStatus(publishedArticle.id)

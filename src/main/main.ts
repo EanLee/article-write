@@ -72,18 +72,18 @@ app.whenReady().then(() => {
   createWindow();
 
   // Register IPC handlers
-  ipcMain.handle(IPC.READ_FILE,        (_, path: string) => fileService.readFile(path));
-  ipcMain.handle(IPC.WRITE_FILE,       (_, path: string, content: string) => fileService.writeFile(path, content));
-  ipcMain.handle(IPC.DELETE_FILE,      (_, path: string) => fileService.deleteFile(path));
-  ipcMain.handle(IPC.COPY_FILE,        (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath));
-  ipcMain.handle(IPC.READ_DIRECTORY,   (_, path: string) => fileService.readDirectory(path));
+  ipcMain.handle(IPC.READ_FILE, (_, path: string) => fileService.readFile(path));
+  ipcMain.handle(IPC.WRITE_FILE, (_, path: string, content: string) => fileService.writeFile(path, content));
+  ipcMain.handle(IPC.DELETE_FILE, (_, path: string) => fileService.deleteFile(path));
+  ipcMain.handle(IPC.COPY_FILE, (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath));
+  ipcMain.handle(IPC.READ_DIRECTORY, (_, path: string) => fileService.readDirectory(path));
   ipcMain.handle(IPC.CREATE_DIRECTORY, (_, path: string) => fileService.createDirectory(path));
-  ipcMain.handle(IPC.GET_FILE_STATS,   (_, path: string) => fileService.getFileStats(path));
+  ipcMain.handle(IPC.GET_FILE_STATS, (_, path: string) => fileService.getFileStats(path));
 
-  ipcMain.handle(IPC.GET_CONFIG,            () => configService.getConfig());
-  ipcMain.handle(IPC.SET_CONFIG,            (_, config: AppConfig) => configService.setConfig(config));
+  ipcMain.handle(IPC.GET_CONFIG, () => configService.getConfig());
+  ipcMain.handle(IPC.SET_CONFIG, (_, config: AppConfig) => configService.setConfig(config));
   ipcMain.handle(IPC.VALIDATE_ARTICLES_DIR, (_, path: string) => configService.validateArticlesDir(path));
-  ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG,   (_, path: string) => configService.validateAstroBlog(path));
+  ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG, (_, path: string) => configService.validateAstroBlog(path));
 
   // Publish Service
   ipcMain.handle(IPC.PUBLISH_ARTICLE, async (event, article: Article, config: PublishConfig) => {
@@ -100,15 +100,15 @@ app.whenReady().then(() => {
   });
 
   // Git Service
-  ipcMain.handle(IPC.GIT_STATUS,          (_, repoPath: string) => gitService.getStatus(repoPath));
-  ipcMain.handle(IPC.GIT_ADD,             (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths));
-  ipcMain.handle(IPC.GIT_COMMIT,          (_, repoPath: string, options: { message: string; addAll?: boolean }) => gitService.commit(repoPath, options));
-  ipcMain.handle(IPC.GIT_PUSH,            (_, repoPath: string, options?: { remote?: string; branch?: string }) => gitService.push(repoPath, options));
+  ipcMain.handle(IPC.GIT_STATUS, (_, repoPath: string) => gitService.getStatus(repoPath));
+  ipcMain.handle(IPC.GIT_ADD, (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths));
+  ipcMain.handle(IPC.GIT_COMMIT, (_, repoPath: string, options: { message: string; addAll?: boolean }) => gitService.commit(repoPath, options));
+  ipcMain.handle(IPC.GIT_PUSH, (_, repoPath: string, options?: { remote?: string; branch?: string }) => gitService.push(repoPath, options));
   ipcMain.handle(IPC.GIT_ADD_COMMIT_PUSH, (_, repoPath: string, commitMessage: string) => gitService.addCommitPush(repoPath, commitMessage));
-  ipcMain.handle(IPC.GIT_LOG,             (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count));
+  ipcMain.handle(IPC.GIT_LOG, (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count));
 
   ipcMain.handle(IPC.START_DEV_SERVER, (_, projectPath: string) => processService.startDevServer(projectPath));
-  ipcMain.handle(IPC.STOP_DEV_SERVER,  () => processService.stopDevServer());
+  ipcMain.handle(IPC.STOP_DEV_SERVER, () => processService.stopDevServer());
   ipcMain.handle(IPC.GET_SERVER_STATUS, () => processService.getServerStatus());
 
   // 檔案監聽

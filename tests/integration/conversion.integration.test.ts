@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ConverterService } from '@/services/ConverterService'
 import { ArticleService } from '@/services/ArticleService'
 import { MarkdownService } from '@/services/MarkdownService'
@@ -33,8 +33,7 @@ describe('Conversion Integration Tests', () => {
       deleteFile: vi.fn(),
       readDirectory: vi.fn(),
       createDirectory: vi.fn(),
-      copyFile: vi.fn(),
-      fileExists: vi.fn(),
+      exists: vi.fn(),
       getFileStats: vi.fn()
     }
 
@@ -54,7 +53,8 @@ describe('Conversion Integration Tests', () => {
     config = {
       sourceDir: '/test/obsidian-vault',
       targetDir: '/test/astro-blog',
-      imageSourceDir: '/test/obsidian-vault/images'
+      imageSourceDir: '/test/obsidian-vault/images',
+      preserveStructure: true
     }
 
     // 預設：目錄路徑 isDirectory: true，檔案路徑 isDirectory: false
@@ -114,13 +114,11 @@ Obsidian 圖片語法：
         frontmatter: {
           title: '測試文章：WriteFlow 使用指南',
           date: '2026-02-04',
-          category: 'Software',
           tags: ['WriteFlow', 'Tutorial', 'Test'],
           draft: false
         },
         filePath: '/test/obsidian-vault/publish/Software/test-article.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       // Mock 文章載入
@@ -134,7 +132,7 @@ Obsidian 圖片語法：
       })
 
       // Mock 檔案存在檢查
-      vi.mocked(mockFileSystem.fileExists).mockImplementation(async (path: string) => {
+      vi.mocked(mockFileSystem.exists).mockImplementation(async (path: string) => {
         if (path.includes('demo.png') || path.includes('screenshot.png')) {
           return true
         }
@@ -143,7 +141,7 @@ Obsidian 圖片語法：
 
       // Mock 檔案寫入
       let writtenContent = ''
-      vi.mocked(mockFileSystem.writeFile).mockImplementation(async (path: string, content: string) => {
+      vi.mocked(mockFileSystem.writeFile).mockImplementation(async (_path: string, content: string) => {
         writtenContent = content
       })
 
@@ -206,13 +204,11 @@ Obsidian 圖片語法：
         frontmatter: {
           title: '圖片缺失測試',
           date: '2026-02-04',
-          category: 'Software',
           tags: [],
           draft: false
         },
         filePath: '/test/obsidian-vault/publish/Software/missing-image.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(testArticle)
@@ -224,7 +220,7 @@ Obsidian 圖片語法：
       })
 
       // Mock 檔案存在檢查：只有 exists.png 存在
-      vi.mocked(mockFileSystem.fileExists).mockImplementation(async (path: string) => {
+      vi.mocked(mockFileSystem.exists).mockImplementation(async (path: string) => {
         return path.includes('exists.png')
       })
 
@@ -251,10 +247,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Software,
         status: ArticleStatus.Published,
         content: '# 軟體開發\n\n內容...',
-        frontmatter: { title: '軟體開發文章', date: '2026-02-04', category: 'Software', tags: [] },
+        frontmatter: { title: '軟體開發文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/Software/software-1.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       // Growth 分類文章
@@ -265,10 +260,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Growth,
         status: ArticleStatus.Published,
         content: '# 個人成長\n\n內容...',
-        frontmatter: { title: '成長文章', date: '2026-02-04', category: 'growth', tags: [] },
+        frontmatter: { title: '成長文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/growth/growth-1.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       // Management 分類文章
@@ -279,10 +273,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Management,
         status: ArticleStatus.Published,
         content: '# 團隊管理\n\n內容...',
-        frontmatter: { title: '管理文章', date: '2026-02-04', category: 'management', tags: [] },
+        frontmatter: { title: '管理文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/management/management-1.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       // Mock 文章載入（根據路徑返回不同文章）
@@ -302,7 +295,7 @@ Obsidian 圖片語法：
         return []
       })
 
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(false)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(false)
       vi.mocked(mockFileSystem.writeFile).mockResolvedValue()
 
       const result = await converterService.convertAllArticles(config)
@@ -327,10 +320,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Software,
         status: ArticleStatus.Published,
         content: '# 正常文章\n\n內容...',
-        frontmatter: { title: '正常文章', date: '2026-02-04', category: 'Software', tags: [] },
+        frontmatter: { title: '正常文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/Software/success.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       const failArticle: Article = {
@@ -340,10 +332,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Software,
         status: ArticleStatus.Published,
         content: '# 失敗文章\n\n內容...',
-        frontmatter: { title: '失敗文章', date: '2026-02-04', category: 'Software', tags: [] },
+        frontmatter: { title: '失敗文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/Software/fail.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       vi.mocked(mockArticleService.loadArticle).mockImplementation(async (path: string) => {
@@ -358,7 +349,7 @@ Obsidian 圖片語法：
         return []
       })
 
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(false)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(false)
 
       // Mock writeFile：第二次呼叫時失敗
       let writeCount = 0
@@ -403,12 +394,10 @@ Obsidian 圖片語法：
         frontmatter: {
           title: 'Obsidian 語法測試',
           date: '2026-02-04',
-          category: 'Software',
           tags: []
         },
         filePath: '/test/obsidian-vault/publish/Software/syntax-test.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(testArticle)
@@ -417,7 +406,7 @@ Obsidian 圖片語法：
         if (path.includes('Software')) {return ['syntax-test.md']}
         return []
       })
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(true)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(true)
 
       let writtenContent = ''
       vi.mocked(mockFileSystem.writeFile).mockImplementation(async (_path: string, content: string) => {
@@ -467,12 +456,10 @@ Obsidian 圖片語法：
         frontmatter: {
           title: '特殊字元測試：C++ / JavaScript & TypeScript!',
           date: '2026-02-04',
-          category: 'Software',
           tags: []
         },
         filePath: '/test/obsidian-vault/publish/Software/special.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(specialArticle)
@@ -481,7 +468,7 @@ Obsidian 圖片語法：
         if (path.includes('Software')) {return ['special.md']}
         return []
       })
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(false)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(false)
       vi.mocked(mockFileSystem.writeFile).mockResolvedValue()
 
       const result = await converterService.convertAllArticles(config)
@@ -501,10 +488,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Software,
         status: ArticleStatus.Published,
         content: `# 超長文章\n\n${longContent}`,
-        frontmatter: { title: '超長文章', date: '2026-02-04', category: 'Software', tags: [] },
+        frontmatter: { title: '超長文章', date: '2026-02-04', tags: [] },
         filePath: '/test/obsidian-vault/publish/Software/long.md',
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }
 
       vi.mocked(mockArticleService.loadArticle).mockResolvedValue(longArticle)
@@ -513,7 +499,7 @@ Obsidian 圖片語法：
         if (path.includes('Software')) {return ['long.md']}
         return []
       })
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(false)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(false)
       vi.mocked(mockFileSystem.writeFile).mockResolvedValue()
 
       const result = await converterService.convertAllArticles(config)
@@ -534,10 +520,9 @@ Obsidian 圖片語法：
         category: ArticleCategory.Software,
         status: ArticleStatus.Published,
         content: '# 測試\n\n內容...',
-        frontmatter: { title: a.title, date: '2026-02-04', category: 'Software', tags: [] },
+        frontmatter: { title: a.title, date: '2026-02-04', tags: [] },
         filePath: `/test/obsidian-vault/publish/Software/${a.slug}.md`,
-        createdAt: new Date('2026-02-04'),
-        updatedAt: new Date('2026-02-04')
+        lastModified: new Date('2026-02-04')
       }))
 
       let currentIndex = -1
@@ -552,7 +537,7 @@ Obsidian 圖片語法：
         return []
       })
 
-      vi.mocked(mockFileSystem.fileExists).mockResolvedValue(false)
+      vi.mocked(mockFileSystem.exists).mockResolvedValue(false)
       vi.mocked(mockFileSystem.writeFile).mockResolvedValue()
 
       // 收集進度回報

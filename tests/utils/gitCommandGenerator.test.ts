@@ -11,17 +11,14 @@ describe('gitCommandGenerator', () => {
       slug: 'test-article',
       filePath: 'test.md',
       content: '# 測試內容',
-      excerpt: '測試摘要',
       status: ArticleStatus.Published,
       category: ArticleCategory.Software,
-      tags: ['Vue', 'TypeScript'],
+      lastModified: new Date('2024-01-01'),
       frontmatter: {
         title: '測試文章標題',
         date: '2024-01-01',
         tags: ['Vue', 'TypeScript']
-      },
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01')
+      }
     }
 
     it('應該生成正確的 Git 指令', () => {

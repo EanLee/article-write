@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { AutoSaveService } from '@/services/AutoSaveService'
 import type { Article } from '@/types'
 import { ArticleStatus, ArticleCategory } from '@/types'
@@ -23,8 +24,8 @@ const mockArticle: Article = {
 
 describe('AutoSaveService', () => {
   let autoSaveService: AutoSaveService
-  let mockSaveCallback: vi.MockedFunction<(article: Article) => Promise<void>>
-  let mockGetCurrentArticleCallback: vi.MockedFunction<() => Article | null>
+let mockSaveCallback: MockedFunction<(article: Article) => Promise<void>>
+  let mockGetCurrentArticleCallback: MockedFunction<() => Article | null>
 
   beforeEach(() => {
     vi.useFakeTimers()

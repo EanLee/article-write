@@ -33,17 +33,14 @@ describe('PublishService', () => {
       slug: 'test-article',
       filePath: 'test.md',
       content: '# 標題\n\n這是內容。\n\n[[wiki-link]]\n\n![[image.png]]',
-      excerpt: '測試',
       status: ArticleStatus.Draft,
       category: ArticleCategory.Software,
-      tags: ['test'],
+      lastModified: new Date(),
       frontmatter: {
         title: '測試文章',
         date: '2024-01-01',
         tags: ['test']
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      }
     }
 
     // Mock config
