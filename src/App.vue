@@ -1,7 +1,8 @@
 <template>
   <div class="h-screen flex bg-base-100">
     <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
-    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
+    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true"
+      @toggle-sidebar="toggleSidebar" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">

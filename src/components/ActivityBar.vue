@@ -1,26 +1,15 @@
 <template>
   <div class="activity-bar">
     <div class="activity-items">
-      <button
-        v-for="item in items"
-        :key="item.id"
-        class="activity-item"
-        :class="{ active: modelValue === item.id }"
-        :title="`${item.label} (${item.shortcut})`"
-        @click="handleClick(item.id)"
-      >
+      <button v-for="item in items" :key="item.id" class="activity-item" :class="{ active: modelValue === item.id }"
+        :title="`${item.label} (${item.shortcut})`" @click="handleClick(item.id)">
         <component :is="item.icon" :size="24" />
       </button>
     </div>
 
     <!-- Bottom actions -->
     <div class="activity-bottom">
-      <button
-        class="activity-item"
-        data-testid="settings-button"
-        title="設定"
-        @click="$emit('open-settings')"
-      >
+      <button class="activity-item" data-testid="settings-button" title="設定" @click="$emit('open-settings')">
         <Settings :size="24" />
       </button>
     </div>

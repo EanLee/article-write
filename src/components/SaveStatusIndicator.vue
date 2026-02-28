@@ -1,24 +1,16 @@
 <template>
-  <div
-    class="flex items-center gap-2"
-    :class="compact ? 'text-xs' : 'text-sm'"
-    data-testid="save-status-indicator"
-    :data-status="saveState.status"
-  >
+  <div class="flex items-center gap-2" :class="compact ? 'text-xs' : 'text-sm'" data-testid="save-status-indicator"
+    :data-status="saveState.status">
     <!-- Icon Only 模式：僅顯示圖示 -->
     <div v-if="iconOnly" class="tooltip tooltip-bottom" :data-tip="statusText">
       <component :is="statusIcon" :size="compact ? 14 : 16" :class="[iconClass, statusColorClass]" />
     </div>
 
     <!-- 一般模式：顯示圖示和文字 -->
-    <div
-      v-else
-      class="flex items-center gap-1.5 rounded-lg transition-all font-medium"
-      :class="[
-        statusClass,
-        compact ? 'px-2 py-0.5' : 'px-3 py-1.5 shadow-sm'
-      ]"
-    >
+    <div v-else class="flex items-center gap-1.5 rounded-lg transition-all font-medium" :class="[
+      statusClass,
+      compact ? 'px-2 py-0.5' : 'px-3 py-1.5 shadow-sm'
+    ]">
       <component :is="statusIcon" :size="compact ? 12 : 16" :class="iconClass" />
       <span :class="compact ? 'text-xs' : 'text-sm'" data-testid="save-status-text">{{ statusText }}</span>
     </div>
@@ -30,17 +22,13 @@
 
     <!-- 手動儲存按鈕（非 icon-only 模式） -->
     <div v-if="showSaveButton && !iconOnly" class="tooltip tooltip-bottom" data-tip="手動儲存 (Ctrl+S)">
-      <button
-        :class="[
-          compact ? 'btn btn-xs gap-0.5' : 'btn btn-sm gap-1',
-          {
-            'btn-warning': saveState.status === 'modified',
-            'btn-ghost': saveState.status !== 'modified'
-          }
-        ]"
-        :disabled="isSaving"
-        @click="handleSave"
-      >
+      <button :class="[
+        compact ? 'btn btn-xs gap-0.5' : 'btn btn-sm gap-1',
+        {
+          'btn-warning': saveState.status === 'modified',
+          'btn-ghost': saveState.status !== 'modified'
+        }
+      ]" :disabled="isSaving" @click="handleSave">
         <Save :size="compact ? 12 : 14" />
         <span v-if="!compact" class="hidden sm:inline">儲存</span>
       </button>

@@ -1,11 +1,11 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright 測試配置
  * 用於 E2E 測試文章管理功能
  */
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
 
   // 最大失敗次數
   maxFailures: process.env.CI ? 10 : undefined,
@@ -25,27 +25,24 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter
-  reporter: [
-    ['html'],
-    ['list']
-  ],
+  reporter: [["html"], ["list"]],
 
   use: {
     // 截圖設定
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
 
     // 影片設定
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
 
     // Trace
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
   },
 
   // 測試專案配置
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
     // 可以根據需要添加更多瀏覽器
     // {
@@ -53,4 +50,4 @@ export default defineConfig({
     //   use: { ...devices['Desktop Firefox'] },
     // },
   ],
-})
+});

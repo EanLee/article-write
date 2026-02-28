@@ -1,15 +1,10 @@
 <template>
-  <div
-    class="article-tree-item flex items-center gap-1 px-2 py-1 cursor-pointer select-none transition-colors"
-    data-testid="article-tree-item"
-    :class="{
+  <div class="article-tree-item flex items-center gap-1 px-2 py-1 cursor-pointer select-none transition-colors"
+    data-testid="article-tree-item" :class="{
       'bg-primary/10 text-primary font-medium': isCurrent,
       'hover:bg-base-200': !isCurrent
-    }"
-    :style="{ paddingLeft: `${indentLevel * 12 + 8}px` }"
-    @click="$emit('select', article)"
-    @contextmenu.prevent="handleContextMenu"
-  >
+    }" :style="{ paddingLeft: `${indentLevel * 12 + 8}px` }" @click="$emit('select', article)"
+    @contextmenu.prevent="handleContextMenu">
     <!-- 狀態圖示 -->
     <span v-if="showStatusIcons" class="shrink-0 w-4 text-center" :title="statusTooltip">
       <span v-if="isCurrent" class="text-primary">●</span>
@@ -31,22 +26,15 @@
     </span>
 
     <!-- 狀態徽章（緊湊模式） -->
-    <span
-      v-if="!showStatusIcons"
-      class="shrink-0 text-xs"
-      :class="{
-        'text-success': article.status === 'published',
-        'text-info': article.status === 'draft'
-      }"
-    >
+    <span v-if="!showStatusIcons" class="shrink-0 text-xs" :class="{
+      'text-success': article.status === 'published',
+      'text-info': article.status === 'draft'
+    }">
       {{ article.status === 'published' ? '✓' : '' }}
     </span>
 
     <!-- 日期（Hover 顯示） -->
-    <span
-      v-if="showDate"
-      class="shrink-0 text-xs text-base-content/40 hidden group-hover:inline"
-    >
+    <span v-if="showDate" class="shrink-0 text-xs text-base-content/40 hidden group-hover:inline">
       {{ formatDate(article.lastModified) }}
     </span>
   </div>
@@ -82,9 +70,9 @@ const hasUnsavedChanges = computed(() => {
 })
 
 const statusTooltip = computed(() => {
-  if (props.isCurrent) {return '當前編輯'}
-  if (hasUnsavedChanges.value) {return '有未儲存的變更'}
-  if (props.article.status === 'published') {return '已發布'}
+  if (props.isCurrent) { return '當前編輯' }
+  if (hasUnsavedChanges.value) { return '有未儲存的變更' }
+  if (props.article.status === 'published') { return '已發布' }
   return '草稿'
 })
 
@@ -99,9 +87,9 @@ function formatDate(date: Date | string): string {
   const diffMs = now.getTime() - dateObj.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) {return '今天'}
-  if (diffDays === 1) {return '昨天'}
-  if (diffDays < 7) {return `${diffDays}天前`}
+  if (diffDays === 0) { return '今天' }
+  if (diffDays === 1) { return '昨天' }
+  if (diffDays < 7) { return `${diffDays}天前` }
 
   return new Intl.DateTimeFormat('zh-TW', {
     month: 'short',
