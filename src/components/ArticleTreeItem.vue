@@ -1,7 +1,7 @@
 <template>
   <div
     class="article-tree-item flex items-center gap-1 px-2 py-1 cursor-pointer select-none transition-colors"
-    data-testid="article-tree-item"
+    :id="'article-' + article.slug.replace(/\s+/g, '-')"
     :class="{
       'bg-primary/10 text-primary font-medium': isCurrent,
       'hover:bg-base-200': !isCurrent

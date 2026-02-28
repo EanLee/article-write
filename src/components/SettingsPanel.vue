@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelValue" class="modal modal-open" data-testid="settings-modal">
+  <div v-if="modelValue" class="modal modal-open" id="settings-modal">
     <div class="modal-box w-11/12 max-w-5xl max-h-[90vh]">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
@@ -7,7 +7,7 @@
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
         </div>
-        <button class="btn btn-sm btn-circle btn-ghost" data-testid="btn-close-settings" @click="handleClose">
+        <button class="btn btn-sm btn-circle btn-ghost" id="btn-close-settings" @click="handleClose">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -19,7 +19,7 @@
         <a 
           role="tab" 
           class="tab"
-          data-testid="tab-basic"
+          id="tab-basic"
           :aria-selected="activeTab === 'basic' ? 'true' : 'false'"
           :class="{ 'tab-active': activeTab === 'basic' }"
           @click="activeTab = 'basic'"
@@ -32,7 +32,7 @@
         <a 
           role="tab" 
           class="tab"
-          data-testid="tab-framework"
+          id="tab-framework"
           :aria-selected="activeTab === 'framework' ? 'true' : 'false'"
           :class="{ 'tab-active': activeTab === 'framework' }"
           @click="activeTab = 'framework'"
@@ -45,7 +45,7 @@
         <a 
           role="tab" 
           class="tab"
-          data-testid="tab-editor"
+          id="tab-editor"
           :aria-selected="activeTab === 'editor' ? 'true' : 'false'"
           :class="{ 'tab-active': activeTab === 'editor' }"
           @click="activeTab = 'editor'"
@@ -58,7 +58,7 @@
         <a 
           role="tab" 
           class="tab relative"
-          data-testid="tab-git"
+          id="tab-git"
           :aria-selected="activeTab === 'git' ? 'true' : 'false'"
           :class="{ 'tab-active': activeTab === 'git' }"
           @click="activeTab = 'git'"
@@ -98,10 +98,10 @@
                       type="text"
                       placeholder="例如：C:\Users\你的名字\Documents\Blog\articles"
                       class="input input-bordered join-item flex-1"
-                      data-testid="input-articles-dir"
+                      id="input-articles-dir"
                       :class="{ 'input-error': localConfig.paths.articlesDir && !articlesValidation.valid }"
                     />
-                    <button class="btn btn-primary join-item" data-testid="btn-select-articles-dir" @click="selectArticlesPath">
+                    <button class="btn btn-primary join-item" id="btn-select-articles-dir" @click="selectArticlesPath">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                       </svg>
