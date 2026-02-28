@@ -28,12 +28,8 @@
 
       <div class="flex-1"></div>
 
-      <button
-        class="btn btn-outline btn-sm gap-2"
-        :class="{ 'loading': isSyncing }"
-        :disabled="isSyncing"
-        @click="handleSyncToBlog"
-      >
+      <button class="btn btn-outline btn-sm gap-2" :class="{ 'loading': isSyncing }" :disabled="isSyncing"
+        @click="handleSyncToBlog">
         <RefreshCw v-if="!isSyncing" :size="16" />
         {{ isSyncing ? `同步中 ${syncProgress.current}/${syncProgress.total}` : '同步到 Blog' }}
       </button>
@@ -60,9 +56,7 @@
 
         <select v-model="filters.category" class="select select-sm select-bordered">
           <option :value="ArticleFilterCategory.All">所有分類</option>
-          <option :value="ArticleFilterCategory.Software">Software</option>
-          <option :value="ArticleFilterCategory.Growth">Growth</option>
-          <option :value="ArticleFilterCategory.Management">Management</option>
+          <option v-for="cat in articleStore.allCategories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
 
         <div class="search-box">

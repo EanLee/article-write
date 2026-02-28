@@ -17,6 +17,7 @@ directories:
 # 包含的檔案（編譯後的產物）
 files:
   - dist/main/**
+  - dist/preload/**
   - dist/types/**
   - dist/renderer/**
   - package.json
@@ -71,6 +72,4 @@ linux:
       arch:
         - x64
   category: Office
-  executableArgs:
-    - --no-sandbox
   # icon: build/icon.png  # 取消註解並提供 512x512 png 檔案以自訂圖示

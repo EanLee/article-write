@@ -1,29 +1,20 @@
 /**
  * Smoke tests - 基本煙霧測試
- * 驗證應用程式基本功能是否正常運作
+ * 驗證 Electron 應用程式基本功能是否正常運作
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect } from "./helpers/electron-fixture";
 
-test.describe('應用程式基本功能', () => {
-  test('應用程式應該能正常載入', async ({ page }) => {
-    // 前往應用程式首頁
-    await page.goto('/')
+test.describe("應用程式基本功能", () => {
+  test("應用程式應該能正常載入", async ({ window }) => {
+    // 驗證 Electron 視窗標題
+    const title = await window.title();
+    expect(title).toMatch(/WriteFlow|文章/);
+  });
 
-    // 等待應用程式載入
-    await page.waitForLoadState('networkidle')
-
-    // 驗證頁面標題或主要元素存在
-    // 根據實際應用調整選擇器
-    await expect(page).toHaveTitle(/WriteFlow|文章/)
-  })
-
-  test('應用程式主要容器應該存在', async ({ page }) => {
-    await page.goto('/')
-    await page.waitForLoadState('networkidle')
-
-    // 等待主要容器出現 (使用更寬鬆的選擇器)
-    const body = await page.locator('body')
-    await expect(body).toBeVisible()
-  })
-})
+  test("應用程式主要容器應該存在", async ({ window }) => {
+    // 確認 Vue 已掛載（#app 有子元素）
+    const appContainer = window.locator("#app");
+    await expect(appContainer).not.toBeEmpty({ timeout: 10000 });
+  });
+});

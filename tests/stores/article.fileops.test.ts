@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 檔案操作相關測試
  * 測試所有與檔案讀寫相關的功能，確保資料不會遺失或損壞
  */
@@ -28,6 +28,8 @@ global.window = {
     onFileChange: vi.fn(() => vi.fn()) // Returns unsubscribe function
   }
 } as any
+// Typed mock accessor (env.d.ts types window.electronAPI as the real interface; at test time these are vi.fn() mocks)
+const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>
 
 describe('Article Store - 檔案操作測試', () => {
   beforeEach(() => {
@@ -39,10 +41,10 @@ describe('Article Store - 檔案操作測試', () => {
     vi.clearAllMocks()
 
     // 預設成功的 mock 實作
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.deleteFile.mockResolvedValue(undefined)
-    window.electronAPI.createDirectory.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue({
+    api.writeFile.mockResolvedValue(undefined)
+    api.deleteFile.mockResolvedValue(undefined)
+    api.createDirectory.mockResolvedValue(undefined)
+    api.getFileStats.mockResolvedValue({
       isDirectory: false,
       mtime: new Date('2024-01-01').getTime()
     })
@@ -55,14 +57,14 @@ describe('Article Store - 檔案操作測試', () => {
   describe('loadArticles - 載入文章', () => {
     it('應該正確載入包含系列資訊的文章', async () => {
       // Mock 檔案系統結構
-      window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
+      api.getFileStats.mockImplementation(async (path: string) => {
         if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
-      window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
+      api.readDirectory.mockImplementation(async (path: string) => {
         if (path === '/test/vault') {
           return ['Software']
         }
@@ -72,7 +74,7 @@ describe('Article Store - 檔案操作測試', () => {
         return []
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: Test Article
 description: Test Description
 date: 2024-01-01
@@ -98,14 +100,14 @@ Test content here`)
     })
 
     it('應該正確載入沒有系列資訊的文章', async () => {
-      window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
+      api.getFileStats.mockImplementation(async (path: string) => {
         if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
-      window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
+      api.readDirectory.mockImplementation(async (path: string) => {
         if (path === '/test/vault') {
           return ['Software']
         }
@@ -115,7 +117,7 @@ Test content here`)
         return []
       })
 
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: No Series Article
 date: 2024-01-01
 tags: []
@@ -134,14 +136,14 @@ Content without series`)
     })
 
     it('當檔案讀取失敗時應該繼續載入其他文章', async () => {
-      window.electronAPI.getFileStats.mockImplementation(async (path: string) => {
+      api.getFileStats.mockImplementation(async (path: string) => {
         if (path === '/test/vault/Software') {
           return { isDirectory: true, mtime: Date.now() }
         }
         return { isDirectory: false, mtime: Date.now() }
       })
 
-      window.electronAPI.readDirectory.mockImplementation(async (path: string) => {
+      api.readDirectory.mockImplementation(async (path: string) => {
         if (path === '/test/vault') {
           return ['Software']
         }
@@ -151,7 +153,7 @@ Content without series`)
         return []
       })
 
-      window.electronAPI.readFile.mockImplementation(async (path: string) => {
+      api.readFile.mockImplementation(async (path: string) => {
         if (path.includes('bad.md')) {
           throw new Error('Read error')
         }
@@ -202,7 +204,7 @@ Content`
       await store.saveArticle(article)
 
       expect(window.electronAPI.writeFile).toHaveBeenCalledOnce()
-      const [filePath, content] = window.electronAPI.writeFile.mock.calls[0]
+      const [filePath, content] = api.writeFile.mock.calls[0]
 
       expect(filePath).toBe('/test/vault/Drafts/Software/test-article.md')
       expect(content).toContain('series: Vue 3 進階教學')
@@ -239,7 +241,7 @@ Content`
       store.articles.push(article)
       await store.saveArticle(article)
 
-      const [, content] = window.electronAPI.writeFile.mock.calls[0]
+      const [, content] = api.writeFile.mock.calls[0]
 
       // 驗證所有欄位都被保存
       expect(content).toContain('title: Full Frontmatter Test')
@@ -318,7 +320,7 @@ Content`
       store.articles.push(article)
 
       // Mock 寫入失敗
-      window.electronAPI.writeFile.mockRejectedValue(new Error('Write failed'))
+      api.writeFile.mockRejectedValue(new Error('Write failed'))
 
       await expect(store.saveArticle(article)).rejects.toThrow()
     })
@@ -328,7 +330,7 @@ Content`
     it('應該創建新文章並寫入檔案', async () => {
       const store = useArticleStore()
 
-      const article = await store.createArticle('New Article', 'Software')
+      const article = await store.createArticle('New Article', ArticleCategory.Software)
 
       expect(window.electronAPI.writeFile).toHaveBeenCalledOnce()
       expect(article.title).toBe('New Article')
@@ -341,9 +343,9 @@ Content`
     it('創建的文章應該包含完整的 frontmatter 結構', async () => {
       const store = useArticleStore()
 
-      await store.createArticle('Complete Frontmatter', 'growth')
+      await store.createArticle('Complete Frontmatter', ArticleCategory.Growth)
 
-      const [, content] = window.electronAPI.writeFile.mock.calls[0]
+      const [, content] = api.writeFile.mock.calls[0]
 
       expect(content).toContain('---')
       expect(content).toContain('title: Complete Frontmatter')
@@ -355,10 +357,10 @@ Content`
     it('創建檔案失敗時應該拋出錯誤', async () => {
       const store = useArticleStore()
 
-      window.electronAPI.writeFile.mockRejectedValue(new Error('Create failed'))
+      api.writeFile.mockRejectedValue(new Error('Create failed'))
 
       await expect(
-        store.createArticle('Fail Article', 'Software')
+        store.createArticle('Fail Article', ArticleCategory.Software)
       ).rejects.toThrow('Create failed')
     })
   })
@@ -417,7 +419,7 @@ Content`
 
       store.articles.push(article)
 
-      window.electronAPI.deleteFile.mockRejectedValue(new Error('Delete failed'))
+      api.deleteFile.mockRejectedValue(new Error('Delete failed'))
 
       await expect(store.deleteArticle('delete-fail')).rejects.toThrow('Delete failed')
     })
@@ -428,7 +430,7 @@ Content`
       const store = useArticleStore()
 
       // Mock readFile 以模擬讀取原始檔案（saveArticle 內部會讀取）
-      window.electronAPI.readFile.mockResolvedValue(`---
+      api.readFile.mockResolvedValue(`---
 title: To Publish
 date: 2024-01-01
 status: draft
@@ -463,7 +465,7 @@ Content to publish`)
 
       // 應該寫入同一個路徑（不移動檔案）
       expect(window.electronAPI.writeFile).toHaveBeenCalled()
-      const [writtenPath, writtenContent] = window.electronAPI.writeFile.mock.calls[0]
+      const [writtenPath, writtenContent] = api.writeFile.mock.calls[0]
       expect(writtenPath).toBe('/test/vault/Software/to-publish.md')
 
       // 應該寫入 published status
