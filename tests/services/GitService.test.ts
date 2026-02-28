@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockExec = vi.hoisted(() => vi.fn())
+const mockExecFile = vi.hoisted(() => vi.fn())
 
 vi.mock('child_process', () => ({
-  exec: mockExec
+  execFile: mockExecFile
 }))
 
 vi.mock('util', () => ({
@@ -22,14 +22,14 @@ import { GitService } from '../../src/main/services/GitService'
 const repoPath = '/test/astro-blog'
 
 function mockExecSuccess(stdout: string, stderr = '') {
-  mockExec.mockImplementation((_cmd: string, _opts: object, callback: Function) => {
+  mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
     callback(null, stdout, stderr)
     return {} as any
   })
 }
 
 function mockExecFailure(message: string) {
-  mockExec.mockImplementation((_cmd: string, _opts: object, callback: Function) => {
+  mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
     callback(new Error(message), '', message)
     return {} as any
   })
@@ -149,7 +149,7 @@ describe('GitService', () => {
   describe('addCommitPush', () => {
     it('應該依序執行 add → commit → push', async () => {
       let callCount = 0
-      mockExec.mockImplementation((_cmd: string, _opts: object, callback: Function) => {
+      mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
         callCount++
         if (callCount === 1) {callback(null, '', '')} // git add
         else if (callCount === 2) {callback(null, '[main abc] test', '')} // git commit
@@ -178,7 +178,7 @@ describe('GitService', () => {
 
     it('nothing to commit 時不執行 push', async () => {
       let callCount = 0
-      mockExec.mockImplementation((_cmd: string, _opts: object, callback: Function) => {
+      mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
         callCount++
         if (callCount === 1) {callback(null, '', '')} // git add
         else {callback(new Error('nothing to commit'), '', '')} // git commit

@@ -68,7 +68,10 @@ describe("gitCommandGenerator", () => {
     it("應該處理沒有標籤的文章", () => {
       const noTagsArticle = {
         ...mockArticle,
-        tags: [],
+        frontmatter: {
+          ...mockArticle.frontmatter,
+          tags: [],
+        },
       };
       const commands = generateGitCommands(noTagsArticle, "test.md");
 

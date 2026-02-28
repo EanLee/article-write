@@ -17,14 +17,15 @@ test.describe("設定面板功能", () => {
     // 確認標題存在
     await expect(modal.locator("h3", { hasText: "部落格設定" })).toBeVisible();
 
-    // 確認所有現有 tabs 都存在
+    // 確認所有現有 tabs 都存在（共 5 個：基本設定、部落格框架、編輯器、AI 設定、Git 發布）
     const tabs = modal.locator('[role="tab"]');
-    await expect(tabs).toHaveCount(4);
+    await expect(tabs).toHaveCount(5);
 
     // 確認各個 tab 的文字
-    await expect(tabs.filter({ hasText: "基本設定" })).toBeVisible();
-    await expect(tabs.filter({ hasText: "部落格框架" })).toBeVisible();
-    await expect(tabs.filter({ hasText: "編輯器" })).toBeVisible();
+    await expect(tabs.filter({ hasText: '基本設定' })).toBeVisible();
+    await expect(tabs.filter({ hasText: '部落格框架' })).toBeVisible();
+    await expect(tabs.filter({ hasText: '編輯器' })).toBeVisible();
+    await expect(tabs.filter({ hasText: 'AI 設定' })).toBeVisible();
     await expect(tabs.filter({ hasText: "Git 發布" })).toBeVisible();
 
     // 測試切換到編輯器 tab

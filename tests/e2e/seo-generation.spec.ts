@@ -7,9 +7,9 @@ import { test, expect } from './helpers/electron-fixture'
 test.describe('SEO 生成功能', () => {
   test('Settings 頁面能顯示 AI tab', async ({ window }) => {
     // 開啟設定
-    await window.locator('.activity-item[title="設定"]').click()
+    await window.getByTestId('settings-button').click()
 
-    const modal = window.locator('.modal.modal-open')
+    const modal = window.getByTestId('settings-modal')
     await expect(modal).toBeVisible({ timeout: 5000 })
 
     // 確認有 AI 設定 tab
@@ -22,7 +22,11 @@ test.describe('SEO 生成功能', () => {
     // 等待 AI tab 變為 active（確認 Vue 響應式狀態已更新）
     await expect(aiTab).toHaveClass(/tab-active/)
 
-    // 確認有 API Key 輸入框
+    // 點擊 Claude「設定」展開 API Key 輸入框（預設為 v-if 折疊狀態）
+    const claudeSetupBtn = modal.locator('button').filter({ hasText: /^設定$|^重新設定$/ }).first()
+    await claudeSetupBtn.click()
+
+    // 確認 API Key 輸入框出現
     await expect(modal.locator('input[type="password"]').first()).toBeVisible()
   })
 

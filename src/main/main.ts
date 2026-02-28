@@ -18,8 +18,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const isTest = process.env.NODE_ENV === 'test'
 const isDev = !app.isPackaged && !isTest
-// In both dev and test modes, load renderer from the Vite dev server
-const loadFromDevServer = isDev || isTest
+// 只有開發模式從 Vite dev server 載入；測試模式從 dist/renderer/index.html 載入
+const loadFromDevServer = isDev
 
 // 盡早初始化 Sentry，確保能捕捉啟動階段的錯誤
 initSentry()
@@ -45,7 +45,10 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: join(__dirname, 'preload.js')
+      // sandbox: false 允許 preload 使用 ESM import 語法（NodeNext 模組系統）
+      // 安全性由 contextIsolation: true 保障
+      sandbox: false,
+      preload: join(__dirname, '../preload/preload.js'),
     }
   })
 

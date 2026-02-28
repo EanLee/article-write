@@ -187,7 +187,7 @@ describe("AutoSaveService", () => {
       // 直接調用 performAutoSave 來測試錯誤處理
       await (autoSaveService as any).performAutoSave();
 
-      expect(consoleSpy).toHaveBeenCalledWith("自動儲存失敗:", expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith("[ERROR]", "自動儲存失敗:", expect.any(Error));
       expect(autoSaveService.getStatus().running).toBe(true);
 
       consoleSpy.mockRestore();
