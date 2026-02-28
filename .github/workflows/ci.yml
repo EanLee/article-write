@@ -82,11 +82,19 @@ jobs:
       - name: 安裝依賴
         run: pnpm install --frozen-lockfile
 
+      - name: 安裝 Electron 二進制檔案
+        run: |
+          cd node_modules/electron
+          node install.js
+
+      - name: 建置 Electron 主程序
+        run: pnpm run build:main
+
       - name: 安裝 Playwright Browsers
         run: pnpm exec playwright install --with-deps chromium
 
       - name: 執行 E2E 測試
-        run: pnpm run test:e2e
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" pnpm run test:e2e
 
       - name: 上傳測試報告
         uses: actions/upload-artifact@v4

@@ -10,11 +10,16 @@ export default defineConfig({
   // 最大失敗次數
   maxFailures: process.env.CI ? 10 : undefined,
 
-  // 測試超時時間
-  timeout: 30000,
+  // 測試超時時間（增加到 90 秒以適應 Electron 應用在 CI 環境中的啟動時間）
+  timeout: 90000,
 
   // 測試重試次數
   retries: process.env.CI ? 2 : 0,
+
+  // 斷言超時時間（CI 環境 Electron + xvfb 需要更多時間）
+  expect: {
+    timeout: process.env.CI ? 10000 : 5000,
+  },
 
   // 並行執行
   workers: process.env.CI ? 1 : undefined,
@@ -40,10 +45,12 @@ export default defineConfig({
   },
 
   // 測試前啟動開發伺服器
+  // Electron 應用在開發模式下需要此服務提供前端頁面
   webServer: {
     command: process.env.CI ? 'pnpm run dev:renderer' : 'pnpm run dev',
     url: 'http://localhost:3002',
-    reuseExistingServer: !process.env.CI,
+    // 修正：本地開發時重用現有伺服器，CI 環境也重用以避免端口衝突
+    reuseExistingServer: true,
     timeout: 120000,
   },
 
