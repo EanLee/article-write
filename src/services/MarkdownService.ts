@@ -189,14 +189,15 @@ export class MarkdownService {
     // Tags validation
     if (data.tags !== undefined) {
       if (Array.isArray(data.tags)) {
-        frontmatter.tags = data.tags
-          .filter((tag: any) => typeof tag === "string")
-          .map((tag: any) => tag.trim())
-          .filter((tag: any) => tag.length > 0);
+        const filteredTags = data.tags
+          .filter((tag: unknown): tag is string => typeof tag === "string")
+          .map((tag: string) => tag.trim())
+          .filter((tag: string) => tag.length > 0);
 
-        if (data.tags.length !== frontmatter.tags.length) {
+        if (data.tags.length !== filteredTags.length) {
           errors.push("Some tags are invalid - tags must be non-empty strings");
         }
+        frontmatter.tags = filteredTags;
       } else {
         errors.push("Tags must be an array");
       }
@@ -208,11 +209,12 @@ export class MarkdownService {
     if (data.categories !== undefined) {
       if (Array.isArray(data.categories)) {
         const validCategories = ["Software", "growth", "management"];
-        frontmatter.categories = data.categories.filter((cat: any) => typeof cat === "string" && validCategories.includes(cat));
+        const filteredCategories = data.categories.filter((cat: unknown): cat is string => typeof cat === "string" && validCategories.includes(cat));
 
-        if (data.categories.length !== frontmatter.categories.length) {
+        if (data.categories.length !== filteredCategories.length) {
           errors.push("Some categories are invalid - must be one of: Software, growth, management");
         }
+        frontmatter.categories = filteredCategories;
       } else {
         errors.push("Categories must be an array");
       }
@@ -237,14 +239,15 @@ export class MarkdownService {
     // Keywords validation
     if (data.keywords !== undefined) {
       if (Array.isArray(data.keywords)) {
-        frontmatter.keywords = data.keywords
-          .filter((keyword: any) => typeof keyword === "string")
-          .map((keyword: any) => keyword.trim())
-          .filter((keyword: unknown) => keyword.length > 0);
+        const filteredKeywords = data.keywords
+          .filter((keyword: unknown): keyword is string => typeof keyword === "string")
+          .map((keyword: string) => keyword.trim())
+          .filter((keyword: string) => keyword.length > 0);
 
-        if (data.keywords.length !== frontmatter.keywords.length) {
+        if (data.keywords.length !== filteredKeywords.length) {
           errors.push("Some keywords are invalid - keywords must be non-empty strings");
         }
+        frontmatter.keywords = filteredKeywords;
       } else {
         errors.push("Keywords must be an array");
       }

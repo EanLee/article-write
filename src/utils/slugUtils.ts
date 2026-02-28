@@ -24,10 +24,10 @@ export function generateSlug(title: string): string {
   return title
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // 移除非 ASCII 字元（包含中文）
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, ''); // 移除前後多餘的 -
+    .replace(/[^a-z0-9\s-]/g, "") // 移除非 ASCII 字元（包含中文）
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, ""); // 移除前後多餘的 -
 }
 
 /**
@@ -39,5 +39,5 @@ export function generateSlug(title: string): string {
  */
 export function generateSlugWithFallback(title: string, fallback: string): string {
   const slug = generateSlug(title);
-  return slug || generateSlug(fallback) || 'untitled';
+  return slug || generateSlug(fallback) || "untitled";
 }

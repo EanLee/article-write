@@ -173,8 +173,8 @@ export const useArticleStore = defineStore("article", () => {
     switch (type) {
       case "add":
       case "change":
-        // 重新載入該文章
-        await reloadArticleFromDisk(filePath, pathInfo.status, pathInfo.category);
+        // 重新載入該文章（loadArticle 已從 frontmatter 讀取 status，不需要傳入）
+        await reloadArticleFromDisk(filePath, pathInfo.category);
         break;
 
       case "unlink":
@@ -186,10 +186,11 @@ export const useArticleStore = defineStore("article", () => {
 
   /**
    * 從磁碟重新載入文章
+   * 注意：status 改由 ArticleService.loadArticle 從 frontmatter 讀取
    */
-  async function reloadArticleFromDisk(filePath: string, status: ArticleStatus, category: ArticleCategory) {
+  async function reloadArticleFromDisk(filePath: string, category: ArticleCategory) {
     try {
-      const article = await articleService.loadArticle(filePath, status, category);
+      const article = await articleService.loadArticle(filePath, category);
 
       const normalizedPath = normalizePath(filePath);
       const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
@@ -287,7 +288,7 @@ export const useArticleStore = defineStore("article", () => {
         content: "",
         frontmatter: {
           title,
-          date: now.toISOString().split("T")[0],
+          pubDate: now.toISOString().split("T")[0], // 新文章使用 pubDate（非舊有的 date 欄位）
           tags: [],
           categories: [category],
         },
@@ -427,9 +428,7 @@ export const useArticleStore = defineStore("article", () => {
         throw new Error("Article not found");
       }
 
-      const newStatus = article.status === ArticleStatus.Draft
-        ? ArticleStatus.Published
-        : ArticleStatus.Draft;
+      const newStatus = article.status === ArticleStatus.Draft ? ArticleStatus.Published : ArticleStatus.Draft;
 
       const updatedArticle = {
         ...article,
@@ -452,46 +451,57 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-
   /**
    * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
    * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
    */
   function migrateArticleFrontmatter(article: Article): Article {
-    const fm = { ...article.frontmatter }
-    let dirty = false
+    const fm = { ...article.frontmatter };
+    let dirty = false;
 
     // 1. 補上 created（建立時間）
     // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
-      dirty = true
+      fm.created = (fm as any).date || new Date().toISOString().split("T")[0];
+      dirty = true;
     }
 
     // 2. 移轉 date → pubDate
-    const legacyDate = (fm as any).date
+    const legacyDate = (fm as any).date;
     if (legacyDate !== undefined) {
       if (!fm.pubDate) {
-        fm.pubDate = legacyDate
+        fm.pubDate = legacyDate;
       }
-      delete (fm as any).date
-      dirty = true
+      delete (fm as any).date;
+      dirty = true;
     }
 
     // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
-    if (fm.title === undefined) { fm.title = ''; dirty = true }
-    if (fm.description === undefined) { fm.description = ''; dirty = true }
-    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
-    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
+    if (fm.title === undefined) {
+      fm.title = "";
+      dirty = true;
+    }
+    if (fm.description === undefined) {
+      fm.description = "";
+      dirty = true;
+    }
+    if (fm.slug === undefined) {
+      fm.slug = "";
+      dirty = true;
+    }
+    if (fm.keywords === undefined) {
+      fm.keywords = [];
+      dirty = true;
+    }
 
-    if (!dirty) {return article}
+    if (!dirty) {
+      return article;
+    }
 
-    const migrated = { ...article, frontmatter: fm }
+    const migrated = { ...article, frontmatter: fm };
     // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
-    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
-      console.warn('frontmatter 移轉寫回失敗:', err)
-    )
-    return migrated
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) => console.warn("frontmatter 移轉寫回失敗:", err));
+    return migrated;
   }
 
   function setCurrentArticle(article: Article | null) {

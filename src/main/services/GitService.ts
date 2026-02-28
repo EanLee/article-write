@@ -1,22 +1,22 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import { execFile } from "child_process";
+import { promisify } from "util";
 
-const execFileAsync = promisify(execFile)
+const execFileAsync = promisify(execFile);
 
 export interface GitResult {
-  success: boolean
-  output: string
-  error?: string
+  success: boolean;
+  output: string;
+  error?: string;
 }
 
 export interface GitCommitOptions {
-  message: string
-  addAll?: boolean
+  message: string;
+  addAll?: boolean;
 }
 
 export interface GitPushOptions {
-  remote?: string
-  branch?: string
+  remote?: string;
+  branch?: string;
 }
 
 /**
@@ -29,17 +29,17 @@ export class GitService {
    */
   async getStatus(repoPath: string): Promise<GitResult> {
     try {
-      const { stdout } = await execFileAsync('git', ['status', '--short'], { cwd: repoPath })
+      const { stdout } = await execFileAsync("git", ["status", "--short"], { cwd: repoPath });
       return {
         success: true,
-        output: stdout.trim()
-      }
+        output: stdout.trim(),
+      };
     } catch (err) {
       return {
         success: false,
-        output: '',
-        error: err instanceof Error ? err.message : String(err)
-      }
+        output: "",
+        error: err instanceof Error ? err.message : String(err),
+      };
     }
   }
 
@@ -48,16 +48,16 @@ export class GitService {
    * @param repoPath - 儲存庫路徑
    * @param paths - 要 add 的路徑，預設為 '.'（全部）
    */
-  async add(repoPath: string, paths: string[] = ['.']): Promise<GitResult> {
+  async add(repoPath: string, paths: string[] = ["."]): Promise<GitResult> {
     try {
-      const { stdout, stderr } = await execFileAsync('git', ['add', ...paths], { cwd: repoPath })
+      const { stdout, stderr } = await execFileAsync("git", ["add", ...paths], { cwd: repoPath });
       return {
         success: true,
-        output: (stdout + stderr).trim()
-      }
+        output: (stdout + stderr).trim(),
+      };
     } catch (err) {
-      const error = err instanceof Error ? err.message : String(err)
-      return { success: false, output: '', error }
+      const error = err instanceof Error ? err.message : String(err);
+      return { success: false, output: "", error };
     }
   }
 
@@ -67,23 +67,23 @@ export class GitService {
    * @param options - commit 選項
    */
   async commit(repoPath: string, options: GitCommitOptions): Promise<GitResult> {
-    const { message, addAll = false } = options
+    const { message, addAll = false } = options;
     // 使用 execFile 參數陣列，徹底避免 shell 注入
-    const args = addAll ? ['commit', '-am', message] : ['commit', '-m', message]
+    const args = addAll ? ["commit", "-am", message] : ["commit", "-m", message];
 
     try {
-      const { stdout, stderr } = await execFileAsync('git', args, { cwd: repoPath })
+      const { stdout, stderr } = await execFileAsync("git", args, { cwd: repoPath });
       return {
         success: true,
-        output: (stdout + stderr).trim()
-      }
+        output: (stdout + stderr).trim(),
+      };
     } catch (err) {
-      const error = err instanceof Error ? err.message : String(err)
+      const error = err instanceof Error ? err.message : String(err);
       // "nothing to commit" 不是真正的錯誤
-      if (error.includes('nothing to commit')) {
-        return { success: true, output: 'nothing to commit' }
+      if (error.includes("nothing to commit")) {
+        return { success: true, output: "nothing to commit" };
       }
-      return { success: false, output: '', error }
+      return { success: false, output: "", error };
     }
   }
 
@@ -93,18 +93,18 @@ export class GitService {
    * @param options - push 選項
    */
   async push(repoPath: string, options: GitPushOptions = {}): Promise<GitResult> {
-    const { remote = 'origin', branch = '' } = options
-    const args = branch ? ['push', remote, branch] : ['push', remote]
+    const { remote = "origin", branch = "" } = options;
+    const args = branch ? ["push", remote, branch] : ["push", remote];
 
     try {
-      const { stdout, stderr } = await execFileAsync('git', args, { cwd: repoPath })
+      const { stdout, stderr } = await execFileAsync("git", args, { cwd: repoPath });
       return {
         success: true,
-        output: (stdout + stderr).trim()
-      }
+        output: (stdout + stderr).trim(),
+      };
     } catch (err) {
-      const error = err instanceof Error ? err.message : String(err)
-      return { success: false, output: '', error }
+      const error = err instanceof Error ? err.message : String(err);
+      return { success: false, output: "", error };
     }
   }
 
@@ -115,40 +115,40 @@ export class GitService {
    */
   async addCommitPush(
     repoPath: string,
-    commitMessage: string
+    commitMessage: string,
   ): Promise<{
-    success: boolean
-    steps: { name: string; result: GitResult }[]
-    error?: string
+    success: boolean;
+    steps: { name: string; result: GitResult }[];
+    error?: string;
   }> {
-    const steps: { name: string; result: GitResult }[] = []
+    const steps: { name: string; result: GitResult }[] = [];
 
     // Step 1: git add .
-    const addResult = await this.add(repoPath)
-    steps.push({ name: 'git add', result: addResult })
+    const addResult = await this.add(repoPath);
+    steps.push({ name: "git add", result: addResult });
     if (!addResult.success) {
-      return { success: false, steps, error: addResult.error }
+      return { success: false, steps, error: addResult.error };
     }
 
     // Step 2: git commit
-    const commitResult = await this.commit(repoPath, { message: commitMessage })
-    steps.push({ name: 'git commit', result: commitResult })
+    const commitResult = await this.commit(repoPath, { message: commitMessage });
+    steps.push({ name: "git commit", result: commitResult });
     if (!commitResult.success) {
-      return { success: false, steps, error: commitResult.error }
+      return { success: false, steps, error: commitResult.error };
     }
 
     // Step 3: git push (如果 nothing to commit 跳過)
-    if (commitResult.output === 'nothing to commit') {
-      return { success: true, steps }
+    if (commitResult.output === "nothing to commit") {
+      return { success: true, steps };
     }
 
-    const pushResult = await this.push(repoPath)
-    steps.push({ name: 'git push', result: pushResult })
+    const pushResult = await this.push(repoPath);
+    steps.push({ name: "git push", result: pushResult });
     if (!pushResult.success) {
-      return { success: false, steps, error: pushResult.error }
+      return { success: false, steps, error: pushResult.error };
     }
 
-    return { success: true, steps }
+    return { success: true, steps };
   }
 
   /**
@@ -158,15 +158,12 @@ export class GitService {
    */
   async getLog(repoPath: string, count = 5): Promise<GitResult> {
     try {
-      const safeCount = Math.max(1, Math.min(100, Math.floor(count))) // 防止參數注入
-      const { stdout } = await execFileAsync(
-        'git', ['log', '--oneline', `-${safeCount}`],
-        { cwd: repoPath }
-      )
-      return { success: true, output: stdout.trim() }
+      const safeCount = Math.max(1, Math.min(100, Math.floor(count))); // 防止參數注入
+      const { stdout } = await execFileAsync("git", ["log", "--oneline", `-${safeCount}`], { cwd: repoPath });
+      return { success: true, output: stdout.trim() };
     } catch (err) {
-      const error = err instanceof Error ? err.message : String(err)
-      return { success: false, output: '', error }
+      const error = err instanceof Error ? err.message : String(err);
+      return { success: false, output: "", error };
     }
   }
 }
