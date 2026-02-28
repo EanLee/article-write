@@ -87,9 +87,11 @@ export interface Frontmatter {
   title?: string; // 草稿可能尚未填寫標題
   description?: string;
   /**
-   * @deprecated 舊有欄位，已由 `pubDate`（發佈時間）和 `created`（建立時間）取代。
-   * 保留此欄位僅供讀取磁碟上的舊文件進行遷移（migrateArticleFrontmatter）。
-   * 新建文章請勿使用此欄位。
+   * 建立 / 編輯時間（磁碟存放欄位）。
+   * 新文章建立時寫入此欄位；首次在 WriteFlow 開啟時，
+   * `migrateArticleFrontmatter` 會讀取此值並分拆至 `created`（建立時間）與 `pubDate`（發布時間），
+   * 之後從 frontmatter 中刪除此欄位。
+   * 因此：讀磁碟舊文件時可能存在，新建文章寫入時仍使用此欄位。
    */
   date?: string;
   /**

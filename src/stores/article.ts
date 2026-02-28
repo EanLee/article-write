@@ -38,12 +38,12 @@ export const useArticleStore = defineStore("article", () => {
     return articles.value
       .filter((article) => {
         // 狀態過濾 - 早期返回
-        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as ArticleStatus)) {
+        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as unknown as ArticleStatus)) {
           return false;
         }
 
         // 分類過濾 - 早期返回
-        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as ArticleCategory)) {
+        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as unknown as ArticleCategory)) {
           return false;
         }
 
@@ -288,7 +288,7 @@ export const useArticleStore = defineStore("article", () => {
         content: "",
         frontmatter: {
           title,
-          pubDate: now.toISOString().split("T")[0], // 新文章使用 pubDate（非舊有的 date 欄位）
+          date: now.toISOString().split("T")[0], // 建立時間；發布時 PublishService 才會填入 pubDate
           tags: [],
           categories: [category],
         },

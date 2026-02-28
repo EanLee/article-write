@@ -51,7 +51,8 @@ export function generateGitCommands(article: Article, targetPath: string): GitCo
  * @returns Commit message
  */
 function generateCommitMessage(article: Article): string {
-  const { title, category, tags } = article
+  const { title, category } = article
+  const tags = article.frontmatter.tags
 
   // 判斷是新增還是更新
   const type = 'docs'

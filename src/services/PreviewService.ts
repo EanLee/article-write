@@ -83,7 +83,7 @@ export class PreviewService {
       return this.postProcessHtml(html)
     } catch (error) {
       // Log error for debugging but don't use console in production
-      if (typeof window !== 'undefined' && (window as unknown).__DEV__) {
+      if (typeof window !== 'undefined' && (window as Window & { __DEV__?: boolean }).__DEV__) {
          
         console.error('Preview rendering error:', error)
       }
