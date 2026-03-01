@@ -55,13 +55,14 @@ function openResult(result: SearchResult) {
 }
 
 function highlightKeyword(text: string, keyword: string): string {
-  if (!keyword.trim()) {return text}
-  // 先 escape HTML 特殊字元，防止 text 內容被當作 HTML 解析（XSS）
+  // 先 escape HTML 特殊字元（防止任何 text 內容被當作 HTML 解析 — XSS 防護）
+  // 注意：escape 必須在 early return 之前，確保空 keyword 時也能安全注入 v-html
   const escaped = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
+  if (!keyword.trim()) { return escaped }  // 空 keyword 直接返回 escaped text（不含 mark）
   const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   return escaped.replace(
     new RegExp(`(${escapedKeyword})`, "gi"),
@@ -136,7 +137,7 @@ function highlightKeyword(text: string, keyword: string): string {
               <div class="flex items-center justify-between mb-1">
                 <span
                   :class="['font-medium', index === searchStore.selectedIndex ? 'text-base-content' : 'text-base-content/50']"
-                  v-html="index === searchStore.selectedIndex ? highlightKeyword(result.title, searchStore.query) : result.title"
+                  v-html="highlightKeyword(result.title, searchStore.query)"
                 />
                 <span class="text-xs text-base-content/40 ml-2 shrink-0">
                   {{ new Date(result.updatedAt).toLocaleDateString('zh-TW') }}
@@ -145,7 +146,7 @@ function highlightKeyword(text: string, keyword: string): string {
               <!-- Snippet -->
               <p
                 :class="['text-sm line-clamp-2', index === searchStore.selectedIndex ? 'text-base-content/60' : 'text-base-content/35']"
-                v-html="index === searchStore.selectedIndex ? highlightKeyword(result.matchSnippet, searchStore.query) : result.matchSnippet"
+                v-html="highlightKeyword(result.matchSnippet, searchStore.query)"
               />
             </li>
           </ul>
