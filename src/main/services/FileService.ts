@@ -1,12 +1,40 @@
 import { promises as fs, constants as fsConstants } from "fs";
-import { dirname } from "path";
+import { dirname, normalize, resolve, sep } from "path";
 import { watch, type FSWatcher } from "chokidar";
 
 export class FileService {
   private watcher: FSWatcher | null = null;
   private watchCallback: ((event: string, path: string) => void) | null = null;
+  private allowedBasePaths: string[] = [];
+
+  /**
+   * 設定允許存取的根目錄白名單（由 main.ts 在取得 config 後呼叫）
+   * 之後所有檔案操作都必須在這些目錄之下
+   */
+  setAllowedPaths(paths: string[]): void {
+    this.allowedBasePaths = paths
+      .filter(Boolean)
+      .map(p => normalize(resolve(p)));
+  }
+
+  /**
+   * 驗證路徑是否在許可的白名單範圍內
+   * 若尚未設定白名單（初始化前），不限制
+   * @throws Error 若路徑在白名單外
+   */
+  private validatePath(filePath: string): void {
+    if (this.allowedBasePaths.length === 0) {return;}
+    const normalized = normalize(resolve(filePath));
+    const allowed = this.allowedBasePaths.some(
+      base => normalized === base || normalized.startsWith(base + sep)
+    );
+    if (!allowed) {
+      throw new Error(`Access denied: path outside allowed directories: ${filePath}`);
+    }
+  }
 
   async readFile(filePath: string): Promise<string> {
+    this.validatePath(filePath);
     try {
       return await fs.readFile(filePath, "utf-8");
     } catch (err) {
@@ -15,6 +43,7 @@ export class FileService {
   }
 
   async writeFile(filePath: string, content: string): Promise<void> {
+    this.validatePath(filePath);
     try {
       // Ensure directory exists
       await fs.mkdir(dirname(filePath), { recursive: true });
@@ -26,6 +55,7 @@ export class FileService {
   }
 
   async deleteFile(filePath: string): Promise<void> {
+    this.validatePath(filePath);
     try {
       await fs.unlink(filePath);
     } catch (err) {
@@ -34,6 +64,7 @@ export class FileService {
   }
 
   async readDirectory(dirPath: string): Promise<string[]> {
+    this.validatePath(dirPath);
     try {
       return await fs.readdir(dirPath);
     } catch (err) {
@@ -42,6 +73,7 @@ export class FileService {
   }
 
   async createDirectory(dirPath: string): Promise<void> {
+    this.validatePath(dirPath);
     try {
       await fs.mkdir(dirPath, { recursive: true });
     } catch (err) {
@@ -89,6 +121,8 @@ export class FileService {
   }
 
   async copyFile(sourcePath: string, targetPath: string): Promise<void> {
+    this.validatePath(sourcePath);
+    this.validatePath(targetPath);
     try {
       // Ensure target directory exists
       await fs.mkdir(dirname(targetPath), { recursive: true });
