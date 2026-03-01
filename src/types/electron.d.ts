@@ -144,7 +144,7 @@ export interface ElectronAPI {
     code?: string;
     message?: string;
   }>;
-  aiSetApiKey: (provider: string, key: string) => Promise<void>;
+  aiSetApiKey: (provider: string, key: string) => Promise<{ success: boolean; error?: string }>;
   aiHasApiKey: (provider: string) => Promise<boolean>;
   aiGetActiveProvider: () => Promise<"claude" | "gemini" | "openai" | null>;
 }

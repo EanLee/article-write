@@ -157,7 +157,12 @@ async function saveApiKey(provider: "claude" | "gemini" | "openai") {
   const statusMap = { claude: claudeKeyStatus, gemini: geminiKeyStatus, openai: openaiKeyStatus }
   const key = keyMap[provider].value.trim()
   if (!key) { return }
-  await window.electronAPI.aiSetApiKey(provider, key)
+  const result = await window.electronAPI.aiSetApiKey(provider, key)
+  if (!result.success) {
+    statusMap[provider].value = "儲存失敗"
+    alert(`儲存失敗: ${result.error ?? "系統加密不可用"}`)
+    return
+  }
   keyMap[provider].value = ""
   statusMap[provider].value = "API Key 已設定"
   aiKeySaved.value = provider

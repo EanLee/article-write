@@ -98,6 +98,12 @@ export class ConfigService {
   }
 
   setApiKey(provider: "claude" | "gemini" | "openai", key: string): void {
+    // fail-close: 若加密不可用，拒絕儲存，避免 API Key 以 base64 明文落地 (S6-02)
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error(
+        "系統加密功能不可用，拒絕以明文儲存 API Key。請確保 Keychain/Credential Manager 正常運作。"
+      )
+    }
     let keys: Record<string, string> = {}
     try {
       const raw = readFileSync(this.aiKeysPath, "utf-8")
@@ -105,11 +111,7 @@ export class ConfigService {
     } catch {
       // 檔案不存在或解析失敗，使用空物件
     }
-    if (safeStorage.isEncryptionAvailable()) {
-      keys[provider] = safeStorage.encryptString(key).toString("base64")
-    } else {
-      keys[provider] = Buffer.from(key).toString("base64")
-    }
+    keys[provider] = safeStorage.encryptString(key).toString("base64")
     writeFileSync(this.aiKeysPath, JSON.stringify(keys))
   }
 

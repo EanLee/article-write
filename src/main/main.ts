@@ -247,7 +247,12 @@ app.whenReady().then(async () => {
     }
   });
   ipcMain.handle(IPC.AI_SET_API_KEY, (_, provider: string, key: string) => {
-    configService.setApiKey(provider as "claude" | "gemini" | "openai", key);
+    try {
+      configService.setApiKey(provider as "claude" | "gemini" | "openai", key);
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e instanceof Error ? e.message : String(e) };
+    }
   });
   ipcMain.handle(IPC.AI_GET_HAS_API_KEY, (_, provider: string) => {
     return configService.hasApiKey(provider as "claude" | "gemini" | "openai");
