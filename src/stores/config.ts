@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import type { AppConfig } from "@/types"
+import { logger } from "@/utils/logger"
 
 export const useConfigStore = defineStore("config", () => {
   // State
@@ -26,7 +27,7 @@ export const useConfigStore = defineStore("config", () => {
     try {
       // Check if we're running in Electron environment
       if (typeof window === "undefined" || !window.electronAPI || typeof window.electronAPI.getConfig !== "function") {
-        console.warn("Running in browser mode - using default config")
+        logger.warn("Running in browser mode - using default config")
         // Use default config for browser/development mode
         isConfigured.value = false
         loading.value = false
@@ -40,7 +41,7 @@ export const useConfigStore = defineStore("config", () => {
         isConfigured.value = !!loadedConfig.paths.articlesDir
       }
     } catch (error) {
-      console.error("Failed to load config:", error)
+      logger.error("Failed to load config:", error)
       // Fallback to default config
       isConfigured.value = false
     } finally {
@@ -52,7 +53,7 @@ export const useConfigStore = defineStore("config", () => {
     loading.value = true
     try {
       if (typeof window === "undefined" || !window.electronAPI || typeof window.electronAPI.setConfig !== "function") {
-        console.warn("Running in browser mode - config not saved")
+        logger.warn("Running in browser mode - config not saved")
         config.value = newConfig
         // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
         isConfigured.value = !!newConfig.paths.articlesDir
@@ -67,7 +68,7 @@ export const useConfigStore = defineStore("config", () => {
       // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
       isConfigured.value = !!newConfig.paths.articlesDir
     } catch (error) {
-      console.error("Failed to save config:", error)
+      logger.error("Failed to save config:", error)
       throw error
     } finally {
       loading.value = false

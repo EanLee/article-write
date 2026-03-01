@@ -1,4 +1,5 @@
 import { fileWatchService } from "@/services/FileWatchService";
+import { logger } from "@/utils/logger";
 
 export interface FileEvent {
   event: string;
@@ -43,7 +44,7 @@ export function useFileWatching(options: { onFileEvent: (event: FileEvent) => vo
       onFileEvent(event);
     });
 
-    console.log("[useFileWatching] 檔案監聽已啟動:", vaultPath);
+    logger.debug("[useFileWatching] 檔案監聽已啟動:", vaultPath);
   }
 
   /**
@@ -53,7 +54,7 @@ export function useFileWatching(options: { onFileEvent: (event: FileEvent) => vo
     if (unsubscribe) {
       unsubscribe();
       unsubscribe = null;
-      console.log("[useFileWatching] 檔案監聽已停止");
+      logger.debug("[useFileWatching] 檔案監聽已停止");
     }
   }
 

@@ -4,6 +4,7 @@ import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { logger } from "@/utils/logger";
 
 /**
  * 檔案掃描服務類別
@@ -43,14 +44,14 @@ export class FileScannerService {
             articles.push(article);
           }
         } catch (error) {
-          console.error(`Failed to parse file ${filePath}:`, error);
+          logger.error(`Failed to parse file ${filePath}:`, error);
           // Continue processing other files even if one fails
         }
       }
 
       return articles;
     } catch (error) {
-      console.error(`Failed to scan directory ${directoryPath}:`, error);
+      logger.error(`Failed to scan directory ${directoryPath}:`, error);
       return [];
     }
   }
@@ -72,7 +73,7 @@ export class FileScannerService {
 
       // Log parsing errors but continue processing
       if (parsed.errors.length > 0) {
-        console.warn(`Frontmatter parsing errors in ${filePath}:`, parsed.errors);
+        logger.warn(`Frontmatter parsing errors in ${filePath}:`, parsed.errors);
       }
 
       const article: Article = {
@@ -98,7 +99,7 @@ export class FileScannerService {
 
       return article;
     } catch (error) {
-      console.error(`Failed to parse markdown file ${filePath}:`, error);
+      logger.error(`Failed to parse markdown file ${filePath}:`, error);
       return null;
     }
   }
@@ -127,7 +128,7 @@ export class FileScannerService {
         }
       }
     } catch (error) {
-      console.error(`Failed to read directory ${directoryPath}:`, error);
+      logger.error(`Failed to read directory ${directoryPath}:`, error);
     }
 
     return files;
@@ -209,7 +210,7 @@ export class FileScannerService {
       .on("add", (filePath) => callback(filePath, "add"))
       .on("change", (filePath) => callback(filePath, "change"))
       .on("unlink", (filePath) => callback(filePath, "unlink"))
-      .on("error", (error) => console.error("File watcher error:", error));
+      .on("error", (error) => logger.error("File watcher error:", error));
 
     this.watchers.set(directoryPath, watcher);
     this.changeCallbacks.set(directoryPath, callback);
@@ -270,7 +271,7 @@ export class FileScannerService {
         return a.name.localeCompare(b.name);
       });
     } catch (error) {
-      console.error(`Failed to get directory structure for ${directoryPath}:`, error);
+      logger.error(`Failed to get directory structure for ${directoryPath}:`, error);
       return [];
     }
   }

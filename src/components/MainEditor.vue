@@ -65,6 +65,7 @@ import { useFocusMode } from "@/composables/useFocusMode";
 import { useSyncScroll } from "@/composables/useSyncScroll";
 import { getArticleService } from "@/services/ArticleService";
 import { autoSaveService } from "@/services/AutoSaveService";
+import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
 
 const articleStore = useArticleStore();
@@ -290,14 +291,14 @@ async function saveArticle() {
             // 更新 store 中的資料（透過 store 的 action）
             await articleStore.updateArticle(updatedArticle);
         } else if (result.conflict) {
-            console.warn("[Editor] File conflict detected during auto-save");
+            logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
         } else if (result.error) {
-            console.error("[Editor] Failed to save article:", result.error);
+            logger.error("[Editor] Failed to save article:", result.error);
         }
     } catch (error) {
         // 靜默處理錯誤，自動儲存失敗不需要通知用戶
-        console.error("[Editor] Auto-save error:", error);
+        logger.error("[Editor] Auto-save error:", error);
     }
 }
 
@@ -325,7 +326,7 @@ function toggleSyncScroll() {
 function toggleEditorMode() {
     // 防止重複切換
     if (isSwitchingMode.value) {
-        console.warn("[EditorMode] 正在切換模式中，請稍後再試");
+        logger.warn("[EditorMode] 正在切換模式中，請稍後再試");
         return;
     }
 
@@ -363,7 +364,7 @@ function toggleEditorMode() {
             editorMode.value = "compose";
         }
     } catch (error) {
-        console.error("[EditorMode] 模式切換失敗:", error);
+        logger.error("[EditorMode] 模式切換失敗:", error);
     } finally {
         // 延遲解除鎖定，確保所有副作用完成
         setTimeout(() => {
@@ -391,7 +392,7 @@ function handleRawContentChange() {
 
         // 檢查是否有解析錯誤
         if (parsed.errors.length > 0) {
-            console.warn("[RawMode] Frontmatter 解析警告:", parsed.errors);
+            logger.warn("[RawMode] Frontmatter 解析警告:", parsed.errors);
         }
 
         // 排程自動儲存（會通過 service 更新 store）
@@ -403,7 +404,7 @@ function handleRawContentChange() {
             updatePreview();
         }
     } catch (error) {
-        console.error("[RawMode] 解析 frontmatter 失敗:", error);
+        logger.error("[RawMode] 解析 frontmatter 失敗:", error);
         // 不拋出錯誤，避免中斷使用者輸入
     }
 }

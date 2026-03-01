@@ -1,4 +1,5 @@
 import type { Article } from "@/types"
+import { logger } from "@/utils/logger"
 
 /**
  * 圖片資訊介面
@@ -158,7 +159,7 @@ export class ImageService {
       return imageInfos
     } catch (error) {
        
-      console.error("Failed to load images:", error)
+      logger.error("Failed to load images:", error)
       return []
     }
   }
@@ -486,7 +487,7 @@ export class ImageService {
       return true
     } catch (error) {
        
-      console.error("Failed to delete image:", error)
+      logger.error("Failed to delete image:", error)
       return false
     }
   }
@@ -510,7 +511,7 @@ export class ImageService {
       return true
     } catch (error) {
        
-      console.error("Failed to copy image:", error)
+      logger.error("Failed to copy image:", error)
       return false
     }
   }
@@ -546,7 +547,7 @@ export class ImageService {
       return fileName
     } catch (error) {
        
-      console.error("圖片上傳失敗：", error)
+      logger.error("圖片上傳失敗：", error)
       throw new Error(`圖片上傳失敗：${(error as Error).message}`)
     }
   }
@@ -585,14 +586,14 @@ export class ImageService {
           cleanedFiles.push(image.name)
         } catch (error) {
            
-          console.warn(`Failed to delete unused image ${image.name}:`, error)
+        logger.warn(`Failed to delete unused image ${image.name}:`, error)
         }
       }
 
       return cleanedFiles
     } catch (error) {
        
-      console.error("Failed to cleanup unused images:", error)
+      logger.error("Failed to cleanup unused images:", error)
       return []
     }
   }

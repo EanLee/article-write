@@ -42,7 +42,7 @@ export class FileWatchService {
    */
   async startWatching(path: string): Promise<void> {
     if (this.isWatching && this.watchedPath === path) {
-      console.log("Already watching this path:", path);
+      logger.debug("Already watching this path:", path);
       return;
     }
 
@@ -66,7 +66,7 @@ export class FileWatchService {
 
       logger.debug("FileWatchService: Started watching", path);
     } catch (error) {
-      console.error("Failed to start file watching:", error);
+      logger.error("Failed to start file watching:", error);
       throw error;
     }
   }
@@ -88,7 +88,7 @@ export class FileWatchService {
       try {
         await window.electronAPI.stopFileWatching();
       } catch (error) {
-        console.error("Failed to stop file watching:", error);
+        logger.error("Failed to stop file watching:", error);
       }
     }
 
@@ -170,7 +170,7 @@ export class FileWatchService {
       try {
         callback(fileEvent);
       } catch (error) {
-        console.error("Error in file change callback:", error);
+        logger.error("Error in file change callback:", error);
       }
     });
   }

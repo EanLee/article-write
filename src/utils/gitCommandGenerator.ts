@@ -1,4 +1,5 @@
 import type { Article } from "@/types";
+import { logger } from "@/utils/logger";
 
 /**
  * Git 操作指令
@@ -115,7 +116,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       return success;
     }
   } catch (error) {
-    console.error("Failed to copy to clipboard:", error);
+    logger.error("Failed to copy to clipboard:", error);
     return false;
   }
 }

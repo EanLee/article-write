@@ -1,26 +1,26 @@
-import { ref } from "vue"
-import { defineStore } from "pinia"
-import { useSeoStore } from "@/stores/seo"
-import type { Article } from "@/types"
-import type { SEOGenerationResult } from "@/main/services/AIProvider/types"
+import { ref } from "vue";
+import { defineStore } from "pinia";
+import { useSeoStore } from "@/stores/seo";
+import type { Article } from "@/types";
+import type { SEOGenerationResult } from "@/main/services/AIProvider/types";
 
 export const useAIPanelStore = defineStore("aiPanel", () => {
-  const isOpen = ref(false)
+  const isOpen = ref(false);
 
   // SEO Section 狀態
-  const seoResult = ref<SEOGenerationResult | null>(null)
-  const seoError = ref<string | null>(null)
+  const seoResult = ref<SEOGenerationResult | null>(null);
+  const seoError = ref<string | null>(null);
 
   function toggle() {
-    isOpen.value = !isOpen.value
+    isOpen.value = !isOpen.value;
   }
 
   function open() {
-    isOpen.value = true
+    isOpen.value = true;
   }
 
   function close() {
-    isOpen.value = false
+    isOpen.value = false;
   }
 
   /**
@@ -28,16 +28,16 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
    * 接受外部傳入 article，避免 store 內部直接呼叫 useArticleStore（降低耦合）。
    */
   async function generateSEO(article: Article) {
-    const seoStore = useSeoStore()
+    const seoStore = useSeoStore();
 
-    seoResult.value = null
-    seoError.value = null
+    seoResult.value = null;
+    seoError.value = null;
 
-    const result = await seoStore.generateSEO(article)
+    const result = await seoStore.generateSEO(article);
     if (result) {
-      seoResult.value = result
+      seoResult.value = result;
     } else {
-      seoError.value = seoStore.error ?? "生成失敗"
+      seoError.value = seoStore.error ?? "生成失敗";
     }
   }
 
@@ -46,7 +46,9 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
    * 由呼叫端負責呼叫 articleStore.updateArticleInMemory()，降低 store 耦合。
    */
   function applySEOResult(article: Article): Article | null {
-    if (!seoResult.value) { return null }
+    if (!seoResult.value) {
+      return null;
+    }
 
     return {
       ...article,
@@ -55,13 +57,13 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
         slug: seoResult.value.slug,
         description: seoResult.value.metaDescription,
         keywords: seoResult.value.keywords,
-      }
-    }
+      },
+    };
   }
 
   function clearSEO() {
-    seoResult.value = null
-    seoError.value = null
+    seoResult.value = null;
+    seoError.value = null;
   }
 
   return {
@@ -74,5 +76,5 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
     generateSEO,
     applySEOResult,
     clearSEO,
-  }
-})
+  };
+});

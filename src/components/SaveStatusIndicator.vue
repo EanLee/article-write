@@ -40,6 +40,7 @@
 import { computed, onMounted, onUnmounted } from "vue"
 import { Check, Loader2, AlertCircle, FileEdit, Save } from "lucide-vue-next"
 import { autoSaveService } from "@/services/AutoSaveService"
+import { logger } from "@/utils/logger"
 
 withDefaults(defineProps<{
   showSaveButton?: boolean
@@ -161,7 +162,7 @@ async function handleSave() {
     await autoSaveService.saveCurrentArticle()
     emit("save")
   } catch (error) {
-    console.error("手動儲存失敗:", error)
+    logger.error("手動儲存失敗:", error)
   }
 }
 

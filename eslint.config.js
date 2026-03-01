@@ -65,7 +65,7 @@ export default [
 
       // 一般規則
       quotes: ["error", "double", { avoidEscape: true }], // 統一使用雙引號，允許內含單引號時使用單引號避免 escape
-      "no-console": ["warn", { allow: ["warn", "error"] }], // 對herite console.log 發開警告，允許 warn/error
+      "no-console": "error", // 禁止所有 console.* 呼叫，請改用 logger.ts / mainLogger.ts
       "no-debugger": "error",
       "no-unused-vars": "off", // 使用 TypeScript 版本
       "no-undef": "off", // TypeScript 處理這個
@@ -88,7 +88,21 @@ export default [
       },
     },
   },
+  // logger 實作檔案本身允許 console（它們是 console 的封裝層）
   {
-    ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts"],
+    files: ["src/utils/logger.ts", "src/main/mainLogger.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  // 測試檔案：允許 console（測試輸出用途）
+  {
+    files: ["tests/**/*.{ts,js}"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
+    ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts", ".github/**"],
   },
 ];

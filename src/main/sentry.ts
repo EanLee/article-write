@@ -7,6 +7,7 @@
  * - 從環境變數 VITE_SENTRY_DSN 讀取 DSN
  */
 import * as Sentry from "@sentry/electron/main"
+import { logger } from "./mainLogger.js"
 
 /** 是否為生產環境（electron 已打包） */
 function isProd(): boolean {
@@ -27,7 +28,7 @@ export function initSentry(): void {
   }
 
   if (!dsn) {
-    console.warn("[Sentry] VITE_SENTRY_DSN is not configured in production")
+    logger.warn("[Sentry] VITE_SENTRY_DSN is not configured in production")
     return
   }
 

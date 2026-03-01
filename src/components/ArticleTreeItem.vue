@@ -44,6 +44,7 @@
 import { computed } from "vue"
 import { FileText } from "lucide-vue-next"
 import type { Article } from "@/types"
+import { logger } from "@/utils/logger"
 
 interface Props {
   article: Article
@@ -99,7 +100,7 @@ function formatDate(date: Date | string): string {
 
 function handleContextMenu(_e: MouseEvent) {
   // TODO: 實作右鍵菜單
-  console.log("Right click on:", props.article.title)
+  logger.debug("Right click on:", props.article.title)
 }
 </script>
 
