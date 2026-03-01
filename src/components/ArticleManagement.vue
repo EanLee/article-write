@@ -345,7 +345,7 @@ async function handleCreateArticle() {
   }
 
   // 創建新文章（需要提供標題和分類，這裡使用預設值）
-  const newArticle = await articleStore.createArticle("未命名文章", "Software" as any)
+  const newArticle = await articleStore.createArticle("未命名文章", "Software")
 
   // 設為當前文章
   articleStore.setCurrentArticle(newArticle)

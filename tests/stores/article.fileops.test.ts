@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 檔案操作相關測試
  * 測試所有與檔案讀寫相關的功能，確保資料不會遺失或損壞
  */
@@ -27,7 +27,7 @@ global.window = {
     stopFileWatching: vi.fn().mockResolvedValue(undefined),
     onFileChange: vi.fn(() => vi.fn()) // Returns unsubscribe function
   }
-} as any
+} as unknown as Window & typeof globalThis
 // Typed mock accessor (env.d.ts types window.electronAPI as the real interface; at test time these are vi.fn() mocks)
 const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>
 

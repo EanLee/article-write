@@ -346,7 +346,7 @@ invalid yaml without colon
         setSelectionRange: vi.fn(),
         focus: vi.fn(),
         clientWidth: 400
-      } as any
+      } as unknown as HTMLTextAreaElement
 
       // Mock DOM methods
       global.document = {
@@ -359,7 +359,7 @@ invalid yaml without colon
           appendChild: vi.fn(),
           removeChild: vi.fn()
         }
-      } as any
+      } as unknown as Document
 
       global.window = {
         getComputedStyle: vi.fn(() => ({
@@ -368,7 +368,7 @@ invalid yaml without colon
           border: "1px solid",
           lineHeight: "20px"
         }))
-      } as any
+      } as unknown as Window & typeof globalThis
     })
 
     it("should apply wiki link suggestion correctly", () => {

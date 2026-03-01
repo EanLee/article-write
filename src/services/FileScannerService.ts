@@ -144,9 +144,7 @@ export class FileScannerService {
 
     if (rootDir) {
       const root = rootDir.replace(/\\/g, "/").replace(/\/$/, "");
-      const relative = normalized.startsWith(root)
-        ? normalized.slice(root.length + 1)
-        : normalized;
+      const relative = normalized.startsWith(root) ? normalized.slice(root.length + 1) : normalized;
       // 第一個路徑片段就是分類資料夾
       const firstSegment = relative.split("/")[0];
       // 若第一段就是檔案（含 .md），代表文章在根目錄下，無分類

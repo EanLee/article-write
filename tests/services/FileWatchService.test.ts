@@ -16,7 +16,7 @@ global.window = {
     stopFileWatching: mockStopFileWatching,
     onFileChange: mockOnFileChange
   }
-} as any
+} as unknown as Window & typeof globalThis
 
 describe("FileWatchService", () => {
   let service: FileWatchService
@@ -91,7 +91,7 @@ describe("FileWatchService", () => {
   describe("subscribe", () => {
     it("should call callback when file changes", async () => {
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -113,7 +113,7 @@ describe("FileWatchService", () => {
     it("should allow multiple subscribers", async () => {
       const callback1 = vi.fn()
       const callback2 = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -132,7 +132,7 @@ describe("FileWatchService", () => {
 
     it("should return unsubscribe function", async () => {
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -154,7 +154,7 @@ describe("FileWatchService", () => {
   describe("ignoreNextChange", () => {
     it("should ignore file changes for specified duration", async () => {
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -177,7 +177,7 @@ describe("FileWatchService", () => {
       vi.useFakeTimers()
 
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -201,7 +201,7 @@ describe("FileWatchService", () => {
 
     it("should normalize path before ignoring", async () => {
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -226,7 +226,7 @@ describe("FileWatchService", () => {
       vi.useFakeTimers()
 
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler
@@ -253,7 +253,7 @@ describe("FileWatchService", () => {
   describe("path normalization", () => {
     it("should normalize paths in file change events", async () => {
       const callback = vi.fn()
-      let fileChangeHandler: any
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {}
 
       mockOnFileChange.mockImplementation((handler) => {
         fileChangeHandler = handler

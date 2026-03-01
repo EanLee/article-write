@@ -17,8 +17,7 @@ export class ConversionValidator {
    * 危險路徑字元黑名單正規式
    * 涵蓋：路徑穿越 (../), null bytes (\0), 絕對 UNIX 路徑 (/), 絕對 Windows 路徑 (C:\)
    */
-  private static readonly DANGEROUS_PATH_PATTERN =
-    /(\.\.|[\x00/\\]|^[a-zA-Z]:)/; // eslint-disable-line no-control-regex
+  private static readonly DANGEROUS_PATH_PATTERN = /(\.\.|[\x00/\\]|^[a-zA-Z]:)/; // eslint-disable-line no-control-regex
 
   // ── 安全驗證（S5-02）────────────────────────────────────────────────────
 
@@ -85,10 +84,7 @@ export class ConversionValidator {
    * @param fileExistsFn - 檢查檔案/目錄是否存在的非同步函式（由 ConverterService 注入）
    * @returns 驗證結果
    */
-  async validateBatchPrerequisites(
-    config: ConversionConfig,
-    fileExistsFn: (path: string) => Promise<boolean>,
-  ): Promise<{ valid: boolean; issues: string[] }> {
+  async validateBatchPrerequisites(config: ConversionConfig, fileExistsFn: (path: string) => Promise<boolean>): Promise<{ valid: boolean; issues: string[] }> {
     const issues: string[] = [];
 
     try {
@@ -190,9 +186,7 @@ export class ConversionValidator {
         }
       }
     } catch (error) {
-      issues.push(
-        `Validation error: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      issues.push(`Validation error: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 
     return { valid: issues.length === 0, issues };

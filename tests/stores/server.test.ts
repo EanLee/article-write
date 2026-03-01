@@ -66,9 +66,7 @@ describe("Server Store", () => {
 
     it("成功後應呼叫 updateStatus 更新 status", async () => {
       mockElectronAPI.startDevServer.mockResolvedValueOnce(undefined);
-      mockElectronAPI.getServerStatus.mockResolvedValueOnce(
-        makeServerStatusResult({ running: true, url: "http://localhost:4321" })
-      );
+      mockElectronAPI.getServerStatus.mockResolvedValueOnce(makeServerStatusResult({ running: true, url: "http://localhost:4321" }));
       const store = useServerStore();
 
       await store.startServer("/project");
@@ -78,7 +76,9 @@ describe("Server Store", () => {
 
     it("執行期間 loading 應為 true，完成後恢復 false", async () => {
       let resolveStart: () => void;
-      const startPromise = new Promise<undefined>((r) => { resolveStart = () => r(undefined); });
+      const startPromise = new Promise<undefined>((r) => {
+        resolveStart = () => r(undefined);
+      });
       mockElectronAPI.startDevServer.mockReturnValueOnce(startPromise);
       mockElectronAPI.getServerStatus.mockResolvedValueOnce(makeServerStatusResult({ running: true }));
       const store = useServerStore();
@@ -126,7 +126,9 @@ describe("Server Store", () => {
 
     it("執行期間 loading 應為 true，完成後恢復 false", async () => {
       let resolveStop: () => void;
-      const stopPromise = new Promise<undefined>((r) => { resolveStop = () => r(undefined); });
+      const stopPromise = new Promise<undefined>((r) => {
+        resolveStop = () => r(undefined);
+      });
       mockElectronAPI.stopDevServer.mockReturnValueOnce(stopPromise);
       const store = useServerStore();
 
@@ -151,9 +153,7 @@ describe("Server Store", () => {
 
   describe("updateStatus()", () => {
     it("應從 API 更新 running 和 url", async () => {
-      mockElectronAPI.getServerStatus.mockResolvedValueOnce(
-        makeServerStatusResult({ running: true, url: "http://localhost:4321" })
-      );
+      mockElectronAPI.getServerStatus.mockResolvedValueOnce(makeServerStatusResult({ running: true, url: "http://localhost:4321" }));
       const store = useServerStore();
 
       await store.updateStatus();
@@ -162,9 +162,7 @@ describe("Server Store", () => {
     });
 
     it("更新時應保留現有 logs（不被 API 結果覆蓋）", async () => {
-      mockElectronAPI.getServerStatus.mockResolvedValueOnce(
-        makeServerStatusResult({ running: true, url: "http://localhost:4321" })
-      );
+      mockElectronAPI.getServerStatus.mockResolvedValueOnce(makeServerStatusResult({ running: true, url: "http://localhost:4321" }));
       const store = useServerStore();
       store.addLog("已有日誌");
 

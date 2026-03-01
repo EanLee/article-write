@@ -107,7 +107,7 @@ describe("Seo Store", () => {
           contentPreview: article.content.slice(0, 300),
           existingSlug: article.frontmatter.slug,
         }),
-        "openai"
+        "openai",
       );
     });
 
@@ -118,10 +118,7 @@ describe("Seo Store", () => {
 
       await seoStore.generateSEO(makeMockArticle());
 
-      expect(mockElectronAPI.aiGenerateSEO).toHaveBeenCalledWith(
-        expect.any(Object),
-        undefined
-      );
+      expect(mockElectronAPI.aiGenerateSEO).toHaveBeenCalledWith(expect.any(Object), undefined);
     });
 
     it("API 回傳 success: false 時：設定 error 並回傳 null", async () => {

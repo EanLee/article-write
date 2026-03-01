@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PublishService } from "@/main/services/PublishService";
 import type { PublishConfig } from "@/main/services/PublishService";
+import type { FileService } from "@/main/services/FileService";
 import type { Article } from "@/types";
 import { ArticleStatus, ArticleCategory } from "@/types";
 
@@ -24,7 +25,7 @@ describe("PublishService", () => {
     vi.clearAllMocks();
 
     // Create service with mocked FileService
-    publishService = new PublishService(mockFileService as any);
+    publishService = new PublishService(mockFileService as unknown as FileService);
 
     // Mock article
     mockArticle = {
@@ -349,8 +350,9 @@ describe("PublishService", () => {
       });
 
       it("情境三：磁碟空間不足（ENOSPC）→ 顯示磁碟空間說明", async () => {
-        const enospc = new Error("ENOSPC: no space left on device");
-        (enospc as any).cause = Object.assign(new Error(), { code: "ENOSPC" });
+        const enospc = Object.assign(new Error("ENOSPC: no space left on device"), {
+          cause: Object.assign(new Error(), { code: "ENOSPC" })
+        });
         mockFileService.writeFile.mockRejectedValue(enospc);
 
         const result = await publishService.publishArticle(mockArticle, mockConfig);
@@ -360,8 +362,9 @@ describe("PublishService", () => {
       });
 
       it("情境四：檔案被佔用（EBUSY）→ 顯示檔案佔用說明", async () => {
-        const ebusy = new Error("EBUSY: resource busy or locked");
-        (ebusy as any).cause = Object.assign(new Error(), { code: "EBUSY" });
+        const ebusy = Object.assign(new Error("EBUSY: resource busy or locked"), {
+          cause: Object.assign(new Error(), { code: "EBUSY" })
+        });
         mockFileService.writeFile.mockRejectedValue(ebusy);
 
         const result = await publishService.publishArticle(mockArticle, mockConfig);

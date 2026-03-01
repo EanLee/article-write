@@ -10,9 +10,9 @@ vi.mock("child_process", () => ({
 vi.mock("util", () => ({
   promisify:
     (_fn: Function) =>
-    (...args: any[]) =>
+    (...args: unknown[]) =>
       new Promise((resolve, reject) => {
-        _fn(...args, (err: any, stdout: string, stderr: string) => {
+        _fn(...args, (err: NodeJS.ErrnoException | null, stdout: string, stderr: string) => {
           if (err) {
             reject(err);
           } else {
@@ -29,6 +29,7 @@ const repoPath = "/test/astro-blog";
 function mockExecSuccess(stdout: string, stderr = "") {
   mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
     callback(null, stdout, stderr);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {} as any;
   });
 }
@@ -36,6 +37,7 @@ function mockExecSuccess(stdout: string, stderr = "") {
 function mockExecFailure(message: string) {
   mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
     callback(new Error(message), "", message);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {} as any;
   });
 }
@@ -165,6 +167,7 @@ describe("GitService", () => {
         else if (callCount === 3) {
           callback(null, "To github.com", "");
         } // git push
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return {} as any;
       });
 
@@ -197,6 +200,7 @@ describe("GitService", () => {
         else {
           callback(new Error("nothing to commit"), "", "");
         } // git commit
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return {} as any;
       });
 

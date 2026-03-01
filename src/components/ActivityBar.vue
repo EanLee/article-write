@@ -21,12 +21,13 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from "vue"
 import { Edit3, LayoutDashboard, Settings, Sparkles } from "lucide-vue-next"
 import { ViewMode } from "@/types"
 
 interface ActivityItem {
   id: ViewMode
-  icon: any
+  icon: Component
   label: string
   shortcut: string
 }

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useArticleStore } from "@/stores/article";
 import { useConfigStore } from "@/stores/config";
@@ -16,7 +16,7 @@ global.window = {
     getConfig: vi.fn(),
     setConfig: vi.fn(),
   },
-} as any;
+} as unknown as Window & typeof globalThis;
 // Typed mock accessor: env.d.ts types window.electronAPI as the real API; at test time these are vi.fn() mocks
 const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 

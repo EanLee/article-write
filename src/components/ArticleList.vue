@@ -121,13 +121,14 @@
 import { ref, onMounted } from "vue"
 import { useArticleStore } from "@/stores/article"
 import type { Article } from "@/types"
+import { ArticleFilterStatus, ArticleFilterCategory } from "@/types"
 
 const articleStore = useArticleStore()
 
 // Reactive data
 const searchText = ref("")
-const statusFilter = ref("all")
-const categoryFilter = ref("all")
+const statusFilter = ref<ArticleFilterStatus>(ArticleFilterStatus.All)
+const categoryFilter = ref<ArticleFilterCategory>(ArticleFilterCategory.All)
 
 // Methods
 function updateSearch() {
@@ -136,8 +137,8 @@ function updateSearch() {
 
 function updateFilters() {
   articleStore.updateFilter({
-    status: statusFilter.value as any,
-    category: categoryFilter.value as any
+    status: statusFilter.value,
+    category: categoryFilter.value
   })
 }
 

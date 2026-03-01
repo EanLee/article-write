@@ -30,7 +30,7 @@ global.window = {
     stopFileWatching: vi.fn().mockResolvedValue(undefined),
     onFileChange: vi.fn(() => vi.fn()),
   },
-} as any
+} as unknown as Window & typeof globalThis
 
 // ---------- 工廠函式 ----------
 
@@ -243,7 +243,7 @@ describe("Article Store — setCurrentArticle 不改變 filter（確保 currentP
   it("resetFilter 後 filter 回到預設值", () => {
     const store = useArticleStore()
 
-    store.updateFilter({ searchText: "關鍵字", status: ArticleStatus.Draft as any })
+    store.updateFilter({ searchText: "關鍵字", status: ArticleFilterStatus.Draft })
     store.updateFilter({
       searchText: "",
       status: ArticleFilterStatus.All,

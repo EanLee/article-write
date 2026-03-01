@@ -21,6 +21,7 @@ export async function createTestArticles(page: Page, count: number = 20) {
   for (let i = 0; i < count; i++) {
     await page.evaluate((index) => {
       // 假設可以透過 window 物件存取 store
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__articleStore__
       if (store) {
         store.createArticle(`測試文章 ${index + 1}`, "Software")
@@ -35,11 +36,12 @@ export async function createTestArticles(page: Page, count: number = 20) {
  */
 export async function cleanupTestArticles(page: Page) {
   await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = (window as any).__articleStore__
     if (store) {
       // 刪除所有測試文章
       store.articles.value = store.articles.value.filter(
-        (a: any) => !a.title.startsWith("測試文章")
+        (a: { title: string }) => !a.title.startsWith("測試文章")
       )
     }
   })
@@ -61,6 +63,7 @@ export async function waitForFileWatchingStable(page: Page, timeout: number = 60
  */
 export async function findDuplicateArticles(page: Page): Promise<string[]> {
   return await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const store = (window as any).__articleStore__
     if (!store) {return []}
 
@@ -68,7 +71,7 @@ export async function findDuplicateArticles(page: Page): Promise<string[]> {
     const seen = new Set<string>()
     const duplicates: string[] = []
 
-    articles.forEach((article: any) => {
+    articles.forEach((article: { filePath: string; title: string; id: string }) => {
       const key = `${article.filePath}|${article.title}`
       if (seen.has(key)) {
         duplicates.push(article.id)

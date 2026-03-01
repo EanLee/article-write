@@ -116,7 +116,7 @@ describe("PreviewService", () => {
 
     it("should handle rendering errors gracefully", () => {
       // Mock a scenario that might cause an error
-      const invalidContent = null as any
+      const invalidContent = null as unknown as string
       const result = previewService.renderPreview(invalidContent)
       
       // Should return empty string for null input

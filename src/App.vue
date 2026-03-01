@@ -1,7 +1,8 @@
 <template>
   <div id="app" class="h-screen flex bg-base-100">
     <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
-    <ActivityBar v-if="!focusMode" v-model="currentMode" :ai-panel-open="aiPanelStore.isOpen" @open-settings="openSettings()" @toggle-sidebar="toggleSidebar" @toggle-ai-panel="aiPanelStore.toggle()" />
+    <ActivityBar v-if="!focusMode" v-model="currentMode" :ai-panel-open="aiPanelStore.isOpen"
+      @open-settings="openSettings()" @toggle-sidebar="toggleSidebar" @toggle-ai-panel="aiPanelStore.toggle()" />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -41,11 +42,8 @@
           </main>
 
           <!-- AI Panel（Editor Mode，不限是否選文章） -->
-          <AIPanelView
-            v-if="currentMode === ViewMode.Editor && aiPanelStore.isOpen"
-            :article="articleStore.currentArticle"
-            @open-settings="openSettings"
-          />
+          <AIPanelView v-if="currentMode === ViewMode.Editor && aiPanelStore.isOpen"
+            :article="articleStore.currentArticle" @open-settings="openSettings" />
         </div>
       </template>
 
@@ -136,7 +134,7 @@ let unsubscribeUpdateAvailable: (() => void) | null = null
 let unsubscribeUpdateDownloaded: (() => void) | null = null
 
 function setupUpdateListeners() {
-  if (!window.electronAPI?.onUpdateAvailable) {return}
+  if (!window.electronAPI?.onUpdateAvailable) { return }
 
   unsubscribeUpdateAvailable = window.electronAPI.onUpdateAvailable(({ version }) => {
     notificationService.info(

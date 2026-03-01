@@ -118,10 +118,10 @@ export class MarkdownService {
       body = match[2];
 
       try {
-        const parsed = yaml.load(yamlContent) as any;
+        const parsed = yaml.load(yamlContent);
 
         if (parsed && typeof parsed === "object") {
-          frontmatter = this.validateAndNormalizeFrontmatter(parsed, errors);
+          frontmatter = this.validateAndNormalizeFrontmatter(parsed as Record<string, unknown>, errors);
           hasValidFrontmatter = errors.length === 0;
         } else {
           errors.push("Frontmatter must be a valid YAML object");

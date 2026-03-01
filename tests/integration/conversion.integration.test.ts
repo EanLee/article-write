@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ConverterService } from "@/services/ConverterService";
 import { ArticleService } from "@/services/ArticleService";
 import { MarkdownService } from "@/services/MarkdownService";
@@ -40,7 +40,7 @@ describe("Conversion Integration Tests", () => {
     // 建立 Mock ArticleService
     mockArticleService = {
       loadArticle: vi.fn(),
-    } as any;
+    } as unknown as ArticleService;
 
     // 建立 ConverterService
     converterService = new ConverterService(mockFileSystem, mockArticleService, new MarkdownService());
@@ -64,7 +64,7 @@ describe("Conversion Integration Tests", () => {
         copyFile: vi.fn().mockResolvedValue(undefined),
         getFileStats: vi.fn().mockResolvedValue({ isDirectory: false, size: 1024 }),
       },
-    } as any;
+    } as unknown as Window & typeof globalThis;
   });
 
   afterEach(() => {
@@ -293,7 +293,7 @@ Obsidian 圖片語法：
         if (path.includes("management")) {
           return managementArticle;
         }
-        return null as any;
+        return null as unknown as Article;
       });
 
       // Mock 目錄掃描
@@ -362,7 +362,7 @@ Obsidian 圖片語法：
         if (path.includes("fail")) {
           return failArticle;
         }
-        return null as any;
+        return null as unknown as Article;
       });
 
       vi.mocked(mockFileSystem.readDirectory).mockImplementation(async (path: string) => {

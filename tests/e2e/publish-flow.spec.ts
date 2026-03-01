@@ -39,9 +39,11 @@ test.describe("同步發布流程", () => {
 
     // 設定 articlesDir 與 targetBlog
     await window.evaluate(async ({ vault, blog }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig()
       config.paths.articlesDir = vault
       config.paths.targetBlog = blog
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config)
     }, { vault: testVaultPath, blog: targetBlogPath })
 

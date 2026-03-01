@@ -185,6 +185,7 @@ describe("AutoSaveService", () => {
       vi.advanceTimersByTime(200); // 等待 debounce
 
       // 直接調用 performAutoSave 來測試錯誤處理
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (autoSaveService as any).performAutoSave();
 
       expect(consoleSpy).toHaveBeenCalledWith("[ERROR]", "自動儲存失敗:", expect.any(Error));

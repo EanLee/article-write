@@ -74,8 +74,11 @@ vi.mock("@/services/BackupService", () => {
 describe("ArticleService with MockFileSystem", () => {
   let service: ArticleService;
   let mockFileSystem: MockFileSystem;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockParseMarkdown: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockCombineContent: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockDetectConflict: any;
 
   beforeEach(async () => {
@@ -86,8 +89,11 @@ describe("ArticleService with MockFileSystem", () => {
     const markdownMod = await import("@/services/MarkdownService");
     const backupMod = await import("@/services/BackupService");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockParseMarkdown = (markdownMod as any).markdownService.parseMarkdown;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockCombineContent = (markdownMod as any).markdownService.combineContent;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockDetectConflict = (backupMod as any).backupService.detectConflict;
 
     // 重置 mock

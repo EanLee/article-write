@@ -31,8 +31,10 @@ test.describe("全文搜尋流程", () => {
 
     // 透過 IPC 設定 articlesDir
     await window.evaluate(async (vaultPath) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig()
       config.paths.articlesDir = vaultPath
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config)
     }, testVaultPath)
 

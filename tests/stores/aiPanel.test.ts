@@ -203,10 +203,7 @@ describe("AiPanel Store", () => {
       // 不需要任何 articleStore 初始化，直接傳入 article 物件即可
       await aiPanelStore.generateSEO(customArticle);
 
-      expect(mockElectronAPI.aiGenerateSEO).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "自訂文章標題" }),
-        "openai"
-      );
+      expect(mockElectronAPI.aiGenerateSEO).toHaveBeenCalledWith(expect.objectContaining({ title: "自訂文章標題" }), "openai");
       expect(aiPanelStore.seoResult).toEqual(mockSEOResult);
     });
   });

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { AIError, AIErrorCode } from "../../src/main/services/AIProvider/types.js"
+import type { ConfigService } from "../../src/main/services/ConfigService.js"
 
 // Mock @sentry/electron/main（Vitest 執行於 Node 環境，無法載入 Electron）
 vi.mock("@sentry/electron/main", () => ({
@@ -55,7 +56,7 @@ describe("AIService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    aiService = new AIService(mockConfigService as any)
+    aiService = new AIService(mockConfigService as unknown as ConfigService)
   })
 
   it("API Key 未設定時拋出 AIErrorCode.KeyMissing", async () => {

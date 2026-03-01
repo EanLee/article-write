@@ -9,9 +9,11 @@ test.describe("設定路徑流程", () => {
   test("填入 articlesDir → 儲存設定 → 重啟後路徑保留", async ({ window, testVaultPath }) => {
     // 前置：清空 config，從乾淨狀態開始
     await window.evaluate(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig()
       config.paths.articlesDir = ""
       config.paths.targetBlog = ""
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config)
     })
     await window.reload()

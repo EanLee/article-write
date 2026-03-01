@@ -1,63 +1,63 @@
-import type { Article } from "@/types"
-import { logger } from "@/utils/logger"
+import type { Article } from "@/types";
+import { logger } from "@/utils/logger";
 
 /**
  * 圖片資訊介面
  */
 export interface ImageInfo {
-  name: string
-  path: string
-  size: number
-  lastModified: Date
-  isUsed: boolean
-  exists: boolean
-  preview?: string
+  name: string;
+  path: string;
+  size: number;
+  lastModified: Date;
+  isUsed: boolean;
+  exists: boolean;
+  preview?: string;
 }
 
 /**
  * 圖片引用資訊介面
  */
 export interface ImageReference {
-  imageName: string
-  articleId: string
-  articleTitle: string
-  line: number
-  exists: boolean
+  imageName: string;
+  articleId: string;
+  articleTitle: string;
+  line: number;
+  exists: boolean;
 }
 
 /**
  * 圖片驗證結果介面
  */
 export interface ImageValidationResult {
-  validImages: string[]
-  invalidImages: string[]
-  unusedImages: string[]
-  totalImages: number
+  validImages: string[];
+  invalidImages: string[];
+  unusedImages: string[];
+  totalImages: number;
 }
 
 /**
  * 圖片驗證詳細結果介面
  */
 export interface ImageValidationDetails {
-  imageName: string
-  exists: boolean
-  isUsed: boolean
-  referencedIn: string[]
-  filePath?: string
-  errorMessage?: string
+  imageName: string;
+  exists: boolean;
+  isUsed: boolean;
+  referencedIn: string[];
+  filePath?: string;
+  errorMessage?: string;
 }
 
 /**
  * 圖片驗證警告介面
  */
 export interface ImageValidationWarning {
-  imageName: string
-  line: number
-  column: number
-  type: "missing-file" | "invalid-format" | "broken-reference"
-  message: string
-  suggestion: string
-  severity: "error" | "warning"
+  imageName: string;
+  line: number;
+  column: number;
+  type: "missing-file" | "invalid-format" | "broken-reference";
+  message: string;
+  suggestion: string;
+  severity: "error" | "warning";
 }
 
 /**
@@ -65,15 +65,15 @@ export interface ImageValidationWarning {
  * 負責管理圖片檔案、驗證圖片引用，以及提供圖片相關功能
  */
 export class ImageService {
-  private vaultPath: string = ""
-  private articles: Article[] = []
+  private vaultPath: string = "";
+  private articles: Article[] = [];
 
   /**
    * 設定 Vault 路徑
    * @param {string} path - Obsidian Vault 路徑
    */
   setVaultPath(path: string): void {
-    this.vaultPath = path
+    this.vaultPath = path;
   }
 
   /**
@@ -81,7 +81,7 @@ export class ImageService {
    * @param {Article[]} articles - 文章陣列
    */
   updateArticles(articles: Article[]): void {
-    this.articles = articles
+    this.articles = articles;
   }
 
   /**
@@ -89,7 +89,7 @@ export class ImageService {
    * @returns {string} 圖片目錄路徑
    */
   getImagesPath(): string {
-    return `${this.vaultPath}/images`
+    return `${this.vaultPath}/images`;
   }
 
   /**
@@ -98,37 +98,36 @@ export class ImageService {
    */
   async loadImages(): Promise<ImageInfo[]> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      return []
+      return [];
     }
 
     try {
-      const imagesPath = this.getImagesPath()
-      
+      const imagesPath = this.getImagesPath();
+
       // Check if images directory exists
-       
-      const stats = await (window.electronAPI as any).getFileStats(imagesPath)
+
+      const stats = await window.electronAPI.getFileStats(imagesPath);
       if (!stats?.isDirectory) {
-        return []
+        return [];
       }
 
-      const files = await window.electronAPI.readDirectory(imagesPath)
-      
-      // Filter image files
-      const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]
-      const imageFiles = files.filter(file => {
-        const ext = file.toLowerCase().substring(file.lastIndexOf("."))
-        return imageExtensions.includes(ext)
-      })
+      const files = await window.electronAPI.readDirectory(imagesPath);
 
-      const imageInfos: ImageInfo[] = []
-      
+      // Filter image files
+      const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"];
+      const imageFiles = files.filter((file) => {
+        const ext = file.toLowerCase().substring(file.lastIndexOf("."));
+        return imageExtensions.includes(ext);
+      });
+
+      const imageInfos: ImageInfo[] = [];
+
       for (const fileName of imageFiles) {
-        const filePath = `${imagesPath}/${fileName}`
-        
+        const filePath = `${imagesPath}/${fileName}`;
+
         try {
-           
-          const fileStats = await (window.electronAPI as any).getFileStats(filePath)
-          
+          const fileStats = await window.electronAPI.getFileStats(filePath);
+
           const imageInfo: ImageInfo = {
             name: fileName,
             path: filePath,
@@ -136,10 +135,10 @@ export class ImageService {
             lastModified: fileStats?.mtime ? new Date(fileStats.mtime) : new Date(),
             isUsed: this.isImageUsed(fileName),
             exists: true,
-            preview: `file://${filePath}`
-          }
-          
-          imageInfos.push(imageInfo)
+            preview: `file://${filePath}`,
+          };
+
+          imageInfos.push(imageInfo);
         } catch {
           // If we can't get stats, still include the image but mark as potentially problematic
           const imageInfo: ImageInfo = {
@@ -149,18 +148,17 @@ export class ImageService {
             lastModified: new Date(),
             isUsed: this.isImageUsed(fileName),
             exists: false,
-            preview: undefined
-          }
-          
-          imageInfos.push(imageInfo)
+            preview: undefined,
+          };
+
+          imageInfos.push(imageInfo);
         }
       }
 
-      return imageInfos
+      return imageInfos;
     } catch (error) {
-       
-      logger.error("Failed to load images:", error)
-      return []
+      logger.error("Failed to load images:", error);
+      return [];
     }
   }
 
@@ -170,16 +168,16 @@ export class ImageService {
    * @returns {boolean} 是否被使用
    */
   isImageUsed(imageName: string): boolean {
-    return this.articles.some(article => {
-      const imageRegex = /!\[\[([^\]]+)\]\]/g
-      let match
+    return this.articles.some((article) => {
+      const imageRegex = /!\[\[([^\]]+)\]\]/g;
+      let match;
       while ((match = imageRegex.exec(article.content)) !== null) {
         if (match[1] === imageName) {
-          return true
+          return true;
         }
       }
-      return false
-    })
+      return false;
+    });
   }
 
   /**
@@ -188,44 +186,44 @@ export class ImageService {
    * @returns {ImageReference[]} 圖片引用陣列
    */
   getArticleImageReferences(article: Article): ImageReference[] {
-    const references: ImageReference[] = []
-    const lines = article.content.split("\n")
-    
+    const references: ImageReference[] = [];
+    const lines = article.content.split("\n");
+
     lines.forEach((line, index) => {
       // Obsidian 格式圖片: ![[image.png]]
-      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g
-      let match
-      
+      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
+      let match;
+
       while ((match = obsidianImageRegex.exec(line)) !== null) {
-        const imageName = match[1]
-        
+        const imageName = match[1];
+
         references.push({
           imageName,
           articleId: article.id,
           articleTitle: article.title,
           line: index + 1,
-          exists: false // Will be updated by validation methods
-        })
+          exists: false, // Will be updated by validation methods
+        });
       }
 
       // 標準 Markdown 格式圖片: ![alt](path)
-      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g
+      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
       while ((match = standardImageRegex.exec(line)) !== null) {
-        const imagePath = match[1]
+        const imagePath = match[1];
         // 提取檔名（如果是相對路徑）
-        const imageName = imagePath.includes("/") ? imagePath.split("/").pop() || imagePath : imagePath
-        
+        const imageName = imagePath.includes("/") ? imagePath.split("/").pop() || imagePath : imagePath;
+
         references.push({
           imageName,
           articleId: article.id,
           articleTitle: article.title,
           line: index + 1,
-          exists: false // Will be updated by validation methods
-        })
+          exists: false, // Will be updated by validation methods
+        });
       }
-    })
-    
-    return references
+    });
+
+    return references;
   }
 
   /**
@@ -235,16 +233,16 @@ export class ImageService {
    */
   async checkImageExists(imageName: string): Promise<boolean> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      return false
+      return false;
     }
 
     try {
-      const filePath = `${this.getImagesPath()}/${imageName}`
-       
-      const stats = await (window.electronAPI as any).getFileStats(filePath)
-      return stats && stats.isFile
+      const filePath = `${this.getImagesPath()}/${imageName}`;
+
+      const stats = await window.electronAPI.getFileStats(filePath);
+      return stats !== null && !stats.isDirectory;
     } catch {
-      return false
+      return false;
     }
   }
 
@@ -254,14 +252,14 @@ export class ImageService {
    * @returns {Promise<Map<string, boolean>>} 圖片存在性對照表
    */
   async checkMultipleImagesExist(imageNames: string[]): Promise<Map<string, boolean>> {
-    const results = new Map<string, boolean>()
-    
+    const results = new Map<string, boolean>();
+
     for (const imageName of imageNames) {
-      const exists = await this.checkImageExists(imageName)
-      results.set(imageName, exists)
+      const exists = await this.checkImageExists(imageName);
+      results.set(imageName, exists);
     }
-    
-    return results
+
+    return results;
   }
 
   /**
@@ -269,30 +267,30 @@ export class ImageService {
    * @returns {Promise<ImageValidationResult>} 驗證結果
    */
   async validateImageReferences(): Promise<ImageValidationResult> {
-    const allImages = await this.loadImages()
-    const validImages: string[] = []
-    const invalidImages: string[] = []
-    const unusedImages: string[] = []
+    const allImages = await this.loadImages();
+    const validImages: string[] = [];
+    const invalidImages: string[] = [];
+    const unusedImages: string[] = [];
 
     // Check each image
     for (const image of allImages) {
       if (image.exists) {
         if (image.isUsed) {
-          validImages.push(image.name)
+          validImages.push(image.name);
         } else {
-          unusedImages.push(image.name)
+          unusedImages.push(image.name);
         }
       } else {
-        invalidImages.push(image.name)
+        invalidImages.push(image.name);
       }
     }
 
     // Check for referenced images that don't exist
     for (const article of this.articles) {
-      const references = this.getArticleImageReferences(article)
+      const references = this.getArticleImageReferences(article);
       for (const ref of references) {
         if (!ref.exists && !invalidImages.includes(ref.imageName)) {
-          invalidImages.push(ref.imageName)
+          invalidImages.push(ref.imageName);
         }
       }
     }
@@ -301,8 +299,8 @@ export class ImageService {
       validImages,
       invalidImages,
       unusedImages,
-      totalImages: allImages.length
-    }
+      totalImages: allImages.length,
+    };
   }
 
   /**
@@ -310,40 +308,40 @@ export class ImageService {
    * @returns {Promise<ImageValidationDetails[]>} 詳細驗證結果
    */
   async getDetailedImageValidation(): Promise<ImageValidationDetails[]> {
-    const results: ImageValidationDetails[] = []
-    const referencedImages = new Set<string>()
-    const imageReferences = new Map<string, string[]>()
+    const results: ImageValidationDetails[] = [];
+    const referencedImages = new Set<string>();
+    const imageReferences = new Map<string, string[]>();
 
     // 收集所有被引用的圖片
     for (const article of this.articles) {
-      const references = this.getArticleImageReferences(article)
+      const references = this.getArticleImageReferences(article);
       for (const ref of references) {
-        referencedImages.add(ref.imageName)
-        
+        referencedImages.add(ref.imageName);
+
         if (!imageReferences.has(ref.imageName)) {
-          imageReferences.set(ref.imageName, [])
+          imageReferences.set(ref.imageName, []);
         }
-        imageReferences.get(ref.imageName)!.push(article.title)
+        imageReferences.get(ref.imageName)!.push(article.title);
       }
     }
 
     // 檢查所有被引用的圖片
     for (const imageName of referencedImages) {
-      const exists = await this.checkImageExists(imageName)
-      const referencedIn = imageReferences.get(imageName) || []
-      
+      const exists = await this.checkImageExists(imageName);
+      const referencedIn = imageReferences.get(imageName) || [];
+
       results.push({
         imageName,
         exists,
         isUsed: true,
         referencedIn,
         filePath: exists ? `${this.getImagesPath()}/${imageName}` : undefined,
-        errorMessage: exists ? undefined : "圖片檔案不存在"
-      })
+        errorMessage: exists ? undefined : "圖片檔案不存在",
+      });
     }
 
     // 檢查未被引用的圖片
-    const allImages = await this.loadImages()
+    const allImages = await this.loadImages();
     for (const image of allImages) {
       if (!referencedImages.has(image.name)) {
         results.push({
@@ -352,12 +350,12 @@ export class ImageService {
           isUsed: false,
           referencedIn: [],
           filePath: image.path,
-          errorMessage: undefined
-        })
+          errorMessage: undefined,
+        });
       }
     }
 
-    return results.sort((a, b) => a.imageName.localeCompare(b.imageName))
+    return results.sort((a, b) => a.imageName.localeCompare(b.imageName));
   }
 
   /**
@@ -366,23 +364,23 @@ export class ImageService {
    * @returns {Promise<ImageValidationDetails[]>} 該文章的圖片驗證結果
    */
   async validateArticleImages(article: Article): Promise<ImageValidationDetails[]> {
-    const references = this.getArticleImageReferences(article)
-    const results: ImageValidationDetails[] = []
+    const references = this.getArticleImageReferences(article);
+    const results: ImageValidationDetails[] = [];
 
     for (const ref of references) {
-      const exists = await this.checkImageExists(ref.imageName)
-      
+      const exists = await this.checkImageExists(ref.imageName);
+
       results.push({
         imageName: ref.imageName,
         exists,
         isUsed: true,
         referencedIn: [article.title],
         filePath: exists ? `${this.getImagesPath()}/${ref.imageName}` : undefined,
-        errorMessage: exists ? undefined : "圖片檔案不存在"
-      })
+        errorMessage: exists ? undefined : "圖片檔案不存在",
+      });
     }
 
-    return results
+    return results;
   }
 
   /**
@@ -391,20 +389,20 @@ export class ImageService {
    * @returns {Promise<ImageValidationWarning[]>} 圖片驗證警告陣列
    */
   async getImageValidationWarnings(content: string): Promise<ImageValidationWarning[]> {
-    const warnings: ImageValidationWarning[] = []
-    const lines = content.split("\n")
-    
+    const warnings: ImageValidationWarning[] = [];
+    const lines = content.split("\n");
+
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-      const line = lines[lineIndex]
-      
+      const line = lines[lineIndex];
+
       // 檢查 Obsidian 格式圖片: ![[image.png]]
-      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g
-      let match
-      
+      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
+      let match;
+
       while ((match = obsidianImageRegex.exec(line)) !== null) {
-        const imageName = match[1]
-        const exists = await this.checkImageExists(imageName)
-        
+        const imageName = match[1];
+        const exists = await this.checkImageExists(imageName);
+
         if (!exists) {
           warnings.push({
             imageName,
@@ -413,8 +411,8 @@ export class ImageService {
             type: "missing-file",
             message: `圖片檔案 "${imageName}" 不存在`,
             suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
-            severity: "error"
-          })
+            severity: "error",
+          });
         } else if (!this.isImageFile(imageName)) {
           warnings.push({
             imageName,
@@ -423,20 +421,20 @@ export class ImageService {
             type: "invalid-format",
             message: `"${imageName}" 不是有效的圖片格式`,
             suggestion: "支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp",
-            severity: "warning"
-          })
+            severity: "warning",
+          });
         }
       }
 
       // 檢查標準 Markdown 格式圖片: ![alt](path)
-      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g
+      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
       while ((match = standardImageRegex.exec(line)) !== null) {
-        const imagePath = match[1]
+        const imagePath = match[1];
         // 如果是相對路徑且指向 images 目錄，進行驗證
         if (imagePath.includes("images/") || imagePath.startsWith("./images/")) {
-          const imageName = imagePath.split("/").pop() || imagePath
-          const exists = await this.checkImageExists(imageName)
-          
+          const imageName = imagePath.split("/").pop() || imagePath;
+          const exists = await this.checkImageExists(imageName);
+
           if (!exists) {
             warnings.push({
               imageName,
@@ -445,14 +443,14 @@ export class ImageService {
               type: "missing-file",
               message: `圖片檔案 "${imageName}" 不存在`,
               suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
-              severity: "error"
-            })
+              severity: "error",
+            });
           }
         }
       }
     }
-    
-    return warnings
+
+    return warnings;
   }
 
   /**
@@ -461,9 +459,9 @@ export class ImageService {
    * @returns {boolean} 是否為有效的圖片格式
    */
   private isImageFile(filename: string): boolean {
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"]
-    const ext = filename.toLowerCase().substring(filename.lastIndexOf("."))
-    return imageExtensions.includes(ext)
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"];
+    const ext = filename.toLowerCase().substring(filename.lastIndexOf("."));
+    return imageExtensions.includes(ext);
   }
 
   /**
@@ -473,22 +471,21 @@ export class ImageService {
    */
   async deleteUnusedImage(imageName: string): Promise<boolean> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      return false
+      return false;
     }
 
     // Double check that image is not used
     if (this.isImageUsed(imageName)) {
-      throw new Error("無法刪除使用中的圖片")
+      throw new Error("無法刪除使用中的圖片");
     }
 
     try {
-      const filePath = `${this.getImagesPath()}/${imageName}`
-      await window.electronAPI.deleteFile(filePath)
-      return true
+      const filePath = `${this.getImagesPath()}/${imageName}`;
+      await window.electronAPI.deleteFile(filePath);
+      return true;
     } catch (error) {
-       
-      logger.error("Failed to delete image:", error)
-      return false
+      logger.error("Failed to delete image:", error);
+      return false;
     }
   }
 
@@ -500,19 +497,18 @@ export class ImageService {
    */
   async copyImageToVault(sourcePath: string, fileName: string): Promise<boolean> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      return false
+      return false;
     }
 
     try {
-      const targetPath = `${this.getImagesPath()}/${fileName}`
-      
+      const targetPath = `${this.getImagesPath()}/${fileName}`;
+
       // Use Electron API to copy file
-      await (window.electronAPI as any).copyFile(sourcePath, targetPath)
-      return true
+      await window.electronAPI.copyFile(sourcePath, targetPath);
+      return true;
     } catch (error) {
-       
-      logger.error("Failed to copy image:", error)
-      return false
+      logger.error("Failed to copy image:", error);
+      return false;
     }
   }
 
@@ -524,31 +520,30 @@ export class ImageService {
    */
   async uploadImageFile(file: File, customName?: string): Promise<string> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      throw new Error("Vault path not set or Electron API not available")
+      throw new Error("Vault path not set or Electron API not available");
     }
 
     // Validate file type
     if (!this.isImageFile(file.name)) {
-      throw new Error("Invalid image file format")
+      throw new Error("Invalid image file format");
     }
 
     // Generate unique filename
-    const fileName = customName || this.generateUniqueFileName(file.name)
-    const targetPath = `${this.getImagesPath()}/${fileName}`
+    const fileName = customName || this.generateUniqueFileName(file.name);
+    const targetPath = `${this.getImagesPath()}/${fileName}`;
 
     try {
       // Convert file to buffer
-      const arrayBuffer = await file.arrayBuffer()
-      const buffer = new Uint8Array(arrayBuffer)
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
 
       // Write file using Electron API
-      await (window.electronAPI as any).writeFileBuffer(targetPath, buffer)
-      
-      return fileName
+      await window.electronAPI.writeFileBuffer(targetPath, buffer);
+
+      return fileName;
     } catch (error) {
-       
-      logger.error("圖片上傳失敗：", error)
-      throw new Error(`圖片上傳失敗：${(error as Error).message}`)
+      logger.error("圖片上傳失敗：", error);
+      throw new Error(`圖片上傳失敗：${(error as Error).message}`);
     }
   }
 
@@ -558,12 +553,12 @@ export class ImageService {
    * @returns {string} 唯一的檔案名稱
    */
   private generateUniqueFileName(originalName: string): string {
-    const timestamp = Date.now()
-    const randomSuffix = Math.random().toString(36).substring(2, 8)
-    const extension = originalName.substring(originalName.lastIndexOf("."))
-    const baseName = originalName.substring(0, originalName.lastIndexOf("."))
-    
-    return `${baseName}-${timestamp}-${randomSuffix}${extension}`
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const extension = originalName.substring(originalName.lastIndexOf("."));
+    const baseName = originalName.substring(0, originalName.lastIndexOf("."));
+
+    return `${baseName}-${timestamp}-${randomSuffix}${extension}`;
   }
 
   /**
@@ -572,29 +567,27 @@ export class ImageService {
    */
   async cleanupUnusedImages(): Promise<string[]> {
     if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
-      return []
+      return [];
     }
 
     try {
-      const allImages = await this.loadImages()
-      const unusedImages = allImages.filter(image => !image.isUsed)
-      const cleanedFiles: string[] = []
+      const allImages = await this.loadImages();
+      const unusedImages = allImages.filter((image) => !image.isUsed);
+      const cleanedFiles: string[] = [];
 
       for (const image of unusedImages) {
         try {
-          await window.electronAPI.deleteFile(image.path)
-          cleanedFiles.push(image.name)
+          await window.electronAPI.deleteFile(image.path);
+          cleanedFiles.push(image.name);
         } catch (error) {
-           
-        logger.warn(`Failed to delete unused image ${image.name}:`, error)
+          logger.warn(`Failed to delete unused image ${image.name}:`, error);
         }
       }
 
-      return cleanedFiles
+      return cleanedFiles;
     } catch (error) {
-       
-      logger.error("Failed to cleanup unused images:", error)
-      return []
+      logger.error("Failed to cleanup unused images:", error);
+      return [];
     }
   }
 
@@ -603,8 +596,8 @@ export class ImageService {
    * @returns {Promise<ImageInfo[]>} 未使用的圖片陣列
    */
   async getUnusedImages(): Promise<ImageInfo[]> {
-    const allImages = await this.loadImages()
-    return allImages.filter(image => !image.isUsed)
+    const allImages = await this.loadImages();
+    return allImages.filter((image) => !image.isUsed);
   }
 
   /**
@@ -612,24 +605,24 @@ export class ImageService {
    * @param {string[]} imageNames - 要刪除的圖片檔案名稱陣列
    * @returns {Promise<{ success: string[], failed: string[] }>} 刪除結果
    */
-  async batchDeleteImages(imageNames: string[]): Promise<{ success: string[], failed: string[] }> {
-    const success: string[] = []
-    const failed: string[] = []
+  async batchDeleteImages(imageNames: string[]): Promise<{ success: string[]; failed: string[] }> {
+    const success: string[] = [];
+    const failed: string[] = [];
 
     for (const imageName of imageNames) {
       try {
-        const deleteSuccess = await this.deleteUnusedImage(imageName)
+        const deleteSuccess = await this.deleteUnusedImage(imageName);
         if (deleteSuccess) {
-          success.push(imageName)
+          success.push(imageName);
         } else {
-          failed.push(imageName)
+          failed.push(imageName);
         }
       } catch {
-        failed.push(imageName)
+        failed.push(imageName);
       }
     }
 
-    return { success, failed }
+    return { success, failed };
   }
 
   /**
@@ -638,7 +631,7 @@ export class ImageService {
    * @returns {string} Obsidian 引用語法
    */
   generateImageReference(imageName: string): string {
-    return `![[${imageName}]]`
+    return `![[${imageName}]]`;
   }
 
   /**
@@ -648,7 +641,7 @@ export class ImageService {
    * @returns {string} 移除引用後的內容
    */
   removeImageReference(content: string, imageName: string): string {
-    const regex = new RegExp(`!\\[\\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\]\\]`, "g")
-    return content.replace(regex, "")
+    const regex = new RegExp(`!\\[\\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\]\\]`, "g");
+    return content.replace(regex, "");
   }
 }

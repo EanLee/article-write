@@ -199,7 +199,9 @@ Line 4 with ![[missing2.jpg]]`
   describe("uploadImageFile", () => {
     it("should generate unique filename for uploaded images", () => {
       const originalName = "test-image.png"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const uniqueName1 = (imageService as any).generateUniqueFileName(originalName)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const uniqueName2 = (imageService as any).generateUniqueFileName(originalName)
 
       expect(uniqueName1).not.toBe(uniqueName2)

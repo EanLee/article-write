@@ -82,7 +82,7 @@ async convertImages(images: string[]): Promise<void> {
 }
 ```
 
-**影響**: 
+**影響**:
 - 大量圖片場景下（>20張）可能導致 Node.js 文件描述符耗盡
 - UI Thread 事件循環被阻塞，使用者看到 Electron 視窗無回應
 

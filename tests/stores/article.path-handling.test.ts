@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Article Store - 路徑處理測試
  * 專門測試 Windows 路徑格式不一致問題，確保不會產生重複文章
  *
@@ -28,7 +28,7 @@ global.window = {
     stopFileWatching: vi.fn().mockResolvedValue(undefined),
     onFileChange: vi.fn(),
   },
-} as any;
+} as unknown as Window & typeof globalThis;
 // Typed mock accessor: env.d.ts types window.electronAPI as the real API; at test time these are vi.fn() mocks
 const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 

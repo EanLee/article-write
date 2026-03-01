@@ -233,7 +233,7 @@ export class PublishService {
         slug: slug || title.toLowerCase().replace(/\s+/g, "-"),
         filePath,
         status,
-        category: (get("category") as any) || "Software",
+        category: get("category") || "Software",
         lastModified: new Date(),
         content: rawContent,
         frontmatter: {
@@ -271,7 +271,7 @@ export class PublishService {
       return "同步時發生未知錯誤"
     }
 
-    const cause = (error as any).cause as NodeJS.ErrnoException | undefined
+    const cause = (error as Error & { cause?: NodeJS.ErrnoException }).cause
     const code = cause?.code ?? (error as NodeJS.ErrnoException).code
 
     switch (code) {
@@ -405,8 +405,8 @@ export class PublishService {
   /**
    * 轉換 Frontmatter
    */
-  private convertFrontmatter(frontmatter: Record<string, any>): Record<string, any> {
-    const converted: Record<string, any> = { ...frontmatter }
+  private convertFrontmatter(frontmatter: Article["frontmatter"]): Record<string, unknown> {
+    const converted: Record<string, unknown> = { ...(frontmatter as Record<string, unknown>) }
 
     // pubDate = 公開/發佈時間（圓桌 #007：date 改為 pubDate）
     // 若 pubDate 已有值則直接沿用；若無值則填入當日日期
@@ -420,7 +420,9 @@ export class PublishService {
         converted.tags = converted.tags.split(",").map((tag: string) => tag.trim())
       }
       // 移除 Obsidian 標籤的 # 符號
-      converted.tags = converted.tags.map((tag: string) => tag.replace(/^#/, ""))
+      if (Array.isArray(converted.tags)) {
+        converted.tags = (converted.tags as string[]).map((tag: string) => tag.replace(/^#/, ""))
+      }
     }
 
     return converted
@@ -483,7 +485,7 @@ export class PublishService {
   /**
    * 合併 Frontmatter 和內容
    */
-  private combineContent(frontmatter: Record<string, any>, content: string): string {
+  private combineContent(frontmatter: Record<string, unknown>, content: string): string {
     const frontmatterYaml = this.stringifyFrontmatter(frontmatter)
     return `---\n${frontmatterYaml}---\n\n${content}`
   }
@@ -491,7 +493,7 @@ export class PublishService {
   /**
    * 將 Frontmatter 物件轉為 YAML 字串
    */
-  private stringifyFrontmatter(frontmatter: Record<string, any>): string {
+  private stringifyFrontmatter(frontmatter: Record<string, unknown>): string {
     let yaml = ""
 
     for (const [key, value] of Object.entries(frontmatter)) {

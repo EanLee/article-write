@@ -3,7 +3,7 @@ import { SearchService } from "../../src/main/services/SearchService"
 
 const mockReaddir = vi.fn()
 const mockReadFile = vi.fn()
-const mockFs = { readdir: mockReaddir, readFile: mockReadFile } as any
+const mockFs = { readdir: mockReaddir, readFile: mockReadFile } as unknown as ConstructorParameters<typeof SearchService>[0]
 
 const mockArticlesDir = "/mock/vault"
 

@@ -528,10 +528,7 @@ export class ConverterService {
    * @param {Article} article - 原始文章
    * @returns {Promise<{valid: boolean, issues: string[]}>} 驗證結果
    */
-  async validateConversionResult(
-    targetDir: string,
-    article: Article,
-  ): Promise<{ valid: boolean; issues: string[] }> {
+  async validateConversionResult(targetDir: string, article: Article): Promise<{ valid: boolean; issues: string[] }> {
     const imageReferences = this.markdownService.extractImageReferences(article.content);
     return this.validator.validateConversionResult(
       targetDir,

@@ -36,8 +36,10 @@ test.describe("SEO 生成功能", () => {
   test("API Key 未設定時 Frontmatter Panel 顯示引導按鈕", async ({ window, testVaultPath }) => {
     // 設定文章資料夾
     await window.evaluate(async (path: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig();
       config.paths.articlesDir = path;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config);
     }, testVaultPath);
 
