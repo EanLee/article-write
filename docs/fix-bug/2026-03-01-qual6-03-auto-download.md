@@ -1,15 +1,15 @@
 # Fix: QUAL6-03 — autoDownload 改為使用者確認
 
-**日期**: 2026-03-01  
-**嚴重性**: 🔴 P0  
-**問題 ID**: QUAL6-03  
-**影響版本**: 所有版本  
+**日期**: 2026-03-01
+**嚴重性**: 🔴 P0
+**問題 ID**: QUAL6-03
+**影響版本**: 所有版本
 
 ---
 
 ## 問題描述
 
-`electron-updater` 的 `autoUpdater.autoDownload` 設為 `true`，代表只要偵測到新版本，App 立即在背景靜默下載更新。  
+`electron-updater` 的 `autoUpdater.autoDownload` 設為 `true`，代表只要偵測到新版本，App 立即在背景靜默下載更新。
 攻擊者若能操控 GitHub Releases（供應鏈攻擊），惡意版本會自動下載並提示使用者安裝，使用者無法拒絕下載。
 
 **問題位置**: `src/main/main.ts` → `setupAutoUpdater()` 函式

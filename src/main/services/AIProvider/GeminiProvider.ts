@@ -46,12 +46,12 @@ export class GeminiProvider implements IAIProvider {
         throw e;
       }
       // TOKEN6-04: Rate Limit / context 超限處理
-      const errMsg = String(e)
+      const errMsg = String(e);
       if (errMsg.includes("429") || errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("rate")) {
-        throw new AIError(AIErrorCode.RateLimit, "請求過於頻繁，請稍後再試")
+        throw new AIError(AIErrorCode.RateLimit, "請求過於頻繁，請稍後再試");
       }
       if (errMsg.toLowerCase().includes("too long") || errMsg.toLowerCase().includes("token")) {
-        throw new AIError(AIErrorCode.ContextTooLong, "文章內容過長，無法處理")
+        throw new AIError(AIErrorCode.ContextTooLong, "文章內容過長，無法處理");
       }
       throw new AIError(AIErrorCode.ApiError, String(e));
     }

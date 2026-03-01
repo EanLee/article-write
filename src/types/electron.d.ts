@@ -118,10 +118,7 @@ export interface ElectronAPI {
   gitAdd: (repoPath: string, paths?: string[]) => Promise<GitResult>;
   gitCommit: (repoPath: string, options: { message: string; addAll?: boolean }) => Promise<GitResult>;
   gitPush: (repoPath: string, options?: { remote?: string; branch?: string }) => Promise<GitResult>;
-  gitAddCommitPush: (
-    repoPath: string,
-    commitMessage: string,
-  ) => Promise<{ success: boolean; steps: { name: string; result: GitResult }[]; error?: string }>;
+  gitAddCommitPush: (repoPath: string, commitMessage: string) => Promise<{ success: boolean; steps: { name: string; result: GitResult }[]; error?: string }>;
   gitLog: (repoPath: string, count?: number) => Promise<GitResult>;
 
   // ── Auto-Update ────────────────────────────────────────────────────────────

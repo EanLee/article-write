@@ -3,7 +3,7 @@
  * 提供測試資料建立、清理等功能
  */
 
-import type { Page } from "@playwright/test"
+import type { Page } from "@playwright/test";
 
 /**
  * 建立測試用的文章資料
@@ -22,11 +22,11 @@ export async function createTestArticles(page: Page, count: number = 20) {
     await page.evaluate((index) => {
       // 假設可以透過 window 物件存取 store
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const store = (window as any).__articleStore__
+      const store = (window as any).__articleStore__;
       if (store) {
-        store.createArticle(`測試文章 ${index + 1}`, "Software")
+        store.createArticle(`測試文章 ${index + 1}`, "Software");
       }
-    }, i)
+    }, i);
   }
 }
 
@@ -37,14 +37,12 @@ export async function createTestArticles(page: Page, count: number = 20) {
 export async function cleanupTestArticles(page: Page) {
   await page.evaluate(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = (window as any).__articleStore__
+    const store = (window as any).__articleStore__;
     if (store) {
       // 刪除所有測試文章
-      store.articles.value = store.articles.value.filter(
-        (a: { title: string }) => !a.title.startsWith("測試文章")
-      )
+      store.articles.value = store.articles.value.filter((a: { title: string }) => !a.title.startsWith("測試文章"));
     }
-  })
+  });
 }
 
 /**
@@ -53,7 +51,7 @@ export async function cleanupTestArticles(page: Page) {
  * @param timeout - 等待時間（毫秒）
  */
 export async function waitForFileWatchingStable(page: Page, timeout: number = 6000) {
-  await page.waitForTimeout(timeout)
+  await page.waitForTimeout(timeout);
 }
 
 /**
@@ -64,23 +62,25 @@ export async function waitForFileWatchingStable(page: Page, timeout: number = 60
 export async function findDuplicateArticles(page: Page): Promise<string[]> {
   return await page.evaluate(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = (window as any).__articleStore__
-    if (!store) {return []}
+    const store = (window as any).__articleStore__;
+    if (!store) {
+      return [];
+    }
 
-    const articles = store.articles.value
-    const seen = new Set<string>()
-    const duplicates: string[] = []
+    const articles = store.articles.value;
+    const seen = new Set<string>();
+    const duplicates: string[] = [];
 
     articles.forEach((article: { filePath: string; title: string; id: string }) => {
-      const key = `${article.filePath}|${article.title}`
+      const key = `${article.filePath}|${article.title}`;
       if (seen.has(key)) {
-        duplicates.push(article.id)
+        duplicates.push(article.id);
       }
-      seen.add(key)
-    })
+      seen.add(key);
+    });
 
-    return duplicates
-  })
+    return duplicates;
+  });
 }
 
 /**
@@ -89,8 +89,8 @@ export async function findDuplicateArticles(page: Page): Promise<string[]> {
  * @returns 滾動位置（scrollTop）
  */
 export async function getTableScrollPosition(page: Page): Promise<number> {
-  const tableContainer = page.locator(".table-container")
-  return await tableContainer.evaluate((el) => el.scrollTop)
+  const tableContainer = page.locator(".table-container");
+  return await tableContainer.evaluate((el) => el.scrollTop);
 }
 
 /**
@@ -99,8 +99,8 @@ export async function getTableScrollPosition(page: Page): Promise<number> {
  * @param scrollTop - 要設定的滾動位置
  */
 export async function setTableScrollPosition(page: Page, scrollTop: number) {
-  const tableContainer = page.locator(".table-container")
+  const tableContainer = page.locator(".table-container");
   await tableContainer.evaluate((el, scroll) => {
-    el.scrollTop = scroll
-  }, scrollTop)
+    el.scrollTop = scroll;
+  }, scrollTop);
 }

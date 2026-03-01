@@ -1,6 +1,5 @@
 import type { Article, SaveState, Frontmatter } from "@/types";
 import { SaveStatus } from "@/types";
-import { ref, type Ref } from "vue";
 import { isEqual } from "lodash-es";
 import { logger } from "@/utils/logger";
 
@@ -18,12 +17,37 @@ export class AutoSaveService {
   private lastSavedFrontmatter: Partial<Frontmatter> = {};
   private initialized: boolean = false; // 初始化標誌
 
-  // 儲存狀態（響應式）
-  public readonly saveState: Ref<SaveState> = ref({
+  // 儲存狀態（純資料，無 Vue 相依）
+  private _saveState: SaveState = {
     status: SaveStatus.Saved,
     lastSavedAt: null,
     error: null,
-  });
+  };
+
+  // 狀態變更監聽器集合
+  private _listeners: Set<(state: SaveState) => void> = new Set();
+
+  /**
+   * 取得當前儲存狀態（唯讀快照）
+   */
+  get saveState(): Readonly<SaveState> {
+    return this._saveState;
+  }
+
+  /**
+   * 訂閱儲存狀態變更事件
+   * @param callback 狀態變更時呼叫的回調函式
+   * @returns 取消訂閱的函式
+   */
+  onSaveStateChange(callback: (state: SaveState) => void): () => void {
+    this._listeners.add(callback);
+    return () => this._listeners.delete(callback);
+  }
+
+  /** 通知所有監聽器 */
+  private _notifyListeners(): void {
+    this._listeners.forEach((cb) => cb(this._saveState));
+  }
 
   /**
    * 初始化自動儲存服務
@@ -91,7 +115,7 @@ export class AutoSaveService {
     }
 
     // Dirty flag 快速路徑：狀態為 Saved 時直接跳過字串比較
-    if (this.saveState.value.status === SaveStatus.Saved) {
+    if (this._saveState.status === SaveStatus.Saved) {
       return;
     }
 
@@ -265,11 +289,12 @@ export class AutoSaveService {
    * @param {string | null} error - 錯誤訊息（僅當狀態為 error 時）
    */
   private updateSaveState(status: SaveStatus, error: string | null = null): void {
-    this.saveState.value = {
+    this._saveState = {
       status,
-      lastSavedAt: status === SaveStatus.Saved ? new Date() : this.saveState.value.lastSavedAt,
+      lastSavedAt: status === SaveStatus.Saved ? new Date() : this._saveState.lastSavedAt,
       error: status === SaveStatus.Error ? error : null,
     };
+    this._notifyListeners();
   }
 
   private markAsModifiedDebounceTimer: NodeJS.Timeout | null = null;
@@ -288,12 +313,13 @@ export class AutoSaveService {
 
     // 設定新的防抖計時器
     this.markAsModifiedDebounceTimer = setTimeout(() => {
-      if (this.saveState.value.status === SaveStatus.Saved) {
-        this.saveState.value = {
-          ...this.saveState.value,
+      if (this._saveState.status === SaveStatus.Saved) {
+        this._saveState = {
+          ...this._saveState,
           status: SaveStatus.Modified,
           error: null,
         };
+        this._notifyListeners();
       }
       this.markAsModifiedDebounceTimer = null;
     }, AutoSaveService.DEBOUNCE_DELAY);
@@ -324,11 +350,12 @@ export class AutoSaveService {
     this.getCurrentArticleCallback = null;
     this.lastSavedContent = "";
     this.lastSavedFrontmatter = {}; // 正確的空 Partial<Frontmatter>
-    this.saveState.value = {
+    this._saveState = {
       status: SaveStatus.Saved,
       lastSavedAt: null,
       error: null,
     };
+    this._listeners.clear();
   }
 }
 

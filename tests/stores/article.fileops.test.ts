@@ -3,12 +3,12 @@
  * 測試所有與檔案讀寫相關的功能，確保資料不會遺失或損壞
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
-import { setActivePinia, createPinia } from "pinia"
-import { useArticleStore } from "@/stores/article"
-import { useConfigStore } from "@/stores/config"
-import type { Article } from "@/types"
-import { ArticleStatus, ArticleCategory } from "@/types"
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { useArticleStore } from "@/stores/article";
+import { useConfigStore } from "@/stores/config";
+import type { Article } from "@/types";
+import { ArticleStatus, ArticleCategory } from "@/types";
 
 // Mock 全域 electronAPI
 global.window = {
@@ -25,54 +25,54 @@ global.window = {
     unwatchDirectory: vi.fn(),
     startFileWatching: vi.fn().mockResolvedValue(undefined),
     stopFileWatching: vi.fn().mockResolvedValue(undefined),
-    onFileChange: vi.fn(() => vi.fn()) // Returns unsubscribe function
-  }
-} as unknown as Window & typeof globalThis
+    onFileChange: vi.fn(() => vi.fn()), // Returns unsubscribe function
+  },
+} as unknown as Window & typeof globalThis;
 // Typed mock accessor (env.d.ts types window.electronAPI as the real interface; at test time these are vi.fn() mocks)
-const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>
+const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
 describe("Article Store - 檔案操作測試", () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
+    setActivePinia(createPinia());
 
-    const configStore = useConfigStore()
-    configStore.config.paths.articlesDir = "/test/vault"
+    const configStore = useConfigStore();
+    configStore.config.paths.articlesDir = "/test/vault";
 
-    vi.clearAllMocks()
+    vi.clearAllMocks();
 
     // 預設成功的 mock 實作
-    api.writeFile.mockResolvedValue(undefined)
-    api.deleteFile.mockResolvedValue(undefined)
-    api.createDirectory.mockResolvedValue(undefined)
+    api.writeFile.mockResolvedValue(undefined);
+    api.deleteFile.mockResolvedValue(undefined);
+    api.createDirectory.mockResolvedValue(undefined);
     api.getFileStats.mockResolvedValue({
       isDirectory: false,
-      mtime: new Date("2024-01-01").getTime()
-    })
-  })
+      mtime: new Date("2024-01-01").getTime(),
+    });
+  });
 
   afterEach(() => {
-    vi.restoreAllMocks()
-  })
+    vi.restoreAllMocks();
+  });
 
   describe("loadArticles - 載入文章", () => {
     it("應該正確載入包含系列資訊的文章", async () => {
       // Mock 檔案系統結構
       api.getFileStats.mockImplementation(async (path: string) => {
         if (path === "/test/vault/Software") {
-          return { isDirectory: true, mtime: Date.now() }
+          return { isDirectory: true, mtime: Date.now() };
         }
-        return { isDirectory: false, mtime: Date.now() }
-      })
+        return { isDirectory: false, mtime: Date.now() };
+      });
 
       api.readDirectory.mockImplementation(async (path: string) => {
         if (path === "/test/vault") {
-          return ["Software"]
+          return ["Software"];
         }
         if (path === "/test/vault/Software") {
-          return ["test-article.md"]
+          return ["test-article.md"];
         }
-        return []
-      })
+        return [];
+      });
 
       api.readFile.mockResolvedValue(`---
 title: Test Article
@@ -87,35 +87,35 @@ series: Vue 3 進階教學
 seriesOrder: 3
 ---
 
-Test content here`)
+Test content here`);
 
-      const store = useArticleStore()
-      await store.loadArticles()
+      const store = useArticleStore();
+      await store.loadArticles();
 
-      expect(store.articles).toHaveLength(1)
-      const article = store.articles[0]
-      expect(article.frontmatter.series).toBe("Vue 3 進階教學")
-      expect(article.frontmatter.seriesOrder).toBe(3)
-      expect(article.content).toBe("Test content here")
-    })
+      expect(store.articles).toHaveLength(1);
+      const article = store.articles[0];
+      expect(article.frontmatter.series).toBe("Vue 3 進階教學");
+      expect(article.frontmatter.seriesOrder).toBe(3);
+      expect(article.content).toBe("Test content here");
+    });
 
     it("應該正確載入沒有系列資訊的文章", async () => {
       api.getFileStats.mockImplementation(async (path: string) => {
         if (path === "/test/vault/Software") {
-          return { isDirectory: true, mtime: Date.now() }
+          return { isDirectory: true, mtime: Date.now() };
         }
-        return { isDirectory: false, mtime: Date.now() }
-      })
+        return { isDirectory: false, mtime: Date.now() };
+      });
 
       api.readDirectory.mockImplementation(async (path: string) => {
         if (path === "/test/vault") {
-          return ["Software"]
+          return ["Software"];
         }
         if (path === "/test/vault/Software") {
-          return ["no-series.md"]
+          return ["no-series.md"];
         }
-        return []
-      })
+        return [];
+      });
 
       api.readFile.mockResolvedValue(`---
 title: No Series Article
@@ -124,38 +124,38 @@ tags: []
 categories: []
 ---
 
-Content without series`)
+Content without series`);
 
-      const store = useArticleStore()
-      await store.loadArticles()
+      const store = useArticleStore();
+      await store.loadArticles();
 
-      expect(store.articles).toHaveLength(1)
-      const article = store.articles[0]
-      expect(article.frontmatter.series).toBeUndefined()
-      expect(article.frontmatter.seriesOrder).toBeUndefined()
-    })
+      expect(store.articles).toHaveLength(1);
+      const article = store.articles[0];
+      expect(article.frontmatter.series).toBeUndefined();
+      expect(article.frontmatter.seriesOrder).toBeUndefined();
+    });
 
     it("當檔案讀取失敗時應該繼續載入其他文章", async () => {
       api.getFileStats.mockImplementation(async (path: string) => {
         if (path === "/test/vault/Software") {
-          return { isDirectory: true, mtime: Date.now() }
+          return { isDirectory: true, mtime: Date.now() };
         }
-        return { isDirectory: false, mtime: Date.now() }
-      })
+        return { isDirectory: false, mtime: Date.now() };
+      });
 
       api.readDirectory.mockImplementation(async (path: string) => {
         if (path === "/test/vault") {
-          return ["Software"]
+          return ["Software"];
         }
         if (path === "/test/vault/Software") {
-          return ["good.md", "bad.md", "another-good.md"]
+          return ["good.md", "bad.md", "another-good.md"];
         }
-        return []
-      })
+        return [];
+      });
 
       api.readFile.mockImplementation(async (path: string) => {
         if (path.includes("bad.md")) {
-          throw new Error("Read error")
+          throw new Error("Read error");
         }
         return `---
 title: Good Article
@@ -164,20 +164,20 @@ tags: []
 categories: []
 ---
 
-Content`
-      })
+Content`;
+      });
 
-      const store = useArticleStore()
-      await store.loadArticles()
+      const store = useArticleStore();
+      await store.loadArticles();
 
       // 應該載入 2 篇文章（跳過 bad.md）
-      expect(store.articles).toHaveLength(2)
-    })
-  })
+      expect(store.articles).toHaveLength(2);
+    });
+  });
 
   describe("saveArticle - 儲存文章", () => {
     it("應該正確儲存包含系列資訊的文章", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "test-1",
@@ -194,26 +194,26 @@ Content`
           tags: ["test"],
           categories: ["Software"],
           series: "Vue 3 進階教學",
-          seriesOrder: 3
-        }
-      }
+          seriesOrder: 3,
+        },
+      };
 
       // 手動添加到 store（模擬已載入的文章）
-      store.articles.push(article)
+      store.articles.push(article);
 
-      await store.saveArticle(article)
+      await store.saveArticle(article);
 
-      expect(window.electronAPI.writeFile).toHaveBeenCalledOnce()
-      const [filePath, content] = api.writeFile.mock.calls[0]
+      expect(window.electronAPI.writeFile).toHaveBeenCalledOnce();
+      const [filePath, content] = api.writeFile.mock.calls[0];
 
-      expect(filePath).toBe("/test/vault/Drafts/Software/test-article.md")
-      expect(content).toContain("series: Vue 3 進階教學")
-      expect(content).toContain("seriesOrder: 3")
-      expect(content).toContain("Test content")
-    })
+      expect(filePath).toBe("/test/vault/Drafts/Software/test-article.md");
+      expect(content).toContain("series: Vue 3 進階教學");
+      expect(content).toContain("seriesOrder: 3");
+      expect(content).toContain("Test content");
+    });
 
     it("應該保留所有 frontmatter 欄位", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "test-2",
@@ -234,33 +234,33 @@ Content`
           slug: "custom-slug",
           keywords: ["keyword1", "keyword2"],
           series: "Test Series",
-          seriesOrder: 1
-        }
-      }
+          seriesOrder: 1,
+        },
+      };
 
-      store.articles.push(article)
-      await store.saveArticle(article)
+      store.articles.push(article);
+      await store.saveArticle(article);
 
-      const [, content] = api.writeFile.mock.calls[0]
+      const [, content] = api.writeFile.mock.calls[0];
 
       // 驗證所有欄位都被保存
-      expect(content).toContain("title: Full Frontmatter Test")
-      expect(content).toContain("description: Test Description")
-      expect(content).toContain("date: '2024-01-01'")
-      expect(content).toContain("lastmod: '2024-01-02'")
-      expect(content).toContain("tag1")
-      expect(content).toContain("tag2")
-      expect(content).toContain("Software")
-      expect(content).toContain("Tutorial")
-      expect(content).toContain("slug: custom-slug")
-      expect(content).toContain("keyword1")
-      expect(content).toContain("keyword2")
-      expect(content).toContain("series: Test Series")
-      expect(content).toContain("seriesOrder: 1")
-    })
+      expect(content).toContain("title: Full Frontmatter Test");
+      expect(content).toContain("description: Test Description");
+      expect(content).toContain("date: '2024-01-01'");
+      expect(content).toContain("lastmod: '2024-01-02'");
+      expect(content).toContain("tag1");
+      expect(content).toContain("tag2");
+      expect(content).toContain("Software");
+      expect(content).toContain("Tutorial");
+      expect(content).toContain("slug: custom-slug");
+      expect(content).toContain("keyword1");
+      expect(content).toContain("keyword2");
+      expect(content).toContain("series: Test Series");
+      expect(content).toContain("seriesOrder: 1");
+    });
 
     it("更新文章後應該更新 store 中的資料", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "test-3",
@@ -275,30 +275,28 @@ Content`
           title: "Original Title",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
-      store.articles.push(article)
+      store.articles.push(article);
 
       // 更新文章
-      article.title = "Updated Title"
-      article.content = "Updated content"
-      article.frontmatter.title = "Updated Title"
+      article.title = "Updated Title";
+      article.content = "Updated content";
+      article.frontmatter.title = "Updated Title";
 
-      await store.saveArticle(article)
+      await store.saveArticle(article);
 
       // 檢查 store 中的資料已更新
-      expect(store.articles[0].title).toBe("Updated Title")
-      expect(store.articles[0].content).toBe("Updated content")
+      expect(store.articles[0].title).toBe("Updated Title");
+      expect(store.articles[0].content).toBe("Updated content");
       // lastModified 應該被更新
-      expect(store.articles[0].lastModified.getTime()).toBeGreaterThan(
-        new Date("2024-01-01").getTime()
-      )
-    })
+      expect(store.articles[0].lastModified.getTime()).toBeGreaterThan(new Date("2024-01-01").getTime());
+    });
 
     it("寫入檔案失敗時應該拋出錯誤", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "test-4",
@@ -313,61 +311,59 @@ Content`
           title: "Test",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
-      store.articles.push(article)
+      store.articles.push(article);
 
       // Mock 寫入失敗
-      api.writeFile.mockRejectedValue(new Error("Write failed"))
+      api.writeFile.mockRejectedValue(new Error("Write failed"));
 
-      await expect(store.saveArticle(article)).rejects.toThrow()
-    })
-  })
+      await expect(store.saveArticle(article)).rejects.toThrow();
+    });
+  });
 
   describe("createArticle - 創建文章", () => {
     it("應該創建新文章並寫入檔案", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
-      const article = await store.createArticle("New Article", ArticleCategory.Software)
+      const article = await store.createArticle("New Article", ArticleCategory.Software);
 
-      expect(window.electronAPI.writeFile).toHaveBeenCalledOnce()
-      expect(article.title).toBe("New Article")
-      expect(article.category).toBe("Software")
-      expect(article.status).toBe("draft")
-      expect(store.articles).toHaveLength(1)
-      expect(store.articles[0].id).toBe(article.id)
-    })
+      expect(window.electronAPI.writeFile).toHaveBeenCalledOnce();
+      expect(article.title).toBe("New Article");
+      expect(article.category).toBe("Software");
+      expect(article.status).toBe("draft");
+      expect(store.articles).toHaveLength(1);
+      expect(store.articles[0].id).toBe(article.id);
+    });
 
     it("創建的文章應該包含完整的 frontmatter 結構", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
-      await store.createArticle("Complete Frontmatter", ArticleCategory.Growth)
+      await store.createArticle("Complete Frontmatter", ArticleCategory.Growth);
 
-      const [, content] = api.writeFile.mock.calls[0]
+      const [, content] = api.writeFile.mock.calls[0];
 
-      expect(content).toContain("---")
-      expect(content).toContain("title: Complete Frontmatter")
-      expect(content).toContain("date:")
-      expect(content).toContain("categories:")
-      expect(content).toContain("growth")
-    })
+      expect(content).toContain("---");
+      expect(content).toContain("title: Complete Frontmatter");
+      expect(content).toContain("date:");
+      expect(content).toContain("categories:");
+      expect(content).toContain("growth");
+    });
 
     it("創建檔案失敗時應該拋出錯誤", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
-      api.writeFile.mockRejectedValue(new Error("Create failed"))
+      api.writeFile.mockRejectedValue(new Error("Create failed"));
 
-      await expect(
-        store.createArticle("Fail Article", ArticleCategory.Software)
-      ).rejects.toThrow("Create failed")
-    })
-  })
+      await expect(store.createArticle("Fail Article", ArticleCategory.Software)).rejects.toThrow("Create failed");
+    });
+  });
 
   describe("deleteArticle - 刪除文章", () => {
     it("應該刪除文章檔案並從 store 移除", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "delete-test",
@@ -382,23 +378,21 @@ Content`
           title: "To Delete",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
-      store.articles.push(article)
-      expect(store.articles).toHaveLength(1)
+      store.articles.push(article);
+      expect(store.articles).toHaveLength(1);
 
-      await store.deleteArticle("delete-test")
+      await store.deleteArticle("delete-test");
 
-      expect(window.electronAPI.deleteFile).toHaveBeenCalledWith(
-        "/test/vault/Drafts/Software/to-delete.md"
-      )
-      expect(store.articles).toHaveLength(0)
-    })
+      expect(window.electronAPI.deleteFile).toHaveBeenCalledWith("/test/vault/Drafts/Software/to-delete.md");
+      expect(store.articles).toHaveLength(0);
+    });
 
     it("刪除檔案失敗時應該拋出錯誤", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article: Article = {
         id: "delete-fail",
@@ -413,21 +407,21 @@ Content`
           title: "Delete Fail",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
-      store.articles.push(article)
+      store.articles.push(article);
 
-      api.deleteFile.mockRejectedValue(new Error("Delete failed"))
+      api.deleteFile.mockRejectedValue(new Error("Delete failed"));
 
-      await expect(store.deleteArticle("delete-fail")).rejects.toThrow("Delete failed")
-    })
-  })
+      await expect(store.deleteArticle("delete-fail")).rejects.toThrow("Delete failed");
+    });
+  });
 
   describe("toggleStatus - 切換發布狀態", () => {
     it("應該更新 frontmatter status 並保持檔案位置不變", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       // Mock readFile 以模擬讀取原始檔案（saveArticle 內部會讀取）
       api.readFile.mockResolvedValue(`---
@@ -439,7 +433,7 @@ categories:
   - Software
 ---
 
-Content to publish`)
+Content to publish`);
 
       const article: Article = {
         id: "move-test",
@@ -455,34 +449,34 @@ Content to publish`)
           date: "2024-01-01",
           status: ArticleStatus.Draft,
           tags: [],
-          categories: ["Software"]
-        }
-      }
+          categories: ["Software"],
+        },
+      };
 
-      store.articles.push(article)
+      store.articles.push(article);
 
-      await store.toggleStatus("move-test")
+      await store.toggleStatus("move-test");
 
       // 應該寫入同一個路徑（不移動檔案）
-      expect(window.electronAPI.writeFile).toHaveBeenCalled()
-      const [writtenPath, writtenContent] = api.writeFile.mock.calls[0]
-      expect(writtenPath).toBe("/test/vault/Software/to-publish.md")
+      expect(window.electronAPI.writeFile).toHaveBeenCalled();
+      const [writtenPath, writtenContent] = api.writeFile.mock.calls[0];
+      expect(writtenPath).toBe("/test/vault/Software/to-publish.md");
 
       // 應該寫入 published status
-      expect(writtenContent).toContain("status: published")
+      expect(writtenContent).toContain("status: published");
 
       // 不應該刪除檔案
-      expect(window.electronAPI.deleteFile).not.toHaveBeenCalled()
+      expect(window.electronAPI.deleteFile).not.toHaveBeenCalled();
 
       // 應該更新 store 中的文章狀態
-      expect(store.articles[0].status).toBe(ArticleStatus.Published)
-      expect(store.articles[0].filePath).toBe("/test/vault/Software/to-publish.md")
-    })
-  })
+      expect(store.articles[0].status).toBe(ArticleStatus.Published);
+      expect(store.articles[0].filePath).toBe("/test/vault/Software/to-publish.md");
+    });
+  });
 
   describe("setCurrentArticle - 切換文章", () => {
     it("切換文章時不應該意外儲存未修改的文章", async () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
       const article1: Article = {
         id: "article-1",
@@ -497,9 +491,9 @@ Content to publish`)
           title: "Article 1",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
       const article2: Article = {
         id: "article-2",
@@ -514,23 +508,23 @@ Content to publish`)
           title: "Article 2",
           date: "2024-01-01",
           tags: [],
-          categories: []
-        }
-      }
+          categories: [],
+        },
+      };
 
-      store.articles.push(article1, article2)
+      store.articles.push(article1, article2);
 
       // 設置第一篇文章為當前文章
-      store.setCurrentArticle(article1)
+      store.setCurrentArticle(article1);
 
       // 清除 mock 計數
-      vi.clearAllMocks()
+      vi.clearAllMocks();
 
       // 切換到第二篇文章（沒有修改第一篇）
-      store.setCurrentArticle(article2)
+      store.setCurrentArticle(article2);
 
       // 不應該調用 writeFile（因為沒有修改）
-      expect(window.electronAPI.writeFile).not.toHaveBeenCalled()
-    })
-  })
-})
+      expect(window.electronAPI.writeFile).not.toHaveBeenCalled();
+    });
+  });
+});

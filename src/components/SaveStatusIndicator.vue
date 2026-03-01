@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from "vue"
 import { Check, Loader2, AlertCircle, FileEdit, Save } from "lucide-vue-next"
+import { useArticleStore } from "@/stores/article"
 import { autoSaveService } from "@/services/AutoSaveService"
 import { logger } from "@/utils/logger"
 
@@ -56,8 +57,9 @@ const emit = defineEmits<{
   save: []
 }>()
 
-// 取得儲存狀態
-const saveState = computed(() => autoSaveService.saveState.value)
+// 取得儲存狀態（由 article store 橋接 AutoSaveService 純資料狀態）
+const articleStore = useArticleStore()
+const saveState = computed(() => articleStore.saveState)
 
 const isSaving = computed(() => saveState.value.status === "saving")
 

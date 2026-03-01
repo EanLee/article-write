@@ -106,7 +106,7 @@ describe("AutoSaveService", () => {
       vi.advanceTimersByTime(200); // 等待 debounce
 
       // saveState 應為 Modified
-      expect(autoSaveService.saveState.value.status).toBe("modified");
+      expect(autoSaveService.saveState.status).toBe("modified");
 
       // 觸發自動儲存
       vi.advanceTimersByTime(1000);
@@ -115,7 +115,7 @@ describe("AutoSaveService", () => {
       // 不應該呼叫儲存
       expect(mockSaveCallback).not.toHaveBeenCalled();
       // dirty flag 應被重置為 Saved
-      expect(autoSaveService.saveState.value.status).toBe("saved");
+      expect(autoSaveService.saveState.status).toBe("saved");
     });
 
     it("應該在文章切換時自動儲存前一篇文章", async () => {
