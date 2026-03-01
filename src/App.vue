@@ -87,7 +87,6 @@ import MainEditor from "@/components/MainEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
-import { logger } from "@/utils/logger";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
@@ -168,14 +167,9 @@ onMounted(async () => {
   // 只要有 articlesDir 就載入文章（targetBlog 是發布用的，不影響文章載入）
   if (configStore.config.paths.articlesDir) {
     await articleStore.loadArticles();
-    // 背景載入 metadata cache，載入失敗則自動掃描
+    // 背景載入 metadata cache；超過 TTL 或不存在時自動背景掃描
     const articlesDir = configStore.config.paths.articlesDir;
-    const cached = await metadataCacheService.load(articlesDir);
-    if (!cached) {
-      metadataCacheService.scan(articlesDir).catch((e) =>
-        logger.warn("Metadata cache scan failed:", e)
-      );
-    }
+    await metadataCacheService.getOrScan(articlesDir);
   }
 
   // 監聽頁面關閉事件
