@@ -33,19 +33,19 @@
 
 ## 第四次評估新發現問題
 
-| 問題 ID | 描述 | 嚴重度 | 狀態 |
-|--------|------|--------|------|
-| S4-01 | SearchPanel `v-html` 非選中路徑注入未 escaped text | 🟠 中高 | ⏳ 待修正 |
-| S4-02 | `FileService.exists()` / `checkWritable()` 未呼叫 `validatePath()` | 🟡 中 | ⏳ 待修正 |
-| A4-01/SOLID4-01 | `AppConfig` 型別雙來源（Zod 與 types/index.ts 不相容）| 🟠 中高 | ⏳ 待修正 |
-| A4-02 | `electron.d.ts getFileStats.mtime: string` vs 實際 `number` | 🟡 中 | ⏳ 待修正 |
-| Q4-TS-A | `Frontmatter` 缺少 `date` 欄位（4 個 TS 錯誤）| 🟡 中 | ⏳ 待修正 |
-| Q4-TS-B | `electron.d.ts` AI/Search 宣告缺失（4 個 TS 錯誤）| 🟡 中 | ⏳ 待修正 |
-| Q4-TS-D | `status` 未用變數、`err` 隱式 any | 🟢 低 | ⏳ 待修正 |
-| SOLID4-02 | `FileService.stopWatching` 清除 callbacks 語義不一致 | 🟡 中 | ⏳ 待修正 |
-| Q4-T01 | FileService 路徑驗證缺少單元測試 | 🟡 中 | ⏳ 待補充 |
-| Q4-T02 | `AppConfigSchema` Zod 驗證缺少測試 | 🟡 中 | ⏳ 待補充 |
-| Q4-T03 | SearchPanel `highlightKeyword` XSS 防護缺少測試 | 🟢 低 | ⏳ 待補充 |
+| 問題 ID | 描述 | 嚴重度 | Commit | 狀態 |
+|--------|------|--------|--------|------|
+| S4-01 | SearchPanel `v-html` 非選中路徑注入未 escaped text | 🟠 中高 | `6c1f415` | ✅ 已修正 |
+| S4-02 | `FileService.exists()` / `checkWritable()` 未呼叫 `validatePath()` | 🟡 中 | `93d050e` | ✅ 已修正 |
+| A4-01/SOLID4-01 | `AppConfig` 型別雙來源（Zod 與 types/index.ts 不相容）| 🟠 中高 | `437b4c2` | ✅ 已修正（EditorTheme 改為字面型別）|
+| A4-02 | `electron.d.ts getFileStats.mtime: string` vs 實際 `number` | 🟡 中 | `1fcc71f` | ✅ 已修正 |
+| Q4-TS-A | `Frontmatter` 缺少 `date` 欄位（4 個 TS 錯誤）| 🟡 中 | `92d7cac` | ✅ 已修正 |
+| Q4-TS-B | `electron.d.ts` AI/Search 宣告缺失（4 個 TS 錯誤）| 🟡 中 | `1fcc71f` | ✅ 已修正 |
+| Q4-TS-D | `status` 未用變數、`err` 隱式 any | 🟢 低 | `474f125` | ✅ 已修正 |
+| SOLID4-02 | `FileService.stopWatching` 清除 callbacks 語義不一致 | 🟡 中 | `49c056c` | ✅ 已修正 |
+| Q4-T01 | FileService 路徑驗證缺少單元測試 | 🟡 中 | `cc1aad5` | ✅ 已補充（13 tests）|
+| Q4-T02 | `AppConfigSchema` Zod 驗證缺少測試 | 🟡 中 | `cc1aad5` | ✅ 已補充（19 tests）|
+| Q4-T03 | SearchPanel `highlightKeyword` XSS 防護缺少測試 | 🟢 低 | `cc1aad5` | ✅ 已補充（19 tests）|
 
 ---
 
@@ -65,9 +65,9 @@ function highlightKeyword(text: string, keyword: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-  
+
   if (!keyword.trim()) { return escaped }  // 空 keyword → 直接返回 escaped text
-  
+
   const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   return escaped.replace(
     new RegExp(`(${escapedKeyword})`, "gi"),
@@ -160,6 +160,11 @@ stopWatching(): void {
 | `remove-duplicate-autosave` | 移除雙重 AutoSave timer | ✅ 已合入 develop |
 | `stable-article-id` | hash-based 穩定 Article ID | ✅ 已合入 develop |
 | `ai-prompts-extraction` | AI prompt 提取 | ✅ 已合入 develop |
+| `fix/search-panel-xss` | S4-01 SearchPanel XSS 邊界修正 | ✅ 已合入 develop |
+| `fix/fileservice-missing-validatepath` | S4-02 exists/checkWritable 補加 validatePath | ✅ 已合入 develop |
+| `fix/electron-d-ts-single-source` | A4-02 + Q4-TS-B electron.d.ts 整合 | ✅ 已合入 develop |
+| `fix/frontmatter-date-field` | Q4-TS-A Frontmatter 補充 date/draft 欄位 | ✅ 已合入 develop |
+| `refactor/unify-editor-theme-type` | A4-01 EditorTheme enum→字面型別 | ✅ 已合入 develop |
 
 ---
 

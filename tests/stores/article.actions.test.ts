@@ -2,12 +2,12 @@
  * Article Store Actions 補強測試
  * Q-05：補強 articleStore 主要 actions 覆蓋率
  */
-import { describe, it, expect, beforeEach, vi } from "vitest"
-import { setActivePinia, createPinia } from "pinia"
-import { useArticleStore } from "@/stores/article"
-import { useConfigStore } from "@/stores/config"
-import type { Article } from "@/types"
-import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types"
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { useArticleStore } from "@/stores/article";
+import { useConfigStore } from "@/stores/config";
+import type { Article } from "@/types";
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
 
 const mockElectronAPI = {
   readFile: vi.fn(),
@@ -18,12 +18,12 @@ const mockElectronAPI = {
   getFileStats: vi.fn(),
   getConfig: vi.fn(),
   setConfig: vi.fn(),
-}
+};
 
 Object.defineProperty(window, "electronAPI", {
   value: mockElectronAPI,
   writable: true,
-})
+});
 
 function makeArticle(overrides: Partial<Article> = {}): Article {
   return {
@@ -37,111 +37,108 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     frontmatter: { title: "測試文章" },
     lastModified: new Date(),
     ...overrides,
-  }
+  };
 }
 
 describe("Article Store — Actions 補強", () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.clearAllMocks()
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
 
     // 設定 configStore
-    const configStore = useConfigStore()
-    configStore.config.paths.articlesDir = "/vault"
+    const configStore = useConfigStore();
+    configStore.config.paths.articlesDir = "/vault";
 
-    mockElectronAPI.writeFile.mockResolvedValue(undefined)
-    mockElectronAPI.createDirectory.mockResolvedValue(undefined)
-    mockElectronAPI.getFileStats.mockResolvedValue(null)
+    mockElectronAPI.writeFile.mockResolvedValue(undefined);
+    mockElectronAPI.createDirectory.mockResolvedValue(undefined);
+    mockElectronAPI.getFileStats.mockResolvedValue(null);
     mockElectronAPI.getConfig.mockResolvedValue({
       paths: { articlesDir: "/vault", targetBlog: "", imagesDir: "" },
       editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" },
-    })
-  })
+    });
+  });
 
   describe("setCurrentArticle", () => {
     it("設定當前文章後 currentArticle 更新", () => {
-      const store = useArticleStore()
-      const article = makeArticle()
-      store.articles.push(article)
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
 
-      store.setCurrentArticle(article)
+      store.setCurrentArticle(article);
 
-      expect(store.currentArticle?.id).toBe("test-id")
-    })
+      expect(store.currentArticle?.id).toBe("test-id");
+    });
 
     it("設定 null 時 currentArticle 變為 null", () => {
-      const store = useArticleStore()
-      const article = makeArticle()
-      store.setCurrentArticle(article)
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.setCurrentArticle(article);
 
-      store.setCurrentArticle(null)
+      store.setCurrentArticle(null);
 
-      expect(store.currentArticle).toBeNull()
-    })
+      expect(store.currentArticle).toBeNull();
+    });
 
     it("切換文章時不崩潰（前一篇文章自動儲存觸發）", () => {
-      const store = useArticleStore()
-      const article1 = makeArticle({ id: "a1", filePath: "/vault/Drafts/Software/a1.md" })
-      const article2 = makeArticle({ id: "a2", filePath: "/vault/Drafts/Software/a2.md" })
-      store.articles.push(article1, article2)
+      const store = useArticleStore();
+      const article1 = makeArticle({ id: "a1", filePath: "/vault/Drafts/Software/a1.md" });
+      const article2 = makeArticle({ id: "a2", filePath: "/vault/Drafts/Software/a2.md" });
+      store.articles.push(article1, article2);
 
-      store.setCurrentArticle(article1)
+      store.setCurrentArticle(article1);
       // 不應拋出例外
-      expect(() => store.setCurrentArticle(article2)).not.toThrow()
-      expect(store.currentArticle?.id).toBe("a2")
-    })
-  })
+      expect(() => store.setCurrentArticle(article2)).not.toThrow();
+      expect(store.currentArticle?.id).toBe("a2");
+    });
+  });
 
   describe("updateFilter", () => {
     it("更新 status filter", () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
-      store.updateFilter({ status: ArticleFilterStatus.Published })
+      store.updateFilter({ status: ArticleFilterStatus.Published });
 
-      expect(store.filter.status).toBe(ArticleFilterStatus.Published)
-    })
+      expect(store.filter.status).toBe(ArticleFilterStatus.Published);
+    });
 
     it("部分更新 filter 時保留其他欄位", () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
       // 先設定 category
-      store.updateFilter({ category: ArticleFilterCategory.Software })
+      store.updateFilter({ category: ArticleFilterCategory.Software });
 
       // 只更新 status
-      store.updateFilter({ status: ArticleFilterStatus.Draft })
+      store.updateFilter({ status: ArticleFilterStatus.Draft });
 
-      expect(store.filter.category).toBe(ArticleFilterCategory.Software)
-      expect(store.filter.status).toBe(ArticleFilterStatus.Draft)
-    })
+      expect(store.filter.category).toBe(ArticleFilterCategory.Software);
+      expect(store.filter.status).toBe(ArticleFilterStatus.Draft);
+    });
 
     it("更新 search 關鍵字", () => {
-      const store = useArticleStore()
+      const store = useArticleStore();
 
-      store.updateFilter({ searchText: "關鍵字" })
+      store.updateFilter({ searchText: "關鍵字" });
 
-      expect(store.filter.searchText).toBe("關鍵字")
-    })
-  })
+      expect(store.filter.searchText).toBe("關鍵字");
+    });
+  });
 
   describe("saveCurrentArticle", () => {
     it("無 currentArticle 時不拋出錯誤", async () => {
-      const store = useArticleStore()
-      expect(store.currentArticle).toBeNull()
+      const store = useArticleStore();
+      expect(store.currentArticle).toBeNull();
 
-      await expect(store.saveCurrentArticle()).resolves.not.toThrow()
-    })
+      await expect(store.saveCurrentArticle()).resolves.not.toThrow();
+    });
 
     it("有 currentArticle 時呼叫 writeFile", async () => {
-      const store = useArticleStore()
-      const article = makeArticle()
-      store.articles.push(article)
-      store.setCurrentArticle(article)
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
 
-      await store.saveCurrentArticle()
+      await store.saveCurrentArticle();
 
-      expect(mockElectronAPI.writeFile).toHaveBeenCalledWith(
-        article.filePath,
-        expect.any(String)
-      )
-    })
-  })
-})
+      expect(mockElectronAPI.writeFile).toHaveBeenCalledWith(article.filePath, expect.any(String));
+    });
+  });
+});

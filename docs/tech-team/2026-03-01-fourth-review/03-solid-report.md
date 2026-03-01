@@ -94,7 +94,7 @@ export type AppConfig = z.infer<typeof AppConfigSchema>
 - 未來任何一方修改都需要同步另一方，維護風險高
 - 違反 Single Source of Truth (SSoT)
 
-**修正方案**: 
+**修正方案**:
 - 讓 `types/index.ts` 的 `AppConfig` 從 Zod schema infer（main 和 renderer 共用同一定義）
 - 或在 `types/index.ts` 定義 `EditorTheme = "light" | "dark"` 字面型別（與 Zod schema 相容）
 

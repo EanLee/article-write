@@ -141,7 +141,7 @@ src/
 ├── config/
 │   └── vault.ts            ← 第三次評估新增 ✅
 ├── main/
-│   ├── ipc-channels.ts     ← 第四次評估新增 ✅  
+│   ├── ipc-channels.ts     ← 第四次評估新增 ✅
 │   ├── schemas/
 │   │   └── config.schema.ts ← 第三次評估新增 ✅
 │   └── services/

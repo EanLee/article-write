@@ -152,7 +152,7 @@ syncAllPublished: (config: unknown) => ipcRenderer.invoke(IPC.SYNC_ALL_PUBLISHED
 ```
 第一次 → 第二次 → 第三次 → 第四次 (本次)
 CVSS 8.8 路徑穿越 [修正 ✅]
-CVSS 7.2 XSS [修正 ✅，但 S4-01 新缺口]  
+CVSS 7.2 XSS [修正 ✅，但 S4-01 新缺口]
 IPC 無型別 [部份修正，preload unknown 殘留]
 setConfig any [修正 ✅ Zod]
 ```

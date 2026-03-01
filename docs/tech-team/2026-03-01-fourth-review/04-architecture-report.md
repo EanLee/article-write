@@ -86,7 +86,7 @@ types/index.ts
           ↓ import
      electron.d.ts: getConfig() → AppConfig             ← API 型別宣告
      stores/config.ts: AppConfig                        ← TS 錯誤！
-     
+
 main/schemas/config.schema.ts
   └─ AppConfigSchema → z.infer → AppConfig              ← main process 使用
      { editorConfig.theme: "light" | "dark" }           ← 型別不同！
