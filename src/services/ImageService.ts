@@ -417,7 +417,9 @@ export class ImageService {
       }
     }
 
-    if (refs.length === 0) {return warnings;}
+    if (refs.length === 0) {
+      return warnings;
+    }
 
     // 第二步：去重後批量查詢（單次或並行 IPC，而非 N 次序列呼叫）
     const uniqueNames = [...new Set(refs.map((r) => r.imageName))];

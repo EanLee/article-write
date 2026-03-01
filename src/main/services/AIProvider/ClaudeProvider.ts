@@ -52,14 +52,14 @@ export class ClaudeProvider implements IAIProvider {
       }
       // TOKEN6-04: Rate Limit (429) 處理
       if (e instanceof Anthropic.RateLimitError) {
-        throw new AIError(AIErrorCode.RateLimit, "請求過於頻繁，請稍後再試")
+        throw new AIError(AIErrorCode.RateLimit, "請求過於頻繁，請稍後再試");
       }
       // TOKEN6-04: 內容過長處理
       if (e instanceof Anthropic.BadRequestError && e.message.includes("too long")) {
-        throw new AIError(AIErrorCode.ContextTooLong, "文章內容過長，無法處理")
+        throw new AIError(AIErrorCode.ContextTooLong, "文章內容過長，無法處理");
       }
       if (e instanceof Anthropic.APIConnectionTimeoutError) {
-        throw new AIError(AIErrorCode.Timeout, "請求逾時，請稍後再試")
+        throw new AIError(AIErrorCode.Timeout, "請求逾時，請稍後再試");
       }
       throw new AIError(AIErrorCode.ApiError, String(e));
     }

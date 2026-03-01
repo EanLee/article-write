@@ -351,7 +351,7 @@ describe("PublishService", () => {
 
       it("情境三：磁碟空間不足（ENOSPC）→ 顯示磁碟空間說明", async () => {
         const enospc = Object.assign(new Error("ENOSPC: no space left on device"), {
-          cause: Object.assign(new Error(), { code: "ENOSPC" })
+          cause: Object.assign(new Error(), { code: "ENOSPC" }),
         });
         mockFileService.writeFile.mockRejectedValue(enospc);
 
@@ -363,7 +363,7 @@ describe("PublishService", () => {
 
       it("情境四：檔案被佔用（EBUSY）→ 顯示檔案佔用說明", async () => {
         const ebusy = Object.assign(new Error("EBUSY: resource busy or locked"), {
-          cause: Object.assign(new Error(), { code: "EBUSY" })
+          cause: Object.assign(new Error(), { code: "EBUSY" }),
         });
         mockFileService.writeFile.mockRejectedValue(ebusy);
 

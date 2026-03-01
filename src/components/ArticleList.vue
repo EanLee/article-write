@@ -4,37 +4,26 @@
     <div class="p-4 border-b border-base-300">
       <div class="form-control mb-3">
         <div class="input-group">
-          <input
-            v-model="searchText"
-            type="text"
-            placeholder="搜尋文章..."
-            class="input input-bordered input-sm flex-1"
-            @input="updateSearch"
-          />
+          <input v-model="searchText" type="text" placeholder="搜尋文章..." class="input input-bordered input-sm flex-1"
+            @input="updateSearch" />
           <button class="btn btn-square btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
         </div>
       </div>
-      
+
       <div class="flex gap-2 mb-3">
-        <select
-          v-model="statusFilter"
-          class="select select-bordered select-sm flex-1"
-          @change="updateFilters"
-        >
+        <select v-model="statusFilter" class="select select-bordered select-sm flex-1" @change="updateFilters">
           <option value="all">全部狀態</option>
           <option value="draft">草稿</option>
           <option value="published">已發布</option>
         </select>
 
-        <select
-          v-model="categoryFilter"
-          class="select select-bordered select-sm flex-1"
-          @change="updateFilters"
-        >
+        <select v-model="categoryFilter" class="select select-bordered select-sm flex-1" @change="updateFilters">
           <option value="all">全部分類</option>
           <option value="Software">Software</option>
           <option value="growth">Growth</option>
@@ -45,58 +34,41 @@
 
     <!-- Article List -->
     <div class="flex-1 overflow-y-auto p-2">
-      <div
-        v-for="article in articleStore.filteredArticles"
-        :key="article.id"
+      <div v-for="article in articleStore.filteredArticles" :key="article.id"
         class="card bg-base-100 shadow-sm mb-2 cursor-pointer transition-all hover:shadow-md hover:border-primary/30"
         :class="{
           'bg-primary/5 border-l-4 border-l-primary shadow-md': article.id === articleStore.currentArticle?.id,
           'border border-base-300': article.id !== articleStore.currentArticle?.id
-        }"
-        @click="selectArticle(article)"
-      >
+        }" @click="selectArticle(article)">
         <div class="card-body p-3">
           <div class="flex justify-between items-start gap-2 mb-2">
-            <h3 
-              class="text-sm font-medium transition-all flex-1 min-w-0 overflow-hidden"
+            <h3 class="text-sm font-medium transition-all flex-1 min-w-0 overflow-hidden"
               :class="{ 'font-bold text-primary': article.id === articleStore.currentArticle?.id }"
-              :title="article.title"
-              style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;"
-            >
+              :title="article.title" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
               {{ article.title }}
             </h3>
-            <div 
-              class="badge badge-sm shrink-0"
-              :class="article.status === 'published' ? 'badge-success' : 'badge-info'"
-            >
+            <div class="badge badge-sm shrink-0"
+              :class="article.status === 'published' ? 'badge-success' : 'badge-info'">
               {{ article.status === 'published' ? '已發布' : '草稿' }}
             </div>
           </div>
-          
+
           <!-- 系列資訊 -->
-          <div 
-            v-if="article.frontmatter.series" 
-            class="text-xs text-primary mb-2 flex items-center gap-1 min-w-0"
-            :title="`系列: ${article.frontmatter.series}${article.frontmatter.seriesOrder ? ` #${article.frontmatter.seriesOrder}` : ''}`"
-          >
+          <div v-if="article.frontmatter.series" class="text-xs text-primary mb-2 flex items-center gap-1 min-w-0"
+            :title="`系列: ${article.frontmatter.series}${article.frontmatter.seriesOrder ? ` #${article.frontmatter.seriesOrder}` : ''}`">
             <span class="shrink-0">📚</span>
             <span class="truncate">{{ article.frontmatter.series }}</span>
             <span v-if="article.frontmatter.seriesOrder" class="shrink-0">#{{ article.frontmatter.seriesOrder }}</span>
           </div>
-          
+
           <div class="flex justify-between items-center gap-2 text-xs text-base-content/70 mb-2">
             <span class="badge badge-outline badge-xs shrink-0">{{ article.category }}</span>
             <span class="shrink-0 text-xs">{{ formatDate(article.lastModified) }}</span>
           </div>
 
           <div class="flex flex-wrap gap-1" v-if="article.frontmatter.tags && article.frontmatter.tags.length > 0">
-            <span
-              v-for="tag in article.frontmatter.tags.slice(0, 3)"
-              :key="tag"
-              class="badge badge-ghost badge-xs"
-              :title="tag"
-              style="max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-            >
+            <span v-for="tag in article.frontmatter.tags.slice(0, 3)" :key="tag" class="badge badge-ghost badge-xs"
+              :title="tag" style="max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               {{ tag }}
             </span>
             <span v-if="article.frontmatter.tags.length > 3" class="badge badge-ghost badge-xs shrink-0">
@@ -106,10 +78,8 @@
         </div>
       </div>
 
-      <div
-        v-if="articleStore.filteredArticles.length === 0"
-        class="flex flex-col items-center justify-center h-32 text-base-content/50"
-      >
+      <div v-if="articleStore.filteredArticles.length === 0"
+        class="flex flex-col items-center justify-center h-32 text-base-content/50">
         <div class="text-4xl mb-2">📄</div>
         <p>沒有找到文章</p>
       </div>

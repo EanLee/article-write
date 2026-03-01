@@ -1,7 +1,7 @@
 # 軟體架構評估報告 — 第六次全面評估
 
-**審查者**: 資深架構師 Agent  
-**日期**: 2026-03-01  
+**審查者**: 資深架構師 Agent
+**日期**: 2026-03-01
 **評估範圍**: WriteFlow v0.1.0，基準 commit `e9b525a`
 
 ---
@@ -73,9 +73,9 @@ WriteFlow 的整體架構骨架正確：Main Process / Preload / Renderer 三層
 
 **位置**: `src/stores/article.ts`（createArticle 第 227 行、reloadArticle 第 375 行）
 
-**問題**: 
+**問題**:
 
-`createArticle()` 直呼 `window.electronAPI.createDirectory()`，未透過 `ArticleService`。  
+`createArticle()` 直呼 `window.electronAPI.createDirectory()`，未透過 `ArticleService`。
 `reloadArticle()` 直呼 `window.electronAPI.readFile()` + `getFileStats()`，並自行執行 Markdown 解析，**跳過** `ArticleService.loadArticle()` 中的分類解析和 ID 標準化：
 
 ```typescript

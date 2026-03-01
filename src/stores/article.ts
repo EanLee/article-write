@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch, nextTick } from "vue";
-import type { Article, ArticleFilter } from "@/types";
-import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
+import type { Article, ArticleFilter, SaveState } from "@/types";
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory, SaveStatus } from "@/types";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { notify } from "@/services/NotificationService";
 import { useConfigStore } from "./config";
@@ -542,7 +542,17 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-  // 初始化自動儲存服務
+  // 初始化自動儲存服務  // 儲存狀態（橋接 AutoSaveService 純資料狀態為 Vue 響應式 ref）
+  const saveState = ref<SaveState>({
+    status: SaveStatus.Saved,
+    lastSavedAt: null,
+    error: null,
+  });
+
+  // 訂閱 AutoSaveService 狀態變更
+  autoSaveService.onSaveStateChange((state) => {
+    saveState.value = state;
+  });
   function initializeAutoSave() {
     const config = configStore.config;
     const interval = config.editorConfig.autoSaveInterval || 30000;
@@ -598,6 +608,9 @@ export const useArticleStore = defineStore("article", () => {
     draftArticles,
     publishedArticles,
     allTags,
+
+    // 儲存狀態（由 AutoSaveService 驅動）
+    saveState,
 
     // Actions
     loadArticles,

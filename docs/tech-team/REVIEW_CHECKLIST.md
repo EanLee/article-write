@@ -1,7 +1,7 @@
 # 技術評審檢查清單
 
-**適用專案**: WriteFlow (Electron + Vue 3 + TypeScript + Pinia)  
-**版本**: v1.0 — 建立於 2026-03-01  
+**適用專案**: WriteFlow (Electron + Vue 3 + TypeScript + Pinia)
+**版本**: v1.0 — 建立於 2026-03-01
 **用途**: 每次全面技術評審開始前，評審 AI 必須先讀此清單，並逐項核對
 
 ---

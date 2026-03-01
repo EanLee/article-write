@@ -1,8 +1,8 @@
 # AI Token 成本評估報告 — 第六次全面評估
 
-**審查者**: AI Token 成本與效率工程師 Agent  
-**日期**: 2026-03-01  
-**評估範圍**: WriteFlow AI 子系統（AIService + 3 個 Provider + Prompt 模板），基準 commit `e9b525a`  
+**審查者**: AI Token 成本與效率工程師 Agent
+**日期**: 2026-03-01
+**評估範圍**: WriteFlow AI 子系統（AIService + 3 個 Provider + Prompt 模板），基準 commit `e9b525a`
 > 📝 本角色為第六次評審新增，前次無基準分數可比較
 
 ---
@@ -155,7 +155,7 @@ if (e instanceof Anthropic.BadRequestError) {
 
 **位置**: `src/main/services/AIService.ts:30-36`
 
-**問題**: 
+**問題**:
 ```typescript
 } catch (e) {
   if (e instanceof AIError) {  // ← ClaudeProvider 已轉換，永遠在此被捕捉

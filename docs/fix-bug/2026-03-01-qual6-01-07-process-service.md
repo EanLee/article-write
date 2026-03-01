@@ -1,9 +1,9 @@
 # Fix: QUAL6-01 + QUAL6-07 — ProcessService 硬編碼問題
 
-**日期**: 2026-03-01  
-**嚴重性**: 🔴 P0  
-**問題 ID**: QUAL6-01, QUAL6-07  
-**影響版本**: 所有版本  
+**日期**: 2026-03-01
+**嚴重性**: 🔴 P0
+**問題 ID**: QUAL6-01, QUAL6-07
+**影響版本**: 所有版本
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### 問題描述
 
-`ProcessService.sendLogToRenderer()` 直接使用字串字面量 `"server-log"` 發送 IPC 事件，而非使用 `ipc-channels.ts` 中已定義的 `IPC.EVENT_SERVER_LOG` 常數。  
+`ProcessService.sendLogToRenderer()` 直接使用字串字面量 `"server-log"` 發送 IPC 事件，而非使用 `ipc-channels.ts` 中已定義的 `IPC.EVENT_SERVER_LOG` 常數。
 若 channel 名稱將來修改，此處不會被 TypeScript 發現（靜默的通訊失敗）。
 
 ### 根因

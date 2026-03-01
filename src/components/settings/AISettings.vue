@@ -33,7 +33,8 @@
           <div class="flex gap-2 mt-3">
             <input v-model="aiApiKey" type="password" placeholder="sk-ant-..."
               class="input input-bordered input-sm flex-1" />
-            <button class="btn btn-primary btn-sm" :disabled="!aiApiKey.trim()" @click="saveApiKey('claude')">儲存</button>
+            <button class="btn btn-primary btn-sm" :disabled="!aiApiKey.trim()"
+              @click="saveApiKey('claude')">儲存</button>
           </div>
           <p class="mt-2 text-xs text-base-content/50">
             <span v-if="aiKeySaved === 'claude'" class="text-success mr-2">✓ 已儲存</span>
@@ -71,7 +72,8 @@
           <div class="flex gap-2 mt-3">
             <input v-model="geminiApiKey" type="password" placeholder="AIza..."
               class="input input-bordered input-sm flex-1" />
-            <button class="btn btn-primary btn-sm" :disabled="!geminiApiKey.trim()" @click="saveApiKey('gemini')">儲存</button>
+            <button class="btn btn-primary btn-sm" :disabled="!geminiApiKey.trim()"
+              @click="saveApiKey('gemini')">儲存</button>
           </div>
           <p class="mt-2 text-xs text-base-content/50">
             <span v-if="aiKeySaved === 'gemini'" class="text-success mr-2">✓ 已儲存</span>
@@ -109,7 +111,8 @@
           <div class="flex gap-2 mt-3">
             <input v-model="openaiApiKey" type="password" placeholder="sk-..."
               class="input input-bordered input-sm flex-1" />
-            <button class="btn btn-primary btn-sm" :disabled="!openaiApiKey.trim()" @click="saveApiKey('openai')">儲存</button>
+            <button class="btn btn-primary btn-sm" :disabled="!openaiApiKey.trim()"
+              @click="saveApiKey('openai')">儲存</button>
           </div>
           <p class="mt-2 text-xs text-base-content/50">
             <span v-if="aiKeySaved === 'openai'" class="text-success mr-2">✓ 已儲存</span>
