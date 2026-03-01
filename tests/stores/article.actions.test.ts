@@ -7,7 +7,7 @@ import { setActivePinia, createPinia } from "pinia"
 import { useArticleStore } from "@/stores/article"
 import { useConfigStore } from "@/stores/config"
 import type { Article } from "@/types"
-import { ArticleStatus } from "@/types"
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types"
 
 const mockElectronAPI = {
   readFile: vi.fn(),
@@ -96,29 +96,29 @@ describe("Article Store — Actions 補強", () => {
     it("更新 status filter", () => {
       const store = useArticleStore()
 
-      store.updateFilter({ status: ArticleStatus.Published })
+      store.updateFilter({ status: ArticleFilterStatus.Published })
 
-      expect(store.filter.status).toBe(ArticleStatus.Published)
+      expect(store.filter.status).toBe(ArticleFilterStatus.Published)
     })
 
     it("部分更新 filter 時保留其他欄位", () => {
       const store = useArticleStore()
       // 先設定 category
-      store.updateFilter({ category: "Software" })
+      store.updateFilter({ category: ArticleFilterCategory.Software })
 
       // 只更新 status
-      store.updateFilter({ status: ArticleStatus.Draft })
+      store.updateFilter({ status: ArticleFilterStatus.Draft })
 
-      expect(store.filter.category).toBe("Software")
-      expect(store.filter.status).toBe(ArticleStatus.Draft)
+      expect(store.filter.category).toBe(ArticleFilterCategory.Software)
+      expect(store.filter.status).toBe(ArticleFilterStatus.Draft)
     })
 
     it("更新 search 關鍵字", () => {
       const store = useArticleStore()
 
-      store.updateFilter({ search: "關鍵字" })
+      store.updateFilter({ searchText: "關鍵字" })
 
-      expect(store.filter.search).toBe("關鍵字")
+      expect(store.filter.searchText).toBe("關鍵字")
     })
   })
 

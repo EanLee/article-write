@@ -43,7 +43,7 @@ export const useArticleStore = defineStore("article", () => {
     return articles.value
       .filter((article) => {
         // 狀態過濾 - 早期返回
-        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as ArticleStatus)) {
+        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as unknown as ArticleStatus)) {
           return false;
         }
 
@@ -168,7 +168,7 @@ export const useArticleStore = defineStore("article", () => {
       case "add":
       case "change":
         // 重新載入該文章
-        await reloadArticleFromDisk(filePath, pathInfo.status, pathInfo.category);
+        await reloadArticleFromDisk(filePath, pathInfo.category);
         break;
 
       case "unlink":
@@ -181,8 +181,7 @@ export const useArticleStore = defineStore("article", () => {
   /**
    * 從磁碟重新載入文章
    */
-  // _status 保留參數供未來依狀態差異處理重載邏輯使用（目前統一重載）
-  async function reloadArticleFromDisk(filePath: string, _status: ArticleStatus, category: string) {
+  async function reloadArticleFromDisk(filePath: string, category: string) {
     try {
       const article = await articleService.loadArticle(filePath, category);
 

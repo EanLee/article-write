@@ -65,8 +65,8 @@ describe("Article Store — 排序穩定性", () => {
     const configStore = useConfigStore()
     configStore.config.paths.articlesDir = "/vault"
     vi.clearAllMocks()
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue({
+    vi.mocked(window.electronAPI.writeFile).mockResolvedValue(undefined)
+    vi.mocked(window.electronAPI.getFileStats).mockResolvedValue({
       isDirectory: false,
       mtime: new Date("2026-01-01").getTime(),
     })
@@ -134,8 +134,8 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     const configStore = useConfigStore()
     configStore.config.paths.articlesDir = "/vault"
     vi.clearAllMocks()
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue({
+    vi.mocked(window.electronAPI.writeFile).mockResolvedValue(undefined)
+    vi.mocked(window.electronAPI.getFileStats).mockResolvedValue({
       isDirectory: false,
       mtime: new Date("2026-01-02").getTime(),
     })
@@ -147,9 +147,9 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     const original = makeArticle({ filePath: existingPath, title: "原始標題" })
     store.articles.push(original)
 
-    window.electronAPI.readFile.mockResolvedValue(makeFrontmatterMd("更新後標題"))
+    vi.mocked(window.electronAPI.readFile).mockResolvedValue(makeFrontmatterMd("更新後標題"))
 
-    await store.reloadArticleFromDisk(existingPath, ArticleStatus.Draft, "Software")
+    await store.reloadArticleFromDisk(existingPath, "Software")
 
     expect(store.articles).toHaveLength(1)
   })
@@ -160,9 +160,9 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     const original = makeArticle({ filePath: existingPath, title: "原始標題" })
     store.articles.push(original)
 
-    window.electronAPI.readFile.mockResolvedValue(makeFrontmatterMd("更新後標題"))
+    vi.mocked(window.electronAPI.readFile).mockResolvedValue(makeFrontmatterMd("更新後標題"))
 
-    await store.reloadArticleFromDisk(existingPath, ArticleStatus.Draft, "Software")
+    await store.reloadArticleFromDisk(existingPath, "Software")
 
     expect(store.articles[0].title).toBe("更新後標題")
   })
@@ -173,9 +173,9 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     const original = makeArticle({ id: "keep-this-id", filePath: existingPath })
     store.articles.push(original)
 
-    window.electronAPI.readFile.mockResolvedValue(makeFrontmatterMd("任何標題"))
+    vi.mocked(window.electronAPI.readFile).mockResolvedValue(makeFrontmatterMd("任何標題"))
 
-    await store.reloadArticleFromDisk(existingPath, ArticleStatus.Draft, "Software")
+    await store.reloadArticleFromDisk(existingPath, "Software")
 
     expect(store.articles[0].id).toBe("keep-this-id")
   })
@@ -186,9 +186,9 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     store.articles.push(makeArticle({ filePath: existingPath }))
 
     const newPath = "/vault/Drafts/Software/brand-new.md"
-    window.electronAPI.readFile.mockResolvedValue(makeFrontmatterMd("全新文章"))
+    vi.mocked(window.electronAPI.readFile).mockResolvedValue(makeFrontmatterMd("全新文章"))
 
-    await store.reloadArticleFromDisk(newPath, ArticleStatus.Draft, "Software")
+    await store.reloadArticleFromDisk(newPath, "Software")
 
     expect(store.articles).toHaveLength(2)
   })
@@ -198,10 +198,10 @@ describe("Article Store — 防止重複文章（reloadArticleFromDisk）", () =
     const path = "/vault/Drafts/Software/once.md"
     store.articles.push(makeArticle({ filePath: path }))
 
-    window.electronAPI.readFile.mockResolvedValue(makeFrontmatterMd("標題"))
+    vi.mocked(window.electronAPI.readFile).mockResolvedValue(makeFrontmatterMd("標題"))
 
-    await store.reloadArticleFromDisk(path, ArticleStatus.Draft, "Software")
-    await store.reloadArticleFromDisk(path, ArticleStatus.Draft, "Software")
+    await store.reloadArticleFromDisk(path, "Software")
+    await store.reloadArticleFromDisk(path, "Software")
 
     expect(store.articles).toHaveLength(1)
   })
@@ -214,8 +214,8 @@ describe("Article Store — setCurrentArticle 不改變 filter（確保 currentP
     const configStore = useConfigStore()
     configStore.config.paths.articlesDir = "/vault"
     vi.clearAllMocks()
-    window.electronAPI.writeFile.mockResolvedValue(undefined)
-    window.electronAPI.getFileStats.mockResolvedValue(null)
+    vi.mocked(window.electronAPI.writeFile).mockResolvedValue(undefined)
+    vi.mocked(window.electronAPI.getFileStats).mockResolvedValue(null)
   })
 
   it("setCurrentArticle 後 filter 狀態不變（不觸發 watch → currentPage 不重置）", () => {
@@ -255,3 +255,5 @@ describe("Article Store — setCurrentArticle 不改變 filter（確保 currentP
     expect(store.filter.status).toBe(ArticleFilterStatus.All)
   })
 })
+
+
