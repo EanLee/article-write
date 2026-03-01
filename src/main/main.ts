@@ -177,26 +177,28 @@ app.whenReady().then(async () => {
   });
 
   // 檔案監聽
-  ipcMain.handle("start-file-watching", (_, watchPath: string) => {
+  ipcMain.handle(IPC.START_FILE_WATCHING, (_, watchPath: string) => {
     fileService.startWatching(watchPath, (event, filePath) => {
       // 只監聽 .md 檔案
       if (filePath.endsWith(".md")) {
-        mainWindow?.webContents.send("file-change", { event, path: filePath });
+        mainWindow?.webContents.send(IPC.EVENT_FILE_CHANGE, { event, path: filePath });
         // 增量更新搜尋索引
         if (event === "unlink") {
           searchService.removeFile(filePath);
         } else {
-          searchService.updateFile(filePath).catch(() => {});
+          searchService.updateFile(filePath).catch((err) => {
+            console.error("[SearchService] 增量索引更新失敗:", err);
+          });
         }
       }
     });
     return true;
   });
-  ipcMain.handle("stop-file-watching", () => {
+  ipcMain.handle(IPC.STOP_FILE_WATCHING, () => {
     fileService.stopWatching();
     return true;
   });
-  ipcMain.handle("is-file-watching", () => fileService.isWatching());
+  ipcMain.handle(IPC.IS_FILE_WATCHING, () => fileService.isWatching());
 
   // Auto-Update
   ipcMain.handle(IPC.INSTALL_UPDATE, () => {
