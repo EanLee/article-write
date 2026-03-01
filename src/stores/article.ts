@@ -10,6 +10,8 @@ import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
 import { fileWatchService } from "@/services/FileWatchService";
 import { VaultDirs } from "@/config/vault";
+import { parseArticlePath } from "@/utils/articlePath";
+import { useFileWatching } from "@/composables/useFileWatching";
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -20,8 +22,8 @@ export const useArticleStore = defineStore("article", () => {
   const articles = ref<Article[]>([]);
   const currentArticle = ref<Article | null>(null);
 
-  // 檔案監聽訂閱清理函式（防止多次 loadArticles 累積訂閱）
-  let fileWatchUnsubscribe: (() => void) | null = null;
+  // 檔案監聽 composable
+  const fileWatcher = useFileWatching({ onFileEvent: handleFileChangeEvent });
   const filter = ref<ArticleFilter>({
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
@@ -138,25 +140,11 @@ export const useArticleStore = defineStore("article", () => {
   }
 
   /**
-   * 設置檔案監聽
+   * 設置檔案監聽（委派 useFileWatching composable 管理生命週期）
    */
   async function setupFileWatching(vaultPath: string) {
     try {
-      // 開始監聽
-      await fileWatchService.startWatching(vaultPath);
-
-      // 清除舊的訂閱，避免多次 loadArticles 累積監聽器
-      if (fileWatchUnsubscribe) {
-        fileWatchUnsubscribe();
-        fileWatchUnsubscribe = null;
-      }
-
-      // 訂閱檔案變化事件，儲存取消訂閱函式
-      fileWatchUnsubscribe = fileWatchService.subscribe((event) => {
-        handleFileChangeEvent(event);
-      });
-
-      console.log("FileWatchService: 檔案監聽已啟動");
+      await fileWatcher.start(vaultPath);
     } catch (error) {
       console.error("Failed to setup file watching:", error);
     }
@@ -235,28 +223,6 @@ export const useArticleStore = defineStore("article", () => {
 
       notify.info("文章已移除", `偵測到文章被刪除：${article.title}`);
     }
-  }
-
-  /**
-   * 解析文章路徑，取得狀態和分類
-   */
-  function parseArticlePath(filePath: string, vaultPath: string): { status: ArticleStatus; category: string } | null {
-    const relativePath = normalizePath(filePath).replace(normalizePath(vaultPath), "").replace(/^\//, "");
-
-    const parts = relativePath.split("/");
-    if (parts.length < 3 || !parts[2].endsWith(".md")) {
-      return null;
-    }
-
-    const [statusFolder, category] = parts;
-    // 使用 VaultDirs 集中常數，避免目錄名稱假設散落各處（M-05）
-    const status = statusFolder === VaultDirs.PUBLISHED ? ArticleStatus.Published : ArticleStatus.Draft;
-
-    if (!category) {
-      return null;
-    }
-
-    return { status, category };
   }
 
   async function createArticle(title: string, category: string): Promise<Article> {
