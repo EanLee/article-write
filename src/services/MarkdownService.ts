@@ -31,7 +31,7 @@ export class MarkdownService {
    */
   constructor() {
     this.md = new MarkdownIt({
-      html: true,
+      html: false, // 關閉原始 HTML 渲染，防止 XSS — 由 DOMPurify 在 PreviewPane 負責消毒
       linkify: true,
       typographer: true,
       breaks: true,

@@ -23,7 +23,7 @@
 
     <!-- Preview Content -->
     <div ref="previewContainerRef" class="flex-1 overflow-y-auto" @scroll="handleScroll">
-      <div class="p-4 prose prose-sm max-w-none markdown-preview obsidian-preview" v-html="renderedContent"></div>
+      <div class="p-4 prose prose-sm max-w-none markdown-preview obsidian-preview" v-html="sanitizedContent"></div>
     </div>
 
     <!-- Preview Footer with Detailed Stats -->
@@ -72,7 +72,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import DOMPurify from 'dompurify'
 
 interface PreviewStats {
   wordCount: number
@@ -95,7 +96,14 @@ interface Props {
   validation: PreviewValidation
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+// 使用 DOMPurify 消毒 markdown-it 輸出，防止 XSS 攻擊
+const sanitizedContent = computed(() =>
+  DOMPurify.sanitize(props.renderedContent, {
+    USE_PROFILES: { html: true },
+  })
+)
 
 const emit = defineEmits<{
   'scroll': []
