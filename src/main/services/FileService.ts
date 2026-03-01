@@ -4,7 +4,8 @@ import { watch, type FSWatcher } from "chokidar";
 
 export class FileService {
   private watcher: FSWatcher | null = null;
-  private watchCallback: ((event: string, path: string) => void) | null = null;
+  /** A-02: 升級為 Set，支援多個訂閱者同時監聽檔案變更 */
+  private watchCallbacks: Set<(event: string, path: string) => void> = new Set();
   private allowedBasePaths: string[] = [];
 
   /**
@@ -132,12 +133,13 @@ export class FileService {
 
   /**
    * 開始監聽指定目錄的檔案變更
+   * 若已有不同監聽路徑的監聽器，先停止
    */
   startWatching(watchPath: string, callback: (event: string, path: string) => void): void {
-    // 如果已有監聽器，先停止
+    // 如果已有監聽器且監聽路徑不同，先停止舊監聽器
     this.stopWatching();
 
-    this.watchCallback = callback;
+    this.watchCallbacks.add(callback);
     this.watcher = watch(watchPath, {
       ignored: /(^|[/\\])\../, // 忽略隱藏檔案
       persistent: true,
@@ -150,19 +152,30 @@ export class FileService {
     });
 
     this.watcher
-      .on("add", (path) => this.watchCallback?.("add", path))
-      .on("change", (path) => this.watchCallback?.("change", path))
-      .on("unlink", (path) => this.watchCallback?.("unlink", path));
+      .on("add", (path) => this.notifyAll("add", path))
+      .on("change", (path) => this.notifyAll("change", path))
+      .on("unlink", (path) => this.notifyAll("unlink", path));
   }
 
   /**
-   * 停止檔案監聽
+   * 動態新增檔案變更訂閱者（支持多個獨立功能監聽同一路徑）
+   * @returns 訂閱清除函式
+   */
+  addWatchListener(callback: (event: string, path: string) => void): () => void {
+    this.watchCallbacks.add(callback);
+    return () => {
+      this.watchCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * 停止檔案監聽，清除所有訂閱者
    */
   stopWatching(): void {
     if (this.watcher) {
       this.watcher.close();
       this.watcher = null;
-      this.watchCallback = null;
+      this.watchCallbacks.clear();
     }
   }
 
@@ -171,5 +184,12 @@ export class FileService {
    */
   isWatching(): boolean {
     return this.watcher !== null;
+  }
+
+  /** 通知所有訂閱者（內部使用）*/
+  private notifyAll(event: string, path: string): void {
+    for (const cb of this.watchCallbacks) {
+      cb(event, path);
+    }
   }
 }
