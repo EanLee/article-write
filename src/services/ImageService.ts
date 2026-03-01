@@ -477,7 +477,7 @@ export class ImageService {
 
     // Double check that image is not used
     if (this.isImageUsed(imageName)) {
-      throw new Error("Cannot delete image that is still in use")
+      throw new Error("無法刪除使用中的圖片")
     }
 
     try {
@@ -546,8 +546,8 @@ export class ImageService {
       return fileName
     } catch (error) {
        
-      console.error("Failed to upload image:", error)
-      throw new Error(`Failed to upload image: ${(error as Error).message}`)
+      console.error("圖片上傳失敗：", error)
+      throw new Error(`圖片上傳失敗：${(error as Error).message}`)
     }
   }
 

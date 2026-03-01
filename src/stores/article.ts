@@ -363,7 +363,7 @@ export const useArticleStore = defineStore("article", () => {
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
-        throw new Error("Article not found");
+        throw new Error("找不到指定文章");
       }
 
       // 使用 ArticleService 刪除文章（包含備份）
@@ -394,7 +394,7 @@ export const useArticleStore = defineStore("article", () => {
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
-        throw new Error("Article not found");
+        throw new Error("找不到指定文章");
       }
 
       const newStatus = article.status === ArticleStatus.Draft ? ArticleStatus.Published : ArticleStatus.Draft;
