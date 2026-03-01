@@ -47,15 +47,32 @@ export class ProcessService {
         shell: true
       })
 
+      // QUAL6-02: 單次 settle 樣式——確保 resolve/reject 只被呼叫一次
+      let settled = false
+      const settle = (fn: () => void) => {
+        if (!settled) {
+          settled = true
+          clearTimeout(startupTimeout)
+          fn()
+        }
+      }
+
+      // QUAL6-02: 30 秒內沒有收到 URL 則視為就緒（原本盲目 2 秒必失效)
+      const startupTimeout = setTimeout(() => {
+        this.sendLogToRenderer("警告：30 秒內未偵測到伺服器 URL，可能需要更多時間")
+        settle(resolve)   // 超時後仍然 resolve，之後輸出作為訊息展示即可
+      }, 30000)
+
       this.devServerProcess.stdout?.on("data", (data) => {
         const output = data.toString()
         this.sendLogToRenderer(output, "stdout")
 
-        // Look for server URL in output
+        // QUAL6-02: 偵測到 URL 才是真正就緒，而非盲目等待 2 秒
         const urlMatch = output.match(/Local:\s+(http:\/\/[^\s]+)/)
         if (urlMatch) {
           this.serverUrl = urlMatch[1]
           this.sendLogToRenderer(`伺服器已就緒: ${this.serverUrl}`)
+          settle(resolve)
         }
       })
 
@@ -67,33 +84,47 @@ export class ProcessService {
         this.sendLogToRenderer(`啟動錯誤: ${error.message}`, "stderr")
         this.devServerProcess = null
         this.serverUrl = null
-        reject(error)
+        settle(() => reject(error))
       })
 
       this.devServerProcess.on("exit", (code) => {
         this.sendLogToRenderer(`伺服器已停止，退出碼: ${code}`)
         this.devServerProcess = null
         this.serverUrl = null
-        if (code !== 0) {
-          reject(new Error(`Development server exited with code ${code}`))
+        if (code !== 0 && code !== null) {
+          settle(() => reject(new Error(`Development server exited with code ${code}`)))
+        } else {
+          settle(resolve)
         }
       })
-
-      // Give the server a moment to start
-      setTimeout(() => {
-        resolve()
-      }, 2000)
     })
   }
 
   async stopDevServer(): Promise<void> {
-    if (this.devServerProcess) {
-      this.sendLogToRenderer("正在停止伺服器...")
-      this.devServerProcess.kill()
-      this.devServerProcess = null
-      this.serverUrl = null
-      this.sendLogToRenderer("伺服器已停止")
-    }
+    if (!this.devServerProcess) { return }
+
+    this.sendLogToRenderer("正在停止伺服器...")
+
+    // QUAL6-09: 等待 process 實際退出，而非 kill() 後立即返回
+    await new Promise<void>((resolve) => {
+      const proc = this.devServerProcess!
+      proc.once("exit", () => resolve())
+
+      // Windows SIGTERM 是 non-blocking， kill() 後以 TASKKILL 強制复蓋保證退出
+      proc.kill()
+
+      // 保陽: 5 秒內不退出，強製終止
+      setTimeout(() => {
+        if (this.devServerProcess) {
+          this.devServerProcess.kill("SIGKILL")
+        }
+        resolve()
+      }, 5000)
+    })
+
+    this.devServerProcess = null
+    this.serverUrl = null
+    this.sendLogToRenderer("伺服器已停止")
   }
 
   getServerStatus(): { running: boolean; url?: string; logs: string[] } {
