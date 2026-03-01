@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import type { Article, ArticleFilter } from "@/types";
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
 import { markdownService } from "@/services/MarkdownService";
@@ -18,6 +18,9 @@ export const useArticleStore = defineStore("article", () => {
   // State
   const articles = ref<Article[]>([]);
   const currentArticle = ref<Article | null>(null);
+
+  // 檔案監聽訂閱清理函式（防止多次 loadArticles 累積訂閱）
+  let fileWatchUnsubscribe: (() => void) | null = null;
   const filter = ref<ArticleFilter>({
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
@@ -118,7 +121,9 @@ export const useArticleStore = defineStore("article", () => {
       console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
       // 建立搜尋索引（不影響主流程）
-      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch(() => {})
+      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err) => {
+        console.error("[article store] 搜尋索引建立失敗:", err);
+      });
 
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
@@ -139,8 +144,14 @@ export const useArticleStore = defineStore("article", () => {
       // 開始監聽
       await fileWatchService.startWatching(vaultPath);
 
-      // 訂閱檔案變化事件
-      fileWatchService.subscribe((event) => {
+      // 清除舊的訂閱，避免多次 loadArticles 累積監聽器
+      if (fileWatchUnsubscribe) {
+        fileWatchUnsubscribe();
+        fileWatchUnsubscribe = null;
+      }
+
+      // 訂閱檔案變化事件，儲存取消訂閱函式
+      fileWatchUnsubscribe = fileWatchService.subscribe((event) => {
         handleFileChangeEvent(event);
       });
 
@@ -237,7 +248,9 @@ export const useArticleStore = defineStore("article", () => {
     }
 
     const [statusFolder, category] = parts;
-    const status = statusFolder === "Publish" ? ArticleStatus.Published : ArticleStatus.Draft;
+    // 使用具名常數避免硬編碼 Vault 目錄名稱（SOLID-03）
+    const PUBLISHED_DIR = "Publish";
+    const status = statusFolder === PUBLISHED_DIR ? ArticleStatus.Published : ArticleStatus.Draft;
 
     if (!category) {
       return null;
@@ -268,7 +281,7 @@ export const useArticleStore = defineStore("article", () => {
       await window.electronAPI.createDirectory(categoryPath);
 
       const article: Article = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2), // 內聯生成 ID
+        id: articleService.generateIdFromPath(filePath), // 使用與 loadArticle 一致的路徑導出 ID
         title,
         slug,
         filePath,
@@ -480,7 +493,7 @@ export const useArticleStore = defineStore("article", () => {
     const migrated = { ...article, frontmatter: fm }
     // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
     saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
-      console.warn("frontmatter 移轉寫回失敗:", err)
+      console.error("[article store] frontmatter 移轉寫回失敗:", err)
     )
     return migrated
   }
@@ -583,10 +596,11 @@ export const useArticleStore = defineStore("article", () => {
     { deep: true },
   );
 
-  // 初始化自動儲存（延遲執行以確保 configStore 已載入）
-  setTimeout(() => {
+  // 初始化自動儲存：使用 nextTick 取代任意 setTimeout(100ms)，
+  // 確保 Vue 響應式系統完成當前 tick 後再初始化，語意明確且可測試
+  nextTick(() => {
     initializeAutoSave();
-  }, 100);
+  });
 
   return {
     // State
