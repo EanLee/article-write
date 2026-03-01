@@ -64,7 +64,7 @@ export default [
       "vue/no-v-html": "warn", // XSS 風険：真正需要時請確認已過 DOMPurify 清理
 
       // 一般規則
-      "quotes": ["error", "double", { "avoidEscape": true }], // 統一使用雙引號，允許內含單引號時使用單引號避免 escape
+      quotes: ["error", "double", { avoidEscape: true }], // 統一使用雙引號，允許內含單引號時使用單引號避免 escape
       "no-console": ["warn", { allow: ["warn", "error"] }], // 對herite console.log 發開警告，允許 warn/error
       "no-debugger": "error",
       "no-unused-vars": "off", // 使用 TypeScript 版本
