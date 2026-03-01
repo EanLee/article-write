@@ -98,7 +98,7 @@ function setupAutoUpdater() {
     return;
   }
 
-  autoUpdater.autoDownload = false;       // QUAL6-03: 改為使用者確認後才下載，防止供應鏈攻擊
+  autoUpdater.autoDownload = false; // QUAL6-03: 改為使用者確認後才下載，防止供應鏈攻擊
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on("update-available", (info: { version: string }) => {
@@ -124,11 +124,7 @@ app.whenReady().then(async () => {
   // 載入設定並初始化檔案路徑白名單
   try {
     const initialConfig = await configService.getConfig();
-    fileService.setAllowedPaths([
-      initialConfig?.paths?.articlesDir,
-      initialConfig?.paths?.targetBlog,
-      initialConfig?.paths?.imagesDir,
-    ]);
+    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetBlog, initialConfig?.paths?.imagesDir]);
   } catch {
     // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
   }
@@ -250,16 +246,26 @@ app.whenReady().then(async () => {
       return { success: false, code: "AI_API_ERROR", message: String(e) };
     }
   });
+  const VALID_AI_PROVIDERS = ["claude", "gemini", "openai"] as const;
+  type ValidProvider = (typeof VALID_AI_PROVIDERS)[number];
+
   ipcMain.handle(IPC.AI_SET_API_KEY, (_, provider: string, key: string) => {
+    // S6-06: runtime 白名單驗證，防止惡意 Renderer 注入任意 provider 字串
+    if (!VALID_AI_PROVIDERS.includes(provider as ValidProvider)) {
+      return { success: false, error: `無效的 AI Provider: ${provider}` };
+    }
     try {
-      configService.setApiKey(provider as "claude" | "gemini" | "openai", key);
+      configService.setApiKey(provider as ValidProvider, key);
       return { success: true };
     } catch (e) {
       return { success: false, error: e instanceof Error ? e.message : String(e) };
     }
   });
   ipcMain.handle(IPC.AI_GET_HAS_API_KEY, (_, provider: string) => {
-    return configService.hasApiKey(provider as "claude" | "gemini" | "openai");
+    if (!VALID_AI_PROVIDERS.includes(provider as ValidProvider)) {
+      return false;
+    }
+    return configService.hasApiKey(provider as ValidProvider);
   });
   ipcMain.handle(IPC.AI_GET_ACTIVE_PROVIDER, () => {
     return aiService.getActiveProvider();
