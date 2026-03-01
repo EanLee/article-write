@@ -1,9 +1,12 @@
-import type { Article, ConversionConfig, Frontmatter } from "@/types";
+import type { Article, ConversionConfig } from "@/types";
 import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { electronFileSystem } from "./ElectronFileSystem";
 import { articleService as defaultArticleService, ArticleService } from "./ArticleService";
 import { MarkdownService } from "./MarkdownService";
+import { FrontmatterConverter, frontmatterConverter as defaultFrontmatterConverter } from "./FrontmatterConverter";
+import { ConversionValidator, conversionValidator as defaultConversionValidator } from "./ConversionValidator";
+import { ImageCopyService } from "./ImageCopyService";
 import { logger } from "@/utils/logger";
 
 /**
@@ -29,28 +32,46 @@ export interface ConversionResult {
 export type ProgressCallback = (processed: number, total: number, currentFile?: string) => void;
 
 /**
- * 轉換服務類別
- * 負責將 Obsidian 格式的文章轉換為 Astro 格式並部署到目標部落格
+ * ConverterService（重構後作為協調者 Orchestrator）
  *
- * 重構後使用依賴注入：
+ * 職責：協調各子服務完成 Obsidian → Astro 文章轉換流程。
+ * 子服務依賴：
+ * - FrontmatterConverter: 前置資料格式轉換
+ * - ConversionValidator: 安全性與完整性驗證（含 S5-02 路徑安全強化）
+ * - ImageCopyService: 圖片複製與並發控制（含 P5-02 效能強化）
+ * - MarkdownService: Markdown 語法轉換
+ * - ArticleService: 文章掃描與載入
  * - IFileSystem: 基礎檔案操作
- * - ArticleService: 文章載入邏輯
  */
 export class ConverterService {
   private fileSystem: IFileSystem;
   private articleService: ArticleService;
   private markdownService: MarkdownService;
+  private frontmatterConverter: FrontmatterConverter;
+  private validator: ConversionValidator;
+  private imageCopyService: ImageCopyService;
 
   /**
    * 建構子 - 使用依賴注入
-   * @param fileSystem - 檔案系統介面（可選）
+   * @param fileSystem - 檔案系統介面（可選，預設 electronFileSystem）
    * @param articleService - 文章服務（可選）
    * @param markdownService - Markdown 服務（可選）
+   * @param frontmatterConverter - Frontmatter 轉換服務（可選）
+   * @param validator - 驗證服務（可選）
    */
-  constructor(fileSystem?: IFileSystem, articleService?: ArticleService, markdownService?: MarkdownService) {
+  constructor(
+    fileSystem?: IFileSystem,
+    articleService?: ArticleService,
+    markdownService?: MarkdownService,
+    frontmatterConverter?: FrontmatterConverter,
+    validator?: ConversionValidator,
+  ) {
     this.fileSystem = fileSystem || electronFileSystem;
     this.articleService = articleService || defaultArticleService;
     this.markdownService = markdownService || new MarkdownService();
+    this.frontmatterConverter = frontmatterConverter || defaultFrontmatterConverter;
+    this.validator = validator || defaultConversionValidator;
+    this.imageCopyService = new ImageCopyService(this.fileSystem);
   }
 
   /**
@@ -136,6 +157,13 @@ export class ConverterService {
     const warnings: Array<{ file: string; warning: string }> = [];
 
     try {
+      // 0. 路徑安全驗證（S5-02：防止路徑穿越攻擊）
+      const pathSafety = this.validator.validateArticlePathSafety(article);
+      if (!pathSafety.valid) {
+        const msg = `路徑安全驗證失敗: ${pathSafety.issues.join(", ")}`;
+        throw new Error(msg);
+      }
+
       // 1. 驗證文章基本資訊
       if (!article.title || !article.slug) {
         warnings.push({
@@ -147,8 +175,8 @@ export class ConverterService {
       // 2. 轉換 Markdown 內容
       const convertedContent = this.convertMarkdownContent(article.content);
 
-      // 3. 處理前置資料
-      const convertedFrontmatter = this.convertFrontmatter(article.frontmatter);
+      // 3. 處理前置資料（委派給 FrontmatterConverter）
+      const convertedFrontmatter = this.frontmatterConverter.convert(article.frontmatter);
 
       // 4. 建立目標目錄結構 (Leaf Bundle)
       const targetDir = this.createTargetPath(article, config.targetDir);
@@ -166,8 +194,17 @@ export class ConverterService {
       const targetFilePath = this.joinPath(targetDir, "index.md");
       await this.fileSystem.writeFile(targetFilePath, finalContent);
 
-      // 8. 驗證轉換結果
-      const validationResult = await this.validateConversionResult(targetDir, article);
+      // 8. 驗證轉換結果（委派給 ConversionValidator）
+      const imageReferences = this.markdownService.extractImageReferences(article.content);
+      const validationResult = await this.validator.validateConversionResult(
+        targetDir,
+        article,
+        imageReferences,
+        (ref) => this.imageCopyService.extractImageName(ref),
+        (p) => this.fileExists(p),
+        (p) => this.fileSystem.readFile(p),
+        (...parts) => this.joinPath(...parts),
+      );
       if (!validationResult.valid) {
         warnings.push({
           file: article.filePath,
@@ -355,35 +392,6 @@ export class ConverterService {
   }
 
   /**
-   * 轉換前置資料格式
-   * @param {any} frontmatter - 原始前置資料
-   * @returns {any} 轉換後的前置資料
-   */
-  private convertFrontmatter(frontmatter: Frontmatter): Record<string, unknown> {
-    const converted: Record<string, unknown> = { ...frontmatter };
-
-    // 確保必要欄位存在
-    if (!converted.date) {
-      converted.date = new Date().toISOString().split("T")[0];
-    }
-
-    // 更新 lastmod 為當前時間
-    converted.lastmod = new Date().toISOString().split("T")[0];
-
-    // 確保 tags 是陣列
-    if (!Array.isArray(converted.tags)) {
-      converted.tags = [];
-    }
-
-    // 確保 categories 是陣列
-    if (!Array.isArray(converted.categories)) {
-      converted.categories = [];
-    }
-
-    return converted;
-  }
-
-  /**
    * 處理圖片複製和路徑轉換
    * @param {string} content - 內容
    * @param {Article} article - 文章物件
@@ -417,142 +425,47 @@ export class ConverterService {
     const processedImages: string[] = [];
     const failedImages: string[] = [];
 
-    // 處理每個圖片引用
+    // 處理每個圖片引用（委派路徑解析給 ImageCopyService）
     for (const imageRef of imageReferences) {
       try {
-        // 解析圖片檔案名稱
-        const imageName = this.extractImageName(imageRef);
+        const imageName = this.imageCopyService.extractImageName(imageRef);
 
         if (imageName) {
-          // 來源圖片路徑
           const sourceImagePath = this.joinPath(config.imageSourceDir, imageName);
-
-          // 目標圖片路徑
           const targetImagePath = this.joinPath(targetImagesDir, imageName);
 
-          // 檢查來源圖片是否存在
           const sourceExists = await this.fileExists(sourceImagePath);
           if (!sourceExists) {
-            warnings.push({
-              file: article.filePath,
-              warning: `圖片檔案不存在: ${imageName}`,
-            });
+            warnings.push({ file: article.filePath, warning: `圖片檔案不存在: ${imageName}` });
             failedImages.push(imageName);
             continue;
           }
 
-          // 複製圖片檔案
-          await this.copyImageFile(sourceImagePath, targetImagePath);
+          // 委派複製給 ImageCopyService
+          await this.imageCopyService.copyImageFile(sourceImagePath, targetImagePath);
 
-          // 更新內容中的圖片路徑
-          processedContent = this.updateImagePath(processedContent, imageRef, imageName);
+          // 委派路徑更新給 ImageCopyService
+          processedContent = this.imageCopyService.updateImagePath(processedContent, imageRef, imageName);
           processedImages.push(imageName);
         } else {
-          warnings.push({
-            file: article.filePath,
-            warning: `無法解析圖片引用: ${imageRef}`,
-          });
+          warnings.push({ file: article.filePath, warning: `無法解析圖片引用: ${imageRef}` });
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        warnings.push({
-          file: article.filePath,
-          warning: `處理圖片失敗 ${imageRef}: ${errorMessage}`,
-        });
+        warnings.push({ file: article.filePath, warning: `處理圖片失敗 ${imageRef}: ${errorMessage}` });
         logger.warn(`Failed to process image ${imageRef}:`, error);
       }
     }
 
-    // 添加處理摘要警告
     if (processedImages.length > 0) {
       logger.debug(`Successfully processed ${processedImages.length} images for ${article.title}`);
     }
 
     if (failedImages.length > 0) {
-      warnings.push({
-        file: article.filePath,
-        warning: `${failedImages.length} 個圖片檔案處理失敗`,
-      });
+      warnings.push({ file: article.filePath, warning: `${failedImages.length} 個圖片檔案處理失敗` });
     }
 
     return { content: processedContent, warnings };
-  }
-
-  /**
-   * 從圖片引用中提取檔案名稱
-   * @param {string} imageRef - 圖片引用
-   * @returns {string | null} 檔案名稱
-   */
-  private extractImageName(imageRef: string): string | null {
-    // 處理不同格式的圖片引用
-    let imageName: string | null = null;
-
-    if (imageRef.includes("/")) {
-      // 路徑格式：../../images/image.png
-      imageName = imageRef.split("/").pop() || null;
-    } else {
-      // 直接檔案名稱：image.png
-      imageName = imageRef;
-    }
-
-    // 驗證是否為有效的圖片檔案名稱
-    if (imageName && this.isValidImageFile(imageName)) {
-      return imageName;
-    }
-
-    return null;
-  }
-
-  /**
-   * 檢查是否為有效的圖片檔案
-   * @param {string} fileName - 檔案名稱
-   * @returns {boolean} 是否為有效圖片檔案
-   */
-  private isValidImageFile(fileName: string): boolean {
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"];
-    const ext = fileName.toLowerCase().substring(fileName.lastIndexOf("."));
-    return imageExtensions.includes(ext);
-  }
-
-  /**
-   * 複製圖片檔案
-   * @param {string} sourcePath - 來源路徑
-   * @param {string} targetPath - 目標路徑
-   */
-  private async copyImageFile(sourcePath: string, targetPath: string): Promise<void> {
-    try {
-      // 檢查來源檔案是否存在
-      const sourceExists = await this.fileExists(sourcePath);
-      if (!sourceExists) {
-        throw new Error(`來源圖片不存在：${sourcePath}`);
-      }
-
-      // 確保目標目錄存在
-      const targetDir = this.getDirname(targetPath);
-      await this.fileSystem.createDirectory(targetDir);
-
-      // 使用 Electron API 複製檔案
-      await (window.electronAPI as any).copyFile(sourcePath, targetPath);
-
-      logger.debug(`Successfully copied image: ${sourcePath} -> ${targetPath}`);
-    } catch (error) {
-      logger.error(`Failed to copy image from ${sourcePath} to ${targetPath}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * 更新內容中的圖片路徑
-   * @param {string} content - 內容
-   * @param {string} oldPath - 舊路徑
-   * @param {string} imageName - 圖片檔案名稱
-   * @returns {string} 更新後的內容
-   */
-  private updateImagePath(content: string, oldPath: string, imageName: string): string {
-    const newPath = `./images/${imageName}`;
-
-    // 替換所有出現的舊路徑
-    return content.replace(new RegExp(this.escapeRegExp(oldPath), "g"), newPath);
   }
 
   /**
@@ -567,15 +480,6 @@ export class ConverterService {
   }
 
   /**
-   * 轉義正規表達式特殊字符
-   * @param {string} string - 要轉義的字串
-   * @returns {string} 轉義後的字串
-   */
-  private escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  }
-
-  /**
    * 路徑輔助方法 - 連接路徑
    * @param {...string} paths - 路徑片段
    * @returns {string} 連接後的路徑
@@ -585,23 +489,13 @@ export class ConverterService {
   }
 
   /**
-   * 路徑輔助方法 - 取得目錄名稱
-   * @param {string} filePath - 檔案路徑
-   * @returns {string} 目錄路徑
-   */
-  private getDirname(filePath: string): string {
-    const parts = filePath.split(/[/\\]/);
-    parts.pop();
-    return parts.join("/");
-  }
 
-  /**
-   * 驗證轉換設定
+   * 驗證轉換設定（委派給 ConversionValidator）
    * @param {ConversionConfig} config - 轉換設定
    * @returns {boolean} 設定是否有效
    */
   validateConfig(config: ConversionConfig): boolean {
-    return !!(config.sourceDir && config.targetDir && config.imageSourceDir);
+    return this.validator.validateConfig(config);
   }
 
   /**
@@ -629,7 +523,7 @@ export class ConverterService {
   }
 
   /**
-   * 驗證轉換結果的完整性
+   * 驗證轉換結果的完整性（委派給 ConversionValidator）
    * @param {string} targetDir - 目標目錄
    * @param {Article} article - 原始文章
    * @returns {Promise<{valid: boolean, issues: string[]}>} 驗證結果
@@ -637,70 +531,17 @@ export class ConverterService {
   async validateConversionResult(
     targetDir: string,
     article: Article,
-  ): Promise<{
-    valid: boolean;
-    issues: string[];
-  }> {
-    const issues: string[] = [];
-
-    try {
-      // 檢查 index.md 檔案是否存在
-      const indexPath = this.joinPath(targetDir, "index.md");
-      const indexExists = await this.fileExists(indexPath);
-      if (!indexExists) {
-        issues.push("找不到 index.md 檔案");
-      }
-
-      // 檢查圖片目錄和檔案
-      const imageReferences = this.markdownService.extractImageReferences(article.content);
-      if (imageReferences.length > 0) {
-        const imagesDir = this.joinPath(targetDir, "images");
-        const imagesDirExists = await this.fileExists(imagesDir);
-
-        if (!imagesDirExists) {
-          issues.push("找不到 images 目錄");
-        } else {
-          // 檢查每個引用的圖片是否存在
-          for (const imageRef of imageReferences) {
-            const imageName = this.extractImageName(imageRef);
-            if (imageName) {
-              const imagePath = this.joinPath(imagesDir, imageName);
-              const imageExists = await this.fileExists(imagePath);
-              if (!imageExists) {
-                issues.push(`找不到圖片檔案：${imageName}`);
-              }
-            }
-          }
-        }
-      }
-
-      // 檢查轉換後的內容是否包含未轉換的 Obsidian 語法
-      if (indexExists) {
-        const convertedContent = await this.fileSystem.readFile(indexPath);
-
-        // 檢查是否還有未轉換的 Wiki 連結
-        if (convertedContent.includes("[[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted wiki links found");
-        }
-
-        // 檢查是否還有未轉換的 Obsidian 圖片語法
-        if (convertedContent.includes("![[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted Obsidian image syntax found");
-        }
-
-        // 檢查是否還有未轉換的高亮語法
-        if (convertedContent.includes("==") && convertedContent.match(/==.*?==/)) {
-          issues.push("Unconverted highlight syntax found");
-        }
-      }
-    } catch (error) {
-      issues.push(`Validation error: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-
-    return {
-      valid: issues.length === 0,
-      issues,
-    };
+  ): Promise<{ valid: boolean; issues: string[] }> {
+    const imageReferences = this.markdownService.extractImageReferences(article.content);
+    return this.validator.validateConversionResult(
+      targetDir,
+      article,
+      imageReferences,
+      (ref) => this.imageCopyService.extractImageName(ref),
+      (p) => this.fileExists(p),
+      (p) => this.fileSystem.readFile(p),
+      (...parts) => this.joinPath(...parts),
+    );
   }
 
   /**
@@ -710,7 +551,7 @@ export class ConverterService {
    */
   private async fileExists(path: string): Promise<boolean> {
     try {
-      const stats = await (window.electronAPI as any).getFileStats(path);
+      const stats = await window.electronAPI.getFileStats(path);
       return stats !== null;
     } catch {
       return false;
@@ -718,11 +559,11 @@ export class ConverterService {
   }
 
   /**
-   * 批次複製圖片檔案並建立正確的相對路徑
+   * 批次複製圖片檔案（委派給 ImageCopyService，使用 worker queue 並發控制）
    * @param {string[]} imageNames - 圖片檔案名稱陣列
    * @param {string} sourceImagesDir - 來源圖片目錄
    * @param {string} targetImagesDir - 目標圖片目錄
-   * @returns {Promise<{successful: string[], failed: Array<{name: string, error: string}>}>} 複製結果
+   * @returns 複製結果
    */
   async batchCopyImages(
     imageNames: string[],
@@ -732,79 +573,17 @@ export class ConverterService {
     successful: string[];
     failed: Array<{ name: string; error: string }>;
   }> {
-    const result = {
-      successful: [] as string[],
-      failed: [] as Array<{ name: string; error: string }>,
-    };
-
-    // 確保目標目錄存在
-    await this.fileSystem.createDirectory(targetImagesDir);
-
-    // 並行複製圖片（限制並發數量以避免系統負載過高）
-    const concurrencyLimit = 5;
-    const chunks = this.chunkArray(imageNames, concurrencyLimit);
-
-    for (const chunk of chunks) {
-      const promises = chunk.map(async (imageName) => {
-        try {
-          const sourcePath = this.joinPath(sourceImagesDir, imageName);
-          const targetPath = this.joinPath(targetImagesDir, imageName);
-
-          await this.copyImageFile(sourcePath, targetPath);
-          result.successful.push(imageName);
-        } catch (error) {
-          result.failed.push({
-            name: imageName,
-            error: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
-      });
-
-      await Promise.all(promises);
-    }
-
-    return result;
+    return this.imageCopyService.batchCopyImages(imageNames, sourceImagesDir, targetImagesDir);
   }
 
   /**
-   * 將陣列分割成指定大小的塊
-   * @param {T[]} array - 要分割的陣列
-   * @param {number} size - 每塊的大小
-   * @returns {T[][]} 分割後的陣列
-   */
-  private chunkArray<T>(array: T[], size: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += size) {
-      chunks.push(array.slice(i, i + size));
-    }
-    return chunks;
-  }
-
-  /**
-   * 清理目標目錄中未使用的圖片檔案
+   * 清理目標目錄中未使用的圖片檔案（委派給 ImageCopyService）
    * @param {string} targetImagesDir - 目標圖片目錄
    * @param {string[]} usedImages - 使用中的圖片檔案名稱
    * @returns {Promise<string[]>} 已清理的檔案名稱陣列
    */
   async cleanupUnusedImages(targetImagesDir: string, usedImages: string[]): Promise<string[]> {
-    const cleanedFiles: string[] = [];
-
-    try {
-      const existingFiles = await this.fileSystem.readDirectory(targetImagesDir);
-
-      for (const file of existingFiles) {
-        if (this.isValidImageFile(file) && !usedImages.includes(file)) {
-          const filePath = this.joinPath(targetImagesDir, file);
-          await this.fileSystem.deleteFile(filePath);
-          cleanedFiles.push(file);
-          logger.debug(`Cleaned up unused image: ${file}`);
-        }
-      }
-    } catch (error) {
-      logger.warn("Failed to cleanup unused images:", error);
-    }
-
-    return cleanedFiles;
+    return this.imageCopyService.cleanupUnusedImages(targetImagesDir, usedImages);
   }
 
   /**
@@ -910,7 +689,7 @@ export class ConverterService {
   }
 
   /**
-   * 驗證批次轉換的前置條件
+   * 驗證批次轉換的前置條件（委派給 ConversionValidator）
    * @param {ConversionConfig} config - 轉換設定
    * @returns {Promise<{valid: boolean, issues: string[]}>} 驗證結果
    */
@@ -918,46 +697,7 @@ export class ConverterService {
     valid: boolean;
     issues: string[];
   }> {
-    const issues: string[] = [];
-
-    try {
-      // 檢查來源目錄
-      if (!config.sourceDir) {
-        issues.push("來源目錄未設定");
-      } else {
-        const sourceExists = await this.fileExists(config.sourceDir);
-        if (!sourceExists) {
-          issues.push("來源目錄不存在");
-        }
-      }
-
-      // 檢查目標目錄
-      if (!config.targetDir) {
-        issues.push("目標目錄未設定");
-      } else {
-        const targetExists = await this.fileExists(config.targetDir);
-        if (!targetExists) {
-          issues.push("目標目錄不存在");
-        }
-      }
-
-      // 檢查圖片目錄
-      if (!config.imageSourceDir) {
-        issues.push("圖片來源目錄未設定");
-      } else {
-        const imagesExists = await this.fileExists(config.imageSourceDir);
-        if (!imagesExists) {
-          issues.push("圖片來源目錄不存在");
-        }
-      }
-    } catch (error) {
-      issues.push(`驗證過程發生錯誤: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-
-    return {
-      valid: issues.length === 0,
-      issues,
-    };
+    return this.validator.validateBatchPrerequisites(config, (p) => this.fileExists(p));
   }
 
   /**

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useSeoStore } from "@/stores/seo";
 import type { Article } from "@/types";
+import { ArticleStatus } from "@/types";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ function makeMockArticle(overrides: Partial<Article> = {}): Article {
     title: "SEO 測試文章標題",
     slug: "seo-test-article",
     filePath: "/vault/tech/seo-test.md",
-    status: "draft",
+    status: ArticleStatus.Draft,
     frontmatter: {
       title: "SEO 測試文章標題",
       slug: "old-slug",
