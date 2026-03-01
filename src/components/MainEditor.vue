@@ -3,8 +3,8 @@
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
             :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
-            @toggle-status="toggleArticleStatus"
-            @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
+            @toggle-status="toggleArticleStatus" @toggle-editor-mode="toggleEditorMode"
+            @toggle-focus-mode="toggleFocusMode" />
 
         <!-- Search/Replace Panel -->
         <SearchReplace :visible="isSearchVisible" :content="content" @close="closeSearch" @replace="replace"
@@ -16,13 +16,11 @@
             <template v-if="editorMode === 'compose'">
                 <CodeMirrorEditor ref="editorPaneRef" v-model="content" :show-preview="showPreview"
                     :suggestions="suggestions" :show-suggestions="showSuggestions"
-                    :selected-suggestion-index="selectedSuggestionIndex"
-                    :syntax-errors="syntaxErrors" :image-validation-warnings="imageValidationWarnings"
-                    :dropdown-position="dropdownPosition" :sync-scroll="syncEnabled"
-                    @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
-                    @keydown="handleKeydown" @cursor-change="updateAutocomplete"
-                    @apply-suggestion="applySuggestion" @scroll="onEditorScroll"
-                    @toggle-sync-scroll="toggleSyncScroll" />
+                    :selected-suggestion-index="selectedSuggestionIndex" :syntax-errors="syntaxErrors"
+                    :image-validation-warnings="imageValidationWarnings" :dropdown-position="dropdownPosition"
+                    :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
+                    @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
+                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll" />
             </template>
 
             <!-- Raw 模式 -->
@@ -66,6 +64,7 @@ import { useSearchReplace } from '@/composables/useSearchReplace';
 import { useFocusMode } from '@/composables/useFocusMode';
 import { useSyncScroll } from '@/composables/useSyncScroll';
 import { getArticleService } from '@/services/ArticleService';
+import { autoSaveService } from '@/services/AutoSaveService';
 import type { Article } from '@/types';
 
 const articleStore = useArticleStore();
@@ -82,7 +81,6 @@ const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref('');
-const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<'compose' | 'raw'>('compose');
 const rawContent = ref('');
 
@@ -230,8 +228,10 @@ function handleContentChange() {
     updateAutocomplete();
     debounceValidation();
 
-    // 排程自動儲存（會調用 service）
-    scheduleAutoSave();
+    // 文章載入期間不標記為已修改（避免開啟文件即誤觸儲存）
+    if (!isLoadingArticle.value) {
+        autoSaveService.markAsModified();
+    }
 }
 
 // Watch content changes
@@ -256,21 +256,6 @@ watch(content, (newContent) => {
         }, 500);
     }
 });
-
-function scheduleAutoSave() {
-    // 文章載入期間不觸發自動儲存（避免開啟文件即誤觸儲存）
-    if (isLoadingArticle.value) {
-        return;
-    }
-
-    if (autoSaveTimer.value) {
-        clearTimeout(autoSaveTimer.value);
-    }
-
-    autoSaveTimer.value = setTimeout(() => {
-        saveArticle();
-    }, 2000); // Auto-save after 2 seconds of inactivity
-}
 
 async function saveArticle() {
     if (!articleStore.currentArticle) {
@@ -318,7 +303,7 @@ async function saveArticle() {
 
 async function toggleArticleStatus() {
     const article = articleStore.currentArticle;
-    if (!article) {return;}
+    if (!article) { return; }
     try {
         await articleStore.toggleStatus(article.id);
     } catch {
@@ -356,10 +341,6 @@ function toggleEditorMode() {
         if (historyTimeout) {
             clearTimeout(historyTimeout);
             historyTimeout = null;
-        }
-        if (autoSaveTimer.value) {
-            clearTimeout(autoSaveTimer.value);
-            autoSaveTimer.value = null;
         }
 
         if (editorMode.value === 'compose') {
@@ -414,7 +395,9 @@ function handleRawContentChange() {
         }
 
         // 排程自動儲存（會通過 service 更新 store）
-        scheduleAutoSave();
+        if (!isLoadingArticle.value) {
+            autoSaveService.markAsModified();
+        }
 
         if (showPreview.value) {
             updatePreview();
@@ -667,10 +650,6 @@ function handleClickOutside(event: MouseEvent) {
 
 // Cleanup
 onUnmounted(() => {
-    // 清理自動儲存定時器
-    if (autoSaveTimer.value) {
-        clearTimeout(autoSaveTimer.value);
-    }
     // 清理歷史記錄定時器
     if (historyTimeout) {
         clearTimeout(historyTimeout);
