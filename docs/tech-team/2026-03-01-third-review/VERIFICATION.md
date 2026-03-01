@@ -8,7 +8,7 @@
 
 ### 原因 A：修正本身不完整（最常見）
 
-Fix-05 新增 `{ cause: err }` 時，只改了 `readFile`/`deleteFile`/`readDirectory`/`createDirectory`，**`writeFile` 和 `copyFile` 被漏掉**。  
+Fix-05 新增 `{ cause: err }` 時，只改了 `readFile`/`deleteFile`/`readDirectory`/`createDirectory`，**`writeFile` 和 `copyFile` 被漏掉**。
 同樣，`refactor/ipc-channels-constants` 轉換了大部份 IPC 字串，但 `"start-file-watching"` 等三個頻道被漏掉。
 
 **根本原因**: 修正時沒有做「全域搜尋確認所有出現點都已修正」。
@@ -91,7 +91,7 @@ Write-Host "`n[4] getFileStats 有 validatePath:"
 {
   // 禁止空 catch block（防止靜默吞咽錯誤）
   "no-empty": ["error", { "allowEmptyCatch": false }],
-  
+
   // 禁止空函式（防止 .catch(() => {})）
   // 注意：需要搭配 promise 相關 plugin 才能精確到 catch 回呼
   "no-empty-function": ["warn", { "allow": ["arrowFunctions"] }],
@@ -109,10 +109,10 @@ Write-Host "`n[4] getFileStats 有 validatePath:"
    git log --oneline -5
    ```
 
-2. **確認每個待評估的問題在當前程式碼中確實存在**  
+2. **確認每個待評估的問題在當前程式碼中確實存在**
    針對每個問題，先 grep 確認，只有 grep 找到才列入報告
 
-3. **報告中的每個問題都附帶「驗證指令」欄位**  
+3. **報告中的每個問題都附帶「驗證指令」欄位**
    讓下一次評估時可以機械性確認
 
 ---
@@ -127,10 +127,29 @@ Write-Host "`n[4] getFileStats 有 validatePath:"
 | S-02: writeFile cause | 第三次評估 | `fe4468c` | `[1]` 驗證指令 | ✅ |
 | S-05: updateFile catch | 第三次評估 | `fe4468c` | `[3]` 驗證指令 | ✅ |
 | A-01: IPC file-watch | 第三次評估 | `fe4468c` | `[2]` 驗證指令 | ✅ |
-| P-01: 訂閱洩漏 | 第三次評估 | 待修 | - | ❌ |
-| Q-02a: searchBuildIndex 靜默 | 第三次評估 | 待修 | `[3]` 驗證指令 | ❌ |
-| SOLID-02: ID 生成重複 | 第三次評估 | 待修 | - | ❌ |
+| P-01: 訂閱洩漏 | 第三次評估 | `9d5a559` | `grep -n "fileWatchUnsubscribe" src/stores/article.ts` | ✅ |
+| Q-02a: searchBuildIndex 靜默 | 第三次評估 | `9d5a559` | `[3]` 驗證指令（article.ts 應無空 catch）| ✅ |
+| Q-02b: frontmatter warn→error | 第三次評估 | `9d5a559` | `grep "console.warn" src/stores/article.ts`（應無輸出）| ✅ |
+| SOLID-02: ID 生成重複 | 第三次評估 | `9d5a559` / `ceef51a` | `grep "Math.random" src/stores/article.ts`（應無輸出）| ✅ |
+| SOLID-03: PUBLISHED_DIR 硬編碼 | 第三次評估 | `9d5a559` | `grep -n "PUBLISHED_DIR" src/stores/article.ts` | ✅ |
+| Q-03: setTimeout 100ms 任意延遲 | 第三次評估 | `9d5a559` | `grep "setTimeout" src/stores/article.ts`（應無輸出）| ✅ |
+| S-04: setConfig Zod 驗證 | 第三次評估 | 待修（🟡 下Sprint）| `grep -A10 "setConfig" src/main/main.ts \| grep "parse\|safeParse"` | ⏳ |
 
 ---
 
 *此文件應在每次評估後更新，並在每次修正時新增對應的驗證指令。*
+
+---
+
+## 修正完成摘要（2026-03-01 本次 session）
+
+| Branch | Commits | 修正項目 |
+|--------|---------|---------|
+| `refactor/article-store-third-review-fixes` | `962685a`, `ceef51a`, `9d5a559` | style(eslint), SOLID-02(ArticleService public), P-01+Q-02a+Q-02b+SOLID-02+SOLID-03+Q-03 |
+| `develop` | `fe4468c` | S-01, S-02, S-05, A-01 |
+
+**🎯 本次評估 🔴/🟠/🟡 問題清零情況**
+
+- 🔴 嚴重：S-01 ✅、S-02 ✅、S-05 ✅（S-04 ⏳ 下Sprint）
+- 🟠 重要：P-01 ✅、A-01 ✅、SOLID-02 ✅、SOLID-03 ✅
+- 🟡 中等：Q-02a ✅、Q-02b ✅、Q-03 ✅
