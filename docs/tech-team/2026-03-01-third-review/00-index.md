@@ -22,47 +22,32 @@
 
 ## 綜合問題矩陣（依優先順序）
 
-### ✅ 已修正（commit `fe4468c`，2026-03-01 當天）
+### ✅ 已修正（第三次評估所有問題，截至 2026-03-01）
 
-| 問題 ID | 描述 | 驗證指令 |
-|--------|------|---------|
-| S-01 | `getFileStats()` 補加 `validatePath()` | `grep -n "getFileStats" src/main/services/FileService.ts` |
-| S-02 | `writeFile()`/`copyFile()` 補加 `{ cause: err }` | `grep -n "cause: err" src/main/services/FileService.ts` |
-| S-05 | `searchService.updateFile().catch()` 改為記錄錯誤 | `grep -n "updateFile" src/main/main.ts` |
-| A-01 | 檔案監聽 IPC handler 改用常數（`refactor/ipc-channels-constants` 部份遺漏） | `grep -n "start-file-watching\|stop-file-watch" src/main/main.ts` |
+| 問題 ID | 描述 | Commit |
+|--------|------|--------|
+| S-01 | `getFileStats()` 補加 `validatePath()` | `fe4468c` |
+| S-02 | `writeFile()`/`copyFile()` 補加 `{ cause: err }` | `fe4468c` |
+| S-04 | `setConfig` IPC handler 加入 Zod schema 驗證 | `2ca5c61` |
+| S-05 | `searchService.updateFile().catch()` 改為記錄錯誤 | `fe4468c` |
+| A-01 | 檔案監聽 IPC handler 改用常數 | `fe4468c` |
+| A-02 | `FileService.watchCallback` 升級為 pub-sub（Set）| `3578ee0` |
+| P-01 | `setupFileWatching()` 訂閱洩漏修正 | `9d5a559` |
+| SOLID-02 | `createArticle()` 改用 `generateIdFromPath` | `9d5a559`/`ceef51a` |
+| SOLID-03 | `PUBLISHED_DIR` 常數化 | `9d5a559` |
+| Q-01 | IPC 層 `no-explicit-any` 消除 | `a44b914` |
+| Q-02a | `searchBuildIndex` 靜默 catch | `9d5a559` |
+| Q-02b | frontmatter warn→error | `9d5a559` |
+| Q-03 | setTimeout 100ms → nextTick | `9d5a559` |
+| M-05 | `VaultDirs` 集中目錄結構常數 | `a732bdb` |
+| SOLID-01/M-02 | `useFileWatching` composable + `parseArticlePath` 工具 | `8e4b157` |
 
-> ⚠️ **根本原因說明**: S-02 是 Fix-05 的部份迴歸（只修了 4/6 個方法）；A-01 是 `refactor/ipc-channels-constants` 的部份遺漏（評估報告撰寫時以為已全修）。參見 [VERIFICATION.md](./VERIFICATION.md) 防止再發。
-
-### 🔴 仍待修（立即）
-
-| 問題 ID | 描述 | 出處 |
-|--------|------|------|
-| Q-02a | `searchBuildIndex?.()?.catch(() => {})` 靜默失效（`article.ts`）| 品質 |
-| Q-02b | `migrateArticleFrontmatter` 失敗只 `console.warn` | 品質 |
-
-### 🟠 本 Sprint
-
-| 問題 ID | 描述 | 出處 |
-|--------|------|------|
-| P-01/P-06 | `setupFileWatching()` 訂閱洩漏（無 unsubscribe） | 效能/SOLID |
-| SOLID-02/Q-04 | `createArticle()` 改用 `ArticleService.generateId()`；`substr` → `substring` | SOLID/品質 |
-
-### 🟡 下 Sprint
+### 🟢 Backlog（已評估，視需求處理）
 
 | 問題 ID | 描述 | 出處 |
 |--------|------|------|
-| SOLID-03 | `parseArticlePath()` 硬編碼 "Publish" → 常數 | SOLID |
-| Q-03 | `setTimeout(100ms)` 重構為顯式 Promise 初始化流程 | 品質 |
-| S-04 | `setConfig` IPC handler 加入 Zod schema 驗證 | 資安 |
-
-### 🟢 Backlog
-
-| 問題 ID | 描述 | 出處 |
-|--------|------|------|
-| SOLID-01/M-02 | 評估 `article.ts` 拆分（`useFileWatching` composable） | SOLID/可維護 |
-| A-02 | `FileService.watchCallback` 升級為發布-訂閱 | 架構 |
-| M-05 | 建立 `VaultConfig` 集中管理目錄結構假設 | 可維護 |
-| Q-01 | 系統性消除業務邏輯層 `no-explicit-any`（125 個警告） | 品質 |
+| M-01 | 中英文混用（可接受現狀） | 可維護 |
+| M-07 | store 過度耦合（長期架構目標） | 可維護 |
 
 ---
 

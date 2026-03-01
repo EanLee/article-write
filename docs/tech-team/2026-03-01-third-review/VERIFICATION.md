@@ -133,7 +133,11 @@ Write-Host "`n[4] getFileStats 有 validatePath:"
 | SOLID-02: ID 生成重複 | 第三次評估 | `9d5a559` / `ceef51a` | `grep "Math.random" src/stores/article.ts`（應無輸出）| ✅ |
 | SOLID-03: PUBLISHED_DIR 硬編碼 | 第三次評估 | `9d5a559` | `grep -n "PUBLISHED_DIR" src/stores/article.ts` | ✅ |
 | Q-03: setTimeout 100ms 任意延遲 | 第三次評估 | `9d5a559` | `grep "setTimeout" src/stores/article.ts`（應無輸出）| ✅ |
-| S-04: setConfig Zod 驗證 | 第三次評估 | 待修（🟡 下Sprint）| `grep -A10 "setConfig" src/main/main.ts \| grep "parse\|safeParse"` | ⏳ |
+| S-04: setConfig Zod 驗證 | 第三次評估 | `2ca5c61` | `grep 'AppConfigSchema.safeParse' src/main/main.ts` | ✅ |
+| Q-01: no-explicit-any（IPC 層）| 第三次評估 | `a44b914` | `grep -n ': any' src/main/main.ts src/main/preload.ts src/types/electron.d.ts`（應無輸出）| ✅ |
+| M-05: VaultDirs 集中常數 | 第三次評估 | `a732bdb` | `grep -n '"Publish"\|"Drafts"' src/stores/article.ts`（應無輸出）| ✅ |
+| A-02: watchCallback pub-sub | 第三次評估 | `3578ee0` | `grep -n 'watchCallbacks' src/main/services/FileService.ts` | ✅ |
+| SOLID-01/M-02: article.ts 拆分 | 第三次評估 | `8e4b157` | `wc -l src/stores/article.ts`（≈598行）；`ls src/composables/useFileWatching.ts src/utils/articlePath.ts` | ✅ |
 
 ---
 
@@ -148,8 +152,34 @@ Write-Host "`n[4] getFileStats 有 validatePath:"
 | `refactor/article-store-third-review-fixes` | `962685a`, `ceef51a`, `9d5a559` | style(eslint), SOLID-02(ArticleService public), P-01+Q-02a+Q-02b+SOLID-02+SOLID-03+Q-03 |
 | `develop` | `fe4468c` | S-01, S-02, S-05, A-01 |
 
-**🎯 本次評估 🔴/🟠/🟡 問題清零情況**
+## 修正完成摘要（2026-03-01 本次 session）
 
-- 🔴 嚴重：S-01 ✅、S-02 ✅、S-05 ✅（S-04 ⏳ 下Sprint）
-- 🟠 重要：P-01 ✅、A-01 ✅、SOLID-02 ✅、SOLID-03 ✅
-- 🟡 中等：Q-02a ✅、Q-02b ✅、Q-03 ✅
+| Branch | Commits | 修正項目 |
+|--------|---------|---------|
+| `refactor/article-store-third-review-fixes` | `962685a`, `ceef51a`, `9d5a559` | style(eslint), SOLID-02(ArticleService public), P-01+Q-02a+Q-02b+SOLID-02+SOLID-03+Q-03 |
+| `develop` | `fe4468c` | S-01, S-02, S-05, A-01 |
+| `refactor/ipc-config-zod-validation` | `2ca5c61` | S-04: setConfig Zod schema 驗證 |
+| `refactor/remove-explicit-any` | `a44b914` | Q-01: IPC 層 no-explicit-any 消除 |
+| `refactor/vault-config-constants` | `a732bdb` | M-05: VaultDirs 集中管理目錄常數 |
+| `refactor/file-service-watch-pubsub` | `3578ee0` | A-02: watchCallback → pub-sub Set |
+| `refactor/article-store-composable-split` | `8e4b157` | SOLID-01/M-02: useFileWatching + articlePath 工具 |
+
+**🎯 第三次評估所有問題清零狀態**
+
+| 優先 | 問題 ID | 描述 | 狀態 |
+|------|--------|------|------|
+| 🔴 | S-01 | getFileStats validatePath | ✅ `fe4468c` |
+| 🔴 | S-02 | writeFile/copyFile cause | ✅ `fe4468c` |
+| 🔴 | S-04 | setConfig Zod 驗證 | ✅ `2ca5c61` |
+| 🔴 | S-05 | searchService updateFile catch | ✅ `fe4468c` |
+| 🟠 | P-01 | 訂閱洩漏 | ✅ `9d5a559` |
+| 🟠 | A-01 | IPC file-watch 字面字串 | ✅ `fe4468c` |
+| 🟠 | A-02 | watchCallback pub-sub | ✅ `3578ee0` |
+| 🟠 | SOLID-02 | ID 生成一致性 | ✅ `9d5a559`/`ceef51a` |
+| 🟠 | SOLID-03 | PUBLISHED_DIR 硬編碼 | ✅ `9d5a559` |
+| 🟡 | Q-02a | searchBuildIndex 靜默 catch | ✅ `9d5a559` |
+| 🟡 | Q-02b | frontmatter warn→error | ✅ `9d5a559` |
+| 🟡 | Q-03 | setTimeout 100ms | ✅ `9d5a559` |
+| 🟢 | Q-01 | no-explicit-any（IPC 層）| ✅ `a44b914` |
+| 🟢 | M-05 | VaultDirs 集中常數 | ✅ `a732bdb` |
+| 🟢 | SOLID-01/M-02 | article.ts 拆分 composable | ✅ `8e4b157` |
