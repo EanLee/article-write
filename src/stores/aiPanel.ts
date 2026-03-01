@@ -1,7 +1,7 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
 import { useSeoStore } from "@/stores/seo"
-import { useArticleStore } from "@/stores/article"
+import type { Article } from "@/types"
 import type { SEOGenerationResult } from "@/main/services/AIProvider/types"
 
 export const useAIPanelStore = defineStore("aiPanel", () => {
@@ -23,16 +23,17 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
     isOpen.value = false
   }
 
-  async function generateSEO() {
-    const articleStore = useArticleStore()
+  /**
+   * 生成 SEO 資訊。
+   * 接受外部傳入 article，避免 store 內部直接呼叫 useArticleStore（降低耦合）。
+   */
+  async function generateSEO(article: Article) {
     const seoStore = useSeoStore()
-
-    if (!articleStore.currentArticle) { return }
 
     seoResult.value = null
     seoError.value = null
 
-    const result = await seoStore.generateSEO(articleStore.currentArticle)
+    const result = await seoStore.generateSEO(article)
     if (result) {
       seoResult.value = result
     } else {
@@ -40,13 +41,14 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
     }
   }
 
-  function applySEOResult() {
-    if (!seoResult.value) { return }
-    const articleStore = useArticleStore()
-    const article = articleStore.currentArticle
-    if (!article) { return }
+  /**
+   * 將目前 SEO 結果套用至文章並回傳更新後的文章物件。
+   * 由呼叫端負責呼叫 articleStore.updateArticleInMemory()，降低 store 耦合。
+   */
+  function applySEOResult(article: Article): Article | null {
+    if (!seoResult.value) { return null }
 
-    const updated = {
+    return {
       ...article,
       frontmatter: {
         ...article.frontmatter,
@@ -55,7 +57,6 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
         keywords: seoResult.value.keywords,
       }
     }
-    articleStore.updateArticleInMemory(updated)
   }
 
   function clearSEO() {

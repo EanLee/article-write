@@ -100,9 +100,10 @@ import { ref, onMounted, onUnmounted } from "vue"
 import { Sparkles, X, ChevronDown, ChevronRight } from "lucide-vue-next"
 import { useAIPanelStore } from "@/stores/aiPanel"
 import { useSeoStore } from "@/stores/seo"
+import { useArticleStore } from "@/stores/article"
 import type { Article } from "@/types"
 
-defineProps<{
+const props = defineProps<{
   article: Article | null
 }>()
 
@@ -112,6 +113,7 @@ defineEmits<{
 
 const aiPanelStore = useAIPanelStore()
 const seoStore = useSeoStore()
+const articleStore = useArticleStore()
 
 const seoExpanded = ref(true)
 const hasApiKey = ref(false)
@@ -165,12 +167,19 @@ onUnmounted(() => {
 })
 
 async function handleGenerateSEO() {
-  await aiPanelStore.generateSEO()
+  const article = props.article
+  if (!article) { return }
+  await aiPanelStore.generateSEO(article)
   hasApiKey.value = await seoStore.hasApiKey()
 }
 
 function handleApplySEO() {
-  aiPanelStore.applySEOResult()
+  const article = props.article
+  if (!article) { return }
+  const updated = aiPanelStore.applySEOResult(article)
+  if (updated) {
+    articleStore.updateArticleInMemory(updated)
+  }
 }
 </script>
 
