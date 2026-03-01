@@ -56,7 +56,7 @@
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
 | Q5-01 | 🔴 高 | 29 個 console.log 繞過 logger（同 S5-01） | ✅ 已修正 `18549ea` | `fix/replace-console-with-logger` |
-| Q5-02 | 🟡 中 | 106 個 ESLint no-explicit-any 警告積累於測試 | ⏳ 持續處理中（77 個剩餘） | 持續改善 |
+| Q5-02 | ✅ 完成 | 106 個 ESLint no-explicit-any 警告積累於測試 | ✅ `bfddd3f` — 0 warnings（3 pre-existing v-html 保留） | 消除所有 any |
 
 ### 可維護性問題
 
@@ -79,7 +79,7 @@
 | P3 | search + server store 測試 | A5-02, M5-02 (全) | ✅ 已完成 | `8250f73` |
 | P4 | SettingsPanel 子元件提取 | SOLID5-02, P5-01 | ✅ 已完成 | `2971709` |
 | P5 | MetadataCacheService TTL | P5-03 | ✅ 已完成 | `94566c9` |
-| 持續 | ESLint any 警告清理 | Q5-02 | ⏳ 持續（77 個剩餘） | — |
+| 持續 | ESLint any 警告清理 | Q5-02 | ✅ 0 warnings | — |
 
 ---
 
