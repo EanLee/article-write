@@ -26,10 +26,16 @@ src/
 ├── main/                    # Electron 主進程
 │   ├── main.ts             # 主進程入口
 │   ├── preload.ts          # 預載腳本 (IPC 橋接)
-│   └── services/           # 主進程服務
-│       ├── FileService.ts      # 檔案 I/O 與監聽
-│       ├── ConfigService.ts    # 配置管理
-│       └── ProcessService.ts   # 進程管理 (Dev Server)
+│   └── services/           # 主進程服務（Main Process）
+│       │                   # ⚠️ 僅限 Main Process 使用，可存取 Node.js/Electron API
+│       ├── AIProvider/         # AI 供應商實作 (Claude/Gemini/OpenAI)
+│       ├── AIService.ts        # AI 功能統一入口
+│       ├── ConfigService.ts    # 設定檔讀寫
+│       ├── FileService.ts      # 安全檔案 I/O（含路徑白名單驗證）
+│       ├── GitService.ts       # Git 操作
+│       ├── ProcessService.ts   # 子進程管理（Dev Server）
+│       ├── PublishService.ts   # 文章發布流程
+│       └── SearchService.ts    # 全文搜尋索引
 │
 ├── components/              # Vue UI 元件
 │   ├── MainEditor.vue          # 主編輯器 (分屏預覽)
@@ -48,15 +54,26 @@ src/
 │   ├── useAutocomplete.ts      # 自動完成功能
 │   └── useEditorValidation.ts  # 語法驗證
 │
-├── services/                # 業務邏輯服務
-│   ├── MarkdownService.ts      # Markdown 解析與渲染
-│   ├── ConverterService.ts     # Obsidian → Astro 轉換
-│   ├── ImageService.ts         # 圖片管理
-│   ├── ObsidianSyntaxService.ts # Obsidian 語法支援
-│   ├── PreviewService.ts       # 預覽渲染
-│   ├── AutoSaveService.ts      # 自動儲存
+├── services/                # 渲染進程服務（Renderer Process）
+│   │                        # ⚠️ 僅限 Renderer 使用，可存取 DOM/BOM
+│   ├── ArticleService.ts       # 文章 CRUD 與 ID 生成
+│   ├── AutoSaveService.ts      # 自動儲存排程
 │   ├── BackupService.ts        # 備份管理
-│   └── NotificationService.ts  # 通知系統
+│   ├── ConverterService.ts     # Obsidian → Astro 格式轉換
+│   ├── ElectronFileSystem.ts   # IPC 檔案系統橋接
+│   ├── FileScannerService.ts   # 目錄掃描與文章索引
+│   ├── FileWatchService.ts     # 外部檔案變更監聽
+│   ├── ImageService.ts         # 圖片管理
+│   ├── MarkdownService.ts      # Markdown 解析與渲染
+│   ├── MetadataCacheService.ts # Frontmatter 快取
+│   ├── NotificationService.ts  # Toast 通知系統
+│   ├── ObsidianSyntaxService.ts # Obsidian 語法支援
+│   └── PreviewService.ts       # 預覽渲染
+│
+│   > 📌 **兩個 services 資料夾說明**
+│   > `src/services/` — Renderer 進程服務，可使用 Vue/DOM/BOM API
+│   > `src/main/services/` — Main 進程服務，可使用 Node.js/Electron API
+│   > 兩者不可互相直接 import，須透過 `preload.ts` 的 IPC 橋接通訊
 │
 ├── stores/                  # Pinia 狀態管理
 │   ├── article.ts              # 文章狀態

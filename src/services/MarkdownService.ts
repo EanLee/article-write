@@ -31,7 +31,8 @@ export class MarkdownService {
    */
   constructor() {
     this.md = new MarkdownIt({
-      html: false, // 關閉原始 HTML 渲染，防止 XSS — 由 DOMPurify 在 PreviewPane 負責消毒
+      html: true, // 允許 HTML 通過（ObsidianSyntaxService 需要注入 <mark>/<a>/<img> 等 HTML）
+      // XSS 防護由 DOMPurify 在 PreviewPane.vue 的 sanitizedContent 計算屬性實施
       linkify: true,
       typographer: true,
       breaks: true,
