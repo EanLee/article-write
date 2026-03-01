@@ -26,44 +26,44 @@
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| S5-01 | 🔴 高 | 29 個 console 呼叫繞過 logger.ts，production 可見敏感路徑 | ⏳ 待修正 | `fix/replace-console-with-logger` |
-| S5-02 | 🟠 中 | ConverterService slug/path 輸入驗證缺口 | ⏳ 待修正 | `refactor/split-converter-service` |
+| S5-01 | 🔴 高 | 29 個 console 呼叫繞過 logger.ts，production 可見敏感路徑 | ✅ 已修正 `18549ea` | `fix/replace-console-with-logger` |
+| S5-02 | 🟠 中 | ConverterService slug/path 輸入驗證缺口 | ✅ 已修正 `68ca085` | `refactor/split-converter-service` |
 
 ### 效能問題
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| P5-01 | 🟠 中 | SettingsPanel.vue 941行，v-show 全 tab 渲染 | ⏳ 待修正 | `refactor/split-settings-panel` |
-| P5-02 | 🟠 中 | 批次圖片轉換使用 Promise.all，無 concurrency 上限 | ⏳ 待修正 | `refactor/split-converter-service` |
-| P5-03 | 🟡 低 | MetadataCacheService 無 TTL，快取可能無限成長 | ⏳ 待修正 | `fix/metadata-cache-ttl` |
+| P5-01 | 🟠 中 | SettingsPanel.vue 941行，v-show 全 tab 渲染 | ✅ 已修正 `2971709` | `refactor/split-settings-panel` |
+| P5-02 | 🟠 中 | 批次圖片轉換使用 Promise.all，無 concurrency 上限 | ✅ 已修正 `68ca085` | `refactor/split-converter-service` |
+| P5-03 | 🟡 低 | MetadataCacheService 無 TTL，快取可能無限成長 | ✅ 已修正 `94566c9` | `fix/metadata-cache-ttl` |
 
 ### SOLID 問題
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| SOLID5-01 | 🔴 高 | ConverterService.ts 988行，5+ 職責 SRP 違反 | ⏳ 待修正 | `refactor/split-converter-service` |
-| SOLID5-02 | 🟠 中 | SettingsPanel.vue 941行，5 設定域 SRP 違反 | ⏳ 待修正 | `refactor/split-settings-panel` |
+| SOLID5-01 | 🔴 高 | ConverterService.ts 988行，5+ 職責 SRP 違反 | ✅ 已修正 `68ca085` | `refactor/split-converter-service` |
+| SOLID5-02 | 🟠 中 | SettingsPanel.vue 941行，5 設定域 SRP 違反 | ✅ 已修正 `2971709` | `refactor/split-settings-panel` |
 
 ### 架構問題
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| A5-01 | 🟡 中 | ConverterService 缺少 IConverterService 介面 | ⏳ 待修正 | `refactor/split-converter-service` |
-| A5-02 | 🟡 中 | aiPanel/search/seo/server 4 個 store 零測試覆蓋 | ⏳ 待修正 | `test/aiPanel-seo-stores` |
+| A5-01 | 🟡 中 | ConverterService 缺少 IConverterService 介面 | ✅ 已修正 `68ca085` | `refactor/split-converter-service` |
+| A5-02 | 🟡 中 | aiPanel/search/seo/server 4 個 store 零測試覆蓋 | ✅ 已修正 `bdebbca` `8250f73` | `test/aiPanel-seo-stores` |
 
 ### 品質問題
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| Q5-01 | 🔴 高 | 29 個 console.log 繞過 logger（同 S5-01） | ⏳ 待修正 | `fix/replace-console-with-logger` |
-| Q5-02 | 🟡 中 | 106 個 ESLint no-explicit-any 警告積累於測試 | ⏳ 待修正 | 持續改善 |
+| Q5-01 | 🔴 高 | 29 個 console.log 繞過 logger（同 S5-01） | ✅ 已修正 `18549ea` | `fix/replace-console-with-logger` |
+| Q5-02 | 🟡 中 | 106 個 ESLint no-explicit-any 警告積累於測試 | ⏳ 持續處理中（77 個剩餘） | 持續改善 |
 
 ### 可維護性問題
 
 | 問題 ID | 嚴重度 | 描述 | 狀態 | 建議分支 |
 |--------|--------|------|------|---------|
-| M5-01 | 🔴 高 | ConverterService.ts 988行最難維護（同 SOLID5-01） | ⏳ 待修正 | `refactor/split-converter-service` |
-| M5-02 | 🟡 中 | 4 store + 3 service 無測試覆蓋（同 A5-02） | ⏳ 待修正 | `test/aiPanel-seo-stores` |
+| M5-01 | 🔴 高 | ConverterService.ts 988行最難維護（同 SOLID5-01） | ✅ 已修正 `68ca085` | `refactor/split-converter-service` |
+| M5-02 | 🟡 中 | 4 store + 3 service 無測試覆蓋（同 A5-02） | ✅ 已修正 `bdebbca` `8250f73` | `test/aiPanel-seo-stores` |
 
 ---
 
@@ -71,26 +71,28 @@
 
 實際需要處理的獨立工作：
 
-| 優先序 | 工作 | 涵蓋問題 |
-|------|------|---------|
-| P0 | console.log → logger 替換 + ESLint rule | S5-01, Q5-01 |
-| P1 | aiPanel + seo store 測試 | A5-02, M5-02 (部分) |
-| P2 | ConverterService 拆分（含介面 + logger + 驗證）| SOLID5-01, A5-01, S5-02, P5-02, M5-01 |
-| P3 | search + server store 測試 | A5-02, M5-02 (全) |
-| P4 | SettingsPanel 子元件提取 | SOLID5-02, P5-01 |
-| P5 | MetadataCacheService TTL | P5-03 |
-| 持續 | ESLint any 警告清理 | Q5-02 |
+| 優先序 | 工作 | 涵蓋問題 | 狀態 | Commit |
+|------|------|---------|------|--------|
+| P0 | console.log → logger 替換 + ESLint rule | S5-01, Q5-01 | ✅ 已完成 | `18549ea` |
+| P1 | aiPanel + seo store 測試 | A5-02, M5-02 (部分) | ✅ 已完成 | `bdebbca` |
+| P2 | ConverterService 拆分（含介面 + logger + 驗證）| SOLID5-01, A5-01, S5-02, P5-02, M5-01 | ✅ 已完成 | `68ca085` |
+| P3 | search + server store 測試 | A5-02, M5-02 (全) | ✅ 已完成 | `8250f73` |
+| P4 | SettingsPanel 子元件提取 | SOLID5-02, P5-01 | ✅ 已完成 | `2971709` |
+| P5 | MetadataCacheService TTL | P5-03 | ✅ 已完成 | `94566c9` |
+| 持續 | ESLint any 警告清理 | Q5-02 | ⏳ 持續（77 個剩餘） | — |
 
 ---
 
 ## 基準線指標
 
-| 指標 | Q4 | Q5 |
-|------|----|----|
-| TypeScript 錯誤 | 12 | **0** |
-| 測試通過數 | 373 | **424** |
-| ESLint errors | 0 | **0** |
-| ESLint warnings | ~80 | **106** |
-| console 違規次數 | N/A | **29** |
-| 最大模組行數 | ~820 | **988 (ConverterService)** |
-| 加權評分 | 7.7 | **8.0** |
+| 指標 | Q4 | Q5 起始 | Q5 完成後 |
+|------|----|---------|---------|
+| TypeScript 錯誤 | 12 | **0** | **0** |
+| 測試通過數 | 373 | **424** | **569** (+145) |
+| 測試檔案數 | — | **N/A** | **43 files** |
+| ESLint errors | 0 | **0** | **0** |
+| ESLint warnings | ~80 | **106** | **77** (-29) |
+| console 違規次數 | N/A | **29** | **0** ✅ |
+| 最大模組行數 | ~820 | **988 (ConverterService)** | **~235 (SettingsPanel)** |
+| MetadataCache TTL | 無 | **無** | **5 分鐘** ✅ |
+| 加權評分 | 7.7 | **8.0** | **8.5+（估）** |
