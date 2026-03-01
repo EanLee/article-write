@@ -128,8 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { Article } from '@/types'
+import { ref, onMounted } from "vue"
+import type { Article } from "@/types"
 import {
   FileText,
   AlignLeft,
@@ -141,8 +141,8 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight
-} from 'lucide-vue-next'
-import SEOGenerateButton from './SEOGenerateButton.vue'
+} from "lucide-vue-next"
+import SEOGenerateButton from "./SEOGenerateButton.vue"
 
 defineProps<{
   visible: boolean
@@ -150,38 +150,38 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'seo-generated', result: { slug: string; metaDescription: string; keywords: string[] }): void
-  (e: 'open-settings'): void
+  (e: "seo-generated", result: { slug: string; metaDescription: string; keywords: string[] }): void
+  (e: "open-settings"): void
 }>()
 
 function onSeoGenerated(result: { slug: string; metaDescription: string; keywords: string[] }) {
-  emit('seo-generated', result)
+  emit("seo-generated", result)
 }
 
 const expanded = ref(true)
 
 // 從 localStorage 載入展開狀態
 onMounted(() => {
-  const savedExpanded = localStorage.getItem('frontmatter-panel-expanded')
+  const savedExpanded = localStorage.getItem("frontmatter-panel-expanded")
   if (savedExpanded !== null) {
-    expanded.value = savedExpanded === 'true'
+    expanded.value = savedExpanded === "true"
   }
 })
 
 function toggleExpanded() {
   expanded.value = !expanded.value
-  localStorage.setItem('frontmatter-panel-expanded', expanded.value.toString())
+  localStorage.setItem("frontmatter-panel-expanded", expanded.value.toString())
 }
 
 function formatDate(date: Date | string): string {
-  if (!date) {return '-'}
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+  if (!date) {return "-"}
+  const d = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
   }).format(d)
 }
 

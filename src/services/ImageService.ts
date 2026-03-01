@@ -1,4 +1,4 @@
-import type { Article } from '@/types'
+import type { Article } from "@/types"
 
 /**
  * 圖片資訊介面
@@ -53,10 +53,10 @@ export interface ImageValidationWarning {
   imageName: string
   line: number
   column: number
-  type: 'missing-file' | 'invalid-format' | 'broken-reference'
+  type: "missing-file" | "invalid-format" | "broken-reference"
   message: string
   suggestion: string
-  severity: 'error' | 'warning'
+  severity: "error" | "warning"
 }
 
 /**
@@ -64,7 +64,7 @@ export interface ImageValidationWarning {
  * 負責管理圖片檔案、驗證圖片引用，以及提供圖片相關功能
  */
 export class ImageService {
-  private vaultPath: string = ''
+  private vaultPath: string = ""
   private articles: Article[] = []
 
   /**
@@ -96,7 +96,7 @@ export class ImageService {
    * @returns {Promise<ImageInfo[]>} 圖片資訊陣列
    */
   async loadImages(): Promise<ImageInfo[]> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
       return []
     }
 
@@ -113,9 +113,9 @@ export class ImageService {
       const files = await window.electronAPI.readDirectory(imagesPath)
       
       // Filter image files
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp']
+      const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]
       const imageFiles = files.filter(file => {
-        const ext = file.toLowerCase().substring(file.lastIndexOf('.'))
+        const ext = file.toLowerCase().substring(file.lastIndexOf("."))
         return imageExtensions.includes(ext)
       })
 
@@ -158,7 +158,7 @@ export class ImageService {
       return imageInfos
     } catch (error) {
        
-      console.error('Failed to load images:', error)
+      console.error("Failed to load images:", error)
       return []
     }
   }
@@ -188,7 +188,7 @@ export class ImageService {
    */
   getArticleImageReferences(article: Article): ImageReference[] {
     const references: ImageReference[] = []
-    const lines = article.content.split('\n')
+    const lines = article.content.split("\n")
     
     lines.forEach((line, index) => {
       // Obsidian 格式圖片: ![[image.png]]
@@ -212,7 +212,7 @@ export class ImageService {
       while ((match = standardImageRegex.exec(line)) !== null) {
         const imagePath = match[1]
         // 提取檔名（如果是相對路徑）
-        const imageName = imagePath.includes('/') ? imagePath.split('/').pop() || imagePath : imagePath
+        const imageName = imagePath.includes("/") ? imagePath.split("/").pop() || imagePath : imagePath
         
         references.push({
           imageName,
@@ -233,7 +233,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 檔案是否存在
    */
   async checkImageExists(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
       return false
     }
 
@@ -337,7 +337,7 @@ export class ImageService {
         isUsed: true,
         referencedIn,
         filePath: exists ? `${this.getImagesPath()}/${imageName}` : undefined,
-        errorMessage: exists ? undefined : '圖片檔案不存在'
+        errorMessage: exists ? undefined : "圖片檔案不存在"
       })
     }
 
@@ -377,7 +377,7 @@ export class ImageService {
         isUsed: true,
         referencedIn: [article.title],
         filePath: exists ? `${this.getImagesPath()}/${ref.imageName}` : undefined,
-        errorMessage: exists ? undefined : '圖片檔案不存在'
+        errorMessage: exists ? undefined : "圖片檔案不存在"
       })
     }
 
@@ -391,7 +391,7 @@ export class ImageService {
    */
   async getImageValidationWarnings(content: string): Promise<ImageValidationWarning[]> {
     const warnings: ImageValidationWarning[] = []
-    const lines = content.split('\n')
+    const lines = content.split("\n")
     
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
@@ -409,20 +409,20 @@ export class ImageService {
             imageName,
             line: lineIndex + 1,
             column: match.index + 1,
-            type: 'missing-file',
+            type: "missing-file",
             message: `圖片檔案 "${imageName}" 不存在`,
-            suggestion: `請檢查圖片檔案是否存在於 images 資料夾中`,
-            severity: 'error'
+            suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
+            severity: "error"
           })
         } else if (!this.isImageFile(imageName)) {
           warnings.push({
             imageName,
             line: lineIndex + 1,
             column: match.index + 1,
-            type: 'invalid-format',
+            type: "invalid-format",
             message: `"${imageName}" 不是有效的圖片格式`,
-            suggestion: `支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp`,
-            severity: 'warning'
+            suggestion: "支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp",
+            severity: "warning"
           })
         }
       }
@@ -432,8 +432,8 @@ export class ImageService {
       while ((match = standardImageRegex.exec(line)) !== null) {
         const imagePath = match[1]
         // 如果是相對路徑且指向 images 目錄，進行驗證
-        if (imagePath.includes('images/') || imagePath.startsWith('./images/')) {
-          const imageName = imagePath.split('/').pop() || imagePath
+        if (imagePath.includes("images/") || imagePath.startsWith("./images/")) {
+          const imageName = imagePath.split("/").pop() || imagePath
           const exists = await this.checkImageExists(imageName)
           
           if (!exists) {
@@ -441,10 +441,10 @@ export class ImageService {
               imageName,
               line: lineIndex + 1,
               column: match.index + 1,
-              type: 'missing-file',
+              type: "missing-file",
               message: `圖片檔案 "${imageName}" 不存在`,
-              suggestion: `請檢查圖片檔案是否存在於 images 資料夾中`,
-              severity: 'error'
+              suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
+              severity: "error"
             })
           }
         }
@@ -460,8 +460,8 @@ export class ImageService {
    * @returns {boolean} 是否為有效的圖片格式
    */
   private isImageFile(filename: string): boolean {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.avif']
-    const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'))
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"]
+    const ext = filename.toLowerCase().substring(filename.lastIndexOf("."))
     return imageExtensions.includes(ext)
   }
 
@@ -471,13 +471,13 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功刪除
    */
   async deleteUnusedImage(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
       return false
     }
 
     // Double check that image is not used
     if (this.isImageUsed(imageName)) {
-      throw new Error('Cannot delete image that is still in use')
+      throw new Error("Cannot delete image that is still in use")
     }
 
     try {
@@ -486,7 +486,7 @@ export class ImageService {
       return true
     } catch (error) {
        
-      console.error('Failed to delete image:', error)
+      console.error("Failed to delete image:", error)
       return false
     }
   }
@@ -498,7 +498,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功複製
    */
   async copyImageToVault(sourcePath: string, fileName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
       return false
     }
 
@@ -510,7 +510,7 @@ export class ImageService {
       return true
     } catch (error) {
        
-      console.error('Failed to copy image:', error)
+      console.error("Failed to copy image:", error)
       return false
     }
   }
@@ -522,13 +522,13 @@ export class ImageService {
    * @returns {Promise<string>} 上傳後的檔案名稱
    */
   async uploadImageFile(file: File, customName?: string): Promise<string> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
-      throw new Error('Vault path not set or Electron API not available')
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+      throw new Error("Vault path not set or Electron API not available")
     }
 
     // Validate file type
     if (!this.isImageFile(file.name)) {
-      throw new Error('Invalid image file format')
+      throw new Error("Invalid image file format")
     }
 
     // Generate unique filename
@@ -546,7 +546,7 @@ export class ImageService {
       return fileName
     } catch (error) {
        
-      console.error('Failed to upload image:', error)
+      console.error("Failed to upload image:", error)
       throw new Error(`Failed to upload image: ${(error as Error).message}`)
     }
   }
@@ -559,8 +559,8 @@ export class ImageService {
   private generateUniqueFileName(originalName: string): string {
     const timestamp = Date.now()
     const randomSuffix = Math.random().toString(36).substring(2, 8)
-    const extension = originalName.substring(originalName.lastIndexOf('.'))
-    const baseName = originalName.substring(0, originalName.lastIndexOf('.'))
+    const extension = originalName.substring(originalName.lastIndexOf("."))
+    const baseName = originalName.substring(0, originalName.lastIndexOf("."))
     
     return `${baseName}-${timestamp}-${randomSuffix}${extension}`
   }
@@ -570,7 +570,7 @@ export class ImageService {
    * @returns {Promise<string[]>} 被清理的檔案名稱陣列
    */
   async cleanupUnusedImages(): Promise<string[]> {
-    if (!this.vaultPath || typeof window === 'undefined' || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
       return []
     }
 
@@ -592,7 +592,7 @@ export class ImageService {
       return cleanedFiles
     } catch (error) {
        
-      console.error('Failed to cleanup unused images:', error)
+      console.error("Failed to cleanup unused images:", error)
       return []
     }
   }
@@ -647,7 +647,7 @@ export class ImageService {
    * @returns {string} 移除引用後的內容
    */
   removeImageReference(content: string, imageName: string): string {
-    const regex = new RegExp(`!\\[\\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]\\]`, 'g')
-    return content.replace(regex, '')
+    const regex = new RegExp(`!\\[\\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\]\\]`, "g")
+    return content.replace(regex, "")
   }
 }

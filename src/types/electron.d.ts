@@ -3,7 +3,7 @@
  */
 export interface ServerLogData {
   log: string
-  type: 'stdout' | 'stderr'
+  type: "stdout" | "stderr"
   timestamp: string
 }
 
@@ -11,7 +11,7 @@ export interface ServerLogData {
  * 檔案變更事件資料
  */
 export interface FileChangeData {
-  event: 'add' | 'change' | 'unlink'
+  event: "add" | "change" | "unlink"
   path: string
 }
 
@@ -69,11 +69,11 @@ export interface ElectronAPI {
   installUpdate: () => Promise<void>
 
   // Search
-  searchQuery: (query: import('./index').SearchQuery) => Promise<import('./index').SearchResult[]>
+  searchQuery: (query: import("./index").SearchQuery) => Promise<import("./index").SearchResult[]>
   searchBuildIndex: (articlesDir: string) => Promise<number>
 
   // AI
-  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: 'claude' | 'gemini' | 'openai') => Promise<{
+  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: "claude" | "gemini" | "openai") => Promise<{
     success: boolean
     data?: { slug: string; metaDescription: string; keywords: string[] }
     code?: string
@@ -81,7 +81,7 @@ export interface ElectronAPI {
   }>
   aiSetApiKey: (provider: string, key: string) => Promise<void>
   aiHasApiKey: (provider: string) => Promise<boolean>
-  aiGetActiveProvider: () => Promise<'claude' | 'gemini' | 'openai' | null>
+  aiGetActiveProvider: () => Promise<"claude" | "gemini" | "openai" | null>
 }
 
 /**

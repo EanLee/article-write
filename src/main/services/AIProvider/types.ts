@@ -15,14 +15,14 @@ export interface IAIProvider {
 }
 
 export enum AIErrorCode {
-  KeyMissing = 'AI_KEY_MISSING',
-  Timeout = 'AI_API_TIMEOUT',
-  ApiError = 'AI_API_ERROR',
+  KeyMissing = "AI_KEY_MISSING",
+  Timeout = "AI_API_TIMEOUT",
+  ApiError = "AI_API_ERROR",
 }
 
 export class AIError extends Error {
   constructor(public code: AIErrorCode, message: string) {
     super(message)
-    this.name = 'AIError'
+    this.name = "AIError"
   }
 }

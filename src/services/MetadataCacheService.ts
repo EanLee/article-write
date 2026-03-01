@@ -1,5 +1,5 @@
-import { electronFileSystem } from './ElectronFileSystem'
-import { MarkdownService } from './MarkdownService'
+import { electronFileSystem } from "./ElectronFileSystem"
+import { MarkdownService } from "./MarkdownService"
 
 export interface MetadataCache {
   lastScanned: string
@@ -7,15 +7,15 @@ export interface MetadataCache {
   tags: string[]
 }
 
-const CACHE_DIR = '.writeflow'
-const CACHE_FILE = 'metadata-cache.json'
+const CACHE_DIR = ".writeflow"
+const CACHE_FILE = "metadata-cache.json"
 
 class MetadataCacheService {
   private cache: MetadataCache | null = null
   private markdownService = new MarkdownService()
 
   private getCacheDir(articlesDir: string): string {
-    const normalized = articlesDir.replace(/\\/g, '/').replace(/\/$/, '')
+    const normalized = articlesDir.replace(/\\/g, "/").replace(/\/$/, "")
     return `${normalized}/${CACHE_DIR}`
   }
 
@@ -63,12 +63,12 @@ class MetadataCacheService {
     }
 
     for (const item of items) {
-      const fullPath = `${dir}/${item}`.replace(/\/+/g, '/')
+      const fullPath = `${dir}/${item}`.replace(/\/+/g, "/")
       const stats = await electronFileSystem.getFileStats(fullPath)
 
       if (stats?.isDirectory) {
         await this.collectFromDir(fullPath, categories, tags)
-      } else if (item.endsWith('.md')) {
+      } else if (item.endsWith(".md")) {
         try {
           const content = await electronFileSystem.readFile(fullPath)
           const { frontmatter } = this.markdownService.parseFrontmatter(content)

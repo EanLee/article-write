@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref, type Ref } from "vue"
 
 /**
  * 編輯器與預覽面板同步滾動 Composable

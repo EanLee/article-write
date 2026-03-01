@@ -1,9 +1,9 @@
 /**
  * 自動完成功能 Composable
  */
-import { ref, type Ref } from 'vue'
-import type { SuggestionItem, AutocompleteContext } from '@/services/ObsidianSyntaxService'
-import { useObsidianSyntaxService } from './useServices'
+import { ref, type Ref } from "vue"
+import type { SuggestionItem, AutocompleteContext } from "@/services/ObsidianSyntaxService"
+import { useObsidianSyntaxService } from "./useServices"
 
 export function useAutocomplete(
   editorRef: Ref<HTMLTextAreaElement | undefined>,
@@ -33,8 +33,8 @@ export function useAutocomplete(
     const context: AutocompleteContext = {
       text,
       cursorPosition,
-      lineNumber: text.substring(0, cursorPosition).split('\n').length,
-      columnNumber: cursorPosition - text.lastIndexOf('\n', cursorPosition - 1)
+      lineNumber: text.substring(0, cursorPosition).split("\n").length,
+      columnNumber: cursorPosition - text.lastIndexOf("\n", cursorPosition - 1)
     }
 
     // 取得建議
@@ -97,23 +97,23 @@ export function useAutocomplete(
     }
 
     switch (event.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         event.preventDefault()
         selectedSuggestionIndex.value = Math.min(
           selectedSuggestionIndex.value + 1,
           suggestions.value.length - 1
         )
         return true
-      case 'ArrowUp':
+      case "ArrowUp":
         event.preventDefault()
         selectedSuggestionIndex.value = Math.max(selectedSuggestionIndex.value - 1, 0)
         return true
-      case 'Enter':
-      case 'Tab':
+      case "Enter":
+      case "Tab":
         event.preventDefault()
         applySuggestion(suggestions.value[selectedSuggestionIndex.value])
         return true
-      case 'Escape':
+      case "Escape":
         hideSuggestions()
         return true
     }

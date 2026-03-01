@@ -5,7 +5,7 @@
  * 用於生產環境
  */
 
-import type { IFileSystem, FileStats } from '@/types/IFileSystem'
+import type { IFileSystem, FileStats } from "@/types/IFileSystem"
 
 export class ElectronFileSystem implements IFileSystem {
   /**
@@ -13,8 +13,8 @@ export class ElectronFileSystem implements IFileSystem {
    * @throws Error 如果 Electron API 不可用
    */
   private ensureElectronAPI(): void {
-    if (typeof window === 'undefined' || !window.electronAPI) {
-      throw new Error('Electron API not available')
+    if (typeof window === "undefined" || !window.electronAPI) {
+      throw new Error("Electron API not available")
     }
   }
 

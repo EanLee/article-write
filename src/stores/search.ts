@@ -1,10 +1,10 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { SearchQuery, SearchResult } from '@/types'
+import { defineStore } from "pinia"
+import { ref } from "vue"
+import type { SearchQuery, SearchResult } from "@/types"
 
-export const useSearchStore = defineStore('search', () => {
+export const useSearchStore = defineStore("search", () => {
   const isOpen = ref(false)
-  const query = ref('')
+  const query = ref("")
   const results = ref<SearchResult[]>([])
   const selectedIndex = ref(0)
   const isLoading = ref(false)
@@ -27,7 +27,7 @@ export const useSearchStore = defineStore('search', () => {
 
   function open() {
     isOpen.value = true
-    query.value = ''
+    query.value = ""
     results.value = []
     selectedIndex.value = 0
   }

@@ -28,17 +28,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { Article } from '@/types'
-import { useSeoStore } from '@/stores/seo'
+import { ref, onMounted } from "vue"
+import type { Article } from "@/types"
+import { useSeoStore } from "@/stores/seo"
 
 const props = defineProps<{
   article: Article | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'seo-generated', result: { slug: string; metaDescription: string; keywords: string[] }): void
-  (e: 'open-settings'): void
+  (e: "seo-generated", result: { slug: string; metaDescription: string; keywords: string[] }): void
+  (e: "open-settings"): void
 }>()
 
 const seoStore = useSeoStore()
@@ -54,7 +54,7 @@ async function handleGenerate() {
   if (!props.article) {return}
   const result = await seoStore.generateSEO(props.article)
   if (result) {
-    emit('seo-generated', result)
+    emit("seo-generated", result)
     hasKey.value = true
   }
 }

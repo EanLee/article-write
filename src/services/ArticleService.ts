@@ -276,7 +276,7 @@ export class ArticleService {
     if (frontmatter.categories && frontmatter.categories.length > 0) {
       articleCategory = frontmatter.categories[0];
     } else {
-      articleCategory = categoryFolder || '';
+      articleCategory = categoryFolder || "";
     }
 
     // 從檔案路徑取得檔案名稱（不含副檔名）
@@ -338,10 +338,10 @@ export class ArticleService {
    */
   private generateIdFromPath(filePath: string): string {
     // 正規化路徑：統一斜線方向並轉換為小寫，確保跨平台相同路徑產生相同 ID
-    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
+    const normalizedPath = filePath.replace(/\\/g, "/").toLowerCase();
     return Buffer.from(normalizedPath)
-      .toString('base64')
-      .replace(/[^a-zA-Z0-9]/g, '')
+      .toString("base64")
+      .replace(/[^a-zA-Z0-9]/g, "")
       .substring(0, 16);
   }
 

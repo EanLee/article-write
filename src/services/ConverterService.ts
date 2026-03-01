@@ -1,9 +1,9 @@
-import type { Article, ConversionConfig } from '@/types'
-import { ArticleStatus } from '@/types'
-import type { IFileSystem } from '@/types/IFileSystem'
-import { electronFileSystem } from './ElectronFileSystem'
-import { articleService as defaultArticleService, ArticleService } from './ArticleService'
-import { MarkdownService } from './MarkdownService'
+import type { Article, ConversionConfig } from "@/types"
+import { ArticleStatus } from "@/types"
+import type { IFileSystem } from "@/types/IFileSystem"
+import { electronFileSystem } from "./ElectronFileSystem"
+import { articleService as defaultArticleService, ArticleService } from "./ArticleService"
+import { MarkdownService } from "./MarkdownService"
 
 /**
  * 轉換結果介面
@@ -91,7 +91,7 @@ export class ConverterService {
           result.warnings.push(...conversionResult.warnings)
           console.log(`Converted: ${article.title}`)
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          const errorMessage = error instanceof Error ? error.message : "Unknown error"
           result.errors.push({
             file: article.filePath,
             error: errorMessage
@@ -114,13 +114,13 @@ export class ConverterService {
       return result
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
       result.success = false
       result.errors.push({
-        file: 'conversion process',
+        file: "conversion process",
         error: errorMessage
       })
-      console.error('Conversion process failed:', errorMessage)
+      console.error("Conversion process failed:", errorMessage)
       return result
     }
   }
@@ -141,7 +141,7 @@ export class ConverterService {
       if (!article.title || !article.slug) {
         warnings.push({
           file: article.filePath,
-          warning: '文章缺少標題或 slug，可能影響轉換結果'
+          warning: "文章缺少標題或 slug，可能影響轉換結果"
         })
       }
 
@@ -164,7 +164,7 @@ export class ConverterService {
       const finalContent = this.markdownService.combineContent(convertedFrontmatter, processedContent)
 
       // 7. 寫入目標檔案
-      const targetFilePath = this.joinPath(targetDir, 'index.md')
+      const targetFilePath = this.joinPath(targetDir, "index.md")
       await this.fileSystem.writeFile(targetFilePath, finalContent)
 
       // 8. 驗證轉換結果
@@ -172,14 +172,14 @@ export class ConverterService {
       if (!validationResult.valid) {
         warnings.push({
           file: article.filePath,
-          warning: `轉換驗證失敗: ${validationResult.issues.join(', ')}`
+          warning: `轉換驗證失敗: ${validationResult.issues.join(", ")}`
         })
       }
 
       return { warnings }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.error('Failed to convert article:', errorMessage)
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
+      console.error("Failed to convert article:", errorMessage)
       throw error
     }
   }
@@ -199,7 +199,7 @@ export class ConverterService {
         if (!stats?.isDirectory) {continue}
 
         const files = await this.fileSystem.readDirectory(entryPath)
-        const mdFiles = files.filter((f) => f.endsWith('.md'))
+        const mdFiles = files.filter((f) => f.endsWith(".md"))
 
         for (const file of mdFiles) {
           const filePath = `${entryPath}/${file}`
@@ -281,7 +281,7 @@ export class ConverterService {
    * @returns {string} 轉換後的內容
    */
   private convertHighlightSyntax(content: string): string {
-    return content.replace(/==(.*?)==/g, '<mark>$1</mark>')
+    return content.replace(/==(.*?)==/g, "<mark>$1</mark>")
   }
 
   /**
@@ -301,7 +301,7 @@ export class ConverterService {
    * @returns {string} 轉換後的內容
    */
   private removeObsidianComments(content: string): string {
-    return content.replace(/%%.*?%%/gs, '')
+    return content.replace(/%%.*?%%/gs, "")
   }
 
   /**
@@ -311,10 +311,10 @@ export class ConverterService {
    */
   private rewriteImagePaths(content: string): string {
     // 轉換相對路徑格式的圖片引用
-    content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/images\/([^)]+)\)/g, '![$1](./images/$2)')
+    content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/images\/([^)]+)\)/g, "![$1](./images/$2)")
     
     // 轉換絕對路徑格式的圖片引用
-    content = content.replace(/!\[([^\]]*)\]\([^)]*\/images\/([^)]+)\)/g, '![$1](./images/$2)')
+    content = content.replace(/!\[([^\]]*)\]\([^)]*\/images\/([^)]+)\)/g, "![$1](./images/$2)")
     
     return content
   }
@@ -327,7 +327,7 @@ export class ConverterService {
   private convertObsidianTags(content: string): string {
     // 將 #tag 格式轉換為適合 Astro 的格式（保持原樣，因為 Astro 支援標籤）
     // 但確保標籤不會與 Markdown 標題混淆
-    return content.replace(/(?<!^|\n)(#)([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, ' $1$2')
+    return content.replace(/(?<!^|\n)(#)([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, " $1$2")
   }
 
   /**
@@ -339,14 +339,14 @@ export class ConverterService {
     // 處理帶有錨點和別名的內部連結 [[file#section|alias]] (先處理這個，避免被下面的規則匹配)
     content = content.replace(/\[\[([^#\]|]+)#([^|\]]+)\|([^\]]+)\]\]/g, (_, file, section, alias) => {
       const slug = this.markdownService.generateSlugFromTitle(file.trim())
-      const anchor = section.trim().toLowerCase().replace(/\s+/g, '-')
+      const anchor = section.trim().toLowerCase().replace(/\s+/g, "-")
       return `[${alias.trim()}](../${slug}/#${anchor})`
     })
 
     // 處理帶有錨點的內部連結 [[file#section]]
     content = content.replace(/\[\[([^#\]]+)#([^\]]+)\]\]/g, (_, file, section) => {
       const slug = this.markdownService.generateSlugFromTitle(file.trim())
-      const anchor = section.trim().toLowerCase().replace(/\s+/g, '-')
+      const anchor = section.trim().toLowerCase().replace(/\s+/g, "-")
       return `[${file.trim()}#${section.trim()}](../${slug}/#${anchor})`
     })
 
@@ -363,11 +363,11 @@ export class ConverterService {
 
     // 確保必要欄位存在
     if (!converted.date) {
-      converted.date = new Date().toISOString().split('T')[0]
+      converted.date = new Date().toISOString().split("T")[0]
     }
 
     // 更新 lastmod 為當前時間
-    converted.lastmod = new Date().toISOString().split('T')[0]
+    converted.lastmod = new Date().toISOString().split("T")[0]
 
     // 確保 tags 是陣列
     if (!Array.isArray(converted.tags)) {
@@ -409,7 +409,7 @@ export class ConverterService {
     }
 
     // 建立目標圖片目錄
-    const targetImagesDir = this.joinPath(targetDir, 'images')
+    const targetImagesDir = this.joinPath(targetDir, "images")
     await this.fileSystem.createDirectory(targetImagesDir)
 
     let processedContent = content
@@ -453,7 +453,7 @@ export class ConverterService {
           })
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorMessage = error instanceof Error ? error.message : "Unknown error"
         warnings.push({
           file: article.filePath,
           warning: `處理圖片失敗 ${imageRef}: ${errorMessage}`
@@ -486,9 +486,9 @@ export class ConverterService {
     // 處理不同格式的圖片引用
     let imageName: string | null = null
     
-    if (imageRef.includes('/')) {
+    if (imageRef.includes("/")) {
       // 路徑格式：../../images/image.png
-      imageName = imageRef.split('/').pop() || null
+      imageName = imageRef.split("/").pop() || null
     } else {
       // 直接檔案名稱：image.png
       imageName = imageRef
@@ -508,8 +508,8 @@ export class ConverterService {
    * @returns {boolean} 是否為有效圖片檔案
    */
   private isValidImageFile(fileName: string): boolean {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.avif']
-    const ext = fileName.toLowerCase().substring(fileName.lastIndexOf('.'))
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"]
+    const ext = fileName.toLowerCase().substring(fileName.lastIndexOf("."))
     return imageExtensions.includes(ext)
   }
 
@@ -551,7 +551,7 @@ export class ConverterService {
     const newPath = `./images/${imageName}`
     
     // 替換所有出現的舊路徑
-    return content.replace(new RegExp(this.escapeRegExp(oldPath), 'g'), newPath)
+    return content.replace(new RegExp(this.escapeRegExp(oldPath), "g"), newPath)
   }
 
   /**
@@ -571,7 +571,7 @@ export class ConverterService {
    * @returns {string} 轉義後的字串
    */
   private escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   }
 
   /**
@@ -580,7 +580,7 @@ export class ConverterService {
    * @returns {string} 連接後的路徑
    */
   private joinPath(...paths: string[]): string {
-    return paths.join('/').replace(/\/+/g, '/').replace(/\\/g, '/')
+    return paths.join("/").replace(/\/+/g, "/").replace(/\\/g, "/")
   }
 
   /**
@@ -591,7 +591,7 @@ export class ConverterService {
   private getDirname(filePath: string): string {
     const parts = filePath.split(/[/\\]/)
     parts.pop()
-    return parts.join('/')
+    return parts.join("/")
   }
 
   /**
@@ -619,7 +619,7 @@ export class ConverterService {
     const articles = await this.scanPublishedArticles(sourceDir)
     const articlesByCategory: Record<string, number> = {}
     articles.forEach(article => {
-      const cat = article.category || 'uncategorized'
+      const cat = article.category || "uncategorized"
       articlesByCategory[cat] = (articlesByCategory[cat] ?? 0) + 1
     })
 
@@ -645,20 +645,20 @@ export class ConverterService {
 
     try {
       // 檢查 index.md 檔案是否存在
-      const indexPath = this.joinPath(targetDir, 'index.md')
+      const indexPath = this.joinPath(targetDir, "index.md")
       const indexExists = await this.fileExists(indexPath)
       if (!indexExists) {
-        issues.push('index.md file not found')
+        issues.push("index.md file not found")
       }
 
       // 檢查圖片目錄和檔案
       const imageReferences = this.markdownService.extractImageReferences(article.content)
       if (imageReferences.length > 0) {
-        const imagesDir = this.joinPath(targetDir, 'images')
+        const imagesDir = this.joinPath(targetDir, "images")
         const imagesDirExists = await this.fileExists(imagesDir)
         
         if (!imagesDirExists) {
-          issues.push('images directory not found')
+          issues.push("images directory not found")
         } else {
           // 檢查每個引用的圖片是否存在
           for (const imageRef of imageReferences) {
@@ -679,23 +679,23 @@ export class ConverterService {
         const convertedContent = await this.fileSystem.readFile(indexPath)
         
         // 檢查是否還有未轉換的 Wiki 連結
-        if (convertedContent.includes('[[') && convertedContent.includes(']]')) {
-          issues.push('Unconverted wiki links found')
+        if (convertedContent.includes("[[") && convertedContent.includes("]]")) {
+          issues.push("Unconverted wiki links found")
         }
 
         // 檢查是否還有未轉換的 Obsidian 圖片語法
-        if (convertedContent.includes('![[') && convertedContent.includes(']]')) {
-          issues.push('Unconverted Obsidian image syntax found')
+        if (convertedContent.includes("![[") && convertedContent.includes("]]")) {
+          issues.push("Unconverted Obsidian image syntax found")
         }
 
         // 檢查是否還有未轉換的高亮語法
-        if (convertedContent.includes('==') && convertedContent.match(/==.*?==/)) {
-          issues.push('Unconverted highlight syntax found')
+        if (convertedContent.includes("==") && convertedContent.match(/==.*?==/)) {
+          issues.push("Unconverted highlight syntax found")
         }
       }
 
     } catch (error) {
-      issues.push(`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      issues.push(`Validation error: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 
     return {
@@ -756,7 +756,7 @@ export class ConverterService {
         } catch (error) {
           result.failed.push({
             name: imageName,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error instanceof Error ? error.message : "Unknown error"
           })
         }
       })
@@ -802,7 +802,7 @@ export class ConverterService {
         }
       }
     } catch (error) {
-      console.warn('Failed to cleanup unused images:', error)
+      console.warn("Failed to cleanup unused images:", error)
     }
 
     return cleanedFiles
@@ -849,7 +849,7 @@ export class ConverterService {
           result.warnings.push(...conversionResult.warnings)
           console.log(`Converted: ${article.title}`)
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          const errorMessage = error instanceof Error ? error.message : "Unknown error"
           result.errors.push({
             file: article.filePath,
             error: errorMessage
@@ -872,7 +872,7 @@ export class ConverterService {
       return result
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
       result.success = false
       result.errors.push({
         file: `category: ${category}`,
@@ -896,7 +896,7 @@ export class ConverterService {
       const files = await this.fileSystem.readDirectory(categoryPath)
       
       for (const file of files) {
-        if (file.endsWith('.md')) {
+        if (file.endsWith(".md")) {
           const filePath = this.joinPath(categoryPath, file)
           try {
             const article = await this.articleService.loadArticle(filePath, category)
@@ -929,36 +929,36 @@ export class ConverterService {
     try {
       // 檢查來源目錄
       if (!config.sourceDir) {
-        issues.push('來源目錄未設定')
+        issues.push("來源目錄未設定")
       } else {
         const sourceExists = await this.fileExists(config.sourceDir)
         if (!sourceExists) {
-          issues.push('來源目錄不存在')
+          issues.push("來源目錄不存在")
         }
       }
 
       // 檢查目標目錄
       if (!config.targetDir) {
-        issues.push('目標目錄未設定')
+        issues.push("目標目錄未設定")
       } else {
         const targetExists = await this.fileExists(config.targetDir)
         if (!targetExists) {
-          issues.push('目標目錄不存在')
+          issues.push("目標目錄不存在")
         }
       }
 
       // 檢查圖片目錄
       if (!config.imageSourceDir) {
-        issues.push('圖片來源目錄未設定')
+        issues.push("圖片來源目錄未設定")
       } else {
         const imagesExists = await this.fileExists(config.imageSourceDir)
         if (!imagesExists) {
-          issues.push('圖片來源目錄不存在')
+          issues.push("圖片來源目錄不存在")
         }
       }
 
     } catch (error) {
-      issues.push(`驗證過程發生錯誤: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      issues.push(`驗證過程發生錯誤: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 
     return {

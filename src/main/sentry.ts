@@ -6,11 +6,11 @@
  * - dev / test 環境下不啟用，避免開發期間產生雜訊
  * - 從環境變數 VITE_SENTRY_DSN 讀取 DSN
  */
-import * as Sentry from '@sentry/electron/main'
+import * as Sentry from "@sentry/electron/main"
 
 /** 是否為生產環境（electron 已打包） */
 function isProd(): boolean {
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === "production"
 }
 
 /**
@@ -20,14 +20,14 @@ function isProd(): boolean {
  * 以確保能捕捉到啟動階段的錯誤。
  */
 export function initSentry(): void {
-  const dsn = process.env.VITE_SENTRY_DSN ?? ''
+  const dsn = process.env.VITE_SENTRY_DSN ?? ""
 
   if (!isProd()) {
     return
   }
 
   if (!dsn) {
-    console.warn('[Sentry] VITE_SENTRY_DSN is not configured in production')
+    console.warn("[Sentry] VITE_SENTRY_DSN is not configured in production")
     return
   }
 
@@ -36,13 +36,13 @@ export function initSentry(): void {
   })
 
   // 捕捉未處理的同步例外
-  process.on('uncaughtException', (error: Error) => {
+  process.on("uncaughtException", (error: Error) => {
     Sentry.captureException(error)
     setTimeout(() => process.exit(1), 1000)
   })
 
   // 捕捉未處理的 Promise rejection
-  process.on('unhandledRejection', (reason: unknown) => {
+  process.on("unhandledRejection", (reason: unknown) => {
     Sentry.captureException(reason instanceof Error ? reason : new Error(String(reason)))
   })
 }

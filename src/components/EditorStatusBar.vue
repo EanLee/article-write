@@ -87,8 +87,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from 'lucide-vue-next'
+import { computed } from "vue"
+import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from "lucide-vue-next"
 
 interface Props {
   content?: string
@@ -102,7 +102,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  content: '',
+  content: "",
   cursorPosition: 0,
   selectionStart: 0,
   selectionEnd: 0,
@@ -113,9 +113,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'toggle-sync-scroll': []
-  'toggle-line-numbers': []
-  'toggle-word-wrap': []
+  "toggle-sync-scroll": []
+  "toggle-line-numbers": []
+  "toggle-word-wrap": []
 }>()
 
 // 計算游標位置
@@ -132,7 +132,7 @@ const columnNumber = computed(() => {
     return 1
   }
   const textBeforeCursor = props.content.substring(0, props.cursorPosition)
-  const lastLineBreak = textBeforeCursor.lastIndexOf('\n')
+  const lastLineBreak = textBeforeCursor.lastIndexOf("\n")
   return props.cursorPosition - lastLineBreak
 })
 
@@ -148,18 +148,18 @@ const wordCount = computed(() => {
   }
   // 移除 Markdown 語法後計算字數
   const cleanText = props.content
-    .replace(/```[\s\S]*?```/g, '') // 移除程式碼區塊
-    .replace(/`[^`]+`/g, '') // 移除行內程式碼
-    .replace(/!\[.*?\]\(.*?\)/g, '') // 移除圖片
-    .replace(/\[.*?\]\(.*?\)/g, '') // 移除連結
-    .replace(/#{1,6}\s/g, '') // 移除標題符號
-    .replace(/[*_~`]/g, '') // 移除格式符號
+    .replace(/```[\s\S]*?```/g, "") // 移除程式碼區塊
+    .replace(/`[^`]+`/g, "") // 移除行內程式碼
+    .replace(/!\[.*?\]\(.*?\)/g, "") // 移除圖片
+    .replace(/\[.*?\]\(.*?\)/g, "") // 移除連結
+    .replace(/#{1,6}\s/g, "") // 移除標題符號
+    .replace(/[*_~`]/g, "") // 移除格式符號
     .trim()
 
   // 計算中文字數 + 英文單字數
   const chineseChars = (cleanText.match(/[\u4e00-\u9fa5]/g) || []).length
   const englishWords = cleanText
-    .replace(/[\u4e00-\u9fa5]/g, ' ')
+    .replace(/[\u4e00-\u9fa5]/g, " ")
     .split(/\s+/)
     .filter(word => word.length > 0).length
 
@@ -186,19 +186,19 @@ const readingTime = computed(() => {
 // Tooltip 詳細資訊
 const wordCountTooltip = computed(() => {
   const chars = props.content.length
-  const charsNoSpace = props.content.replace(/\s/g, '').length
+  const charsNoSpace = props.content.replace(/\s/g, "").length
   return `字數: ${wordCount.value}\n字元: ${chars} (含空格)\n字元: ${charsNoSpace} (不含空格)`
 })
 
 function toggleSyncScroll() {
-  emit('toggle-sync-scroll')
+  emit("toggle-sync-scroll")
 }
 
 function toggleLineNumbers() {
-  emit('toggle-line-numbers')
+  emit("toggle-line-numbers")
 }
 
 function toggleWordWrap() {
-  emit('toggle-word-wrap')
+  emit("toggle-word-wrap")
 }
 </script>

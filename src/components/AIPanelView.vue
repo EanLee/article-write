@@ -96,18 +96,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { Sparkles, X, ChevronDown, ChevronRight } from 'lucide-vue-next'
-import { useAIPanelStore } from '@/stores/aiPanel'
-import { useSeoStore } from '@/stores/seo'
-import type { Article } from '@/types'
+import { ref, onMounted, onUnmounted } from "vue"
+import { Sparkles, X, ChevronDown, ChevronRight } from "lucide-vue-next"
+import { useAIPanelStore } from "@/stores/aiPanel"
+import { useSeoStore } from "@/stores/seo"
+import type { Article } from "@/types"
 
 defineProps<{
   article: Article | null
 }>()
 
 defineEmits<{
-  'open-settings': [tab?: string]
+  "open-settings": [tab?: string]
 }>()
 
 const aiPanelStore = useAIPanelStore()
@@ -120,7 +120,7 @@ const hasApiKey = ref(false)
 const MIN_WIDTH = 240
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 300
-const STORAGE_KEY = 'ai-panel-width'
+const STORAGE_KEY = "ai-panel-width"
 
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
@@ -153,15 +153,15 @@ onMounted(async () => {
       width.value = parsed
     }
   }
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', stopResize)
+  document.addEventListener("mousemove", handleMouseMove)
+  document.addEventListener("mouseup", stopResize)
 
   hasApiKey.value = await seoStore.hasApiKey()
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', handleMouseMove)
-  document.removeEventListener('mouseup', stopResize)
+  document.removeEventListener("mousemove", handleMouseMove)
+  document.removeEventListener("mouseup", stopResize)
 })
 
 async function handleGenerateSEO() {

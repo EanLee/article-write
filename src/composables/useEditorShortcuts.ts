@@ -1,7 +1,7 @@
 /**
  * 編輯器快捷鍵處理 Composable
  */
-import { type Ref } from 'vue'
+import { type Ref } from "vue"
 
 export interface EditorShortcutsOptions {
   onSave?: () => void
@@ -54,7 +54,7 @@ export function useEditorShortcuts(
 | 內容4 | 內容5 | 內容6 |
 
 `
-    insertMarkdownSyntax('', '', tableTemplate)
+    insertMarkdownSyntax("", "", tableTemplate)
   }
 
   /**
@@ -66,7 +66,7 @@ export function useEditorShortcuts(
       // 處理 Shift 組合鍵
       if (event.shiftKey) {
         switch (event.key) {
-          case 'Z': // Ctrl+Shift+Z: 重做
+          case "Z": // Ctrl+Shift+Z: 重做
             event.preventDefault()
             options.onRedo?.()
             return true
@@ -75,39 +75,39 @@ export function useEditorShortcuts(
       
       // 處理一般 Ctrl 鍵
       switch (event.key) {
-        case 's':
+        case "s":
           event.preventDefault()
           options.onSave?.()
           return true
-        case 'z': // Ctrl+Z: 撤銷
+        case "z": // Ctrl+Z: 撤銷
           event.preventDefault()
           options.onUndo?.()
           return true
-        case 'f': // Ctrl+F: 搜尋
+        case "f": // Ctrl+F: 搜尋
           event.preventDefault()
           options.onSearch?.()
           return true
-        case 'h': // Ctrl+H: 替換
+        case "h": // Ctrl+H: 替換
           event.preventDefault()
           options.onReplace?.()
           return true
-        case 'b':
+        case "b":
           event.preventDefault()
-          insertMarkdownSyntax('**', '**', '粗體文字')
+          insertMarkdownSyntax("**", "**", "粗體文字")
           return true
-        case 'i':
+        case "i":
           event.preventDefault()
-          insertMarkdownSyntax('*', '*', '斜體文字')
+          insertMarkdownSyntax("*", "*", "斜體文字")
           return true
-        case 'k':
+        case "k":
           event.preventDefault()
-          insertMarkdownSyntax('[[', ']]', '連結文字')
+          insertMarkdownSyntax("[[", "]]", "連結文字")
           return true
-        case 'e':
+        case "e":
           event.preventDefault()
-          insertMarkdownSyntax('==', '==', '高亮文字')
+          insertMarkdownSyntax("==", "==", "高亮文字")
           return true
-        case '/':
+        case "/":
           event.preventDefault()
           options.onTogglePreview?.()
           return true
@@ -127,31 +127,31 @@ export function useEditorShortcuts(
     const { selectionStart } = textarea
 
     switch (event.key) {
-      case '[':
-        if (textarea.value[selectionStart - 1] === '[') {
+      case "[":
+        if (textarea.value[selectionStart - 1] === "[") {
           event.preventDefault()
-          insertMarkdownSyntax('', ']]', '')
+          insertMarkdownSyntax("", "]]", "")
           return true
         }
         break
-      case '(':
+      case "(":
         event.preventDefault()
-        insertMarkdownSyntax('(', ')', '')
+        insertMarkdownSyntax("(", ")", "")
         return true
       case '"':
         event.preventDefault()
-        insertMarkdownSyntax('"', '"', '')
+        insertMarkdownSyntax('"', '"', "")
         return true
       case "'":
         event.preventDefault()
-        insertMarkdownSyntax("'", "'", '')
+        insertMarkdownSyntax("'", "'", "")
         return true
-      case '`':
+      case "`":
         event.preventDefault()
-        if (selectionStart > 0 && textarea.value[selectionStart - 1] === '`') {
-          insertMarkdownSyntax('`', '```', '')
+        if (selectionStart > 0 && textarea.value[selectionStart - 1] === "`") {
+          insertMarkdownSyntax("`", "```", "")
         } else {
-          insertMarkdownSyntax('`', '`', '')
+          insertMarkdownSyntax("`", "`", "")
         }
         return true
     }

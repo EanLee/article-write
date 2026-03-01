@@ -4,70 +4,70 @@
  * 文章狀態
  */
 export enum ArticleStatus {
-  Draft = 'draft',
-  Published = 'published'
+  Draft = "draft",
+  Published = "published"
 }
 
 /**
  * 內建分類常數（供參考，不作為型別限制）
  */
 export const ArticleCategory = {
-  Software: 'Software',
-  Growth: 'growth',
-  Management: 'management',
+  Software: "Software",
+  Growth: "growth",
+  Management: "management",
 } as const
 
 /**
  * 篩選器狀態選項（包含 "全部"）
  */
 export enum ArticleFilterStatus {
-  All = 'all',
-  Draft = 'draft',
-  Published = 'published'
+  All = "all",
+  Draft = "draft",
+  Published = "published"
 }
 
 /**
  * 篩選器分類選項（包含 "全部"）
  */
 export enum ArticleFilterCategory {
-  All = 'all',
-  Software = 'Software',
-  Growth = 'growth',
-  Management = 'management'
+  All = "all",
+  Software = "Software",
+  Growth = "growth",
+  Management = "management"
 }
 
 /**
  * 編輯器主題
  */
 export enum EditorTheme {
-  Light = 'light',
-  Dark = 'dark'
+  Light = "light",
+  Dark = "dark"
 }
 
 /**
  * 儲存狀態
  */
 export enum SaveStatus {
-  Saved = 'saved',
-  Saving = 'saving',
-  Modified = 'modified',
-  Error = 'error'
+  Saved = "saved",
+  Saving = "saving",
+  Modified = "modified",
+  Error = "error"
 }
 
 /**
  * 視圖模式（編輯 vs 管理）
  */
 export enum ViewMode {
-  Editor = 'editor',
-  Management = 'management'
+  Editor = "editor",
+  Management = "management"
 }
 
 /**
  * 側邊欄視圖類型（編輯模式下使用）
  */
 export enum SidebarView {
-  Articles = 'articles',
-  Frontmatter = 'frontmatter'
+  Articles = "articles",
+  Frontmatter = "frontmatter"
 }
 
 // Core data structures

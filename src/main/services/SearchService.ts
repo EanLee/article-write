@@ -1,9 +1,9 @@
-import { promises as defaultFs } from 'fs'
-import { join } from 'path'
-import type { SearchQuery, SearchResult } from '../../types/index.js'
-import { ArticleStatus } from '../../types/index.js'
+import { promises as defaultFs } from "fs"
+import { join } from "path"
+import type { SearchQuery, SearchResult } from "../../types/index.js"
+import { ArticleStatus } from "../../types/index.js"
 
-type FsLike = Pick<typeof defaultFs, 'readdir' | 'readFile'>
+type FsLike = Pick<typeof defaultFs, "readdir" | "readFile">
 
 interface IndexEntry {
   id: string
@@ -47,9 +47,9 @@ export class SearchService {
     await Promise.all(
       entries.map(async (entry) => {
         const fullPath = join(dir, entry)
-        if (entry.endsWith('.md')) {
+        if (entry.endsWith(".md")) {
           await this.indexFile(fullPath)
-        } else if (!entry.startsWith('.')) {
+        } else if (!entry.startsWith(".")) {
           await this.scanDirectory(fullPath)
         }
       })
@@ -58,11 +58,11 @@ export class SearchService {
 
   private async indexFile(filePath: string): Promise<void> {
     try {
-      const raw = await this.fs.readFile(filePath, 'utf-8')
+      const raw = await this.fs.readFile(filePath, "utf-8")
       const { title, updatedAt, category, status, tags, content } = this.parseMarkdown(raw)
       const wikilinks = this.extractWikilinks(raw)
       // 正規化路徑：統一使用正斜線作為 Map key，確保跨平台一致性
-      const normalizedPath = filePath.replace(/\\/g, '/')
+      const normalizedPath = filePath.replace(/\\/g, "/")
       const id = normalizedPath
 
       this.index.set(normalizedPath, {
@@ -91,19 +91,19 @@ export class SearchService {
     content: string
   } {
     const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
-    let title = ''
+    let title = ""
     let updatedAt = new Date().toISOString()
-    let category = ''
+    let category = ""
     let status = ArticleStatus.Draft
     let tags: string[] = []
     let body = raw
 
     if (fmMatch) {
       const fm = fmMatch[1]
-      body = fmMatch[2] ?? ''
+      body = fmMatch[2] ?? ""
 
       const titleMatch = fm.match(/^title:\s*(.+)$/m)
-      if (titleMatch) {title = titleMatch[1].trim().replace(/^["']|["']$/g, '')}
+      if (titleMatch) {title = titleMatch[1].trim().replace(/^["']|["']$/g, "")}
 
       const dateMatch = fm.match(/^date:\s*(.+)$/m)
       if (dateMatch) {updatedAt = new Date(dateMatch[1].trim()).toISOString()}
@@ -119,18 +119,18 @@ export class SearchService {
       const tagsMatch = fm.match(/^(?:tags|keywords):[^\S\n]*(.+)$/m)
       if (tagsMatch) {
         const raw = tagsMatch[1].trim()
-        if (raw.startsWith('[')) {
+        if (raw.startsWith("[")) {
           // inline YAML array: [tag1, tag2]
           tags = raw
             .slice(1, -1)
-            .split(',')
-            .map((t) => t.trim().replace(/^["']|["']$/g, ''))
+            .split(",")
+            .map((t) => t.trim().replace(/^["']|["']$/g, ""))
             .filter(Boolean)
         } else {
           // 逗號分隔字串: tag1, tag2
           tags = raw
-            .split(',')
-            .map((t) => t.trim().replace(/^["']|["']$/g, ''))
+            .split(",")
+            .map((t) => t.trim().replace(/^["']|["']$/g, ""))
             .filter(Boolean)
         }
       } else {
@@ -141,7 +141,7 @@ export class SearchService {
         const multilineMatch = fm.match(/^(?:tags|keywords):\s*\n((?:\s+-\s+.+\n?)+)/m)
         if (multilineMatch) {
           tags = [...multilineMatch[1].matchAll(/^\s+-\s+(.+)$/gm)]
-            .map((m) => m[1].trim().replace(/^["']|["']$/g, ''))
+            .map((m) => m[1].trim().replace(/^["']|["']$/g, ""))
             .filter(Boolean)
         }
       }
@@ -149,13 +149,13 @@ export class SearchService {
 
     // 去掉 markdown 語法，只留純文字
     const content = body
-      .replace(/```[\s\S]*?```/g, '')        // code block
-      .replace(/`[^`]+`/g, '')               // inline code
-      .replace(/!\[.*?\]\(.*?\)/g, '')        // images
-      .replace(/\[([^\]]+)\]\(.*?\)/g, '$1') // links
-      .replace(/#{1,6}\s/g, '')              // headings
-      .replace(/[*_~]+/g, '')                // bold/italic
-      .replace(/\[\[([^\]]+)\]\]/g, '$1')    // wikilinks
+      .replace(/```[\s\S]*?```/g, "")        // code block
+      .replace(/`[^`]+`/g, "")               // inline code
+      .replace(/!\[.*?\]\(.*?\)/g, "")        // images
+      .replace(/\[([^\]]+)\]\(.*?\)/g, "$1") // links
+      .replace(/#{1,6}\s/g, "")              // headings
+      .replace(/[*_~]+/g, "")                // bold/italic
+      .replace(/\[\[([^\]]+)\]\]/g, "$1")    // wikilinks
       .trim()
 
     return { title, updatedAt, category, status, tags, content }
@@ -191,16 +191,16 @@ export class SearchService {
 
       if (!titleMatch && contentIdx === -1) {continue}
 
-      let matchSnippet = ''
+      let matchSnippet = ""
       if (contentIdx !== -1) {
         const start = Math.max(0, contentIdx - 50)
         const end = Math.min(entry.content.length, contentIdx + keyword.length + 50)
         matchSnippet =
-          (start > 0 ? '...' : '') +
+          (start > 0 ? "..." : "") +
           entry.content.slice(start, end) +
-          (end < entry.content.length ? '...' : '')
+          (end < entry.content.length ? "..." : "")
       } else {
-        matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? '...' : '')
+        matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? "..." : "")
       }
 
       results.push({
@@ -227,7 +227,7 @@ export class SearchService {
   }
 
   removeFile(filePath: string): void {
-    const normalizedPath = filePath.replace(/\\/g, '/')
+    const normalizedPath = filePath.replace(/\\/g, "/")
     this.index.delete(normalizedPath)
     this.wikilinkMap.delete(normalizedPath)
   }
@@ -236,7 +236,7 @@ export class SearchService {
    * 取得某篇文章的 wikilink（預留給 topic-014）
    */
   getWikilinks(filePath: string): string[] {
-    const normalizedPath = filePath.replace(/\\/g, '/')
+    const normalizedPath = filePath.replace(/\\/g, "/")
     return this.wikilinkMap.get(normalizedPath) ?? []
   }
 

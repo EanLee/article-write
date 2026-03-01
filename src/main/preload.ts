@@ -1,7 +1,7 @@
-import { contextBridge, ipcRenderer } from 'electron'
-import { IPC } from './ipc-channels.js'
+import { contextBridge, ipcRenderer } from "electron"
+import { IPC } from "./ipc-channels.js"
 
-contextBridge.exposeInMainWorld('electronAPI', {
+contextBridge.exposeInMainWorld("electronAPI", {
   // File operations
   readFile: (path: string) => ipcRenderer.invoke(IPC.READ_FILE, path),
   writeFile: (path: string, content: string) => ipcRenderer.invoke(IPC.WRITE_FILE, path, content),
@@ -40,8 +40,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getServerStatus: () => ipcRenderer.invoke(IPC.GET_SERVER_STATUS),
 
   // Server log events
-  onServerLog: (callback: (data: { log: string; type: 'stdout' | 'stderr'; timestamp: string }) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, data: { log: string; type: 'stdout' | 'stderr'; timestamp: string }) => {
+  onServerLog: (callback: (data: { log: string; type: "stdout" | "stderr"; timestamp: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: { log: string; type: "stdout" | "stderr"; timestamp: string }) => {
       callback(data)
     }
     ipcRenderer.on(IPC.EVENT_SERVER_LOG, listener)
@@ -100,7 +100,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke(IPC.SEARCH_BUILD_INDEX, articlesDir),
 
   // AI
-  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: 'claude' | 'gemini' | 'openai') =>
+  aiGenerateSEO: (input: { title: string; contentPreview: string; existingSlug?: string }, provider?: "claude" | "gemini" | "openai") =>
     ipcRenderer.invoke(IPC.AI_GENERATE_SEO, input, provider),
   aiSetApiKey: (provider: string, key: string) =>
     ipcRenderer.invoke(IPC.AI_SET_API_KEY, provider, key),

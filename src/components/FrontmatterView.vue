@@ -101,9 +101,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Info, Edit2 } from 'lucide-vue-next'
-import { useArticleStore } from '@/stores/article'
+import { computed } from "vue"
+import { Info, Edit2 } from "lucide-vue-next"
+import { useArticleStore } from "@/stores/article"
 
 const articleStore = useArticleStore()
 const currentArticle = computed(() => articleStore.currentArticle)
@@ -111,22 +111,22 @@ const currentArticle = computed(() => articleStore.currentArticle)
 function openEditor() {
   // TODO: 開啟 Frontmatter 編輯 modal
   // 可以 emit 事件或使用 store 管理 modal 狀態
-  console.log('Open Frontmatter Editor')
+  console.log("Open Frontmatter Editor")
 }
 
 function formatDate(dateString: string) {
-  if (!dateString) {return ''}
-  return new Date(dateString).toLocaleDateString('zh-TW')
+  if (!dateString) {return ""}
+  return new Date(dateString).toLocaleDateString("zh-TW")
 }
 
 function formatDateTime(date: Date) {
-  if (!date) {return ''}
-  return new Date(date).toLocaleString('zh-TW')
+  if (!date) {return ""}
+  return new Date(date).toLocaleString("zh-TW")
 }
 
 function getFileName(filePath: string) {
-  if (!filePath) {return ''}
-  return filePath.split(/[/\\]/).pop() || ''
+  if (!filePath) {return ""}
+  return filePath.split(/[/\\]/).pop() || ""
 }
 </script>
 

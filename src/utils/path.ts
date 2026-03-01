@@ -21,7 +21,7 @@ export function normalizePath(path: string): string {
   if (!path) {
     return path
   }
-  return path.replace(/\\/g, '/')
+  return path.replace(/\\/g, "/")
 }
 
 /**

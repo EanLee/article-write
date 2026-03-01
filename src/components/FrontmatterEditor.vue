@@ -170,10 +170,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import type { Article } from '@/types'
-import { autoSaveService } from '@/services/AutoSaveService'
-import { metadataCacheService } from '@/services/MetadataCacheService'
+import { ref, computed, watch } from "vue"
+import type { Article } from "@/types"
+import { autoSaveService } from "@/services/AutoSaveService"
+import { metadataCacheService } from "@/services/MetadataCacheService"
 
 interface Props {
   modelValue: boolean
@@ -181,20 +181,20 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'update', article: Article): void
+  (e: "update:modelValue", value: boolean): void
+  (e: "update", article: Article): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const localArticle = ref<Article | null>(null)
-const publishDate = ref('')
-const newTag = ref('')
-const newKeyword = ref('')
+const publishDate = ref("")
+const newTag = ref("")
+const newKeyword = ref("")
 
 // 分類 combobox
-const categoryInput = ref('')
+const categoryInput = ref("")
 const showCategoryDropdown = ref(false)
 const allCategories = ref<string[]>([])
 
@@ -206,7 +206,7 @@ const filteredCategories = computed(() => {
 
 function onCategoryInput() {
   if (localArticle.value) {
-    localArticle.value.category = categoryInput.value as Article['category']
+    localArticle.value.category = categoryInput.value as Article["category"]
   }
   showCategoryDropdown.value = true
 }
@@ -214,7 +214,7 @@ function onCategoryInput() {
 function selectCategory(category: string) {
   categoryInput.value = category
   if (localArticle.value) {
-    localArticle.value.category = category as Article['category']
+    localArticle.value.category = category as Article["category"]
   }
   showCategoryDropdown.value = false
 }
@@ -238,9 +238,9 @@ function updateSlug() {
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, '') // Allow Chinese characters
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
+    .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, "") // Allow Chinese characters
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
     .trim()
 }
 
@@ -250,7 +250,7 @@ function addTag() {
     if (!localArticle.value.frontmatter.tags.includes(tag)) {
       localArticle.value.frontmatter.tags.push(tag)
     }
-    newTag.value = ''
+    newTag.value = ""
   }
 }
 
@@ -272,7 +272,7 @@ function addKeyword() {
     if (!localArticle.value.frontmatter.keywords.includes(keyword)) {
       localArticle.value.frontmatter.keywords.push(keyword)
     }
-    newKeyword.value = ''
+    newKeyword.value = ""
   }
 }
 
@@ -300,18 +300,18 @@ function handleSave() {
   localArticle.value.frontmatter.categories = [localArticle.value.category]
 
   // Update lastmod
-  localArticle.value.frontmatter.lastmod = new Date().toISOString().split('T')[0]
+  localArticle.value.frontmatter.lastmod = new Date().toISOString().split("T")[0]
   localArticle.value.lastModified = new Date()
 
   // 標記內容已修改
   autoSaveService.markAsModified()
 
-  emit('update', localArticle.value)
-  emit('update:modelValue', false)
+  emit("update", localArticle.value)
+  emit("update:modelValue", false)
 }
 
 function handleClose() {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false)
 }
 
 // Watch for article changes
@@ -321,8 +321,8 @@ watch(
     if (newArticle) {
       // Create a deep copy to avoid mutating the original
       localArticle.value = JSON.parse(JSON.stringify(newArticle))
-      publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split('T')[0]
-      categoryInput.value = newArticle.category || ''
+      publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split("T")[0]
+      categoryInput.value = newArticle.category || ""
       
       // Ensure keywords array exists
       if (!localArticle.value!.frontmatter.keywords) {
@@ -340,8 +340,8 @@ watch(
     if (isOpen && props.article) {
       // Reset local article when dialog opens
       localArticle.value = JSON.parse(JSON.stringify(props.article))
-      publishDate.value = props.article.frontmatter.date || new Date().toISOString().split('T')[0]
-      categoryInput.value = props.article.category || ''
+      publishDate.value = props.article.frontmatter.date || new Date().toISOString().split("T")[0]
+      categoryInput.value = props.article.category || ""
       // 載入分類清單（每次開啟同步一次，確保拿到最新 cache）
       allCategories.value = metadataCacheService.getCategories()
     }

@@ -1,8 +1,8 @@
-import { join } from 'path'
-import { promises as fs } from 'fs'
-import type { Article } from '../../types/index.js'
-import { ArticleStatus } from '../../types/index.js'
-import { FileService } from './FileService.js'
+import { join } from "path"
+import { promises as fs } from "fs"
+import type { Article } from "../../types/index.js"
+import { ArticleStatus } from "../../types/index.js"
+import { FileService } from "./FileService.js"
 
 /**
  * 發布配置
@@ -76,28 +76,28 @@ export class PublishService {
     try {
       // 驗證配置
       this.validateConfig(config)
-      onProgress?.('驗證配置', 10)
+      onProgress?.("驗證配置", 10)
 
       // 驗證目標路徑（前置檢查：存在性與寫入權限）
       await this.validateTargetDir(config.targetBlogDir)
 
       // 驗證文章
       this.validateArticle(article)
-      onProgress?.('驗證文章', 20)
+      onProgress?.("驗證文章", 20)
 
       // 讀取文章內容
-      onProgress?.('讀取文章', 30)
+      onProgress?.("讀取文章", 30)
       const articleContent = await this.readArticleContent(article, config)
 
       // 轉換 Markdown 內容
-      onProgress?.('轉換內容', 50)
+      onProgress?.("轉換內容", 50)
       const convertedContent = this.convertMarkdownContent(articleContent)
 
       // 轉換 Frontmatter
       const convertedFrontmatter = this.convertFrontmatter(article.frontmatter)
 
       // 處理圖片
-      onProgress?.('處理圖片', 70)
+      onProgress?.("處理圖片", 70)
       const { content: finalContent, imageWarnings } = await this.processImages(
         convertedContent,
         article,
@@ -109,10 +109,10 @@ export class PublishService {
       const finalMarkdown = this.combineContent(convertedFrontmatter, finalContent)
 
       // 寫入到 Astro 目錄
-      onProgress?.('寫入文章', 90)
+      onProgress?.("寫入文章", 90)
       const targetPath = await this.writeToAstro(article, finalMarkdown, config)
 
-      onProgress?.('完成', 100)
+      onProgress?.("完成", 100)
 
       return {
         success: true,
@@ -146,7 +146,7 @@ export class PublishService {
     try {
       mdFiles = await this.scanMarkdownFiles(config.articlesDir)
     } catch (error) {
-      const msg = error instanceof Error ? error.message : '無法掃描文章目錄'
+      const msg = error instanceof Error ? error.message : "無法掃描文章目錄"
       result.errors.push(msg)
       return result
     }
@@ -195,7 +195,7 @@ export class PublishService {
       if (entry.isDirectory()) {
         const sub = await this.scanMarkdownFiles(fullPath)
         results.push(...sub)
-      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      } else if (entry.isFile() && entry.name.endsWith(".md")) {
         results.push(fullPath)
       }
     }
@@ -212,27 +212,27 @@ export class PublishService {
 
       const fm = fmMatch[1]
       const get = (key: string) => {
-        const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'))
-        return m ? m[1].trim().replace(/^["']|["']$/g, '') : ''
+        const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, "m"))
+        return m ? m[1].trim().replace(/^["']|["']$/g, "") : ""
       }
 
-      const statusRaw = get('status') || 'draft'
-      const status = statusRaw === 'published' ? ArticleStatus.Published : ArticleStatus.Draft
-      const title = get('title') || '未命名'
-      const slug = get('slug') || ''
+      const statusRaw = get("status") || "draft"
+      const status = statusRaw === "published" ? ArticleStatus.Published : ArticleStatus.Draft
+      const title = get("title") || "未命名"
+      const slug = get("slug") || ""
       const rawContent = raw.slice(fmMatch[0].length).trim()
 
       // 草稿或撰寫中的文章可能缺少任何時間欄位，一律視為可選
-      const pubDate = get('pubDate') || get('date') || undefined
-      const created = get('created') || undefined
+      const pubDate = get("pubDate") || get("date") || undefined
+      const created = get("created") || undefined
 
       return {
         id: filePath,
         title,
-        slug: slug || title.toLowerCase().replace(/\s+/g, '-'),
+        slug: slug || title.toLowerCase().replace(/\s+/g, "-"),
         filePath,
         status,
-        category: (get('category') as any) || 'Software',
+        category: (get("category") as any) || "Software",
         lastModified: new Date(),
         content: rawContent,
         frontmatter: {
@@ -267,22 +267,22 @@ export class PublishService {
    */
   private classifyPublishError(error: unknown): string {
     if (!(error instanceof Error)) {
-      return '同步時發生未知錯誤'
+      return "同步時發生未知錯誤"
     }
 
     const cause = (error as any).cause as NodeJS.ErrnoException | undefined
     const code = cause?.code ?? (error as NodeJS.ErrnoException).code
 
     switch (code) {
-      case 'ENOENT':
-        return `目標路徑不存在，請到設定確認部落格路徑`
-      case 'EACCES':
-      case 'EPERM':
-        return `沒有寫入權限，請確認對目標資料夾有寫入權限`
-      case 'ENOSPC':
-        return `磁碟空間不足，無法寫入文章`
-      case 'EBUSY':
-        return `目標檔案正在使用中，請關閉後再試`
+      case "ENOENT":
+        return "目標路徑不存在，請到設定確認部落格路徑"
+      case "EACCES":
+      case "EPERM":
+        return "沒有寫入權限，請確認對目標資料夾有寫入權限"
+      case "ENOSPC":
+        return "磁碟空間不足，無法寫入文章"
+      case "EBUSY":
+        return "目標檔案正在使用中，請關閉後再試"
       default:
         return error.message
     }
@@ -293,10 +293,10 @@ export class PublishService {
    */
   private validateConfig(config: PublishConfig): void {
     if (!config.articlesDir) {
-      throw new Error('文章目錄路徑不能為空')
+      throw new Error("文章目錄路徑不能為空")
     }
     if (!config.targetBlogDir) {
-      throw new Error('Astro 部落格目錄路徑不能為空')
+      throw new Error("Astro 部落格目錄路徑不能為空")
     }
   }
 
@@ -305,13 +305,13 @@ export class PublishService {
    */
   private validateArticle(article: Article): void {
     if (!article.title) {
-      throw new Error('文章標題不能為空')
+      throw new Error("文章標題不能為空")
     }
     if (!article.slug) {
-      throw new Error('文章 slug 不能為空')
+      throw new Error("文章 slug 不能為空")
     }
     if (!article.filePath) {
-      throw new Error('文章檔案路徑不能為空')
+      throw new Error("文章檔案路徑不能為空")
     }
   }
 
@@ -390,7 +390,7 @@ export class PublishService {
    * %%comment%% → (empty)
    */
   private removeObsidianComments(content: string): string {
-    return content.replace(/%%[\s\S]*?%%/g, '')
+    return content.replace(/%%[\s\S]*?%%/g, "")
   }
 
   /**
@@ -398,7 +398,7 @@ export class PublishService {
    * ==highlight== → <mark>highlight</mark>
    */
   private convertHighlightSyntax(content: string): string {
-    return content.replace(/==([^=]+)==/g, '<mark>$1</mark>')
+    return content.replace(/==([^=]+)==/g, "<mark>$1</mark>")
   }
 
   /**
@@ -410,16 +410,16 @@ export class PublishService {
     // pubDate = 公開/發佈時間（圓桌 #007：date 改為 pubDate）
     // 若 pubDate 已有值則直接沿用；若無值則填入當日日期
     if (!converted.pubDate) {
-      converted.pubDate = new Date().toISOString().split('T')[0]
+      converted.pubDate = new Date().toISOString().split("T")[0]
     }
 
     // 處理標籤
     if (converted.tags) {
-      if (typeof converted.tags === 'string') {
-        converted.tags = converted.tags.split(',').map((tag: string) => tag.trim())
+      if (typeof converted.tags === "string") {
+        converted.tags = converted.tags.split(",").map((tag: string) => tag.trim())
       }
       // 移除 Obsidian 標籤的 # 符號
-      converted.tags = converted.tags.map((tag: string) => tag.replace(/^#/, ''))
+      converted.tags = converted.tags.map((tag: string) => tag.replace(/^#/, ""))
     }
 
     return converted
@@ -445,10 +445,10 @@ export class PublishService {
     }
 
     // 決定圖片來源目錄
-    const imageSourceDir = config.imagesDir || join(config.articlesDir, 'images')
+    const imageSourceDir = config.imagesDir || join(config.articlesDir, "images")
 
     // Leaf 結構：圖片輸出到 {target}/{slug}/images/
-    const targetImageDir = join(config.targetBlogDir, article.slug, 'images')
+    const targetImageDir = join(config.targetBlogDir, article.slug, "images")
 
     // 確保目標目錄存在
     await this.ensureDirectoryExists(targetImageDir)
@@ -471,7 +471,7 @@ export class PublishService {
         await this.fileService.copyFile(sourceImagePath, targetImagePath)
         console.log(`Copied image: ${imageName}`)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '未知錯誤'
+        const errorMessage = error instanceof Error ? error.message : "未知錯誤"
         warnings.push(`複製圖片失敗 ${imageName}: ${errorMessage}`)
       }
     }
@@ -491,7 +491,7 @@ export class PublishService {
    * 將 Frontmatter 物件轉為 YAML 字串
    */
   private stringifyFrontmatter(frontmatter: Record<string, any>): string {
-    let yaml = ''
+    let yaml = ""
 
     for (const [key, value] of Object.entries(frontmatter)) {
       if (value === undefined || value === null) {
@@ -503,7 +503,7 @@ export class PublishService {
         value.forEach(item => {
           yaml += `  - ${item}\n`
         })
-      } else if (typeof value === 'string' && (value.includes(':') || value.includes('#'))) {
+      } else if (typeof value === "string" && (value.includes(":") || value.includes("#"))) {
         // 包含特殊字元的字串需要用引號
         yaml += `${key}: "${value}"\n`
       } else {
@@ -526,7 +526,7 @@ export class PublishService {
     const targetDir = join(config.targetBlogDir, article.slug)
     await this.ensureDirectoryExists(targetDir)
 
-    const targetPath = join(targetDir, 'index.md')
+    const targetPath = join(targetDir, "index.md")
 
     // 寫入檔案
     await this.fileService.writeFile(targetPath, content)

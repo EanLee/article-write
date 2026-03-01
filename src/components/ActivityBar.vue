@@ -9,20 +9,11 @@
 
     <!-- Bottom actions -->
     <div class="activity-bottom">
-      <button
-        class="activity-item"
-        :class="{ active: props.aiPanelOpen }"
-        title="AI 助手"
-        @click="$emit('toggle-ai-panel')"
-      >
+      <button class="activity-item" :class="{ active: props.aiPanelOpen }" title="AI 助手"
+        @click="$emit('toggle-ai-panel')">
         <Sparkles :size="24" />
       </button>
-      <button
-        class="activity-item"
-        data-testid="settings-button"
-        title="設定"
-        @click="$emit('open-settings')"
-      >
+      <button class="activity-item" data-testid="settings-button" title="設定" @click="$emit('open-settings')">
         <Settings :size="24" />
       </button>
     </div>
@@ -30,8 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import { Edit3, LayoutDashboard, Settings, Sparkles } from 'lucide-vue-next'
-import { ViewMode } from '@/types'
+import { Edit3, LayoutDashboard, Settings, Sparkles } from "lucide-vue-next"
+import { ViewMode } from "@/types"
 
 interface ActivityItem {
   id: ViewMode
@@ -41,8 +32,8 @@ interface ActivityItem {
 }
 
 const items: ActivityItem[] = [
-  { id: ViewMode.Editor, icon: Edit3, label: '編輯模式', shortcut: 'Ctrl+Shift+E' },
-  { id: ViewMode.Management, icon: LayoutDashboard, label: '管理模式', shortcut: 'Ctrl+Shift+M' }
+  { id: ViewMode.Editor, icon: Edit3, label: "編輯模式", shortcut: "Ctrl+Shift+E" },
+  { id: ViewMode.Management, icon: LayoutDashboard, label: "管理模式", shortcut: "Ctrl+Shift+M" }
 ]
 
 const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
@@ -52,15 +43,15 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'open-settings': []
-  'toggle-sidebar': []
-  'toggle-ai-panel': []
+  "open-settings": []
+  "toggle-sidebar": []
+  "toggle-ai-panel": []
 }>()
 
 function handleClick(id: ViewMode) {
   if (modelValue.value === id) {
     // 點擊已選中的圖示 → 切換 sidebar（VSCode 行為）
-    emit('toggle-sidebar')
+    emit("toggle-sidebar")
   } else {
     modelValue.value = id
   }

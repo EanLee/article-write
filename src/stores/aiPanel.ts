@@ -1,10 +1,10 @@
-import { ref } from 'vue'
-import { defineStore } from 'pinia'
-import { useSeoStore } from '@/stores/seo'
-import { useArticleStore } from '@/stores/article'
-import type { SEOGenerationResult } from '@/main/services/AIProvider/types'
+import { ref } from "vue"
+import { defineStore } from "pinia"
+import { useSeoStore } from "@/stores/seo"
+import { useArticleStore } from "@/stores/article"
+import type { SEOGenerationResult } from "@/main/services/AIProvider/types"
 
-export const useAIPanelStore = defineStore('aiPanel', () => {
+export const useAIPanelStore = defineStore("aiPanel", () => {
   const isOpen = ref(false)
 
   // SEO Section 狀態
@@ -36,7 +36,7 @@ export const useAIPanelStore = defineStore('aiPanel', () => {
     if (result) {
       seoResult.value = result
     } else {
-      seoError.value = seoStore.error ?? '生成失敗'
+      seoError.value = seoStore.error ?? "生成失敗"
     }
   }
 

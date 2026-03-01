@@ -125,8 +125,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Article } from '@/types'
+import { ref, computed } from "vue"
+import type { Article } from "@/types"
 import {
   Edit3,
   Upload,
@@ -136,33 +136,33 @@ import {
   FileEdit,
   Maximize,
   Minimize
-} from 'lucide-vue-next'
-import SaveStatusIndicator from '@/components/SaveStatusIndicator.vue'
+} from "lucide-vue-next"
+import SaveStatusIndicator from "@/components/SaveStatusIndicator.vue"
 
 interface Props {
   article: Article | null
   showPreview: boolean
-  editorMode?: 'compose' | 'raw'
+  editorMode?: "compose" | "raw"
   focusMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  editorMode: 'compose',
+  editorMode: "compose",
   focusMode: false
 })
 
 defineEmits<{
-  'toggle-preview': []
-  'edit-frontmatter': []
-  'toggle-status': []
-  'toggle-editor-mode': []
-  'toggle-focus-mode': []
+  "toggle-preview": []
+  "edit-frontmatter": []
+  "toggle-status": []
+  "toggle-editor-mode": []
+  "toggle-focus-mode": []
 }>()
 
 const isHovering = ref(false)
 
 const statusText = computed(() => {
-  return props.article?.status === 'published' ? '已發布' : '草稿'
+  return props.article?.status === "published" ? "已發布" : "草稿"
 })
 </script>
 

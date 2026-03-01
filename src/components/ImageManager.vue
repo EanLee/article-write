@@ -285,11 +285,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useArticleStore } from '@/stores/article'
-import { useConfigStore } from '@/stores/config'
-import { useImageService } from '@/composables/useServices'
-import type { ImageInfo } from '@/services/ImageService'
+import { ref, computed, onMounted, watch } from "vue"
+import { useArticleStore } from "@/stores/article"
+import { useConfigStore } from "@/stores/config"
+import { useImageService } from "@/composables/useServices"
+import type { ImageInfo } from "@/services/ImageService"
 
 // Props and Emits
 const emit = defineEmits<{
@@ -305,9 +305,9 @@ const imageService = useImageService()
 // Reactive data
 const loading = ref(false)
 const showImageBrowser = ref(false)
-const selectedImageForBrowser = ref<string>('')
-const searchQuery = ref('')
-const filterType = ref<'all' | 'used' | 'unused' | 'invalid'>('all')
+const selectedImageForBrowser = ref<string>("")
+const searchQuery = ref("")
+const filterType = ref<"all" | "used" | "unused" | "invalid">("all")
 const fileInput = ref<HTMLInputElement>()
 const isDragOver = ref(false)
 
@@ -375,7 +375,7 @@ async function loadImages() {
     filterImages()
   } catch (error) {
      
-    console.error('Failed to load images:', error)
+    console.error("Failed to load images:", error)
     allImages.value = []
   } finally {
     loading.value = false
@@ -399,13 +399,13 @@ function filterImages() {
   
   // Apply type filter
   switch (filterType.value) {
-    case 'used':
+    case "used":
       filtered = filtered.filter(image => image.isUsed)
       break
-    case 'unused':
+    case "unused":
       filtered = filtered.filter(image => !image.isUsed)
       break
-    case 'invalid':
+    case "invalid":
       // This would be images referenced but not found
       // For now, we don't have invalid images in allImages
       filtered = []
@@ -420,19 +420,19 @@ function selectImage(image: ImageInfo) {
 }
 
 function insertImageReference(imageName: string) {
-  emit('insertImage', imageName)
+  emit("insertImage", imageName)
 }
 
 function insertSelectedImage() {
   if (selectedImageForBrowser.value) {
-    emit('insertImage', selectedImageForBrowser.value)
+    emit("insertImage", selectedImageForBrowser.value)
     showImageBrowser.value = false
-    selectedImageForBrowser.value = ''
+    selectedImageForBrowser.value = ""
   }
 }
 
 function removeImageReference(imageName: string) {
-  emit('removeImageReference', imageName)
+  emit("removeImageReference", imageName)
 }
 
 async function deleteUnusedImage(imageName: string) {
@@ -450,12 +450,12 @@ async function deleteUnusedImage(imageName: string) {
         filterImages()
       }
     } else {
-      alert('刪除圖片失敗')
+      alert("刪除圖片失敗")
     }
   } catch (error) {
      
-    console.error('Failed to delete image:', error)
-    alert('刪除圖片失敗: ' + (error as Error).message)
+    console.error("Failed to delete image:", error)
+    alert("刪除圖片失敗: " + (error as Error).message)
   }
 }
 
@@ -471,7 +471,7 @@ async function handleFileUpload(event: Event) {
   try {
     const vaultPath = configStore.config.paths.obsidianVault
     if (!vaultPath) {
-      alert('請先設定 Obsidian Vault 路徑')
+      alert("請先設定 Obsidian Vault 路徑")
       return
     }
     
@@ -483,7 +483,7 @@ async function handleFileUpload(event: Event) {
         uploadResults.success.push(fileName)
       } catch (error) {
          
-        console.error('Failed to upload image:', error)
+        console.error("Failed to upload image:", error)
         uploadResults.failed.push(file.name)
       }
     }
@@ -492,25 +492,25 @@ async function handleFileUpload(event: Event) {
     if (uploadResults.success.length > 0) {
       const successMessage = `成功上傳 ${uploadResults.success.length} 個圖片檔案`
       if (uploadResults.failed.length > 0) {
-        alert(`${successMessage}\n失敗: ${uploadResults.failed.join(', ')}`)
+        alert(`${successMessage}\n失敗: ${uploadResults.failed.join(", ")}`)
       } else {
         // Could show a toast notification here instead of alert
         // For now, we'll just refresh the list
       }
     } else if (uploadResults.failed.length > 0) {
-      alert(`上傳失敗: ${uploadResults.failed.join(', ')}`)
+      alert(`上傳失敗: ${uploadResults.failed.join(", ")}`)
     }
     
     // Refresh the image list
     await loadImages()
   } catch (error) {
      
-    console.error('Failed to handle file upload:', error)
-    alert('上傳圖片時發生錯誤')
+    console.error("Failed to handle file upload:", error)
+    alert("上傳圖片時發生錯誤")
   } finally {
     loading.value = false
     // Clear the input
-    target.value = ''
+    target.value = ""
   }
 }
 
@@ -520,7 +520,7 @@ function copyImagePath(imageName: string) {
     // Could show a toast notification here
   }).catch(err => {
      
-    console.error('Failed to copy to clipboard:', err)
+    console.error("Failed to copy to clipboard:", err)
   })
 }
 
@@ -539,7 +539,7 @@ async function cleanupUnusedImages() {
     return
   }
   
-  const confirmMessage = `確定要刪除 ${unusedImages.length} 個未使用的圖片嗎？\n\n${unusedImages.map(img => img.name).join('\n')}\n\n此操作無法復原。`
+  const confirmMessage = `確定要刪除 ${unusedImages.length} 個未使用的圖片嗎？\n\n${unusedImages.map(img => img.name).join("\n")}\n\n此操作無法復原。`
   
   if (!confirm(confirmMessage)) {
     return
@@ -557,12 +557,12 @@ async function cleanupUnusedImages() {
       allImages.value = allImages.value.filter(img => !cleanedFiles.includes(img.name))
       filterImages()
     } else {
-      alert('沒有圖片被清理')
+      alert("沒有圖片被清理")
     }
   } catch (error) {
      
-    console.error('Failed to cleanup unused images:', error)
-    alert('清理圖片時發生錯誤: ' + (error as Error).message)
+    console.error("Failed to cleanup unused images:", error)
+    alert("清理圖片時發生錯誤: " + (error as Error).message)
   } finally {
     loading.value = false
   }
@@ -570,21 +570,21 @@ async function cleanupUnusedImages() {
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) {
-    return '未知大小'
+    return "未知大小"
   }
   
   const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
+  const sizes = ["B", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
 }
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
   }).format(date)
 }
 
@@ -614,11 +614,11 @@ async function handleDrop(event: DragEvent) {
   
   // Filter for image files only
   const imageFiles = Array.from(files).filter(file => 
-    file.type.startsWith('image/')
+    file.type.startsWith("image/")
   )
   
   if (imageFiles.length === 0) {
-    alert('請拖放圖片檔案')
+    alert("請拖放圖片檔案")
     return
   }
   
@@ -626,7 +626,7 @@ async function handleDrop(event: DragEvent) {
   const fakeEvent = {
     target: {
       files: imageFiles,
-      value: ''
+      value: ""
     }
   } as unknown as Event
   

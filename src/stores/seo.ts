@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { Article } from '@/types'
+import { defineStore } from "pinia"
+import { ref } from "vue"
+import type { Article } from "@/types"
 
-export const useSeoStore = defineStore('seo', () => {
+export const useSeoStore = defineStore("seo", () => {
   const isGenerating = ref(false)
   const error = ref<string | null>(null)
 
@@ -18,7 +18,7 @@ export const useSeoStore = defineStore('seo', () => {
         existingSlug: article.frontmatter.slug,
       }, provider ?? undefined)
       if (!result.success) {
-        error.value = result.message ?? '生成失敗'
+        error.value = result.message ?? "生成失敗"
         return null
       }
       return result.data ?? null

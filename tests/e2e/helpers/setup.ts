@@ -3,7 +3,7 @@
  * 提供測試資料建立、清理等功能
  */
 
-import type { Page } from '@playwright/test'
+import type { Page } from "@playwright/test"
 
 /**
  * 建立測試用的文章資料
@@ -23,7 +23,7 @@ export async function createTestArticles(page: Page, count: number = 20) {
       // 假設可以透過 window 物件存取 store
       const store = (window as any).__articleStore__
       if (store) {
-        store.createArticle(`測試文章 ${index + 1}`, 'Software')
+        store.createArticle(`測試文章 ${index + 1}`, "Software")
       }
     }, i)
   }
@@ -39,7 +39,7 @@ export async function cleanupTestArticles(page: Page) {
     if (store) {
       // 刪除所有測試文章
       store.articles.value = store.articles.value.filter(
-        (a: any) => !a.title.startsWith('測試文章')
+        (a: any) => !a.title.startsWith("測試文章")
       )
     }
   })
@@ -86,7 +86,7 @@ export async function findDuplicateArticles(page: Page): Promise<string[]> {
  * @returns 滾動位置（scrollTop）
  */
 export async function getTableScrollPosition(page: Page): Promise<number> {
-  const tableContainer = page.locator('.table-container')
+  const tableContainer = page.locator(".table-container")
   return await tableContainer.evaluate((el) => el.scrollTop)
 }
 
@@ -96,7 +96,7 @@ export async function getTableScrollPosition(page: Page): Promise<number> {
  * @param scrollTop - 要設定的滾動位置
  */
 export async function setTableScrollPosition(page: Page, scrollTop: number) {
-  const tableContainer = page.locator('.table-container')
+  const tableContainer = page.locator(".table-container")
   await tableContainer.evaluate((el, scroll) => {
     el.scrollTop = scroll
   }, scrollTop)

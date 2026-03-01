@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { watch, nextTick, ref } from 'vue'
-import { useSearchStore } from '@/stores/search'
-import { useArticleStore } from '@/stores/article'
-import type { SearchResult } from '@/types'
+import { watch, nextTick, ref } from "vue"
+import { useSearchStore } from "@/stores/search"
+import { useArticleStore } from "@/stores/article"
+import type { SearchResult } from "@/types"
 
 const searchStore = useSearchStore()
 const articleStore = useArticleStore()
@@ -27,15 +27,15 @@ function onInput(e: Event) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'ArrowDown') {
+  if (e.key === "ArrowDown") {
     e.preventDefault()
     searchStore.selectNext()
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === "ArrowUp") {
     e.preventDefault()
     searchStore.selectPrev()
-  } else if (e.key === 'Enter') {
+  } else if (e.key === "Enter") {
     openSelected()
-  } else if (e.key === 'Escape') {
+  } else if (e.key === "Escape") {
     searchStore.close()
   }
 }
@@ -58,13 +58,13 @@ function highlightKeyword(text: string, keyword: string): string {
   if (!keyword.trim()) {return text}
   // 先 escape HTML 特殊字元，防止 text 內容被當作 HTML 解析（XSS）
   const escaped = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   return escaped.replace(
-    new RegExp(`(${escapedKeyword})`, 'gi'),
+    new RegExp(`(${escapedKeyword})`, "gi"),
     '<mark class="bg-warning text-warning-content rounded px-0.5">$1</mark>'
   )
 }

@@ -22,10 +22,10 @@ test.describe("設定面板功能", () => {
     await expect(tabs).toHaveCount(5);
 
     // 確認各個 tab 的文字
-    await expect(tabs.filter({ hasText: '基本設定' })).toBeVisible();
-    await expect(tabs.filter({ hasText: '部落格框架' })).toBeVisible();
-    await expect(tabs.filter({ hasText: '編輯器' })).toBeVisible();
-    await expect(tabs.filter({ hasText: 'AI 設定' })).toBeVisible();
+    await expect(tabs.filter({ hasText: "基本設定" })).toBeVisible();
+    await expect(tabs.filter({ hasText: "部落格框架" })).toBeVisible();
+    await expect(tabs.filter({ hasText: "編輯器" })).toBeVisible();
+    await expect(tabs.filter({ hasText: "AI 設定" })).toBeVisible();
     await expect(tabs.filter({ hasText: "Git 發布" })).toBeVisible();
 
     // 測試切換到編輯器 tab

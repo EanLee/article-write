@@ -171,12 +171,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { useArticleStore } from '@/stores/article'
-import { useConfigStore } from '@/stores/config'
-import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
-import type { Article } from '@/types'
-import { notificationService } from '@/services/NotificationService'
+import { ref, computed, watch, nextTick } from "vue"
+import { useArticleStore } from "@/stores/article"
+import { useConfigStore } from "@/stores/config"
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types"
+import type { Article } from "@/types"
+import { notificationService } from "@/services/NotificationService"
 
 import {
   FileText,
@@ -190,14 +190,14 @@ import {
   FilePlus,
   Filter,
   RefreshCw
-} from 'lucide-vue-next'
+} from "lucide-vue-next"
 
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
 
 const emit = defineEmits<{
-  'edit-article': []
+  "edit-article": []
 }>()
 
 const isSyncing = ref(false)
@@ -221,7 +221,7 @@ const filters = computed({
 const hasActiveFilters = computed(() => {
   return filters.value.status !== ArticleFilterStatus.All ||
     filters.value.category !== ArticleFilterCategory.All ||
-    filters.value.searchText !== ''
+    filters.value.searchText !== ""
 })
 
 // 直接使用 store 的 filteredArticles，避免重複過濾
@@ -261,7 +261,7 @@ function resetFilters() {
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
     tags: [],
-    searchText: ''
+    searchText: ""
   })
 }
 
@@ -278,7 +278,7 @@ function handleEditArticle(article: Article) {
   }
 
   articleStore.setCurrentArticle(article)
-  emit('edit-article')
+  emit("edit-article")
 
   // 使用 nextTick 確保 DOM 更新後恢復滾動位置
   nextTick(() => {
@@ -299,7 +299,7 @@ function handleDeleteArticle(article: Article) {
 async function handleSyncToBlog() {
   const config = configStore.config
   if (!config.paths.articlesDir || !config.paths.targetBlog) {
-    notificationService.error('請先在設定中配置文章目錄和部落格路徑')
+    notificationService.error("請先在設定中配置文章目錄和部落格路徑")
     return
   }
 
@@ -328,7 +328,7 @@ async function handleSyncToBlog() {
       result.warnings.forEach(w => notificationService.warning(w))
     }
   } catch (error) {
-    const msg = error instanceof Error ? error.message : '未知錯誤'
+    const msg = error instanceof Error ? error.message : "未知錯誤"
     notificationService.error(`同步失敗：${msg}`)
   } finally {
     isSyncing.value = false
@@ -345,11 +345,11 @@ async function handleCreateArticle() {
   }
 
   // 創建新文章（需要提供標題和分類，這裡使用預設值）
-  const newArticle = await articleStore.createArticle('未命名文章', 'Software' as any)
+  const newArticle = await articleStore.createArticle("未命名文章", "Software" as any)
 
   // 設為當前文章
   articleStore.setCurrentArticle(newArticle)
-  emit('edit-article')
+  emit("edit-article")
 
   // 恢復滾動位置
   nextTick(() => {
@@ -361,14 +361,14 @@ async function handleCreateArticle() {
 
 // 格式化日期
 function formatDate(date: Date | string): string {
-  if (!date) { return '-' }
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+  if (!date) { return "-" }
+  const d = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
   }).format(d)
 }
 </script>

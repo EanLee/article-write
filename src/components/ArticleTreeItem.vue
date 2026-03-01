@@ -41,9 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { FileText } from 'lucide-vue-next'
-import type { Article } from '@/types'
+import { computed } from "vue"
+import { FileText } from "lucide-vue-next"
+import type { Article } from "@/types"
 
 interface Props {
   article: Article
@@ -70,36 +70,36 @@ const hasUnsavedChanges = computed(() => {
 })
 
 const statusTooltip = computed(() => {
-  if (props.isCurrent) { return '當前編輯' }
-  if (hasUnsavedChanges.value) { return '有未儲存的變更' }
-  if (props.article.status === 'published') { return '已發布' }
-  return '草稿'
+  if (props.isCurrent) { return "當前編輯" }
+  if (hasUnsavedChanges.value) { return "有未儲存的變更" }
+  if (props.article.status === "published") { return "已發布" }
+  return "草稿"
 })
 
 // Methods
 function formatDate(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
+  const dateObj = typeof date === "string" ? new Date(date) : date
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return ''
+    return ""
   }
 
   const now = new Date()
   const diffMs = now.getTime() - dateObj.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) { return '今天' }
-  if (diffDays === 1) { return '昨天' }
+  if (diffDays === 0) { return "今天" }
+  if (diffDays === 1) { return "昨天" }
   if (diffDays < 7) { return `${diffDays}天前` }
 
-  return new Intl.DateTimeFormat('zh-TW', {
-    month: 'short',
-    day: 'numeric'
+  return new Intl.DateTimeFormat("zh-TW", {
+    month: "short",
+    day: "numeric"
   }).format(dateObj)
 }
 
 function handleContextMenu(_e: MouseEvent) {
   // TODO: 實作右鍵菜單
-  console.log('Right click on:', props.article.title)
+  console.log("Right click on:", props.article.title)
 }
 </script>
 

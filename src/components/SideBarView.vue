@@ -41,13 +41,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FileText, Info } from 'lucide-vue-next'
-import { SidebarView } from '@/types'
-import { useArticleStore } from '@/stores/article'
-import { useFocusMode } from '@/composables/useFocusMode'
-import ArticleListTree from './ArticleListTree.vue'
-import FrontmatterView from './FrontmatterView.vue'
+import { ref, computed, onMounted, onUnmounted } from "vue"
+import { FileText, Info } from "lucide-vue-next"
+import { SidebarView } from "@/types"
+import { useArticleStore } from "@/stores/article"
+import { useFocusMode } from "@/composables/useFocusMode"
+import ArticleListTree from "./ArticleListTree.vue"
+import FrontmatterView from "./FrontmatterView.vue"
 
 defineProps<{ isCollapsed: boolean }>()
 
@@ -58,7 +58,7 @@ const modelValue = defineModel<SidebarView>({ default: SidebarView.Articles })
 const MIN_WIDTH = 200
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 280
-const STORAGE_KEY = 'sidebar-view-width'
+const STORAGE_KEY = "sidebar-view-width"
 
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
@@ -94,13 +94,13 @@ onMounted(() => {
     }
   }
 
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', stopResize)
+  document.addEventListener("mousemove", handleMouseMove)
+  document.addEventListener("mouseup", stopResize)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', handleMouseMove)
-  document.removeEventListener('mouseup', stopResize)
+  document.removeEventListener("mousemove", handleMouseMove)
+  document.removeEventListener("mouseup", stopResize)
 })
 </script>
 

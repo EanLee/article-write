@@ -30,7 +30,7 @@ export function generateGitCommands(article: Article, targetPath: string): GitCo
   // 生成各個指令
   const add = `git add "${targetPath}"`;
   const commit = `git commit -m "${escapeShellArg(commitMessage)}"`;
-  const push = `git push`;
+  const push = "git push";
 
   // 完整指令（使用 && 連接）
   const full = `${add} && ${commit} && ${push}`;

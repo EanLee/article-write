@@ -50,8 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted } from "vue"
+import { PanelLeftClose, PanelLeftOpen } from "lucide-vue-next"
 
 const props = withDefaults(
   defineProps<{
@@ -64,13 +64,13 @@ const props = withDefaults(
     defaultWidth: 280,
     minWidth: 200,
     maxWidth: 600,
-    storageKey: 'sidebar-width'
+    storageKey: "sidebar-width"
   }
 )
 
 const emit = defineEmits<{
-  'width-change': [width: number]
-  'collapse-change': [collapsed: boolean]
+  "width-change": [width: number]
+  "collapse-change": [collapsed: boolean]
 }>()
 
 const width = ref(props.defaultWidth)
@@ -90,7 +90,7 @@ onMounted(() => {
   }
 
   if (savedCollapsed) {
-    collapsed.value = savedCollapsed === 'true'
+    collapsed.value = savedCollapsed === "true"
   }
 })
 
@@ -115,7 +115,7 @@ function startResize(e: MouseEvent) {
     newWidth = Math.max(props.minWidth, Math.min(props.maxWidth, newWidth))
 
     width.value = newWidth
-    emit('width-change', newWidth)
+    emit("width-change", newWidth)
   }
 
   const onMouseUp = () => {
@@ -123,10 +123,10 @@ function startResize(e: MouseEvent) {
       isResizing.value = false
       // 儲存新寬度到 localStorage
       localStorage.setItem(props.storageKey, width.value.toString())
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
+      document.removeEventListener("mousemove", onMouseMove)
+      document.removeEventListener("mouseup", onMouseUp)
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
       currentOnMouseMove = null
       currentOnMouseUp = null
     }
@@ -135,37 +135,37 @@ function startResize(e: MouseEvent) {
   currentOnMouseMove = onMouseMove
   currentOnMouseUp = onMouseUp
 
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
-  document.body.style.cursor = 'col-resize'
-  document.body.style.userSelect = 'none'
+  document.addEventListener("mousemove", onMouseMove)
+  document.addEventListener("mouseup", onMouseUp)
+  document.body.style.cursor = "col-resize"
+  document.body.style.userSelect = "none"
 }
 
 function resetWidth() {
   width.value = props.defaultWidth
   localStorage.setItem(props.storageKey, width.value.toString())
-  emit('width-change', width.value)
+  emit("width-change", width.value)
 }
 
 function toggleCollapse() {
   collapsed.value = !collapsed.value
   localStorage.setItem(`${props.storageKey}-collapsed`, collapsed.value.toString())
-  emit('collapse-change', collapsed.value)
+  emit("collapse-change", collapsed.value)
 }
 
 // 清理
 onUnmounted(() => {
   // 清理樣式
   if (isResizing.value) {
-    document.body.style.cursor = ''
-    document.body.style.userSelect = ''
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
   }
   // 強制移除事件監聽器（防止拖曳過程中組件卸載導致洩漏）
   if (currentOnMouseMove) {
-    document.removeEventListener('mousemove', currentOnMouseMove)
+    document.removeEventListener("mousemove", currentOnMouseMove)
   }
   if (currentOnMouseUp) {
-    document.removeEventListener('mouseup', currentOnMouseUp)
+    document.removeEventListener("mouseup", currentOnMouseUp)
   }
 })
 </script>

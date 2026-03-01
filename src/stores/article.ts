@@ -455,7 +455,7 @@ export const useArticleStore = defineStore("article", () => {
     // 1. 補上 created（建立時間）
     // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
+      fm.created = (fm as any).date || new Date().toISOString().split("T")[0]
       dirty = true
     }
 
@@ -470,9 +470,9 @@ export const useArticleStore = defineStore("article", () => {
     }
 
     // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
-    if (fm.title === undefined) { fm.title = ''; dirty = true }
-    if (fm.description === undefined) { fm.description = ''; dirty = true }
-    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
+    if (fm.title === undefined) { fm.title = ""; dirty = true }
+    if (fm.description === undefined) { fm.description = ""; dirty = true }
+    if (fm.slug === undefined) { fm.slug = ""; dirty = true }
     if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
 
     if (!dirty) {return article}
@@ -480,7 +480,7 @@ export const useArticleStore = defineStore("article", () => {
     const migrated = { ...article, frontmatter: fm }
     // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
     saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
-      console.warn('frontmatter 移轉寫回失敗:', err)
+      console.warn("frontmatter 移轉寫回失敗:", err)
     )
     return migrated
   }

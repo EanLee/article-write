@@ -93,9 +93,9 @@ const articleStore = useArticleStore();
 const { focusMode } = useFocusMode();
 const aiPanelStore = useAIPanelStore();
 const showSettings = ref(false);
-const settingsInitialTab = ref('basic');
+const settingsInitialTab = ref("basic");
 function openSettings(tab?: string) {
-  settingsInitialTab.value = tab ?? 'basic';
+  settingsInitialTab.value = tab ?? "basic";
   showSettings.value = true;
 }
 const currentMode = ref<ViewMode>(ViewMode.Editor);
@@ -108,11 +108,11 @@ function toggleSidebar() {
 }
 
 function handleGlobalKeydown(e: KeyboardEvent) {
-  if (e.ctrlKey && e.key === 'b') {
+  if (e.ctrlKey && e.key === "b") {
     e.preventDefault();
     toggleSidebar();
   }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+  if ((e.metaKey || e.ctrlKey) && e.key === "f") {
     e.preventDefault();
     searchStore.open();
   }
@@ -141,7 +141,7 @@ function setupUpdateListeners() {
   unsubscribeUpdateAvailable = window.electronAPI.onUpdateAvailable(({ version }) => {
     notificationService.info(
       `新版本 v${version} 下載中`,
-      '下載完成後將通知您',
+      "下載完成後將通知您",
       { duration: 5000 }
     )
   })
@@ -149,11 +149,11 @@ function setupUpdateListeners() {
   unsubscribeUpdateDownloaded = window.electronAPI.onUpdateDownloaded(({ version }) => {
     notificationService.info(
       `新版本 v${version} 已就緒`,
-      '重啟 App 即可套用更新',
+      "重啟 App 即可套用更新",
       {
         duration: 0,
         action: {
-          label: '立刻重啟',
+          label: "立刻重啟",
           callback: () => window.electronAPI.installUpdate()
         }
       }
@@ -172,7 +172,7 @@ onMounted(async () => {
     const cached = await metadataCacheService.load(articlesDir);
     if (!cached) {
       metadataCacheService.scan(articlesDir).catch((e) =>
-        console.warn('Metadata cache scan failed:', e)
+        console.warn("Metadata cache scan failed:", e)
       );
     }
   }

@@ -66,11 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { GitBranch, Copy, Info } from 'lucide-vue-next'
-import type { GitCommands } from '@/utils/gitCommandGenerator'
-import { formatGitCommandsForDisplay, copyToClipboard } from '@/utils/gitCommandGenerator'
-import { notificationService } from '@/services/NotificationService'
+import { computed } from "vue"
+import { GitBranch, Copy, Info } from "lucide-vue-next"
+import type { GitCommands } from "@/utils/gitCommandGenerator"
+import { formatGitCommandsForDisplay, copyToClipboard } from "@/utils/gitCommandGenerator"
+import { notificationService } from "@/services/NotificationService"
 
 interface Props {
   commands: GitCommands
@@ -87,9 +87,9 @@ const displayCommands = computed(() => {
 async function copyCommand(command: string) {
   const success = await copyToClipboard(command)
   if (success) {
-    notificationService.success('指令已複製到剪貼簿')
+    notificationService.success("指令已複製到剪貼簿")
   } else {
-    notificationService.error('複製失敗，請手動複製')
+    notificationService.error("複製失敗，請手動複製")
   }
 }
 
@@ -97,9 +97,9 @@ async function copyCommand(command: string) {
 async function copyFullCommand() {
   const success = await copyToClipboard(props.commands.full)
   if (success) {
-    notificationService.success('完整指令已複製到剪貼簿')
+    notificationService.success("完整指令已複製到剪貼簿")
   } else {
-    notificationService.error('複製失敗，請手動複製')
+    notificationService.error("複製失敗，請手動複製")
   }
 }
 </script>

@@ -2,7 +2,7 @@
  * 搜尋/替換功能
  */
 
-import { ref } from 'vue'
+import { ref } from "vue"
 
 export function useSearchReplace(
   getContent: () => string,
@@ -41,7 +41,7 @@ export function useSearchReplace(
     
     if (replaceAll) {
       // 全部替換
-      const newContent = content.replace(new RegExp(escapeRegex(searchText), 'g'), replaceText)
+      const newContent = content.replace(new RegExp(escapeRegex(searchText), "g"), replaceText)
       setContent(newContent)
     } else {
       // 替換當前匹配
@@ -79,7 +79,7 @@ export function useSearchReplace(
    * 轉義正則表達式特殊字元
    */
   function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   }
 
   return {

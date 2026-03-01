@@ -1,5 +1,5 @@
-import { spawn, ChildProcess } from 'child_process'
-import { BrowserWindow } from 'electron'
+import { spawn, ChildProcess } from "child_process"
+import { BrowserWindow } from "electron"
 
 export class ProcessService {
   private devServerProcess: ChildProcess | null = null
@@ -7,7 +7,7 @@ export class ProcessService {
   private logs: string[] = []
   private static MAX_LOGS = 500
 
-  private sendLogToRenderer(log: string, type: 'stdout' | 'stderr' = 'stdout') {
+  private sendLogToRenderer(log: string, type: "stdout" | "stderr" = "stdout") {
     this.logs.push(`[${type}] ${log}`)
     if (this.logs.length > ProcessService.MAX_LOGS) {
       this.logs = this.logs.slice(-ProcessService.MAX_LOGS)
@@ -16,7 +16,7 @@ export class ProcessService {
     // Send to all renderer windows
     const windows = BrowserWindow.getAllWindows()
     windows.forEach(win => {
-      win.webContents.send('server-log', { log, type, timestamp: new Date().toISOString() })
+      win.webContents.send("server-log", { log, type, timestamp: new Date().toISOString() })
     })
   }
 
@@ -30,7 +30,7 @@ export class ProcessService {
 
   async startDevServer(projectPath: string): Promise<void> {
     if (this.devServerProcess) {
-      throw new Error('Development server is already running')
+      throw new Error("Development server is already running")
     }
 
     this.clearLogs()
@@ -38,15 +38,15 @@ export class ProcessService {
 
     return new Promise((resolve, reject) => {
       // Windows 需要使用 shell: true 來執行 npm
-      this.devServerProcess = spawn('npm', ['run', 'dev'], {
+      this.devServerProcess = spawn("npm", ["run", "dev"], {
         cwd: projectPath,
-        stdio: 'pipe',
+        stdio: "pipe",
         shell: true
       })
 
-      this.devServerProcess.stdout?.on('data', (data) => {
+      this.devServerProcess.stdout?.on("data", (data) => {
         const output = data.toString()
-        this.sendLogToRenderer(output, 'stdout')
+        this.sendLogToRenderer(output, "stdout")
 
         // Look for server URL in output
         const urlMatch = output.match(/Local:\s+(http:\/\/[^\s]+)/)
@@ -56,18 +56,18 @@ export class ProcessService {
         }
       })
 
-      this.devServerProcess.stderr?.on('data', (data) => {
-        this.sendLogToRenderer(data.toString(), 'stderr')
+      this.devServerProcess.stderr?.on("data", (data) => {
+        this.sendLogToRenderer(data.toString(), "stderr")
       })
 
-      this.devServerProcess.on('error', (error) => {
-        this.sendLogToRenderer(`啟動錯誤: ${error.message}`, 'stderr')
+      this.devServerProcess.on("error", (error) => {
+        this.sendLogToRenderer(`啟動錯誤: ${error.message}`, "stderr")
         this.devServerProcess = null
         this.serverUrl = null
         reject(error)
       })
 
-      this.devServerProcess.on('exit', (code) => {
+      this.devServerProcess.on("exit", (code) => {
         this.sendLogToRenderer(`伺服器已停止，退出碼: ${code}`)
         this.devServerProcess = null
         this.serverUrl = null
@@ -85,11 +85,11 @@ export class ProcessService {
 
   async stopDevServer(): Promise<void> {
     if (this.devServerProcess) {
-      this.sendLogToRenderer('正在停止伺服器...')
+      this.sendLogToRenderer("正在停止伺服器...")
       this.devServerProcess.kill()
       this.devServerProcess = null
       this.serverUrl = null
-      this.sendLogToRenderer('伺服器已停止')
+      this.sendLogToRenderer("伺服器已停止")
     }
   }
 

@@ -1,10 +1,10 @@
 /**
  * 編輯器驗證功能 Composable
  */
-import { ref, type Ref } from 'vue'
-import type { SyntaxError } from '@/services/ObsidianSyntaxService'
-import type { ImageValidationWarning } from '@/services/ImageService'
-import { useObsidianSyntaxService, useMarkdownService, useImageService } from './useServices'
+import { ref, type Ref } from "vue"
+import type { SyntaxError } from "@/services/ObsidianSyntaxService"
+import type { ImageValidationWarning } from "@/services/ImageService"
+import { useObsidianSyntaxService, useMarkdownService, useImageService } from "./useServices"
 
 export function useEditorValidation(contentRef: Ref<string>) {
   const obsidianSyntax = useObsidianSyntaxService()
@@ -61,8 +61,8 @@ export function useEditorValidation(contentRef: Ref<string>) {
         line: error.line,
         column: 0,
         message: error.message,
-        type: error.type as 'error' | 'warning',
-        suggestion: ''
+        type: error.type as "error" | "warning",
+        suggestion: ""
       })),
       ...imageErrors
     ]

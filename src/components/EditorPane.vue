@@ -171,11 +171,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import type { SuggestionItem, SyntaxError } from '@/services/ObsidianSyntaxService'
-import type { ImageValidationWarning } from '@/services/ImageService'
-import { autoSaveService } from '@/services/AutoSaveService'
-import EditorStatusBar from './EditorStatusBar.vue'
+import { ref, computed, watch, nextTick } from "vue"
+import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
+import type { ImageValidationWarning } from "@/services/ImageService"
+import { autoSaveService } from "@/services/AutoSaveService"
+import EditorStatusBar from "./EditorStatusBar.vue"
 
 interface Props {
   modelValue: string
@@ -191,16 +191,16 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'insert-markdown': [before: string, after: string, placeholder: string]
-  'insert-table': []
-  'keydown': [event: KeyboardEvent]
-  'cursor-change': []
-  'apply-suggestion': [suggestion: SuggestionItem]
-  'toggle-sync-scroll': []
-  'toggle-line-numbers': []
-  'toggle-word-wrap': []
-  'scroll': [] // 新增：編輯器滾動事件
+  "update:modelValue": [value: string]
+  "insert-markdown": [before: string, after: string, placeholder: string]
+  "insert-table": []
+  "keydown": [event: KeyboardEvent]
+  "cursor-change": []
+  "apply-suggestion": [suggestion: SuggestionItem]
+  "toggle-sync-scroll": []
+  "toggle-line-numbers": []
+  "toggle-word-wrap": []
+  "scroll": [] // 新增：編輯器滾動事件
 }>()
 
 const editorRef = ref<HTMLTextAreaElement>()
@@ -217,7 +217,7 @@ const wordWrap = ref(true)
 // 行號相關計算
 const totalLines = computed(() => {
   if (!props.modelValue) {return 1}
-  return props.modelValue.split('\n').length
+  return props.modelValue.split("\n").length
 })
 
 const currentLineNumber = computed(() => {
@@ -225,17 +225,17 @@ const currentLineNumber = computed(() => {
   
   const cursorPos = editorRef.value.selectionStart
   const textBeforeCursor = props.modelValue.substring(0, cursorPos)
-  return textBeforeCursor.split('\n').length
+  return textBeforeCursor.split("\n").length
 })
 
 const hasErrors = computed(() => 
-  props.syntaxErrors.some(error => error.type === 'error') ||
-  props.imageValidationWarnings.some(warning => warning.severity === 'error')
+  props.syntaxErrors.some(error => error.type === "error") ||
+  props.imageValidationWarnings.some(warning => warning.severity === "error")
 )
 
 const hasWarnings = computed(() => 
-  props.syntaxErrors.some(error => error.type === 'warning') ||
-  props.imageValidationWarnings.some(warning => warning.severity === 'warning')
+  props.syntaxErrors.some(error => error.type === "warning") ||
+  props.imageValidationWarnings.some(warning => warning.severity === "warning")
 )
 
 const dropdownStyle = computed(() => ({
@@ -261,13 +261,13 @@ const problemLines = computed(() => {
 
 function handleInput(event: Event) {
   const target = event.target as HTMLTextAreaElement
-  emit('update:modelValue', target.value)
+  emit("update:modelValue", target.value)
   // 標記內容已修改
   autoSaveService.markAsModified()
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  emit('keydown', event)
+  emit("keydown", event)
 }
 
 function handleCursorChange() {
@@ -276,23 +276,23 @@ function handleCursorChange() {
     selectionStart.value = editorRef.value.selectionStart
     selectionEnd.value = editorRef.value.selectionEnd
   }
-  emit('cursor-change')
+  emit("cursor-change")
 }
 
 function applySuggestion(suggestion: SuggestionItem) {
-  emit('apply-suggestion', suggestion)
+  emit("apply-suggestion", suggestion)
 }
 
 // 行號功能
 function toggleLineNumbers() {
   showLineNumbers.value = !showLineNumbers.value
-  emit('toggle-line-numbers')
+  emit("toggle-line-numbers")
 }
 
 function selectLine(lineNum: number) {
   if (!editorRef.value) {return}
   
-  const lines = props.modelValue.split('\n')
+  const lines = props.modelValue.split("\n")
   let startPos = 0
   
   // 計算到目標行的起始位置
@@ -317,7 +317,7 @@ function handleScroll() {
   }
   
   // 觸發滾動事件給父組件（用於預覽面板同步）
-  emit('scroll')
+  emit("scroll")
 }
 
 // 當行數變化時，確保行號列高度正確

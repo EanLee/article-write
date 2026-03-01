@@ -3,7 +3,7 @@
  * 提供完整的編輯歷史記錄與復原功能
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue"
 
 interface HistoryState {
   content: string

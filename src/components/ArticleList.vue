@@ -118,16 +118,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useArticleStore } from '@/stores/article'
-import type { Article } from '@/types'
+import { ref, onMounted } from "vue"
+import { useArticleStore } from "@/stores/article"
+import type { Article } from "@/types"
 
 const articleStore = useArticleStore()
 
 // Reactive data
-const searchText = ref('')
-const statusFilter = ref('all')
-const categoryFilter = ref('all')
+const searchText = ref("")
+const statusFilter = ref("all")
+const categoryFilter = ref("all")
 
 // Methods
 function updateSearch() {
@@ -146,14 +146,14 @@ function selectArticle(article: Article) {
 }
 
 function formatDate(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
+  const dateObj = typeof date === "string" ? new Date(date) : date
   if (!dateObj || isNaN(dateObj.getTime())) {
-    return '無效日期'
+    return "無效日期"
   }
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
   }).format(dateObj)
 }
 

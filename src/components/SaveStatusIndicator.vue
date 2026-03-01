@@ -37,9 +37,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
-import { Check, Loader2, AlertCircle, FileEdit, Save } from 'lucide-vue-next'
-import { autoSaveService } from '@/services/AutoSaveService'
+import { computed, onMounted, onUnmounted } from "vue"
+import { Check, Loader2, AlertCircle, FileEdit, Save } from "lucide-vue-next"
+import { autoSaveService } from "@/services/AutoSaveService"
 
 withDefaults(defineProps<{
   showSaveButton?: boolean
@@ -58,17 +58,17 @@ const emit = defineEmits<{
 // 取得儲存狀態
 const saveState = computed(() => autoSaveService.saveState.value)
 
-const isSaving = computed(() => saveState.value.status === 'saving')
+const isSaving = computed(() => saveState.value.status === "saving")
 
 const statusIcon = computed(() => {
   switch (saveState.value.status) {
-    case 'saved':
+    case "saved":
       return Check
-    case 'saving':
+    case "saving":
       return Loader2
-    case 'modified':
+    case "modified":
       return FileEdit
-    case 'error':
+    case "error":
       return AlertCircle
     default:
       return Check
@@ -77,56 +77,56 @@ const statusIcon = computed(() => {
 
 const statusClass = computed(() => {
   switch (saveState.value.status) {
-    case 'saved':
-      return 'bg-success/20 text-success border border-success/30'
-    case 'saving':
-      return 'bg-info/20 text-info border border-info/30'
-    case 'modified':
-      return 'bg-warning/25 text-warning border border-warning/40'
-    case 'error':
-      return 'bg-error/20 text-error border border-error/30'
+    case "saved":
+      return "bg-success/20 text-success border border-success/30"
+    case "saving":
+      return "bg-info/20 text-info border border-info/30"
+    case "modified":
+      return "bg-warning/25 text-warning border border-warning/40"
+    case "error":
+      return "bg-error/20 text-error border border-error/30"
     default:
-      return 'bg-base-200 text-base-content/70 border border-base-300'
+      return "bg-base-200 text-base-content/70 border border-base-300"
   }
 })
 
 const statusColorClass = computed(() => {
   switch (saveState.value.status) {
-    case 'saved':
-      return 'text-success'
-    case 'saving':
-      return 'text-info'
-    case 'modified':
-      return 'text-warning'
-    case 'error':
-      return 'text-error'
+    case "saved":
+      return "text-success"
+    case "saving":
+      return "text-info"
+    case "modified":
+      return "text-warning"
+    case "error":
+      return "text-error"
     default:
-      return 'text-base-content/70'
+      return "text-base-content/70"
   }
 })
 
 const iconClass = computed(() => {
-  return saveState.value.status === 'saving' ? 'animate-spin' : ''
+  return saveState.value.status === "saving" ? "animate-spin" : ""
 })
 
 const statusText = computed(() => {
   switch (saveState.value.status) {
-    case 'saved':
-      return '已儲存'
-    case 'saving':
-      return '儲存中...'
-    case 'modified':
-      return '未儲存'
-    case 'error':
-      return '儲存失敗'
+    case "saved":
+      return "已儲存"
+    case "saving":
+      return "儲存中..."
+    case "modified":
+      return "未儲存"
+    case "error":
+      return "儲存失敗"
     default:
-      return '已儲存'
+      return "已儲存"
   }
 })
 
 const lastSavedText = computed(() => {
   if (!saveState.value.lastSavedAt) {
-    return ''
+    return ""
   }
   return formatRelativeTime(saveState.value.lastSavedAt)
 })
@@ -139,7 +139,7 @@ function formatRelativeTime(date: Date): string {
   const diffHour = Math.floor(diffMin / 60)
 
   if (diffSec < 10) {
-    return '剛剛儲存'
+    return "剛剛儲存"
   } else if (diffSec < 60) {
     return `${diffSec} 秒前儲存`
   } else if (diffMin < 60) {
@@ -147,11 +147,11 @@ function formatRelativeTime(date: Date): string {
   } else if (diffHour < 24) {
     return `${diffHour} 小時前儲存`
   } else {
-    return date.toLocaleString('zh-TW', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleString("zh-TW", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
     })
   }
 }
@@ -159,25 +159,25 @@ function formatRelativeTime(date: Date): string {
 async function handleSave() {
   try {
     await autoSaveService.saveCurrentArticle()
-    emit('save')
+    emit("save")
   } catch (error) {
-    console.error('手動儲存失敗:', error)
+    console.error("手動儲存失敗:", error)
   }
 }
 
 // 監聽鍵盤快捷鍵 Ctrl+S
 function handleKeyDown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
     e.preventDefault()
     handleSave()
   }
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener("keydown", handleKeyDown)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener("keydown", handleKeyDown)
 })
 </script>

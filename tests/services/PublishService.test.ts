@@ -201,7 +201,7 @@ describe("PublishService", () => {
       // 驗證 copyFile 被呼叫，且目標路徑符合 Leaf 結構
       expect(mockFileService.copyFile).toHaveBeenCalledWith(
         expect.stringContaining("photo.png"), // 來源：imagesDir/photo.png
-        expect.stringContaining(`test-article`), // 目標：{targetBlogDir}/test-article/images/photo.png
+        expect.stringContaining("test-article"), // 目標：{targetBlogDir}/test-article/images/photo.png
       );
       // 更嚴格：目標路徑應包含 /images/
       const copyArgs = mockFileService.copyFile.mock.calls[0];

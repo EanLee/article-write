@@ -72,8 +72,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import DOMPurify from 'dompurify'
+import { ref, computed } from "vue"
+import DOMPurify from "dompurify"
 
 interface PreviewStats {
   wordCount: number
@@ -106,13 +106,13 @@ const sanitizedContent = computed(() =>
 )
 
 const emit = defineEmits<{
-  'scroll': []
+  "scroll": []
 }>()
 
 const previewContainerRef = ref<HTMLElement>()
 
 function handleScroll() {
-  emit('scroll')
+  emit("scroll")
 }
 
 // Expose ref for parent component to access

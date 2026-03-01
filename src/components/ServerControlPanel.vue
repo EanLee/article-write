@@ -112,8 +112,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useConfigStore } from '@/stores/config'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue"
+import { useConfigStore } from "@/stores/config"
 import {
   Play,
   Square,
@@ -122,8 +122,8 @@ import {
   ChevronDown,
   Trash2,
   AlertTriangle
-} from 'lucide-vue-next'
-import type { ServerLogData } from '@/types/electron'
+} from "lucide-vue-next"
+import type { ServerLogData } from "@/types/electron"
 
 const configStore = useConfigStore()
 
@@ -140,21 +140,21 @@ const logContainerRef = ref<HTMLElement>()
 const hasTargetBlog = computed(() => !!configStore.config.paths.targetBlog)
 
 const statusIndicatorClass = computed(() => {
-  if (loading.value) {return 'bg-warning animate-pulse'}
-  if (isRunning.value) {return 'bg-success'}
-  return 'bg-base-content/30'
+  if (loading.value) {return "bg-warning animate-pulse"}
+  if (isRunning.value) {return "bg-success"}
+  return "bg-base-content/30"
 })
 
 const statusBadgeClass = computed(() => {
-  if (loading.value) {return 'badge-warning'}
-  if (isRunning.value) {return 'badge-success'}
-  return 'badge-ghost'
+  if (loading.value) {return "badge-warning"}
+  if (isRunning.value) {return "badge-success"}
+  return "badge-ghost"
 })
 
 const statusText = computed(() => {
-  if (loading.value) {return '處理中...'}
-  if (isRunning.value) {return '運行中'}
-  return '已停止'
+  if (loading.value) {return "處理中..."}
+  if (isRunning.value) {return "運行中"}
+  return "已停止"
 })
 
 // Methods
@@ -166,10 +166,10 @@ async function startServer() {
     await window.electronAPI.startDevServer(configStore.config.paths.targetBlog)
     await updateStatus()
   } catch (error) {
-    console.error('啟動伺服器失敗:', error)
+    console.error("啟動伺服器失敗:", error)
     logs.value.push({
-      log: `錯誤: ${error instanceof Error ? error.message : '啟動失敗'}`,
-      type: 'stderr',
+      log: `錯誤: ${error instanceof Error ? error.message : "啟動失敗"}`,
+      type: "stderr",
       timestamp: new Date().toISOString()
     })
   } finally {
@@ -186,7 +186,7 @@ async function stopServer() {
     isRunning.value = false
     serverUrl.value = undefined
   } catch (error) {
-    console.error('停止伺服器失敗:', error)
+    console.error("停止伺服器失敗:", error)
   } finally {
     loading.value = false
   }
@@ -198,7 +198,7 @@ async function updateStatus() {
     isRunning.value = status.running
     serverUrl.value = status.url
   } catch (error) {
-    console.error('取得伺服器狀態失敗:', error)
+    console.error("取得伺服器狀態失敗:", error)
   }
 }
 
@@ -208,15 +208,15 @@ function clearLogs() {
 
 function toggleExpanded() {
   expanded.value = !expanded.value
-  localStorage.setItem('server-panel-expanded', expanded.value.toString())
+  localStorage.setItem("server-panel-expanded", expanded.value.toString())
 }
 
 function getLogClass(log: ServerLogData) {
-  if (log.type === 'stderr') {return 'text-error'}
-  if (log.log.includes('錯誤') || log.log.includes('Error')) {return 'text-error'}
-  if (log.log.includes('警告') || log.log.includes('Warning')) {return 'text-warning'}
-  if (log.log.includes('已就緒') || log.log.includes('ready')) {return 'text-success'}
-  return 'text-base-content/80'
+  if (log.type === "stderr") {return "text-error"}
+  if (log.log.includes("錯誤") || log.log.includes("Error")) {return "text-error"}
+  if (log.log.includes("警告") || log.log.includes("Warning")) {return "text-warning"}
+  if (log.log.includes("已就緒") || log.log.includes("ready")) {return "text-success"}
+  return "text-base-content/80"
 }
 
 // 自動滾動到底部
@@ -237,8 +237,8 @@ function startResize(e: MouseEvent) {
   isResizing = true
   startY = e.clientY
   startHeight = logPanelHeight.value
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', stopResize)
+  document.addEventListener("mousemove", onResize)
+  document.addEventListener("mouseup", stopResize)
 }
 
 function onResize(e: MouseEvent) {
@@ -250,9 +250,9 @@ function onResize(e: MouseEvent) {
 
 function stopResize() {
   isResizing = false
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', stopResize)
-  localStorage.setItem('server-panel-height', logPanelHeight.value.toString())
+  document.removeEventListener("mousemove", onResize)
+  document.removeEventListener("mouseup", stopResize)
+  localStorage.setItem("server-panel-height", logPanelHeight.value.toString())
 }
 
 // 監聯日誌變化自動滾動（監聽 length 即可，因為日誌只會 push）
@@ -265,12 +265,12 @@ let unsubscribeLog: (() => void) | null = null
 
 onMounted(async () => {
   // 載入儲存的狀態
-  const savedExpanded = localStorage.getItem('server-panel-expanded')
+  const savedExpanded = localStorage.getItem("server-panel-expanded")
   if (savedExpanded !== null) {
-    expanded.value = savedExpanded === 'true'
+    expanded.value = savedExpanded === "true"
   }
 
-  const savedHeight = localStorage.getItem('server-panel-height')
+  const savedHeight = localStorage.getItem("server-panel-height")
   if (savedHeight !== null) {
     logPanelHeight.value = parseInt(savedHeight, 10)
   }
@@ -296,8 +296,8 @@ onUnmounted(() => {
     unsubscribeLog()
   }
   // 清理拖曳監聽器（防止拖曳過程中組件卸載導致洩漏）
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', stopResize)
+  document.removeEventListener("mousemove", onResize)
+  document.removeEventListener("mouseup", stopResize)
 })
 </script>
 

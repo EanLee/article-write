@@ -12,9 +12,7 @@ export class FileService {
    * 之後所有檔案操作都必須在這些目錄之下
    */
   setAllowedPaths(paths: string[]): void {
-    this.allowedBasePaths = paths
-      .filter(Boolean)
-      .map(p => normalize(resolve(p)));
+    this.allowedBasePaths = paths.filter(Boolean).map((p) => normalize(resolve(p)));
   }
 
   /**
@@ -23,11 +21,11 @@ export class FileService {
    * @throws Error 若路徑在白名單外
    */
   private validatePath(filePath: string): void {
-    if (this.allowedBasePaths.length === 0) {return;}
+    if (this.allowedBasePaths.length === 0) {
+      return;
+    }
     const normalized = normalize(resolve(filePath));
-    const allowed = this.allowedBasePaths.some(
-      base => normalized === base || normalized.startsWith(base + sep)
-    );
+    const allowed = this.allowedBasePaths.some((base) => normalized === base || normalized.startsWith(base + sep));
     if (!allowed) {
       throw new Error(`Access denied: path outside allowed directories: ${filePath}`);
     }

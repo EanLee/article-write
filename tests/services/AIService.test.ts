@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AIError, AIErrorCode } from '../../src/main/services/AIProvider/types.js'
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { AIError, AIErrorCode } from "../../src/main/services/AIProvider/types.js"
 
 // Mock @sentry/electron/main（Vitest 執行於 Node 環境，無法載入 Electron）
-vi.mock('@sentry/electron/main', () => ({
+vi.mock("@sentry/electron/main", () => ({
   init: vi.fn(),
   captureException: vi.fn(),
 }))
@@ -17,40 +17,40 @@ const mockConfigService = {
 
 // Mock ClaudeProvider
 const mockGenerateSEO = vi.fn()
-vi.mock('../../src/main/services/AIProvider/ClaudeProvider.js', () => ({
+vi.mock("../../src/main/services/AIProvider/ClaudeProvider.js", () => ({
   ClaudeProvider: class MockClaudeProvider {
     generateSEO = mockGenerateSEO
   }
 }))
 
 // Mock GeminiProvider
-vi.mock('../../src/main/services/AIProvider/GeminiProvider.js', () => ({
+vi.mock("../../src/main/services/AIProvider/GeminiProvider.js", () => ({
   GeminiProvider: class MockGeminiProvider {
     generateSEO = mockGenerateSEO
   }
 }))
 
 // Mock OpenAIProvider
-vi.mock('../../src/main/services/AIProvider/OpenAIProvider.js', () => ({
+vi.mock("../../src/main/services/AIProvider/OpenAIProvider.js", () => ({
   OpenAIProvider: class MockOpenAIProvider {
     generateSEO = mockGenerateSEO
   }
 }))
 
 // Mock @anthropic-ai/sdk
-vi.mock('@anthropic-ai/sdk', () => ({
+vi.mock("@anthropic-ai/sdk", () => ({
   default: {
     APIConnectionTimeoutError: class APIConnectionTimeoutError extends Error {
       constructor() {
-        super('timeout')
+        super("timeout")
       }
     }
   }
 }))
 
-import { AIService } from '../../src/main/services/AIService.js'
+import { AIService } from "../../src/main/services/AIService.js"
 
-describe('AIService', () => {
+describe("AIService", () => {
   let aiService: AIService
 
   beforeEach(() => {
@@ -58,69 +58,69 @@ describe('AIService', () => {
     aiService = new AIService(mockConfigService as any)
   })
 
-  it('API Key 未設定時拋出 AIErrorCode.KeyMissing', async () => {
+  it("API Key 未設定時拋出 AIErrorCode.KeyMissing", async () => {
     mockHasApiKey.mockReturnValue(false)
 
     await expect(
-      aiService.generateSEO({ title: '測試', contentPreview: '內容' })
+      aiService.generateSEO({ title: "測試", contentPreview: "內容" })
     ).rejects.toMatchObject({ code: AIErrorCode.KeyMissing })
   })
 
-  it('正常生成 SEO 返回正確結構', async () => {
-    mockGetApiKey.mockReturnValue('sk-ant-test')
+  it("正常生成 SEO 返回正確結構", async () => {
+    mockGetApiKey.mockReturnValue("sk-ant-test")
     const mockResult = {
-      slug: 'test-article',
-      metaDescription: '測試文章描述',
-      keywords: ['關鍵字1', '關鍵字2', '關鍵字3', '關鍵字4', '關鍵字5']
+      slug: "test-article",
+      metaDescription: "測試文章描述",
+      keywords: ["關鍵字1", "關鍵字2", "關鍵字3", "關鍵字4", "關鍵字5"]
     }
     mockGenerateSEO.mockResolvedValue(mockResult)
 
-    const result = await aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'claude')
+    const result = await aiService.generateSEO({ title: "測試", contentPreview: "內容" }, "claude")
     expect(result).toEqual(mockResult)
   })
 
-  it('API 一般錯誤時拋出 AIErrorCode.ApiError', async () => {
-    mockGetApiKey.mockReturnValue('sk-ant-test')
-    mockGenerateSEO.mockRejectedValue(new Error('Network error'))
+  it("API 一般錯誤時拋出 AIErrorCode.ApiError", async () => {
+    mockGetApiKey.mockReturnValue("sk-ant-test")
+    mockGenerateSEO.mockRejectedValue(new Error("Network error"))
 
     await expect(
-      aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'claude')
+      aiService.generateSEO({ title: "測試", contentPreview: "內容" }, "claude")
     ).rejects.toMatchObject({ code: AIErrorCode.ApiError })
   })
 
-  it('AIError 直接向上傳遞', async () => {
-    mockGetApiKey.mockReturnValue('sk-ant-test')
-    const err = new AIError(AIErrorCode.Timeout, '請求逾時')
+  it("AIError 直接向上傳遞", async () => {
+    mockGetApiKey.mockReturnValue("sk-ant-test")
+    const err = new AIError(AIErrorCode.Timeout, "請求逾時")
     mockGenerateSEO.mockRejectedValue(err)
 
     await expect(
-      aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'claude')
+      aiService.generateSEO({ title: "測試", contentPreview: "內容" }, "claude")
     ).rejects.toMatchObject({ code: AIErrorCode.Timeout })
   })
 
-  it('Gemini provider 正常生成 SEO', async () => {
-    mockGetApiKey.mockReturnValue('AIza-test')
+  it("Gemini provider 正常生成 SEO", async () => {
+    mockGetApiKey.mockReturnValue("AIza-test")
     const mockResult = {
-      slug: 'test-article',
-      metaDescription: '測試文章描述',
-      keywords: ['關鍵字1', '關鍵字2', '關鍵字3', '關鍵字4', '關鍵字5']
+      slug: "test-article",
+      metaDescription: "測試文章描述",
+      keywords: ["關鍵字1", "關鍵字2", "關鍵字3", "關鍵字4", "關鍵字5"]
     }
     mockGenerateSEO.mockResolvedValue(mockResult)
 
-    const result = await aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'gemini')
+    const result = await aiService.generateSEO({ title: "測試", contentPreview: "內容" }, "gemini")
     expect(result).toEqual(mockResult)
   })
 
-  it('OpenAI provider 正常生成 SEO', async () => {
-    mockGetApiKey.mockReturnValue('sk-openai-test')
+  it("OpenAI provider 正常生成 SEO", async () => {
+    mockGetApiKey.mockReturnValue("sk-openai-test")
     const mockResult = {
-      slug: 'test-article',
-      metaDescription: '測試文章描述',
-      keywords: ['關鍵字1', '關鍵字2', '關鍵字3', '關鍵字4', '關鍵字5']
+      slug: "test-article",
+      metaDescription: "測試文章描述",
+      keywords: ["關鍵字1", "關鍵字2", "關鍵字3", "關鍵字4", "關鍵字5"]
     }
     mockGenerateSEO.mockResolvedValue(mockResult)
 
-    const result = await aiService.generateSEO({ title: '測試', contentPreview: '內容' }, 'openai')
+    const result = await aiService.generateSEO({ title: "測試", contentPreview: "內容" }, "openai")
     expect(result).toEqual(mockResult)
   })
 })
