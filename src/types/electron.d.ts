@@ -41,8 +41,8 @@ export interface ElectronAPI {
   getFileStats: (path: string) => Promise<{ isDirectory: boolean; mtime: string } | null>
 
   // 設定操作
-  getConfig: () => Promise<any>
-  setConfig: (config: any) => Promise<void>
+  getConfig: () => Promise<import("./index").AppConfig>
+  setConfig: (config: import("./index").AppConfig) => Promise<void>
   validateArticlesDir: (path: string) => Promise<{ valid: boolean; message: string }>
   validateAstroBlog: (path: string) => Promise<{ valid: boolean; warning?: boolean; message: string }>
 

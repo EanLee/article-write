@@ -13,7 +13,8 @@ import { SearchService } from "./services/SearchService.js";
 import { AIService, AIError } from "./services/AIService.js";
 import { IPC } from "./ipc-channels.js";
 import { AppConfigSchema } from "./schemas/config.schema.js";
-import type { SearchQuery } from "../types/index.js";
+import type { SearchQuery, Article } from "../types/index.js";
+import type { PublishConfig, PublishProgressCallback } from "./services/PublishService.js";
 import type { SEOGenerationInput } from "./services/AIProvider/types.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -153,11 +154,11 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG, (_, path: string) => configService.validateAstroBlog(path));
 
   // Publish Service
-  ipcMain.handle(IPC.PUBLISH_ARTICLE, async (_, article: any, config: any, onProgress?: any) => {
+  ipcMain.handle(IPC.PUBLISH_ARTICLE, async (_, article: Article, config: PublishConfig, onProgress?: PublishProgressCallback) => {
     return await publishService.publishArticle(article, config, onProgress);
   });
 
-  ipcMain.handle(IPC.SYNC_ALL_PUBLISHED, async (event, config: any) => {
+  ipcMain.handle(IPC.SYNC_ALL_PUBLISHED, async (event, config: PublishConfig) => {
     return await publishService.syncAllPublished(config, (current, total, title) => {
       event.sender.send(IPC.EVENT_SYNC_PROGRESS, { current, total, title });
     });

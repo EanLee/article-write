@@ -15,14 +15,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Config operations
   getConfig: () => ipcRenderer.invoke(IPC.GET_CONFIG),
-  setConfig: (config: any) => ipcRenderer.invoke(IPC.SET_CONFIG, config),
+  setConfig: (config: unknown) => ipcRenderer.invoke(IPC.SET_CONFIG, config),
   validateArticlesDir: (path: string) => ipcRenderer.invoke(IPC.VALIDATE_ARTICLES_DIR, path),
   validateAstroBlog: (path: string) => ipcRenderer.invoke(IPC.VALIDATE_ASTRO_BLOG, path),
 
   // Publish operations
-  publishArticle: (article: any, config: any, onProgress?: any) =>
-    ipcRenderer.invoke(IPC.PUBLISH_ARTICLE, article, config, onProgress),
-  syncAllPublished: (config: any) =>
+  publishArticle: (article: unknown, config: unknown) =>
+    ipcRenderer.invoke(IPC.PUBLISH_ARTICLE, article, config),
+  syncAllPublished: (config: unknown) =>
     ipcRenderer.invoke(IPC.SYNC_ALL_PUBLISHED, config),
   onSyncProgress: (callback: (data: { current: number; total: number; title: string }) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, data: { current: number; total: number; title: string }) => {

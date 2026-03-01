@@ -1,4 +1,4 @@
-import type { Article, ConversionConfig } from "@/types"
+import type { Article, ConversionConfig, Frontmatter } from "@/types"
 import { ArticleStatus } from "@/types"
 import type { IFileSystem } from "@/types/IFileSystem"
 import { electronFileSystem } from "./ElectronFileSystem"
@@ -358,8 +358,8 @@ export class ConverterService {
    * @param {any} frontmatter - 原始前置資料
    * @returns {any} 轉換後的前置資料
    */
-  private convertFrontmatter(frontmatter: any): any {
-    const converted = { ...frontmatter }
+  private convertFrontmatter(frontmatter: Frontmatter): Record<string, unknown> {
+    const converted: Record<string, unknown> = { ...frontmatter }
 
     // 確保必要欄位存在
     if (!converted.date) {

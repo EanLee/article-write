@@ -146,7 +146,7 @@ export class MarkdownService {
    * @param {string[]} errors - 錯誤訊息陣列
    * @returns {Partial<Frontmatter>} 標準化後的前置資料
    */
-  private validateAndNormalizeFrontmatter(data: any, errors: string[]): Partial<Frontmatter> {
+  private validateAndNormalizeFrontmatter(data: Record<string, unknown>, errors: string[]): Partial<Frontmatter> {
     const frontmatter: Partial<Frontmatter> = {};
 
     // Title validation
@@ -286,7 +286,7 @@ export class MarkdownService {
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
       // Create a clean object with only defined values
-      const cleanData: any = {};
+      const cleanData: Record<string, unknown> = {};
 
       if (data.title) {
         cleanData.title = data.title;
