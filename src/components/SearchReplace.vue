@@ -137,6 +137,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue"
 import { ChevronUp, ChevronDown, Replace, X } from "lucide-vue-next"
+import { logger } from "@/utils/logger"
 
 interface Props {
   visible: boolean
@@ -179,7 +180,7 @@ function handleSearch() {
   try {
     findMatches()
   } catch (error) {
-    console.error("搜尋錯誤:", error)
+    logger.error("搜尋錯誤:", error)
     matches.value = []
     matchCount.value = 0
   }

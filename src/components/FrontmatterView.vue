@@ -104,6 +104,7 @@
 import { computed } from "vue"
 import { Info, Edit2 } from "lucide-vue-next"
 import { useArticleStore } from "@/stores/article"
+import { logger } from "@/utils/logger"
 
 const articleStore = useArticleStore()
 const currentArticle = computed(() => articleStore.currentArticle)
@@ -111,7 +112,7 @@ const currentArticle = computed(() => articleStore.currentArticle)
 function openEditor() {
   // TODO: 開啟 Frontmatter 編輯 modal
   // 可以 emit 事件或使用 store 管理 modal 狀態
-  console.log("Open Frontmatter Editor")
+  logger.debug("Open Frontmatter Editor")
 }
 
 function formatDate(dateString: string) {

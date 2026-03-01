@@ -8,6 +8,7 @@ import markdownItMark from "markdown-it-mark";
 import markdownItFootnote from "markdown-it-footnote";
 import type { Frontmatter } from "@/types";
 import { generateSlug } from "@/utils/slugUtils";
+import { logger } from "@/utils/logger";
 
 /**
  * 解析後的 Markdown 內容介面
@@ -332,7 +333,7 @@ export class MarkdownService {
 
       return `---\n${yamlString}---\n`;
     } catch (error) {
-      console.error("Failed to generate frontmatter:", error);
+      logger.error("Failed to generate frontmatter:", error);
       return "---\n# Error generating frontmatter\n---\n";
     }
   }

@@ -4,6 +4,7 @@ import type { IFileSystem } from "@/types/IFileSystem";
 import { electronFileSystem } from "./ElectronFileSystem";
 import { articleService as defaultArticleService, ArticleService } from "./ArticleService";
 import { MarkdownService } from "./MarkdownService";
+import { logger } from "@/utils/logger";
 
 /**
  * 轉換結果介面
@@ -70,7 +71,7 @@ export class ConverterService {
       // 掃描所有 status === Published 的文章
       const articles = await this.scanPublishedArticles(config.sourceDir);
 
-      console.log(`Found ${articles.length} articles to convert`);
+      logger.debug(`Found ${articles.length} articles to convert`);
 
       // 轉換每篇文章
       for (let i = 0; i < articles.length; i++) {
@@ -85,14 +86,14 @@ export class ConverterService {
           const conversionResult = await this.convertSingleArticle(article, config);
           result.processedFiles++;
           result.warnings.push(...conversionResult.warnings);
-          console.log(`Converted: ${article.title}`);
+          logger.debug(`Converted: ${article.title}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
           result.errors.push({
             file: article.filePath,
             error: errorMessage,
           });
-          console.error(`Failed to convert ${article.title}:`, errorMessage);
+          logger.error(`Failed to convert ${article.title}:`, errorMessage);
         }
       }
 
@@ -106,7 +107,7 @@ export class ConverterService {
         result.success = false;
       }
 
-      console.log(`Conversion completed: ${result.processedFiles} files processed, ${result.errors.length} errors`);
+      logger.debug(`Conversion completed: ${result.processedFiles} files processed, ${result.errors.length} errors`);
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -115,7 +116,7 @@ export class ConverterService {
         file: "conversion process",
         error: errorMessage,
       });
-      console.error("Conversion process failed:", errorMessage);
+      logger.error("Conversion process failed:", errorMessage);
       return result;
     }
   }
@@ -177,7 +178,7 @@ export class ConverterService {
       return { warnings };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("Failed to convert article:", errorMessage);
+      logger.error("Failed to convert article:", errorMessage);
       throw error;
     }
   }
@@ -209,12 +210,12 @@ export class ConverterService {
               articles.push(article);
             }
           } catch (err) {
-            console.warn(`Failed to load article ${filePath}:`, err);
+            logger.warn(`Failed to load article ${filePath}:`, err);
           }
         }
       }
     } catch (err) {
-      console.warn(`Failed to scan source dir ${sourceDir}:`, err);
+      logger.warn(`Failed to scan source dir ${sourceDir}:`, err);
     }
     return articles;
   }
@@ -458,13 +459,13 @@ export class ConverterService {
           file: article.filePath,
           warning: `處理圖片失敗 ${imageRef}: ${errorMessage}`,
         });
-        console.warn(`Failed to process image ${imageRef}:`, error);
+        logger.warn(`Failed to process image ${imageRef}:`, error);
       }
     }
 
     // 添加處理摘要警告
     if (processedImages.length > 0) {
-      console.log(`Successfully processed ${processedImages.length} images for ${article.title}`);
+      logger.debug(`Successfully processed ${processedImages.length} images for ${article.title}`);
     }
 
     if (failedImages.length > 0) {
@@ -533,9 +534,9 @@ export class ConverterService {
       // 使用 Electron API 複製檔案
       await (window.electronAPI as any).copyFile(sourcePath, targetPath);
 
-      console.log(`Successfully copied image: ${sourcePath} -> ${targetPath}`);
+      logger.debug(`Successfully copied image: ${sourcePath} -> ${targetPath}`);
     } catch (error) {
-      console.error(`Failed to copy image from ${sourcePath} to ${targetPath}:`, error);
+      logger.error(`Failed to copy image from ${sourcePath} to ${targetPath}:`, error);
       throw error;
     }
   }
@@ -796,11 +797,11 @@ export class ConverterService {
           const filePath = this.joinPath(targetImagesDir, file);
           await this.fileSystem.deleteFile(filePath);
           cleanedFiles.push(file);
-          console.log(`Cleaned up unused image: ${file}`);
+          logger.debug(`Cleaned up unused image: ${file}`);
         }
       }
     } catch (error) {
-      console.warn("Failed to cleanup unused images:", error);
+      logger.warn("Failed to cleanup unused images:", error);
     }
 
     return cleanedFiles;
@@ -826,7 +827,7 @@ export class ConverterService {
       const categoryPath = this.joinPath(config.sourceDir, category);
       const articles = await this.scanCategoryArticles(categoryPath, category);
 
-      console.log(`Found ${articles.length} articles in category ${category}`);
+      logger.debug(`Found ${articles.length} articles in category ${category}`);
 
       // 轉換每篇文章
       for (let i = 0; i < articles.length; i++) {
@@ -841,14 +842,14 @@ export class ConverterService {
           const conversionResult = await this.convertSingleArticle(article, config);
           result.processedFiles++;
           result.warnings.push(...conversionResult.warnings);
-          console.log(`Converted: ${article.title}`);
+          logger.debug(`Converted: ${article.title}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
           result.errors.push({
             file: article.filePath,
             error: errorMessage,
           });
-          console.error(`Failed to convert ${article.title}:`, errorMessage);
+          logger.error(`Failed to convert ${article.title}:`, errorMessage);
         }
       }
 
@@ -862,7 +863,7 @@ export class ConverterService {
         result.success = false;
       }
 
-      console.log(`Category ${category} conversion completed: ${result.processedFiles} files processed, ${result.errors.length} errors`);
+      logger.debug(`Category ${category} conversion completed: ${result.processedFiles} files processed, ${result.errors.length} errors`);
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -871,7 +872,7 @@ export class ConverterService {
         file: `category: ${category}`,
         error: errorMessage,
       });
-      console.error(`Category ${category} conversion failed:`, errorMessage);
+      logger.error(`Category ${category} conversion failed:`, errorMessage);
       return result;
     }
   }
@@ -897,12 +898,12 @@ export class ConverterService {
               articles.push(article);
             }
           } catch (err) {
-            console.warn(`Failed to load article ${filePath}:`, err);
+            logger.warn(`Failed to load article ${filePath}:`, err);
           }
         }
       }
     } catch (error) {
-      console.warn(`Failed to scan category ${category}:`, error);
+      logger.warn(`Failed to scan category ${category}:`, error);
     }
 
     return articles;

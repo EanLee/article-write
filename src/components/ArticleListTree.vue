@@ -146,6 +146,7 @@ import {
 } from "lucide-vue-next"
 import ArticleTreeItem from "./ArticleTreeItem.vue"
 import type { Article } from "@/types"
+import { logger } from "@/utils/logger"
 
 const articleStore = useArticleStore()
 
@@ -293,7 +294,7 @@ function loadSettings() {
         collapsedGroups.value = new Set(settings.collapsedGroups)
       }
     } catch (e) {
-      console.error("Failed to load article list settings:", e)
+      logger.error("Failed to load article list settings:", e)
     }
   }
 }

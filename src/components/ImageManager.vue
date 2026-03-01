@@ -290,6 +290,7 @@ import { useArticleStore } from "@/stores/article"
 import { useConfigStore } from "@/stores/config"
 import { useImageService } from "@/composables/useServices"
 import type { ImageInfo } from "@/services/ImageService"
+import { logger } from "@/utils/logger"
 
 // Props and Emits
 const emit = defineEmits<{
@@ -375,7 +376,7 @@ async function loadImages() {
     filterImages()
   } catch (error) {
      
-    console.error("Failed to load images:", error)
+    logger.error("Failed to load images:", error)
     allImages.value = []
   } finally {
     loading.value = false
@@ -454,7 +455,7 @@ async function deleteUnusedImage(imageName: string) {
     }
   } catch (error) {
      
-    console.error("Failed to delete image:", error)
+    logger.error("Failed to delete image:", error)
     alert("刪除圖片失敗: " + (error as Error).message)
   }
 }
@@ -483,7 +484,7 @@ async function handleFileUpload(event: Event) {
         uploadResults.success.push(fileName)
       } catch (error) {
          
-        console.error("Failed to upload image:", error)
+        logger.error("Failed to upload image:", error)
         uploadResults.failed.push(file.name)
       }
     }
@@ -505,7 +506,7 @@ async function handleFileUpload(event: Event) {
     await loadImages()
   } catch (error) {
      
-    console.error("Failed to handle file upload:", error)
+    logger.error("Failed to handle file upload:", error)
     alert("上傳圖片時發生錯誤")
   } finally {
     loading.value = false
@@ -520,7 +521,7 @@ function copyImagePath(imageName: string) {
     // Could show a toast notification here
   }).catch(err => {
      
-    console.error("Failed to copy to clipboard:", err)
+    logger.error("Failed to copy to clipboard:", err)
   })
 }
 
@@ -561,7 +562,7 @@ async function cleanupUnusedImages() {
     }
   } catch (error) {
      
-    console.error("Failed to cleanup unused images:", error)
+    logger.error("Failed to cleanup unused images:", error)
     alert("清理圖片時發生錯誤: " + (error as Error).message)
   } finally {
     loading.value = false

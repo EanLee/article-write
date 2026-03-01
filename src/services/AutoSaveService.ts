@@ -47,7 +47,7 @@ export class AutoSaveService {
    */
   startAutoSave(): void {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot start auto-save before initialization");
+      logger.warn("AutoSaveService: Cannot start auto-save before initialization");
       return;
     }
     if (!this.isEnabled || !this.saveCallback || !this.getCurrentArticleCallback) {
@@ -122,7 +122,7 @@ export class AutoSaveService {
    */
   async saveOnArticleSwitch(previousArticle: Article | null): Promise<void> {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot save on article switch before initialization");
+      logger.warn("AutoSaveService: Cannot save on article switch before initialization");
       return;
     }
     if (!this.saveCallback || !previousArticle) {
@@ -157,7 +157,7 @@ export class AutoSaveService {
    */
   async saveCurrentArticle(): Promise<void> {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot save before initialization");
+      logger.warn("AutoSaveService: Cannot save before initialization");
       return;
     }
     if (!this.saveCallback || !this.getCurrentArticleCallback) {

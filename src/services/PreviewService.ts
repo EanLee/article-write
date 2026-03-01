@@ -1,5 +1,6 @@
 import { MarkdownService } from "./MarkdownService";
 import type { Article } from "@/types";
+import { logger } from "@/utils/logger";
 
 /**
  * 預覽渲染選項介面
@@ -85,10 +86,7 @@ export class PreviewService {
       // 後處理 HTML 以增強預覽效果
       return this.postProcessHtml(html);
     } catch (error) {
-      // Log error for debugging but don't use console in production
-      if (typeof window !== "undefined" && (window as Window & { __DEV__?: boolean }).__DEV__) {
-        console.error("Preview rendering error:", error);
-      }
+      logger.error("Preview rendering error:", error);
       return this.renderErrorFallback(content, error);
     }
   }

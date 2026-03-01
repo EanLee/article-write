@@ -1,6 +1,7 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import type { ServerStatus } from "@/types"
+import { logger } from "@/utils/logger"
 
 export const useServerStore = defineStore("server", () => {
   // State
@@ -19,7 +20,7 @@ export const useServerStore = defineStore("server", () => {
       await window.electronAPI.startDevServer(projectPath)
       await updateStatus()
     } catch (error) {
-      console.error("Failed to start server:", error)
+      logger.error("Failed to start server:", error)
       throw error
     } finally {
       loading.value = false
@@ -36,7 +37,7 @@ export const useServerStore = defineStore("server", () => {
         logs: []
       }
     } catch (error) {
-      console.error("Failed to stop server:", error)
+      logger.error("Failed to stop server:", error)
       throw error
     } finally {
       loading.value = false
@@ -52,7 +53,7 @@ export const useServerStore = defineStore("server", () => {
         url: serverStatus.url
       }
     } catch (error) {
-      console.error("Failed to get server status:", error)
+      logger.error("Failed to get server status:", error)
     }
   }
 

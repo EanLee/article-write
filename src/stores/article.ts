@@ -12,6 +12,7 @@ import { fileWatchService } from "@/services/FileWatchService";
 import { VaultDirs } from "@/config/vault";
 import { parseArticlePath } from "@/utils/articlePath";
 import { useFileWatching } from "@/composables/useFileWatching";
+import { logger } from "@/utils/logger";
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -101,17 +102,17 @@ export const useArticleStore = defineStore("article", () => {
     try {
       const vaultPath = configStore.config.paths.articlesDir;
       if (!vaultPath) {
-        console.warn("Obsidian vault path not configured");
+        logger.warn("Obsidian vault path not configured");
         articles.value = [];
         loading.value = false;
         return;
       }
 
-      console.log("開始載入文章，Vault 路徑:", vaultPath);
+      logger.debug("開始載入文章，Vault 路徑:", vaultPath);
 
       // Check if we're running in Electron environment
       if (typeof window === "undefined" || !window.electronAPI) {
-        console.warn("Running in browser mode - using mock articles");
+        logger.warn("Running in browser mode - using mock articles");
         articles.value = [];
         loading.value = false;
         return;
@@ -121,17 +122,17 @@ export const useArticleStore = defineStore("article", () => {
       const loadedArticles = await articleService.loadAllArticles(vaultPath);
       articles.value = loadedArticles;
 
-      console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
+      logger.debug(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
       // 建立搜尋索引（不影響主流程）
       window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err: unknown) => {
-        console.error("[article store] 搜尋索引建立失敗:", err);
+        logger.error("[article store] 搜尋索引建立失敗:", err);
       });
 
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
     } catch (error) {
-      console.error("Failed to load articles:", error);
+      logger.error("Failed to load articles:", error);
       // Don't throw error, just log it and continue with empty articles
       articles.value = [];
     } finally {
@@ -146,7 +147,7 @@ export const useArticleStore = defineStore("article", () => {
     try {
       await fileWatcher.start(vaultPath);
     } catch (error) {
-      console.error("Failed to setup file watching:", error);
+      logger.error("Failed to setup file watching:", error);
     }
   }
 
@@ -162,7 +163,7 @@ export const useArticleStore = defineStore("article", () => {
       return; // 不是文章檔案，忽略
     }
 
-    console.log(`檔案變化：${type} - ${filePath}`);
+    logger.debug(`檔案變化：${type} - ${filePath}`);
 
     switch (type) {
       case "add":
@@ -202,7 +203,7 @@ export const useArticleStore = defineStore("article", () => {
         notify.info("新增文章", `偵測到新文章：${article.title}`);
       }
     } catch (error) {
-      console.warn(`Failed to reload article ${filePath}:`, error);
+      logger.warn(`Failed to reload article ${filePath}:`, error);
     }
   }
 
@@ -280,7 +281,7 @@ export const useArticleStore = defineStore("article", () => {
       notify.success("建立成功", `已建立「${title}」`);
       return article;
     } catch (error) {
-      console.error("Failed to create article:", error);
+      logger.error("Failed to create article:", error);
       notify.error("建立失敗", error instanceof Error ? error.message : "無法建立文章");
       throw error;
     }
@@ -326,7 +327,7 @@ export const useArticleStore = defineStore("article", () => {
         throw result.error;
       }
     } catch (error) {
-      console.error("Failed to save article:", error);
+      logger.error("Failed to save article:", error);
       notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
       throw error;
     }
@@ -380,7 +381,7 @@ export const useArticleStore = defineStore("article", () => {
 
       notify.success("刪除成功", `已刪除「${article.title}」`);
     } catch (error) {
-      console.error("Failed to delete article:", error);
+      logger.error("Failed to delete article:", error);
       notify.error("刪除失敗", error instanceof Error ? error.message : "無法刪除文章");
       throw error;
     }
@@ -414,7 +415,7 @@ export const useArticleStore = defineStore("article", () => {
       const statusLabel = newStatus === ArticleStatus.Published ? "已發布" : "草稿";
       notify.success("狀態已更新", `「${article.title}」已標記為${statusLabel}`);
     } catch (error) {
-      console.error("Failed to toggle article status:", error);
+      logger.error("Failed to toggle article status:", error);
       notify.error("更新失敗", error instanceof Error ? error.message : "無法更新文章狀態");
       throw error;
     }
@@ -469,7 +470,7 @@ export const useArticleStore = defineStore("article", () => {
 
     const migrated = { ...article, frontmatter: fm };
     // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
-    saveArticle(migrated, { preserveLastModified: true }).catch((err) => console.error("[article store] frontmatter 移轉寫回失敗:", err));
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) => logger.error("[article store] frontmatter 移轉寫回失敗:", err));
     return migrated;
   }
 
@@ -532,7 +533,7 @@ export const useArticleStore = defineStore("article", () => {
 
       notify.success("重新載入成功", `已重新載入「${reloadedArticle.title}」`);
     } catch (error) {
-      console.error("Failed to reload article:", error);
+      logger.error("Failed to reload article:", error);
       notify.error("重新載入失敗", "無法重新載入文章");
     }
   }

@@ -13,6 +13,7 @@ import { SearchService } from "./services/SearchService.js";
 import { AIService, AIError } from "./services/AIService.js";
 import { IPC } from "./ipc-channels.js";
 import { AppConfigSchema } from "./schemas/config.schema.js";
+import { logger } from "./mainLogger.js";
 import type { SearchQuery, Article } from "../types/index.js";
 import type { PublishConfig, PublishProgressCallback } from "./services/PublishService.js";
 import type { SEOGenerationInput } from "./services/AIProvider/types.js";
@@ -110,7 +111,7 @@ function setupAutoUpdater() {
 
   autoUpdater.on("error", (err: Error) => {
     // 更新失敗不影響 App，僅 log
-    console.error("[AutoUpdater] error:", err.message);
+    logger.error("[AutoUpdater] error:", err.message);
   });
 
   autoUpdater.checkForUpdates();
@@ -196,7 +197,7 @@ app.whenReady().then(async () => {
           searchService.removeFile(filePath);
         } else {
           searchService.updateFile(filePath).catch((err) => {
-            console.error("[SearchService] 增量索引更新失敗:", err);
+            logger.error("[SearchService] 增量索引更新失敗:", err);
           });
         }
       }

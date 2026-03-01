@@ -3,6 +3,7 @@ import { promises as fs } from "fs"
 import type { Article } from "../../types/index.js"
 import { ArticleStatus } from "../../types/index.js"
 import { FileService } from "./FileService.js"
+import { logger } from "../mainLogger.js"
 
 /**
  * 發布配置
@@ -469,7 +470,7 @@ export class PublishService {
 
         // 複製圖片
         await this.fileService.copyFile(sourceImagePath, targetImagePath)
-        console.log(`Copied image: ${imageName}`)
+        logger.debug(`Copied image: ${imageName}`)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "未知錯誤"
         warnings.push(`複製圖片失敗 ${imageName}: ${errorMessage}`)
@@ -531,7 +532,7 @@ export class PublishService {
     // 寫入檔案
     await this.fileService.writeFile(targetPath, content)
 
-    console.log(`Published article to: ${targetPath}`)
+    logger.debug(`Published article to: ${targetPath}`)
     return targetPath
   }
 

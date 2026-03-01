@@ -124,6 +124,7 @@ import {
   AlertTriangle
 } from "lucide-vue-next"
 import type { ServerLogData } from "@/types/electron"
+import { logger } from "@/utils/logger"
 
 const configStore = useConfigStore()
 
@@ -166,7 +167,7 @@ async function startServer() {
     await window.electronAPI.startDevServer(configStore.config.paths.targetBlog)
     await updateStatus()
   } catch (error) {
-    console.error("啟動伺服器失敗:", error)
+    logger.error("啟動伺服器失敗:", error)
     logs.value.push({
       log: `錯誤: ${error instanceof Error ? error.message : "啟動失敗"}`,
       type: "stderr",
@@ -186,7 +187,7 @@ async function stopServer() {
     isRunning.value = false
     serverUrl.value = undefined
   } catch (error) {
-    console.error("停止伺服器失敗:", error)
+    logger.error("停止伺服器失敗:", error)
   } finally {
     loading.value = false
   }
@@ -198,7 +199,7 @@ async function updateStatus() {
     isRunning.value = status.running
     serverUrl.value = status.url
   } catch (error) {
-    console.error("取得伺服器狀態失敗:", error)
+    logger.error("取得伺服器狀態失敗:", error)
   }
 }
 

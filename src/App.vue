@@ -87,6 +87,7 @@ import MainEditor from "@/components/MainEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
+import { logger } from "@/utils/logger";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
@@ -172,7 +173,7 @@ onMounted(async () => {
     const cached = await metadataCacheService.load(articlesDir);
     if (!cached) {
       metadataCacheService.scan(articlesDir).catch((e) =>
-        console.warn("Metadata cache scan failed:", e)
+        logger.warn("Metadata cache scan failed:", e)
       );
     }
   }

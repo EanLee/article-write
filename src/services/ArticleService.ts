@@ -20,6 +20,7 @@ import { MarkdownService } from "./MarkdownService";
 import { backupService as defaultBackupService } from "./BackupService";
 import type { BackupService } from "./BackupService";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { logger } from "@/utils/logger";
 
 export class ArticleService {
   private fileSystem: IFileSystem;
@@ -94,7 +95,7 @@ export class ArticleService {
 
       return { success: true };
     } catch (error) {
-      console.error("[ArticleService] Failed to save article:", error);
+      logger.error("[ArticleService] Failed to save article:", error);
       return {
         success: false,
         error: error instanceof Error ? error : new Error("Unknown error"),
@@ -193,7 +194,7 @@ export class ArticleService {
           for (const file of directMdFiles) {
             const filePath = `${topPath}/${file}`;
             const loadTask = this.loadArticle(filePath, topEntry).catch((err) => {
-              console.warn(`Failed to load article ${filePath}:`, err);
+              logger.warn(`Failed to load article ${filePath}:`, err);
               return null;
             });
             loadTasks.push(loadTask);
@@ -213,7 +214,7 @@ export class ArticleService {
             for (const file of subMdFiles) {
               const filePath = `${subPath}/${file}`;
               const loadTask = this.loadArticle(filePath, subEntry).catch((err) => {
-                console.warn(`Failed to load article ${filePath}:`, err);
+                logger.warn(`Failed to load article ${filePath}:`, err);
                 return null;
               });
               loadTasks.push(loadTask);
@@ -222,7 +223,7 @@ export class ArticleService {
         }
       }
     } catch (err) {
-      console.warn(`Failed to scan vault ${vaultPath}:`, err);
+      logger.warn(`Failed to scan vault ${vaultPath}:`, err);
     }
 
     // 並行執行所有載入任務（限制並發數避免過載）

@@ -676,6 +676,7 @@ import { useConfigStore } from "@/stores/config"
 import { useArticleStore } from "@/stores/article"
 import { metadataCacheService } from "@/services/MetadataCacheService"
 import type { AppConfig } from "@/types"
+import { logger } from "@/utils/logger"
 
 interface Props {
   modelValue: boolean
@@ -779,7 +780,7 @@ async function rescanMetadata() {
     scanMessage.value = `完成：${result.categories.length} 個分類、${result.tags.length} 個標籤`
   } catch (e) {
     scanMessage.value = "掃描失敗，請確認文章資料夾是否正確"
-    console.error(e)
+    logger.error(e)
   } finally {
     isScanning.value = false
   }
@@ -789,7 +790,7 @@ async function rescanMetadata() {
 async function selectArticlesPath() {
   try {
     if (!window.electronAPI) {
-      console.warn("瀏覽器模式下無法選擇資料夾")
+      logger.warn("瀏覽器模式下無法選擇資料夺")
       return
     }
 
@@ -806,14 +807,14 @@ async function selectArticlesPath() {
       }
     }
   } catch (error) {
-    console.error("選擇資料夾失敗:", error)
+    logger.error("選擇資料夺失敗:", error)
   }
 }
 
 async function selectBlogPath() {
   try {
     if (!window.electronAPI) {
-      console.warn("瀏覽器模式下無法選擇資料夾")
+      logger.warn("瀏覽器模式下無法選擇資料夺")
       return
     }
 
@@ -826,14 +827,14 @@ async function selectBlogPath() {
       localConfig.value.paths.targetBlog = selectedPath
     }
   } catch (error) {
-    console.error("選擇資料夾失敗:", error)
+    logger.error("選擇資料夺失敗:", error)
   }
 }
 
 async function selectImagesPath() {
   try {
     if (!window.electronAPI) {
-      console.warn("瀏覽器模式下無法選擇資料夾")
+      logger.warn("瀏覽器模式下無法選擇資料夺")
       return
     }
 
@@ -846,7 +847,7 @@ async function selectImagesPath() {
       localConfig.value.paths.imagesDir = selectedPath
     }
   } catch (error) {
-    console.error("選擇資料夾失敗:", error)
+    logger.error("選擇資料夺失敗:", error)
   }
 }
 
@@ -887,7 +888,7 @@ async function handleSave() {
 
     emit("update:modelValue", false)
   } catch (error) {
-    console.error("儲存設定失敗", error)
+    logger.error("儲存設定失敗", error)
   }
 }
 

@@ -280,6 +280,7 @@ import { getFileName } from "@/utils/formatters"
 import { notificationService } from "@/services/NotificationService"
 import { formatErrorMessage } from "@/utils/errorFormatter"
 import { calculateETA } from "@/utils/timeFormatter"
+import { logger } from "@/utils/logger"
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -337,7 +338,7 @@ const loadStats = async () => {
     
     conversionStats.value = await converterService.getConversionStats(config.value.sourceDir)
   } catch (error) {
-    console.error("Failed to load conversion stats:", error)
+    logger.error("Failed to load conversion stats:", error)
   }
 }
 
@@ -422,7 +423,7 @@ const startConversion = async () => {
     await loadStats()
     
   } catch (error) {
-    console.error("Conversion failed:", error)
+    logger.error("Conversion failed:", error)
 
     // 格式化錯誤訊息
     const formatted = formatErrorMessage(error)
@@ -524,7 +525,7 @@ const convertCategory = async (category: string) => {
     await loadStats()
     
   } catch (error) {
-    console.error(`Category ${category} conversion failed:`, error)
+    logger.error(`Category ${category} conversion failed:`, error)
 
     // 格式化錯誤訊息
     const formatted = formatErrorMessage(error)
