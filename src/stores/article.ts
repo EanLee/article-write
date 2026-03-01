@@ -9,6 +9,7 @@ import { useConfigStore } from "./config";
 import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
 import { fileWatchService } from "@/services/FileWatchService";
+import { VaultDirs } from "@/config/vault";
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -248,9 +249,8 @@ export const useArticleStore = defineStore("article", () => {
     }
 
     const [statusFolder, category] = parts;
-    // 使用具名常數避免硬編碼 Vault 目錄名稱（SOLID-03）
-    const PUBLISHED_DIR = "Publish";
-    const status = statusFolder === PUBLISHED_DIR ? ArticleStatus.Published : ArticleStatus.Draft;
+    // 使用 VaultDirs 集中常數，避免目錄名稱假設散落各處（M-05）
+    const status = statusFolder === VaultDirs.PUBLISHED ? ArticleStatus.Published : ArticleStatus.Draft;
 
     if (!category) {
       return null;
@@ -274,7 +274,7 @@ export const useArticleStore = defineStore("article", () => {
       const now = new Date();
 
       // Create directory structure
-      const categoryPath = `${vaultPath}/Drafts/${category}`;
+      const categoryPath = `${vaultPath}/${VaultDirs.DRAFTS}/${category}`;
       const filePath = `${categoryPath}/${slug}.md`;
 
       // Ensure directory exists
