@@ -401,6 +401,29 @@ export class ArticleService {
       errors,
     };
   }
+
+  /**
+   * 確保目錄存在（建立必要的父目錄）
+   * SOLID6-10: 讓 store 透過服務層操作目錄，而非直接呼叫 window.electronAPI
+   * @param directoryPath - 目錄路徑
+   */
+  async ensureDirectory(directoryPath: string): Promise<void> {
+    await this.fileSystem.createDirectory(directoryPath);
+  }
+
+  /**
+   * 觸發後台搜尋索引重建（非阻塞式，失敗不影響主流程）
+   * SOLID6-10: 封裝 searchBuildIndex IPC 呼叫，避免 store 直接依賴 window.electronAPI
+   * @param vaultPath - Vault 根路徑
+   */
+  triggerSearchIndexBuild(vaultPath: string): void {
+    if (typeof window === "undefined" || !window.electronAPI) {
+      return;
+    }
+    window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err: unknown) => {
+      logger.error("[ArticleService] 搜尋索引建立失敗:", err);
+    });
+  }
 }
 
 // 單例模式
