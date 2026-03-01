@@ -124,7 +124,7 @@ export const useArticleStore = defineStore("article", () => {
       console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
       // 建立搜尋索引（不影響主流程）
-      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err) => {
+      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err: unknown) => {
         console.error("[article store] 搜尋索引建立失敗:", err);
       });
 
@@ -181,7 +181,8 @@ export const useArticleStore = defineStore("article", () => {
   /**
    * 從磁碟重新載入文章
    */
-  async function reloadArticleFromDisk(filePath: string, status: ArticleStatus, category: string) {
+  // _status 保留參數供未來依狀態差異處理重載邏輯使用（目前統一重載）
+  async function reloadArticleFromDisk(filePath: string, _status: ArticleStatus, category: string) {
     try {
       const article = await articleService.loadArticle(filePath, category);
 
