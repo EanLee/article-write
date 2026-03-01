@@ -18,12 +18,12 @@ export class FileService {
 
   /**
    * 驗證路徑是否在許可的白名單範圍內
-   * 若尚未設定白名單（初始化前），不限制
-   * @throws Error 若路徑在白名單外
+   * 白名單未初始化（空陣列）時一律拒絕，fail-close (S6-03)
+   * @throws Error 若路徑在白名單外或白名單尚未初始化
    */
   private validatePath(filePath: string): void {
     if (this.allowedBasePaths.length === 0) {
-      return;
+      throw new Error("拒絕存取：檔案白名單尚未初始化，請先設定 vault 路徑");
     }
     const normalized = normalize(resolve(filePath));
     const allowed = this.allowedBasePaths.some((base) => normalized === base || normalized.startsWith(base + sep));
@@ -142,7 +142,8 @@ export class FileService {
    * 若已有不同監聽路徑的監聽器，先停止
    */
   startWatching(watchPath: string, callback: (event: string, path: string) => void): void {
-    // 如果已有監聽器且監聽路徑不同，先停止舊監聽器
+    // 驗證監聽路徑在白名單範圍內，防止監聴任意目錄 (S6-04)
+    this.validatePath(watchPath);
     this.stopWatching();
 
     this.watchCallbacks.add(callback);
