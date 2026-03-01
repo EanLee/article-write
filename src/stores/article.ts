@@ -2,7 +2,6 @@ import { defineStore } from "pinia";
 import { ref, computed, watch, nextTick } from "vue";
 import type { Article, ArticleFilter } from "@/types";
 import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
-import { markdownService } from "@/services/MarkdownService";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { notify } from "@/services/NotificationService";
 import { useConfigStore } from "./config";
@@ -505,29 +504,17 @@ export const useArticleStore = defineStore("article", () => {
       return;
     }
 
-    if (typeof window === "undefined" || !window.electronAPI) {
-      return;
-    }
-
     try {
-      const content = await window.electronAPI.readFile(article.filePath);
-      const { frontmatter, content: articleContent } = markdownService.parseMarkdown(content);
-      const fileStats = await window.electronAPI.getFileStats(article.filePath);
-      const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date();
-
-      const reloadedArticle: Article = {
-        ...article,
-        title: frontmatter.title || article.title,
-        content: articleContent,
-        frontmatter,
-        lastModified,
-      };
+      // 使用 ArticleService 載入完整文章（包含 wordCount、slug、tags、excerpt 等欄位）
+      // 避免手動解析 frontmatter 造成欄位不一致 (A6-01)
+      const reloadedArticle = await articleService.loadArticle(article.filePath, article.category);
 
       const index = articles.value.findIndex((a) => a.id === id);
       if (index !== -1) {
-        articles.value[index] = reloadedArticle;
+        // 保留原有 id，避免 UI 組件因 id 變動而重新掛載
+        articles.value[index] = { ...reloadedArticle, id };
         if (currentArticle.value?.id === id) {
-          currentArticle.value = reloadedArticle;
+          currentArticle.value = articles.value[index];
         }
       }
 
