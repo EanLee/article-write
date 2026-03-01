@@ -336,7 +336,7 @@ export class ArticleService {
    * @param filePath - 文章檔案路徑
    * @returns 穩定的唯一識別碼（16 字元英數字）
    */
-  private generateIdFromPath(filePath: string): string {
+  generateIdFromPath(filePath: string): string {
     // 正規化路徑：統一斜線方向並轉換為小寫，確保跨平台相同路徑產生相同 ID
     const normalizedPath = filePath.replace(/\\/g, "/").toLowerCase();
     return Buffer.from(normalizedPath)
