@@ -54,53 +54,8 @@ interface AppConfigShape {
   };
 }
 
-interface Window {
-  electronAPI: {
-    // File operations
-    readFile: (path: string) => Promise<string>;
-    writeFile: (path: string, content: string) => Promise<void>;
-    deleteFile: (path: string) => Promise<void>;
-    copyFile: (sourcePath: string, targetPath: string) => Promise<void>;
+// ─── Window.electronAPI 全域型別宣告 ─────────────────────────────────────────
+// 完整型別定義請見 src/types/electron.d.ts（唯一真相來源）。
+// 以下只保留給 env.d.ts 自身（ambient 環境）使用的輔助介面；
+// Window.electronAPI 已由 electron.d.ts 的 declare global 覆蓋，此處無需重複宣告。
 
-    // Directory operations
-    readDirectory: (path: string) => Promise<string[]>;
-    createDirectory: (path: string) => Promise<void>;
-    getFileStats: (path: string) => Promise<{ isDirectory: boolean; mtime: number } | null>;
-
-    // Config operations
-    getConfig: () => Promise<AppConfigShape>;
-    setConfig: (config: AppConfigShape) => Promise<void>;
-    validateArticlesDir: (path: string) => Promise<{ valid: boolean; message: string }>;
-    validateAstroBlog: (path: string) => Promise<{ valid: boolean; message: string }>;
-
-    // Directory selection
-    selectDirectory: (options?: { title?: string; defaultPath?: string }) => Promise<string | null>;
-
-    // Publish operations
-    // article 使用 Record<string, unknown>：無法在 ambient 檔引入 Article 型別
-    publishArticle: (article: Record<string, unknown>, config: PublishConfig) => Promise<PublishResult>;
-    onPublishProgress: (callback: (data: { step: string; progress: number }) => void) => () => void;
-    syncAllPublished: (config: PublishConfig) => Promise<SyncResult>;
-    onSyncProgress: (callback: (data: { current: number; total: number; title: string }) => void) => () => void;
-
-    // Process management
-    startDevServer: (projectPath: string) => Promise<void>;
-    stopDevServer: () => Promise<void>;
-    getServerStatus: () => Promise<{ running: boolean; url?: string; logs: string[] }>;
-    onServerLog: (callback: (data: { log: string; type: "stdout" | "stderr"; timestamp: string }) => void) => () => void;
-
-    // File watching
-    startFileWatching: (watchPath: string) => Promise<boolean>;
-    stopFileWatching: () => Promise<boolean>;
-    isFileWatching: () => Promise<boolean>;
-    onFileChange: (callback: (data: { event: string; path: string }) => void) => () => void;
-
-    // Git operations
-    gitStatus: (repoPath: string) => Promise<GitResult>;
-    gitAdd: (repoPath: string, paths?: string[]) => Promise<GitResult>;
-    gitCommit: (repoPath: string, options: { message: string; addAll?: boolean }) => Promise<GitResult>;
-    gitPush: (repoPath: string, options?: { remote?: string; branch?: string }) => Promise<GitResult>;
-    gitAddCommitPush: (repoPath: string, commitMessage: string) => Promise<{ success: boolean; steps: { name: string; result: GitResult }[]; error?: string }>;
-    gitLog: (repoPath: string, count?: number) => Promise<GitResult>;
-  };
-}
