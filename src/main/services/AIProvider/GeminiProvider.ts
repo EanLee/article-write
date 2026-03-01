@@ -28,6 +28,7 @@ ${input.existingSlug ? `現有 Slug：${input.existingSlug}` : ''}
       const response = await this.client.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: prompt,
+        config: { maxOutputTokens: 400 },
       })
 
       const text = (response.text ?? '').trim()
