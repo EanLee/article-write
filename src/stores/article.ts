@@ -7,6 +7,7 @@ import { notify } from "@/services/NotificationService";
 import { useConfigStore } from "./config";
 import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
+import { isElectronAvailable, assertElectronAvailable } from "@/utils/electron";
 import { fileWatchService } from "@/services/FileWatchService";
 import { VaultDirs } from "@/config/vault";
 import { parseArticlePath } from "@/utils/articlePath";
@@ -118,7 +119,7 @@ export const useArticleStore = defineStore("article", () => {
       logger.debug("開始載入文章，Vault 路徑:", vaultPath);
 
       // Check if we're running in Electron environment
-      if (typeof window === "undefined" || !window.electronAPI) {
+      if (!isElectronAvailable()) {
         logger.warn("Running in browser mode - using mock articles");
         articles.value = [];
         loading.value = false;
@@ -132,9 +133,7 @@ export const useArticleStore = defineStore("article", () => {
       logger.debug(`載入完成，共 ${loadedArticles.length} 篇文章`);
 
       // 建立搜尋索引（不影響主流程）
-      window.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err: unknown) => {
-        logger.error("[article store] 搜尋索引建立失敗:", err);
-      });
+      articleService.triggerSearchIndexBuild(vaultPath);
 
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
@@ -235,9 +234,7 @@ export const useArticleStore = defineStore("article", () => {
 
   async function createArticle(title: string, category: string): Promise<Article> {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const vaultPath = configStore.config.paths.articlesDir;
       if (!vaultPath) {
@@ -252,7 +249,7 @@ export const useArticleStore = defineStore("article", () => {
       const filePath = `${categoryPath}/${slug}.md`;
 
       // Ensure directory exists
-      await window.electronAPI.createDirectory(categoryPath);
+      await articleService.ensureDirectory(categoryPath);
 
       const article: Article = {
         id: articleService.generateIdFromPath(filePath), // 使用與 loadArticle 一致的路徑導出 ID
@@ -302,9 +299,7 @@ export const useArticleStore = defineStore("article", () => {
    */
   async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       // 更新 lastModified timestamp（migration 存檔時不更新，避免排序跳動）
       const articleToSave = {
@@ -365,9 +360,7 @@ export const useArticleStore = defineStore("article", () => {
 
   async function deleteArticle(id: string) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
@@ -396,9 +389,7 @@ export const useArticleStore = defineStore("article", () => {
 
   async function toggleStatus(id: string) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
