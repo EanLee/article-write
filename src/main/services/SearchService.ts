@@ -22,6 +22,12 @@ export class SearchService {
   private wikilinkMap: Map<string, string[]> = new Map()
   private fs: FsLike
 
+  // ── Trigram 反向索引（P6-02）────────────────────────────────────────────────
+  /** trigram → 包含該 trigram 的文件路徑集合 */
+  private trigramIndex: Map<string, Set<string>> = new Map()
+  /** 文件路徑 → 該文件貢獻的所有 trigram（用於將文件從索引中切除） */
+  private fileTrigramSet: Map<string, Set<string>> = new Map()
+
   constructor(fsImpl: FsLike = defaultFs) {
     this.fs = fsImpl
   }
@@ -33,6 +39,8 @@ export class SearchService {
   async buildIndex(articlesDir: string): Promise<void> {
     this.index.clear()
     this.wikilinkMap.clear()
+    this.trigramIndex.clear()
+    this.fileTrigramSet.clear()
     await this.scanDirectory(articlesDir)
   }
 
@@ -65,7 +73,7 @@ export class SearchService {
       const normalizedPath = filePath.replace(/\\/g, "/")
       const id = normalizedPath
 
-      this.index.set(normalizedPath, {
+      const entry: IndexEntry = {
         id,
         filePath: normalizedPath,
         title,
@@ -75,8 +83,14 @@ export class SearchService {
         status,
         tags,
         wikilinks
-      })
+      }
+
+      this.index.set(normalizedPath, entry)
       this.wikilinkMap.set(normalizedPath, wikilinks)
+
+      // 更新 trigram 索引（先移除舊索引再重建，支援增量更新 updateFile）
+      this.removeFromTrigramIndex(normalizedPath)
+      this.addToTrigramIndex(normalizedPath, title + " " + content)
     } catch {
       // 跳過無法讀取的檔案
     }
@@ -173,9 +187,17 @@ export class SearchService {
     if (!query.query.trim()) {return []}
 
     const keyword = query.query.toLowerCase()
+
+    // 取得候選文件：短查詢（<3字元）倉用線性掃描，其他用 trigram 反向索引
+    const candidateIds =
+      keyword.length < 3 ? new Set(this.index.keys()) : this.getCandidatesByTrigram(keyword)
+
     const results: SearchResult[] = []
 
-    for (const entry of this.index.values()) {
+    for (const id of candidateIds) {
+      const entry = this.index.get(id)
+      if (!entry) {continue}
+
       if (query.filters?.status && entry.status !== query.filters.status) {continue}
       if (query.filters?.category && entry.category !== query.filters.category) {continue}
       if (
@@ -186,6 +208,7 @@ export class SearchService {
         )
       ) {continue}
 
+      // Trigram 可能產生 false positive，需進一步確認關鍵字确實存在
       const titleMatch = entry.title.toLowerCase().includes(keyword)
       const contentIdx = entry.content.toLowerCase().indexOf(keyword)
 
@@ -230,6 +253,7 @@ export class SearchService {
     const normalizedPath = filePath.replace(/\\/g, "/")
     this.index.delete(normalizedPath)
     this.wikilinkMap.delete(normalizedPath)
+    this.removeFromTrigramIndex(normalizedPath)
   }
 
   /**
@@ -242,5 +266,81 @@ export class SearchService {
 
   getIndexSize(): number {
     return this.index.size
+  }
+
+  // ── Trigram 私有方法 ─────────────────────────────────────────────
+
+  /**
+   * 從文字提取所有 trigram（3-gram）
+   * 導入斜線或中文字元時，每內部字元都可能形成一個有效 trigram
+   */
+  private extractTrigrams(text: string): Set<string> {
+    const normalized = text.toLowerCase()
+    const trigrams = new Set<string>()
+    for (let i = 0; i + 2 < normalized.length; i++) {
+      trigrams.add(normalized.slice(i, i + 3))
+    }
+    return trigrams
+  }
+
+  /**
+   * 將文件解除操入 trigram 索引
+   */
+  private removeFromTrigramIndex(fileId: string): void {
+    const trigrams = this.fileTrigramSet.get(fileId)
+    if (!trigrams) {return}
+    for (const tg of trigrams) {
+      const bucket = this.trigramIndex.get(tg)
+      if (bucket) {
+        bucket.delete(fileId)
+        if (bucket.size === 0) {this.trigramIndex.delete(tg)}
+      }
+    }
+    this.fileTrigramSet.delete(fileId)
+  }
+
+  /**
+   * 將文件操入 trigram 索引
+   * @param fileId 文件路徑（從正則化後）
+   * @param text 要建立索引的文字（標題 + 內容）
+   */
+  private addToTrigramIndex(fileId: string, text: string): void {
+    const trigrams = this.extractTrigrams(text)
+    this.fileTrigramSet.set(fileId, trigrams)
+    for (const tg of trigrams) {
+      let bucket = this.trigramIndex.get(tg)
+      if (!bucket) {
+        bucket = new Set<string>()
+        this.trigramIndex.set(tg, bucket)
+      }
+      bucket.add(fileId)
+    }
+  }
+
+  /**
+   * 透過 trigram 反向索引取得候選文件 ID
+   * 返回同時包含查詢所有 trigram 的文件集合（交集）
+   */
+  private getCandidatesByTrigram(keyword: string): Set<string> {
+    const queryTrigrams = this.extractTrigrams(keyword)
+    let candidates: Set<string> | null = null
+
+    for (const tg of queryTrigrams) {
+      const bucket = this.trigramIndex.get(tg)
+      if (!bucket || bucket.size === 0) {
+        return new Set() // 任一 trigram 不存在就不可能有匹配
+      }
+      if (candidates === null) {
+        candidates = new Set(bucket)
+      } else {
+        // 取交集以縮小候選範圍
+        for (const id of candidates) {
+          if (!bucket.has(id)) {candidates.delete(id)}
+        }
+      }
+      if (candidates.size === 0) {break} // early exit
+    }
+
+    return candidates ?? new Set()
   }
 }
