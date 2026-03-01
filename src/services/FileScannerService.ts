@@ -167,8 +167,10 @@ export class FileScannerService {
    * @returns {string} 唯一識別碼
    */
   private generateIdFromPath(filePath: string): string {
-    // Use file path hash as ID for consistency
-    return Buffer.from(filePath)
+    // Use normalized file path hash as ID for consistency
+    // 正規化：統一斜線方向並轉為小寫，確保跨平台相同路徑產生相同 ID
+    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
+    return Buffer.from(normalizedPath)
       .toString("base64")
       .replace(/[^a-zA-Z0-9]/g, "")
       .substring(0, 16);

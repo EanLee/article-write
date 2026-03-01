@@ -283,7 +283,7 @@ export class ArticleService {
     const fileName = filePath.split("/").pop()?.replace(".md", "") || "untitled";
 
     const article: Article = {
-      id: this.generateId(),
+      id: this.generateIdFromPath(filePath),
       title: frontmatter.title || fileName,
       slug: frontmatter.slug || fileName,
       filePath,
@@ -328,10 +328,21 @@ export class ArticleService {
   }
 
   /**
-   * 產生唯一 ID
+   * 從檔案路徑產生唯一且穩定的 ID
+   *
+   * 使用路徑的 base64 hash 而非 Date.now()+Math.random()，確保同一路徑
+   * 每次載入都產生相同 ID，避免 Vue v-for :key 失效造成全量 DOM 重建。
+   *
+   * @param filePath - 文章檔案路徑
+   * @returns 穩定的唯一識別碼（16 字元英數字）
    */
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  private generateIdFromPath(filePath: string): string {
+    // 正規化路徑：統一斜線方向並轉換為小寫，確保跨平台相同路徑產生相同 ID
+    const normalizedPath = filePath.replace(/\\/g, '/').toLowerCase();
+    return Buffer.from(normalizedPath)
+      .toString('base64')
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .substring(0, 16);
   }
 
   /**
