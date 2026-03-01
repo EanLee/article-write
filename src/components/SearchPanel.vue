@@ -56,9 +56,15 @@ function openResult(result: SearchResult) {
 
 function highlightKeyword(text: string, keyword: string): string {
   if (!keyword.trim()) {return text}
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(
-    new RegExp(`(${escaped})`, 'gi'),
+  // 先 escape HTML 特殊字元，防止 text 內容被當作 HTML 解析（XSS）
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return escaped.replace(
+    new RegExp(`(${escapedKeyword})`, 'gi'),
     '<mark class="bg-warning text-warning-content rounded px-0.5">$1</mark>'
   )
 }
