@@ -1,8 +1,8 @@
 # 問題追蹤 — 第六次全面評估
 
-**評審日期**: 2026-03-01  
-**基準 Commit**: `e9b525a`  
-**更新日期**: 2026-03-01
+**評審日期**: 2026-03-01
+**基準 Commit**: `e9b525a`
+**更新日期**: 2026-03-01（所有 P0/P1 sprint 項目已完成）
 
 ---
 
@@ -11,9 +11,9 @@
 | ID | 嚴重性 | 描述 | 狀態 | 建議分支 |
 |----|--------|------|------|---------|
 | S6-01 | 🔴 CVSS 6.8 | ProcessService `shell: true` 命令注入 | ⬜ 待修 | `fix/process-service-race` |
-| S6-02 | 🔴 CVSS 7.1 | ConfigService safeStorage 靜默 base64 降級 | ⬜ 待修 | `fix/config-safe-storage` |
-| S6-03 | 🟠 CVSS 6.5 | 路徑白名單缺口（imagesDir / GitService / FileWatch） | ⬜ 待修 | `fix/path-whitelist-gaps` |
-| S6-04 | 🟠 | validatePath fail-open（白名單空時放行） | ⬜ 待修 | `fix/path-whitelist-gaps` |
+| S6-02 | 🔴 CVSS 7.1 | ConfigService safeStorage 靜默 base64 降級 | ✅ 已修（`71e69ed`） | `fix/config-safe-storage` |
+| S6-03 | 🟠 CVSS 6.5 | 路徑白名單缺口（imagesDir / GitService / FileWatch） | ✅ 已修（`44a3183`） | `fix/path-whitelist-gaps` |
+| S6-04 | 🟠 | validatePath fail-open（白名單空時放行） | ✅ 已修（`44a3183`） | `fix/path-whitelist-gaps` |
 | S6-05 | 🟡 | sandbox: false（有技術文件支撐） | 🟡 接受現況 | — |
 | S6-06 | 🟡 CVSS 4.3 | AI_SET_API_KEY provider 無 runtime 驗證 | ⬜ 待修 | `fix/path-whitelist-gaps` |
 | S6-07 | 🟡 | ImageService sourcePath 未受白名單保護 | ⬜ 待修 | P2 |
@@ -29,7 +29,7 @@
 | P6-02 | 🔴 | SearchService O(N×L) 線性掃描，無倒排索引 | ⬜ 待修 | `perf/search-trigram-index` |
 | P6-03 | 🟡 | MetadataCacheService 串行 I/O | ⬜ 待修 | P2 |
 | P6-04 | 🟡 | ConverterService processImages 未使用 batchCopyImages | ⬜ 待修 | P2 |
-| P6-05 | 🔴 CRITICAL | ImageService O(I×A×C) + 500 IPC 炸彈 | ⬜ 待修（hotfix 優先）| `fix/image-validation-batch` |
+| P6-05 | 🔴 CRITICAL | ImageService O(I×A×C) + 500 IPC 炸彈 | ✅ 已修（`1bed3b4`） | `fix/image-validation-batch` |
 | P6-06 | 🟡 | Vue deep watch + articles 全量替換觸發全體重算 | ⬜ 待修 | P3 |
 
 ---
@@ -39,7 +39,7 @@
 | ID | 嚴重性 | 原則 | 描述 | 狀態 |
 |----|--------|------|------|------|
 | SOLID6-01 | 🔴 | SRP | article.ts 上帝 Store（611 行 9 職責） | ⬜ P3 |
-| SOLID6-02 | 🟡 | SRP | reloadArticle 複製 ArticleService 邏輯 | ⬜ P1（合併 A6-01） |
+| SOLID6-02 | 🟡 | SRP | reloadArticle 複製 ArticleService 邏輯 | ✅ 已修（`e1417ff`，合併 A6-01） |
 | SOLID6-03 | 🟡 | SRP | AutoSaveService 混合 timer 與 Vue 狀態 | ⬜ P2 |
 | SOLID6-04 | 🟡 | OCP | ArticleFilterCategory enum 硬編碼 | ⬜ P3 |
 | SOLID6-07 | 🟡 | LSP | AutoSaveService.initialize() 隱含前置條件 | ⬜ P3 |
@@ -55,7 +55,7 @@
 
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
-| A6-01 | 🔴 | Store 雙重依賴路徑，reloadArticle 資料不一致 | ⬜ P1 |
+| A6-01 | 🔴 | Store 雙重依賴路徑，reloadArticle 資料不一致 | ✅ 已修（`e1417ff`） |
 | A6-02 | 🟠 | main.ts IPC 登錄為 God Function（~150 行） | ⬜ P2 |
 | A6-03 | 🟠 | migrateArticleFrontmatter fire-and-forget 競態 | ⬜ P2 |
 | A6-04 | 🟠 | Preload 暴露低階 FS 原語，可繞過業務邏輯 | ⬜ P3 |
@@ -68,15 +68,15 @@
 
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
-| TOKEN6-01 | 🔴 | contentPreview 直插 Prompt，Prompt 注入風險 | ⬜ P0 |
-| TOKEN6-02 | 🟠 | contentPreview 無程式強制截斷 | ⬜ P0 |
+| TOKEN6-01 | 🔴 | contentPreview 直插 Prompt，Prompt 注入風險 | ✅ 已修（`2271a34`） |
+| TOKEN6-02 | 🟠 | contentPreview 無程式強制截斷 | ✅ 已修（`2271a34`） |
 | TOKEN6-03 | 🟡 | max_tokens=400 過於保守 | ⬜ P2 |
-| TOKEN6-04 | 🟠 | 三個 Provider 缺少 429/context_length 處理 | ⬜ P1 |
-| TOKEN6-05 | 🟠 | AIService Anthropic dead code | ⬜ P0 |
+| TOKEN6-04 | 🟠 | 三個 Provider 缺少 429/context_length 處理 | ✅ 已修（`2271a34`） |
+| TOKEN6-05 | 🟠 | AIService Anthropic dead code | ✅ 已修（`2271a34`） |
 | TOKEN6-06 | 🟡 | Claude 未使用 System Prompt（無 Prefix Caching） | ⬜ P3 |
 | TOKEN6-07 | 🟡 | 三個 Provider 全部阻塞式呼叫，無 Streaming | ⬜ P3 |
 | TOKEN6-08 | 🟡 | 無 Token 使用量回報與成本追蹤 | ⬜ P2 |
-| TOKEN6-09 | 🟡 | Prompt 範例 JSON 冗餘 30 token | ⬜ P3 |
+| TOKEN6-09 | 🟡 | Prompt 範例 JSON 冗餘 30 token | ✅ 已修（`2271a34`） |
 
 ---
 
@@ -84,15 +84,15 @@
 
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
-| QUAL6-01 | 🔴 | ProcessService 零測試 + hardcoded IPC channel | ⬜ P0/P1 |
-| QUAL6-02 | 🔴 | startDevServer() 競態計時器假就緒 | ⬜ P1 |
-| QUAL6-03 | 🔴 | autoDownload = true，未改為使用者確認 | ⬜ P0 |
+| QUAL6-01 | 🔴 | ProcessService 零測試 + hardcoded IPC channel | ✅ 已修（`420e292`） |
+| QUAL6-02 | 🔴 | startDevServer() 競態計時器假就緒 | ✅ 已修（`e168a1f`） |
+| QUAL6-03 | 🔴 | autoDownload = true，未改為使用者確認 | ✅ 已修（`05d5c50`） |
 | QUAL6-04 | 🟠 | ConfigService 零測試（捆綁 S6-02）| ⬜ P1 |
 | QUAL6-05 | 🟠 | article.ts 611 行測試維護成本高（→ SOLID6-01）| ⬜ P3 |
 | QUAL6-06 | 🟠 | ImageService 648 行，型別定義混入實作檔 | ⬜ P3 |
-| QUAL6-07 | 🟠 | ProcessService hardcoded `npm run dev`（應為 pnpm）| ⬜ P0 |
+| QUAL6-07 | 🟠 | ProcessService hardcoded `npm run dev`（應為 pnpm）| ✅ 已修（`420e292`） |
 | QUAL6-08 | 🟡 | 4 個 TODO stub 無 Issue 追蹤標記 | ⬜ P3 |
-| QUAL6-09 | 🟡 | stopDevServer() 未等待 process exit | ⬜ P1 |
+| QUAL6-09 | 🟡 | stopDevServer() 未等待 process exit | ✅ 已修（`e168a1f`） |
 | QUAL6-10 | 🟡 | ProcessService 完全無 JSDoc | ⬜ P3 |
 
 ---
