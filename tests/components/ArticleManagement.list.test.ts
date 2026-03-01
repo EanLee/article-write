@@ -148,8 +148,14 @@ describe("ArticleManagement 組件 — 分頁行為", () => {
     // 變更篩選條件 → 只剩 1 篇，totalPages = 1，pagination bar 隱藏
     // currentPage 若沒有重置，slice(50, 100) 會回傳空陣列 → tbody 沒有 <tr>
     // currentPage 正確重置為 1 → slice(0, 50) 回傳 1 篇 → tbody 有 1 個 <tr>
+    //
+    // 注意：useArticleFilter 的 searchText 採 300ms debounce，
+    //       需用 fake timer 推進後再 nextTick 才能看到過濾結果
+    vi.useFakeTimers()
     articleStore.updateFilter({ searchText: "文章 001" })
+    await vi.runAllTimersAsync() // 推進 300ms debounce
     await wrapper.vm.$nextTick()
+    vi.useRealTimers()
 
     const rows = wrapper.findAll("tbody tr")
     expect(rows.length).toBe(1)

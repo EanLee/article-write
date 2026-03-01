@@ -31,15 +31,16 @@ describe("FileService — setAllowedPaths", () => {
     service = new FileService()
   })
 
-  it("未設定白名單時，任何路徑應被允許（初始化前不限制）", async () => {
+  it("未設定白名單時，應拒絕存取（fail-close，S6-04）", async () => {
     let err: unknown
     try {
       await service.readFile(OUTSIDE)
     } catch (e) {
       err = e
     }
-    // 應因檔案不存在而失敗，即通過路徑驗證
-    expect(isAllowed(err)).toBe(true)
+    // S6-04：白名單空時 fail-close，應拋出「拒絕存取」錯誤
+    expect(isAllowed(err)).toBe(false)
+    expect(err instanceof Error && err.message.includes("拒絕存取")).toBe(true)
   })
 
   it("設定白名單後，白名單內路徑應被允許", async () => {
