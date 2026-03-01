@@ -91,7 +91,7 @@
 | 測試通過數 | 373 | **424** | **569** (+145) |
 | 測試檔案數 | — | **N/A** | **43 files** |
 | ESLint errors | 0 | **0** | **0** |
-| ESLint warnings | ~80 | **106** | **77** (-29) |
+| ESLint warnings | ~80 | **106** | **3** (-103，僅剩 v-html 預存警告) |
 | console 違規次數 | N/A | **29** | **0** ✅ |
 | 最大模組行數 | ~820 | **988 (ConverterService)** | **~235 (SettingsPanel)** |
 | MetadataCache TTL | 無 | **無** | **5 分鐘** ✅ |
