@@ -114,4 +114,42 @@ describe("SearchService", () => {
       expect(results[0].title).toBe("A");
     });
   });
+
+  describe("trigram 索引（P6-02）", () => {
+    it("removeFile 後搜尋不應回傳已刪除的文章", async () => {
+      mockReaddir.mockResolvedValue(["article.md"]);
+      mockReadFile.mockResolvedValue("---\ntitle: Trigram Test\ndate: 2026-01-01\n---\nUnique trigram keyword here.");
+
+      await service.buildIndex(mockArticlesDir);
+      expect(service.search({ query: "trigram" })).toHaveLength(1);
+
+      service.removeFile("/mock/vault/article.md");
+      expect(service.search({ query: "trigram" })).toHaveLength(0);
+    });
+
+    it("updateFile 後搜尋應反映更新後的內容", async () => {
+      mockReaddir.mockResolvedValue(["file.md"]);
+      mockReadFile.mockResolvedValueOnce("---\ntitle: Original\ndate: 2026-01-01\n---\nold content here");
+      await service.buildIndex(mockArticlesDir);
+      expect(service.search({ query: "old content" })).toHaveLength(1);
+      expect(service.search({ query: "new content" })).toHaveLength(0);
+
+      // 更新檔案內容
+      mockReadFile.mockResolvedValueOnce("---\ntitle: Updated\ndate: 2026-01-01\n---\nnew content here");
+      await service.updateFile("/mock/vault/file.md");
+
+      expect(service.search({ query: "old content" })).toHaveLength(0);
+      expect(service.search({ query: "new content" })).toHaveLength(1);
+    });
+
+    it("短查詢（< 3 字元）仍應正確搜尋", async () => {
+      mockReaddir.mockResolvedValue(["a.md"]);
+      mockReadFile.mockResolvedValue("---\ntitle: Go Article\ndate: 2026-01-01\n---\nContent about Go language.");
+
+      await service.buildIndex(mockArticlesDir);
+      const results = service.search({ query: "Go" });
+      expect(results).toHaveLength(1);
+      expect(results[0].title).toBe("Go Article");
+    });
+  });
 });
