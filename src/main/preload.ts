@@ -85,6 +85,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on(IPC.EVENT_UPDATE_DOWNLOADED, listener);
     return () => ipcRenderer.removeListener(IPC.EVENT_UPDATE_DOWNLOADED, listener);
   },
+  downloadUpdate: () => ipcRenderer.invoke(IPC.DOWNLOAD_UPDATE),
   installUpdate: () => ipcRenderer.invoke(IPC.INSTALL_UPDATE),
 
   // Search

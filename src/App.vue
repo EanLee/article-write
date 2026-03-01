@@ -138,9 +138,15 @@ function setupUpdateListeners() {
 
   unsubscribeUpdateAvailable = window.electronAPI.onUpdateAvailable(({ version }) => {
     notificationService.info(
-      `新版本 v${version} 下載中`,
-      "下載完成後將通知您",
-      { duration: 5000 }
+      `新版本 v${version} 可下載`,
+      "點擊下載後，完成時將通知您",
+      {
+        duration: 0,
+        action: {
+          label: "開始下載",
+          callback: () => window.electronAPI.downloadUpdate()
+        }
+      }
     )
   })
 

@@ -52,6 +52,7 @@ export const IPC = {
   SEARCH_BUILD_INDEX: "search:build-index",
 
   // ── Auto-Update ─ invoke + push events ────────────────────────────────────
+  DOWNLOAD_UPDATE: "download-update",
   INSTALL_UPDATE: "install-update",
 
   // ── AI ─ invoke ───────────────────────────────────────────────────────────

@@ -127,6 +127,7 @@ export interface ElectronAPI {
   // ── Auto-Update ────────────────────────────────────────────────────────────
   onUpdateAvailable: (callback: (data: { version: string }) => void) => () => void;
   onUpdateDownloaded: (callback: (data: { version: string }) => void) => () => void;
+  downloadUpdate: () => Promise<void>;
   installUpdate: () => Promise<void>;
 
   // ── 搜尋 ──────────────────────────────────────────────────────────────────

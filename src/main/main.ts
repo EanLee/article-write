@@ -98,7 +98,7 @@ function setupAutoUpdater() {
     return;
   }
 
-  autoUpdater.autoDownload = true;
+  autoUpdater.autoDownload = false;       // QUAL6-03: 改為使用者確認後才下載，防止供應鏈攻擊
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on("update-available", (info: { version: string }) => {
@@ -211,6 +211,10 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC.IS_FILE_WATCHING, () => fileService.isWatching());
 
   // Auto-Update
+  ipcMain.handle(IPC.DOWNLOAD_UPDATE, async () => {
+    // QUAL6-03: autoDownload=false，使用者在通知中確認後才觸發下載
+    await autoUpdater.downloadUpdate();
+  });
   ipcMain.handle(IPC.INSTALL_UPDATE, () => {
     autoUpdater.quitAndInstall();
   });
