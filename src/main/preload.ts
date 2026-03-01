@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   writeFile: (path: string, content: string) => ipcRenderer.invoke(IPC.WRITE_FILE, path, content),
   deleteFile: (path: string) => ipcRenderer.invoke(IPC.DELETE_FILE, path),
   copyFile: (sourcePath: string, targetPath: string) => ipcRenderer.invoke(IPC.COPY_FILE, sourcePath, targetPath),
+  // S6-07: 從白名單外部路徑匯入圖片到 vault（只驗證目的地）
+  importExternalFile: (sourcePath: string, targetPath: string) => ipcRenderer.invoke(IPC.IMPORT_EXTERNAL_FILE, sourcePath, targetPath),
 
   // Directory operations
   readDirectory: (path: string) => ipcRenderer.invoke(IPC.READ_DIRECTORY, path),

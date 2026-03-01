@@ -76,6 +76,11 @@ export interface IFileApi {
   writeFileBuffer: (path: string, buffer: Uint8Array) => Promise<void>;
   deleteFile: (path: string) => Promise<void>;
   copyFile: (sourcePath: string, targetPath: string) => Promise<void>;
+  /**
+   * S6-07: 從白名單外部路徑匯入檔案到白名單內的目標路徑
+   * 僅驗證 targetPath，sourcePath 允許為外部路徑（拖放圖片等）
+   */
+  importExternalFile: (sourcePath: string, targetPath: string) => Promise<void>;
   readDirectory: (path: string) => Promise<string[]>;
   createDirectory: (path: string) => Promise<void>;
   /**
@@ -166,16 +171,7 @@ export interface IAiApi {
  *
  * 由領域子介面組合而成，每個子介面可獨立用於精準型別約束。
  */
-export interface ElectronAPI
-  extends IFileApi,
-    IConfigApi,
-    IPublishApi,
-    IDevServerApi,
-    IFileWatchApi,
-    IGitApi,
-    IUpdaterApi,
-    ISearchApi,
-    IAiApi {}
+export interface ElectronAPI extends IFileApi, IConfigApi, IPublishApi, IDevServerApi, IFileWatchApi, IGitApi, IUpdaterApi, ISearchApi, IAiApi {}
 
 // ─── 全域 Window 型別擴增 ────────────────────────────────────────────────────
 
@@ -184,4 +180,3 @@ declare global {
     electronAPI: ElectronAPI;
   }
 }
-

@@ -520,8 +520,9 @@ export class ImageService {
     try {
       const targetPath = `${this.getImagesPath()}/${fileName}`;
 
-      // Use Electron API to copy file
-      await window.electronAPI.copyFile(sourcePath, targetPath);
+      // S6-07: 使用 importExternalFile 允許從白名單外部路徑（拖放/暫存目錄）複製
+      // copyFile 會驗證兩端路徑，外部圖片 sourcePath 必然在白名單外
+      await window.electronAPI.importExternalFile(sourcePath, targetPath);
       return true;
     } catch (error) {
       logger.error("Failed to copy image:", error);

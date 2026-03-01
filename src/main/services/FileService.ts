@@ -138,6 +138,22 @@ export class FileService {
   }
 
   /**
+   * S6-07: 從白名單外部路徑匯入檔案到白名單內的目標路徑。
+   * 僅驗證 targetPath（destination）確保寫入位置在白名單內；
+   * sourcePath 允許為外部路徑（例如拖放匯入的圖片、系統暫存目錄）。
+   * 注意：此方法不得用於一般檔案複製，僅供「外部匯入」場景使用。
+   */
+  async importExternalFile(sourcePath: string, targetPath: string): Promise<void> {
+    this.validatePath(targetPath); // 只保護寫入目的地
+    try {
+      await fs.mkdir(dirname(targetPath), { recursive: true });
+      await fs.copyFile(sourcePath, targetPath);
+    } catch (err) {
+      throw new Error(`匯入外部檔案失敗：${sourcePath} → ${targetPath}`, { cause: err });
+    }
+  }
+
+  /**
    * 開始監聽指定目錄的檔案變更
    * 若已有不同監聽路徑的監聽器，先停止
    */

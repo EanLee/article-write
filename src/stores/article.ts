@@ -402,8 +402,12 @@ export const useArticleStore = defineStore("article", () => {
     }
 
     const migrated = { ...article, frontmatter: fm };
-    // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
-    saveArticle(migrated, { preserveLastModified: true }).catch((err) => logger.error("[article store] frontmatter 移轉寫回失敗:", err));
+    // A6-03: 非同步寫回檔案，保留原本的 lastModified 避免排序跳動
+    // 失敗時通知使用者（而非靜默失敗），讓使用者知道需手動儲存
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) => {
+      logger.error("[article store] frontmatter 移轉寫回失敗:", err);
+      notify.error("Frontmatter 移轉寫回失敗", "請手動儲存文章以保題資料不遺失");
+    });
     return migrated;
   }
 
