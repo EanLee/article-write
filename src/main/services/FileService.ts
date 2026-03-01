@@ -80,6 +80,7 @@ export class FileService {
   }
 
   async exists(path: string): Promise<boolean> {
+    this.validatePath(path); // S4-02: 防止路徑枚舉（攻擊者探測白名單外路徑是否存在）
     try {
       await fs.access(path);
       return true;
@@ -91,8 +92,13 @@ export class FileService {
   /**
    * 檢查路徑是否存在且可寫入
    * 用於發布前置驗證，回傳結構化結果而非拋出例外
+   *
+   * ⚠️ 注意：所有接受 filePath/dirPath 參數的公開方法都必須呼叫 this.validatePath()
+   *    包含：readFile, writeFile, deleteFile, copyFile, readDirectory,
+   *           createDirectory, getFileStats, exists, checkWritable
    */
   async checkWritable(dirPath: string): Promise<{ exists: boolean; writable: boolean }> {
+    this.validatePath(dirPath); // S4-02: 防止路徑枚舉（攻擊者探測白名單外目錄的可寫狀態）
     try {
       await fs.access(dirPath, fsConstants.F_OK);
     } catch {
