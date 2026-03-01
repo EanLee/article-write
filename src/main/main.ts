@@ -11,6 +11,7 @@ import { PublishService } from "./services/PublishService.js";
 import { GitService } from "./services/GitService.js";
 import { SearchService } from "./services/SearchService.js";
 import { AIService, AIError } from "./services/AIService.js";
+import { IPC } from "./ipc-channels.js";
 import type { SearchQuery } from "../types/index.js";
 import type { SEOGenerationInput } from "./services/AIProvider/types.js";
 
@@ -98,11 +99,11 @@ function setupAutoUpdater() {
   autoUpdater.autoInstallOnAppQuit = true;
 
   autoUpdater.on("update-available", (info: { version: string }) => {
-    mainWindow?.webContents.send("update-available", { version: info.version });
+    mainWindow?.webContents.send(IPC.EVENT_UPDATE_AVAILABLE, { version: info.version });
   });
 
   autoUpdater.on("update-downloaded", (info: { version: string }) => {
-    mainWindow?.webContents.send("update-downloaded", { version: info.version });
+    mainWindow?.webContents.send(IPC.EVENT_UPDATE_DOWNLOADED, { version: info.version });
   });
 
   autoUpdater.on("error", (err: Error) => {
@@ -120,63 +121,57 @@ app.whenReady().then(async () => {
   // 載入設定並初始化檔案路徑白名單
   try {
     const initialConfig = await configService.getConfig();
-    fileService.setAllowedPaths([
-      initialConfig?.paths?.articlesDir,
-      initialConfig?.paths?.targetBlog,
-    ]);
+    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetBlog]);
   } catch {
     // 設定尚未建立時允許不設定（白名單將為空陣列，不限制存取）
   }
 
   // Register IPC handlers
-  ipcMain.handle("read-file", (_, path: string) => fileService.readFile(path));
-  ipcMain.handle("write-file", (_, path: string, content: string) => fileService.writeFile(path, content));
-  ipcMain.handle("delete-file", (_, path: string) => fileService.deleteFile(path));
-  ipcMain.handle("copy-file", (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath));
-  ipcMain.handle("read-directory", (_, path: string) => fileService.readDirectory(path));
-  ipcMain.handle("create-directory", (_, path: string) => fileService.createDirectory(path));
-  ipcMain.handle("get-file-stats", (_, path: string) => fileService.getFileStats(path));
+  ipcMain.handle(IPC.READ_FILE, (_, path: string) => fileService.readFile(path));
+  ipcMain.handle(IPC.WRITE_FILE, (_, path: string, content: string) => fileService.writeFile(path, content));
+  ipcMain.handle(IPC.DELETE_FILE, (_, path: string) => fileService.deleteFile(path));
+  ipcMain.handle(IPC.COPY_FILE, (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath));
+  ipcMain.handle(IPC.READ_DIRECTORY, (_, path: string) => fileService.readDirectory(path));
+  ipcMain.handle(IPC.CREATE_DIRECTORY, (_, path: string) => fileService.createDirectory(path));
+  ipcMain.handle(IPC.GET_FILE_STATS, (_, path: string) => fileService.getFileStats(path));
 
-  ipcMain.handle("get-config", () => configService.getConfig());
-  ipcMain.handle("set-config", async (_, config: any) => {
+  ipcMain.handle(IPC.GET_CONFIG, () => configService.getConfig());
+  ipcMain.handle(IPC.SET_CONFIG, async (_, config: any) => {
     await configService.setConfig(config);
     // 同步更新檔案存取白名單，防止路徑穿越攻擊
-    fileService.setAllowedPaths([
-      config?.paths?.articlesDir,
-      config?.paths?.targetBlog,
-    ]);
+    fileService.setAllowedPaths([config?.paths?.articlesDir, config?.paths?.targetBlog]);
   });
-  ipcMain.handle("validate-articles-dir", (_, path: string) => configService.validateArticlesDir(path));
-  ipcMain.handle("validate-astro-blog", (_, path: string) => configService.validateAstroBlog(path));
+  ipcMain.handle(IPC.VALIDATE_ARTICLES_DIR, (_, path: string) => configService.validateArticlesDir(path));
+  ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG, (_, path: string) => configService.validateAstroBlog(path));
 
   // Publish Service
-  ipcMain.handle("publish-article", async (_, article: any, config: any, onProgress?: any) => {
+  ipcMain.handle(IPC.PUBLISH_ARTICLE, async (_, article: any, config: any, onProgress?: any) => {
     return await publishService.publishArticle(article, config, onProgress);
   });
 
-  ipcMain.handle("sync-all-published", async (event, config: any) => {
+  ipcMain.handle(IPC.SYNC_ALL_PUBLISHED, async (event, config: any) => {
     return await publishService.syncAllPublished(config, (current, total, title) => {
-      event.sender.send("sync-progress", { current, total, title });
+      event.sender.send(IPC.EVENT_SYNC_PROGRESS, { current, total, title });
     });
   });
 
   // Git Service
-  ipcMain.handle("git-status", (_, repoPath: string) => gitService.getStatus(repoPath));
-  ipcMain.handle("git-add", (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths));
-  ipcMain.handle("git-commit", (_, repoPath: string, options: { message: string; addAll?: boolean }) => gitService.commit(repoPath, options));
-  ipcMain.handle("git-push", (_, repoPath: string, options?: { remote?: string; branch?: string }) => gitService.push(repoPath, options));
-  ipcMain.handle("git-add-commit-push", (_, repoPath: string, commitMessage: string) => gitService.addCommitPush(repoPath, commitMessage));
-  ipcMain.handle("git-log", (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count));
+  ipcMain.handle(IPC.GIT_STATUS, (_, repoPath: string) => gitService.getStatus(repoPath));
+  ipcMain.handle(IPC.GIT_ADD, (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths));
+  ipcMain.handle(IPC.GIT_COMMIT, (_, repoPath: string, options: { message: string; addAll?: boolean }) => gitService.commit(repoPath, options));
+  ipcMain.handle(IPC.GIT_PUSH, (_, repoPath: string, options?: { remote?: string; branch?: string }) => gitService.push(repoPath, options));
+  ipcMain.handle(IPC.GIT_ADD_COMMIT_PUSH, (_, repoPath: string, commitMessage: string) => gitService.addCommitPush(repoPath, commitMessage));
+  ipcMain.handle(IPC.GIT_LOG, (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count));
 
-  ipcMain.handle("start-dev-server", (_, projectPath: string) => processService.startDevServer(projectPath));
-  ipcMain.handle("stop-dev-server", () => processService.stopDevServer());
-  ipcMain.handle("get-server-status", () => processService.getServerStatus());
+  ipcMain.handle(IPC.START_DEV_SERVER, (_, projectPath: string) => processService.startDevServer(projectPath));
+  ipcMain.handle(IPC.STOP_DEV_SERVER, () => processService.stopDevServer());
+  ipcMain.handle(IPC.GET_SERVER_STATUS, () => processService.getServerStatus());
 
   // 搜尋
-  ipcMain.handle("search:query", (_event, query: SearchQuery) => {
+  ipcMain.handle(IPC.SEARCH_QUERY, (_event, query: SearchQuery) => {
     return searchService.search(query);
   });
-  ipcMain.handle("search:build-index", async (_event, articlesDir: string) => {
+  ipcMain.handle(IPC.SEARCH_BUILD_INDEX, async (_event, articlesDir: string) => {
     await searchService.buildIndex(articlesDir);
     return searchService.getIndexSize();
   });
@@ -204,12 +199,12 @@ app.whenReady().then(async () => {
   ipcMain.handle("is-file-watching", () => fileService.isWatching());
 
   // Auto-Update
-  ipcMain.handle("install-update", () => {
+  ipcMain.handle(IPC.INSTALL_UPDATE, () => {
     autoUpdater.quitAndInstall();
   });
 
   // Directory selection
-  ipcMain.handle("select-directory", async (_, options?: { title?: string; defaultPath?: string }) => {
+  ipcMain.handle(IPC.SELECT_DIRECTORY, async (_, options?: { title?: string; defaultPath?: string }) => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
       title: options?.title || "選擇資料夾",
@@ -224,7 +219,7 @@ app.whenReady().then(async () => {
   });
 
   // AI Service
-  ipcMain.handle("ai:generate-seo", async (_, input: SEOGenerationInput, provider?: "claude" | "gemini" | "openai") => {
+  ipcMain.handle(IPC.AI_GENERATE_SEO, async (_, input: SEOGenerationInput, provider?: "claude" | "gemini" | "openai") => {
     try {
       const data = await aiService.generateSEO(input, provider);
       return { success: true, data };
@@ -235,13 +230,13 @@ app.whenReady().then(async () => {
       return { success: false, code: "AI_API_ERROR", message: String(e) };
     }
   });
-  ipcMain.handle("ai:set-api-key", (_, provider: string, key: string) => {
+  ipcMain.handle(IPC.AI_SET_API_KEY, (_, provider: string, key: string) => {
     configService.setApiKey(provider as "claude" | "gemini" | "openai", key);
   });
-  ipcMain.handle("ai:get-has-api-key", (_, provider: string) => {
+  ipcMain.handle(IPC.AI_GET_HAS_API_KEY, (_, provider: string) => {
     return configService.hasApiKey(provider as "claude" | "gemini" | "openai");
   });
-  ipcMain.handle("ai:get-active-provider", () => {
+  ipcMain.handle(IPC.AI_GET_ACTIVE_PROVIDER, () => {
     return aiService.getActiveProvider();
   });
 
