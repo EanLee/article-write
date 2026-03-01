@@ -165,6 +165,8 @@ stopWatching(): void {
 | `fix/electron-d-ts-single-source` | A4-02 + Q4-TS-B electron.d.ts 整合 | ✅ 已合入 develop |
 | `fix/frontmatter-date-field` | Q4-TS-A Frontmatter 補充 date/draft 欄位 | ✅ 已合入 develop |
 | `refactor/unify-editor-theme-type` | A4-01 EditorTheme enum→字面型別 | ✅ 已合入 develop |
+| `refactor/unify-error-messages` | M-01 所有英文錯誤訊息中文化 | ✅ 已合入 develop |
+| `refactor/decouple-ai-store` | M-07 aiPanel store 解除 article/seo store 耦合 | ✅ 已合入 develop |
 
 ---
 
