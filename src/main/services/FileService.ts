@@ -28,7 +28,7 @@ export class FileService {
     const normalized = normalize(resolve(filePath));
     const allowed = this.allowedBasePaths.some((base) => normalized === base || normalized.startsWith(base + sep));
     if (!allowed) {
-      throw new Error(`Access denied: path outside allowed directories: ${filePath}`);
+      throw new Error(`拒絕存取：路徑超出允許範圍：${filePath}`);
     }
   }
 
@@ -37,7 +37,7 @@ export class FileService {
     try {
       return await fs.readFile(filePath, "utf-8");
     } catch (err) {
-      throw new Error(`Failed to read file: ${filePath}`, { cause: err });
+      throw new Error(`讀取檔案失敗：${filePath}`, { cause: err });
     }
   }
 
@@ -48,7 +48,7 @@ export class FileService {
       await fs.mkdir(dirname(filePath), { recursive: true });
       await fs.writeFile(filePath, content, "utf-8");
     } catch (err) {
-      throw new Error(`Failed to write file: ${filePath}`, { cause: err });
+      throw new Error(`寫入檔案失敗：${filePath}`, { cause: err });
     }
   }
 
@@ -57,7 +57,7 @@ export class FileService {
     try {
       await fs.unlink(filePath);
     } catch (err) {
-      throw new Error(`Failed to delete file: ${filePath}`, { cause: err });
+      throw new Error(`刪除檔案失敗：${filePath}`, { cause: err });
     }
   }
 
@@ -66,7 +66,7 @@ export class FileService {
     try {
       return await fs.readdir(dirPath);
     } catch (err) {
-      throw new Error(`Failed to read directory: ${dirPath}`, { cause: err });
+      throw new Error(`讀取目錄失敗：${dirPath}`, { cause: err });
     }
   }
 
@@ -75,7 +75,7 @@ export class FileService {
     try {
       await fs.mkdir(dirPath, { recursive: true });
     } catch (err) {
-      throw new Error(`Failed to create directory: ${dirPath}`, { cause: err });
+      throw new Error(`建立目錄失敗：${dirPath}`, { cause: err });
     }
   }
 
@@ -133,7 +133,7 @@ export class FileService {
       await fs.mkdir(dirname(targetPath), { recursive: true });
       await fs.copyFile(sourcePath, targetPath);
     } catch (err) {
-      throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}`, { cause: err });
+      throw new Error(`複製檔案失敗：${sourcePath} → ${targetPath}`, { cause: err });
     }
   }
 

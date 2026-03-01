@@ -523,7 +523,7 @@ export class ConverterService {
       // 檢查來源檔案是否存在
       const sourceExists = await this.fileExists(sourcePath);
       if (!sourceExists) {
-        throw new Error(`Source image file not found: ${sourcePath}`);
+        throw new Error(`來源圖片不存在：${sourcePath}`);
       }
 
       // 確保目標目錄存在
@@ -647,7 +647,7 @@ export class ConverterService {
       const indexPath = this.joinPath(targetDir, "index.md");
       const indexExists = await this.fileExists(indexPath);
       if (!indexExists) {
-        issues.push("index.md file not found");
+        issues.push("找不到 index.md 檔案");
       }
 
       // 檢查圖片目錄和檔案
@@ -657,7 +657,7 @@ export class ConverterService {
         const imagesDirExists = await this.fileExists(imagesDir);
 
         if (!imagesDirExists) {
-          issues.push("images directory not found");
+          issues.push("找不到 images 目錄");
         } else {
           // 檢查每個引用的圖片是否存在
           for (const imageRef of imageReferences) {
@@ -666,7 +666,7 @@ export class ConverterService {
               const imagePath = this.joinPath(imagesDir, imageName);
               const imageExists = await this.fileExists(imagePath);
               if (!imageExists) {
-                issues.push(`Image file not found: ${imageName}`);
+                issues.push(`找不到圖片檔案：${imageName}`);
               }
             }
           }

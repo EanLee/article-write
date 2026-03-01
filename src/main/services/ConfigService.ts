@@ -44,7 +44,7 @@ export class ConfigService {
     try {
       await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), "utf-8")
     } catch {
-      throw new Error("Failed to save configuration")
+      throw new Error("設定儲存失敗")
     }
   }
 
