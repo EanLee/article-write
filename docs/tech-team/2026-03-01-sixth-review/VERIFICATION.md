@@ -25,8 +25,8 @@
 
 | ID | 嚴重性 | 描述 | 狀態 | 建議分支 |
 |----|--------|------|------|---------|
-| P6-01 | 🔴 | filteredArticles 無防抖 + zh-TW 校對排序 | ⬜ 待修 | `perf/filtered-articles-debounce` |
-| P6-02 | 🔴 | SearchService O(N×L) 線性掃描，無倒排索引 | ⬜ 待修 | `perf/search-trigram-index` |
+| P6-01 | 🔴 | filteredArticles 無防抖 + zh-TW 校對排序 | ✅ 已修（`5f2fa3f`，隨 SOLID6-01） | `perf/filtered-articles-debounce` |
+| P6-02 | 🔴 | SearchService O(N×L) 線性掃描，無倒排索引 | ✅ 已修（`d870ae9`） | `perf/search-trigram-index` |
 | P6-03 | 🟡 | MetadataCacheService 串行 I/O | ⬜ 待修 | P2 |
 | P6-04 | 🟡 | ConverterService processImages 未使用 batchCopyImages | ⬜ 待修 | P2 |
 | P6-05 | 🔴 CRITICAL | ImageService O(I×A×C) + 500 IPC 炸彈 | ✅ 已修（`1bed3b4`） | `fix/image-validation-batch` |
@@ -38,15 +38,15 @@
 
 | ID | 嚴重性 | 原則 | 描述 | 狀態 |
 |----|--------|------|------|------|
-| SOLID6-01 | 🔴 | SRP | article.ts 上帝 Store（611 行 9 職責） | ⬜ P3 |
+| SOLID6-01 | 🔴 | SRP | article.ts 上帝 Store（611 行 9 職責） | ✅ 已修（`5f2fa3f`） |
 | SOLID6-02 | 🟡 | SRP | reloadArticle 複製 ArticleService 邏輯 | ✅ 已修（`e1417ff`，合併 A6-01） |
 | SOLID6-03 | 🟡 | SRP | AutoSaveService 混合 timer 與 Vue 狀態 | ⬜ P2 |
 | SOLID6-04 | 🟡 | OCP | ArticleFilterCategory enum 硬編碼 | ⬜ P3 |
 | SOLID6-07 | 🟡 | LSP | AutoSaveService.initialize() 隱含前置條件 | ⬜ P3 |
-| SOLID6-08 | 🔴 | ISP | window.electronAPI 肥介面（30+ 方法） | ⬜ P3 |
+| SOLID6-08 | 🔴 | ISP | window.electronAPI 肥介面（30+ 方法） | ✅ 已修（`a4c3c62`） |
 | SOLID6-09 | 🟡 | ISP | Frontmatter 混合廢棄欄位 | ⬜ P3 |
-| SOLID6-10 | 🔴 | DIP | article.ts 7 次直呼 window.electronAPI | ⬜ P2 |
-| SOLID6-11 | 🔴 | DIP | AutoSaveService import Vue ref | ⬜ P2 |
+| SOLID6-10 | 🔴 | DIP | article.ts 7 次直呼 window.electronAPI | ✅ 已修（`1f58dc5`） |
+| SOLID6-11 | 🔴 | DIP | AutoSaveService import Vue ref | ✅ 已修（`d025d64`） |
 | SOLID6-12 | 🟡 | DIP | PublishService 直接 import Node fs | ⬜ P3 |
 
 ---
