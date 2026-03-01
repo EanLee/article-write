@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from "child_process"
 import { BrowserWindow } from "electron"
+import { IPC } from "../ipc-channels.js"
 
 export class ProcessService {
   private devServerProcess: ChildProcess | null = null
@@ -16,7 +17,8 @@ export class ProcessService {
     // Send to all renderer windows
     const windows = BrowserWindow.getAllWindows()
     windows.forEach(win => {
-      win.webContents.send("server-log", { log, type, timestamp: new Date().toISOString() })
+      // QUAL6-01: 使用 IPC.EVENT_SERVER_LOG 常數，防止拼錯 channel 名稱
+      win.webContents.send(IPC.EVENT_SERVER_LOG, { log, type, timestamp: new Date().toISOString() })
     })
   }
 
@@ -37,8 +39,9 @@ export class ProcessService {
     this.sendLogToRenderer(`啟動開發伺服器: ${projectPath}`)
 
     return new Promise((resolve, reject) => {
-      // Windows 需要使用 shell: true 來執行 npm
-      this.devServerProcess = spawn("npm", ["run", "dev"], {
+      // QUAL6-07: 改用 pnpm（此專案使用 pnpm，不徳用 npm）
+      // Windows 需要使用 shell: true 來執行 pnpm
+      this.devServerProcess = spawn("pnpm", ["run", "dev"], {
         cwd: projectPath,
         stdio: "pipe",
         shell: true
