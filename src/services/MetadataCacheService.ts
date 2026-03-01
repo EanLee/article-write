@@ -10,7 +10,10 @@ export interface MetadataCache {
 const CACHE_DIR = ".writeflow"
 const CACHE_FILE = "metadata-cache.json"
 
-class MetadataCacheService {
+/** 預設記憶體內快取 TTL：5 分鐘（可由呼叫端覆蓋） */
+export const DEFAULT_TTL_MS = 5 * 60 * 1000
+
+export class MetadataCacheService {
   private cache: MetadataCache | null = null
   private markdownService = new MarkdownService()
 
@@ -23,6 +26,16 @@ class MetadataCacheService {
     return `${this.getCacheDir(articlesDir)}/${CACHE_FILE}`
   }
 
+  /**
+   * 判斷快取是否在 TTL 時效內
+   * @param cache 要檢查的快取物件
+   * @param ttlMs TTL 毫秒數，預設 DEFAULT_TTL_MS（5 分鐘）
+   */
+  isFresh(cache: MetadataCache, ttlMs: number = DEFAULT_TTL_MS): boolean {
+    const lastScannedMs = new Date(cache.lastScanned).getTime()
+    return Date.now() - lastScannedMs < ttlMs
+  }
+
   async load(articlesDir: string): Promise<MetadataCache | null> {
     try {
       const content = await electronFileSystem.readFile(this.getCachePath(articlesDir))
@@ -31,6 +44,39 @@ class MetadataCacheService {
     } catch {
       return null
     }
+  }
+
+  /**
+   * 取得快取，若記憶體快取不新鮮則從磁碟讀取；
+   * 若磁碟快取不存在或亦超過 TTL，則在背景自動掃描並立即回傳舊快取（或空值）。
+   * @param articlesDir 文章目錄路徑
+   * @param ttlMs TTL 毫秒數，預設 DEFAULT_TTL_MS（5 分鐘）
+   */
+  async getOrScan(
+    articlesDir: string,
+    ttlMs: number = DEFAULT_TTL_MS
+  ): Promise<MetadataCache | null> {
+    // 1. 記憶體快取若新鮮，直接回傳
+    if (this.cache && this.isFresh(this.cache, ttlMs)) {
+      return this.cache
+    }
+
+    // 2. 嘗試從磁碟載入
+    const diskCache = await this.load(articlesDir)
+
+    // 3. 若磁碟快取存在且新鮮，回傳並更新記憶體快取
+    if (diskCache && this.isFresh(diskCache, ttlMs)) {
+      this.cache = diskCache
+      return diskCache
+    }
+
+    // 4. 快取過期或不存在 → 背景掃描（不阻塞呼叫端）
+    this.scan(articlesDir).catch(() => {
+      // 掃描失敗靜默處理，不影響呼叫端
+    })
+
+    // 5. 立即回傳舊快取（或 null），讓呼叫端可以繼續
+    return diskCache ?? this.cache
   }
 
   async scan(articlesDir: string): Promise<MetadataCache> {
