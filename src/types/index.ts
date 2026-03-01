@@ -38,11 +38,10 @@ export enum ArticleFilterCategory {
 
 /**
  * 編輯器主題
+ * 使用字面型別聯集（非 enum），確保與 Zod schema z.enum(["light","dark"]) 推論型別相容
+ * 修正 A4-01：AppConfig 雙重定義造成 TypeScript 錯誤
  */
-export enum EditorTheme {
-  Light = "light",
-  Dark = "dark"
-}
+export type EditorTheme = "light" | "dark"
 
 /**
  * 儲存狀態
