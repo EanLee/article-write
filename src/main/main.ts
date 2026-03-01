@@ -267,5 +267,6 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   // 清理運行中的進程和檔案監聽
   fileService.stopWatching();
+  fileService.clearWatchListeners(); // app 完全關閉時才清除所有訂閱者
   processService.stopDevServer();
 });

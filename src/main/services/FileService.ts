@@ -175,14 +175,23 @@ export class FileService {
   }
 
   /**
-   * 停止檔案監聽，清除所有訂閱者
+   * 停止檔案監聽。
+   * ⚠️ 刻意不清除 watchCallbacks：
+   *   addWatchListener() 訂閱者在 watcher 重啟後應繼續有效（符合 SRP）。
+   *   若需清除所有訂閱者，請呼叫 clearWatchListeners()。
    */
   stopWatching(): void {
     if (this.watcher) {
       this.watcher.close();
       this.watcher = null;
-      this.watchCallbacks.clear();
     }
+  }
+
+  /**
+   * 清除所有訂閱者（測試環境或完全關閉時使用）
+   */
+  clearWatchListeners(): void {
+    this.watchCallbacks.clear();
   }
 
   /**
