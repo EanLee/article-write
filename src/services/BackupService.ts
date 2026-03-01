@@ -58,7 +58,7 @@ export class BackupService {
   /**
    * 從備份還原文章
    */
-  restoreFromBackup(filePath: string, backupId: string): { content: string; frontmatter: any } | null {
+  restoreFromBackup(filePath: string, backupId: string): { content: string; frontmatter: Record<string, unknown> } | null {
     const backup = this.backups.get(filePath);
     if (!backup) {
       return null;

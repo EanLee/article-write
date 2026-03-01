@@ -180,7 +180,9 @@ export class ArticleService {
       for (const topEntry of topEntries) {
         const topPath = `${vaultPath}/${topEntry}`;
         const topStats = await this.fileSystem.getFileStats(topPath);
-        if (!topStats?.isDirectory) { continue; }
+        if (!topStats?.isDirectory) {
+          continue;
+        }
 
         // 先嘗試直接讀取此資料夾下的 .md 檔（新結構：vaultPath/Category/*.md）
         const topFiles = await this.fileSystem.readDirectory(topPath);
@@ -201,7 +203,9 @@ export class ArticleService {
           for (const subEntry of topFiles) {
             const subPath = `${topPath}/${subEntry}`;
             const subStats = await this.fileSystem.getFileStats(subPath);
-            if (!subStats?.isDirectory) { continue; }
+            if (!subStats?.isDirectory) {
+              continue;
+            }
 
             const subFiles = await this.fileSystem.readDirectory(subPath);
             const subMdFiles = subFiles.filter((f) => f.endsWith(".md"));
