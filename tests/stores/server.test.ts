@@ -214,8 +214,8 @@ describe("Server Store", () => {
       store.addLog("第 101 條日誌");
 
       expect(store.status.logs).toHaveLength(100);
-      expect(store.status.logs[0]).toBe("日誌 1"); // 第 0 條被移除
-      expect(store.status.logs[99]).toBe("第 101 條日誌");
+      expect(store.status.logs![0]).toBe("日誌 1"); // 第 0 條被移除
+      expect(store.status.logs![99]).toBe("第 101 條日誌");
     });
 
     it("logs 為 undefined 時應先初始化再加入", () => {
