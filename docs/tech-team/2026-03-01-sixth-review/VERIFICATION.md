@@ -10,13 +10,13 @@
 
 | ID | 嚴重性 | 描述 | 狀態 | 建議分支 |
 |----|--------|------|------|---------|
-| S6-01 | 🔴 CVSS 6.8 | ProcessService `shell: true` 命令注入 | ⬜ 待修 | `fix/process-service-race` |
+| S6-01 | 🔴 CVSS 6.8 | ProcessService `shell: true` 命令注入 | ✅ 已修（`a5af894` 內嵌，`pnpm.cmd` 直接呼叫） | `fix/process-service-race` |
 | S6-02 | 🔴 CVSS 7.1 | ConfigService safeStorage 靜默 base64 降級 | ✅ 已修（`71e69ed`） | `fix/config-safe-storage` |
 | S6-03 | 🟠 CVSS 6.5 | 路徑白名單缺口（imagesDir / GitService / FileWatch） | ✅ 已修（`44a3183`） | `fix/path-whitelist-gaps` |
 | S6-04 | 🟠 | validatePath fail-open（白名單空時放行） | ✅ 已修（`44a3183`） | `fix/path-whitelist-gaps` |
 | S6-05 | 🟡 | sandbox: false（有技術文件支撐） | 🟡 接受現況 | — |
-| S6-06 | 🟡 CVSS 4.3 | AI_SET_API_KEY provider 無 runtime 驗證 | ⬜ 待修 | `fix/path-whitelist-gaps` |
-| S6-07 | 🟡 | ImageService sourcePath 未受白名單保護 | ⬜ 待修 | P2 |
+| S6-06 | 🟡 CVSS 4.3 | AI_SET_API_KEY provider 無 runtime 驗證 | ✅ 已修（`a5af894`，VALID_AI_PROVIDERS 白名單驗證） | `fix/path-whitelist-gaps` |
+| S6-07 | 🟡 | ImageService sourcePath 未受白名單保護 | ✅ 已修（`a5af894`，importExternalFile） | P2 |
 | S6-08 | 🟢 | Dev 模式 CSP unsafe-inline（正常設計） | ✅ 可接受 | — |
 
 ---
@@ -56,8 +56,8 @@
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
 | A6-01 | 🔴 | Store 雙重依賴路徑，reloadArticle 資料不一致 | ✅ 已修（`e1417ff`） |
-| A6-02 | 🟠 | main.ts IPC 登錄為 God Function（~150 行） | ⬜ P2 |
-| A6-03 | 🟠 | migrateArticleFrontmatter fire-and-forget 競態 | ⬜ P2 |
+| A6-02 | 🟠 | main.ts IPC 登錄為 God Function（~150 行） | ✅ 已修（`a5af894`，提取 registerIpcHandlers.ts） |
+| A6-03 | 🟠 | migrateArticleFrontmatter fire-and-forget 競態 | ✅ 已修（`a5af894`，失敗時 notify.error()） |
 | A6-04 | 🟠 | Preload 暴露低階 FS 原語，可繞過業務邏輯 | ⬜ P3 |
 | A6-05 | 🟡 | ArticleFilterCategory enum（→ 同 SOLID6-04） | ⬜ P3 |
 | A6-06 | 🟡 | Store nextTick/watch 在模組初始化時隱式觸發 | ⬜ P3 |
@@ -87,7 +87,7 @@
 | QUAL6-01 | 🔴 | ProcessService 零測試 + hardcoded IPC channel | ✅ 已修（`420e292`） |
 | QUAL6-02 | 🔴 | startDevServer() 競態計時器假就緒 | ✅ 已修（`e168a1f`） |
 | QUAL6-03 | 🔴 | autoDownload = true，未改為使用者確認 | ✅ 已修（`05d5c50`） |
-| QUAL6-04 | 🟠 | ConfigService 零測試（捆綁 S6-02）| ⬜ P1 |
+| QUAL6-04 | 🟠 | ConfigService 零測試（捆綁 S6-02）| ✅ 已修（`a5af894`，12 項測試） |
 | QUAL6-05 | 🟠 | article.ts 611 行測試維護成本高（→ SOLID6-01）| ⬜ P3 |
 | QUAL6-06 | 🟠 | ImageService 648 行，型別定義混入實作檔 | ⬜ P3 |
 | QUAL6-07 | 🟠 | ProcessService hardcoded `npm run dev`（應為 pnpm）| ✅ 已修（`420e292`） |
