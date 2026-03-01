@@ -1,7 +1,7 @@
 # 效能 / O(n) 評估報告 — 第三次全面評估
 
-**審查者**: 效能工程師 Agent  
-**日期**: 2026-03-01  
+**審查者**: 效能工程師 Agent
+**日期**: 2026-03-01
 **評估範圍**: WriteFlow v0.1.0，聚焦演算法複雜度、記憶體、IPC 效率、訂閱管理
 
 ---
@@ -65,7 +65,7 @@ function setupFileWatching() {
     fileChangeUnsubscribe();
     fileChangeUnsubscribe = null;
   }
-  
+
   // 建立新訂閱並保存清理函數
   fileChangeUnsubscribe = window.electronAPI.onFileChange((data) => {
     handleFileChange(data);
@@ -89,7 +89,7 @@ for (const topEntry of topEntries) {
   const topPath = `${vaultPath}/${topEntry}`;
   const topStats = await this.fileSystem.getFileStats(topPath); // ← IPC 往返
   if (!topStats?.isDirectory) { continue; }
-  
+
   // ... 再次掃描
   for (const subEntry of topFiles) {
     const subPath = `${topPath}/${subEntry}`;

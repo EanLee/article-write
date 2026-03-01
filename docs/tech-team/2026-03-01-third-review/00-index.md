@@ -1,7 +1,7 @@
 # 第三次全面技術評估 — 索引
 
-**日期**: 2026-03-01  
-**評估版本**: WriteFlow v0.1.0  
+**日期**: 2026-03-01
+**評估版本**: WriteFlow v0.1.0
 **評估基準**: 第二次 review 後（commit `d5cc210`，11/11 修復全部完成）
 
 ---
@@ -22,28 +22,35 @@
 
 ## 綜合問題矩陣（依優先順序）
 
-### 🔴 立即（當天修復）
+### ✅ 已修正（commit `fe4468c`，2026-03-01 當天）
+
+| 問題 ID | 描述 | 驗證指令 |
+|--------|------|---------|
+| S-01 | `getFileStats()` 補加 `validatePath()` | `grep -n "getFileStats" src/main/services/FileService.ts` |
+| S-02 | `writeFile()`/`copyFile()` 補加 `{ cause: err }` | `grep -n "cause: err" src/main/services/FileService.ts` |
+| S-05 | `searchService.updateFile().catch()` 改為記錄錯誤 | `grep -n "updateFile" src/main/main.ts` |
+| A-01 | 檔案監聽 IPC handler 改用常數（`refactor/ipc-channels-constants` 部份遺漏） | `grep -n "start-file-watching\|stop-file-watch" src/main/main.ts` |
+
+> ⚠️ **根本原因說明**: S-02 是 Fix-05 的部份迴歸（只修了 4/6 個方法）；A-01 是 `refactor/ipc-channels-constants` 的部份遺漏（評估報告撰寫時以為已全修）。參見 [VERIFICATION.md](./VERIFICATION.md) 防止再發。
+
+### 🔴 仍待修（立即）
 
 | 問題 ID | 描述 | 出處 |
 |--------|------|------|
-| S-01 | `FileService.getFileStats()` 未呼叫 `validatePath()` | 資安 |
-| Q-02a | `searchBuildIndex?.()?.catch(() => {})` 靜默失效 | 品質 |
-| Q-02b | `migrateArticleFrontmatter` 失敗只 console.warn | 品質 |
-| S-05 | `searchService.updateFile().catch(() => {})` 靜默 | 資安/品質 |
+| Q-02a | `searchBuildIndex?.()?.catch(() => {})` 靜默失效（`article.ts`）| 品質 |
+| Q-02b | `migrateArticleFrontmatter` 失敗只 `console.warn` | 品質 |
 
 ### 🟠 本 Sprint
 
 | 問題 ID | 描述 | 出處 |
 |--------|------|------|
 | P-01/P-06 | `setupFileWatching()` 訂閱洩漏（無 unsubscribe） | 效能/SOLID |
-| S-02 | `writeFile()`/`copyFile()` 未傳 `{ cause: err }` | 資安 |
 | SOLID-02/Q-04 | `createArticle()` 改用 `ArticleService.generateId()`；`substr` → `substring` | SOLID/品質 |
 
 ### 🟡 下 Sprint
 
 | 問題 ID | 描述 | 出處 |
 |--------|------|------|
-| A-01 | IPC 字面字串移至常數（`start-file-watching` 等） | 架構 |
 | SOLID-03 | `parseArticlePath()` 硬編碼 "Publish" → 常數 | SOLID |
 | Q-03 | `setTimeout(100ms)` 重構為顯式 Promise 初始化流程 | 品質 |
 | S-04 | `setConfig` IPC handler 加入 Zod schema 驗證 | 資安 |

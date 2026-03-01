@@ -1,7 +1,7 @@
 # 程式品質評估報告 — 第三次全面評估
 
-**審查者**: 程式品質工程師 Agent  
-**日期**: 2026-03-01  
+**審查者**: 程式品質工程師 Agent
+**日期**: 2026-03-01
 **評估範圍**: WriteFlow v0.1.0，聚焦型別安全、錯誤處理、靜默失敗、測試覆蓋率
 
 ---
@@ -89,7 +89,7 @@ migrateArticleFrontmatter(article).catch((err) => {
 });
 ```
 
-### 案例 3: `searchService.updateFile().catch(() => {})` 
+### 案例 3: `searchService.updateFile().catch(() => {})`
 
 **位置**: `src/main/main.ts:185`
 

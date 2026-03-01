@@ -1,7 +1,7 @@
 # 資安評估報告 — 第三次全面評估
 
-**審查者**: 資安工程師 Agent  
-**日期**: 2026-03-01  
+**審查者**: 資安工程師 Agent
+**日期**: 2026-03-01
 **評估範圍**: WriteFlow v0.1.0，聚焦 Electron IPC、檔案系統、路徑驗證、錯誤洩漏
 
 ---
@@ -105,8 +105,8 @@ try {
 
 `validatePath()` 在 `allowedBasePaths.length === 0` 時直接 pass（跳過驗證）。如果首次啟動或設定損壞，IPC handlers 在 `setAllowedPaths` 被呼叫之前就已可用。
 
-**評估**: 此問題在第二次評估已記錄。設計意圖是允許首次設定。  
-**緩解**: Electron 的 contextIsolation + sandbox=false 已提供 IPC 層面的基本保護；首次啟動情境中能控制 filePath 的攻擊面有限。  
+**評估**: 此問題在第二次評估已記錄。設計意圖是允許首次設定。
+**緩解**: Electron 的 contextIsolation + sandbox=false 已提供 IPC 層面的基本保護；首次啟動情境中能控制 filePath 的攻擊面有限。
 **建議**: 考慮在初始化完成前對 `READ_FILE`/`WRITE_FILE` 等危險操作返回拒絕（保留 `GET_CONFIG`/`SET_CONFIG` 例外）。
 
 ---
