@@ -397,9 +397,7 @@ export const useArticleStore = defineStore("article", () => {
         throw new Error("Article not found");
       }
 
-      const newStatus = article.status === ArticleStatus.Draft
-        ? ArticleStatus.Published
-        : ArticleStatus.Draft;
+      const newStatus = article.status === ArticleStatus.Draft ? ArticleStatus.Published : ArticleStatus.Draft;
 
       const updatedArticle = {
         ...article,
@@ -422,46 +420,57 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-
   /**
    * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
    * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
    */
   function migrateArticleFrontmatter(article: Article): Article {
-    const fm = { ...article.frontmatter }
-    let dirty = false
+    const fm = { ...article.frontmatter };
+    let dirty = false;
 
     // 1. 補上 created（建立時間）
     // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      fm.created = (fm as any).date || new Date().toISOString().split("T")[0]
-      dirty = true
+      fm.created = fm.date || new Date().toISOString().split("T")[0];
+      dirty = true;
     }
 
     // 2. 移轉 date → pubDate
-    const legacyDate = (fm as any).date
+    const legacyDate = fm.date;
     if (legacyDate !== undefined) {
       if (!fm.pubDate) {
-        fm.pubDate = legacyDate
+        fm.pubDate = legacyDate;
       }
-      delete (fm as any).date
-      dirty = true
+      delete fm.date;
+      dirty = true;
     }
 
     // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
-    if (fm.title === undefined) { fm.title = ""; dirty = true }
-    if (fm.description === undefined) { fm.description = ""; dirty = true }
-    if (fm.slug === undefined) { fm.slug = ""; dirty = true }
-    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
+    if (fm.title === undefined) {
+      fm.title = "";
+      dirty = true;
+    }
+    if (fm.description === undefined) {
+      fm.description = "";
+      dirty = true;
+    }
+    if (fm.slug === undefined) {
+      fm.slug = "";
+      dirty = true;
+    }
+    if (fm.keywords === undefined) {
+      fm.keywords = [];
+      dirty = true;
+    }
 
-    if (!dirty) {return article}
+    if (!dirty) {
+      return article;
+    }
 
-    const migrated = { ...article, frontmatter: fm }
+    const migrated = { ...article, frontmatter: fm };
     // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
-    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
-      console.error("[article store] frontmatter 移轉寫回失敗:", err)
-    )
-    return migrated
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) => console.error("[article store] frontmatter 移轉寫回失敗:", err));
+    return migrated;
   }
 
   function setCurrentArticle(article: Article | null) {

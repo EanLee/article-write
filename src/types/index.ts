@@ -86,6 +86,14 @@ export interface Frontmatter {
   title?: string  // 草稿可能尚未填寫標題
   description?: string
   /**
+   * 舊版 YAML date 欄位（ISO 8601 字串）。
+   * ⚠️ 已棄用：新文章應使用 `created` 與 `pubDate`。
+   * WriteFlow 在 `migrateArticleFrontmatter()` 中會將此欄位遷移至 `created` / `pubDate`，
+   * 遷移完成後即刪除此欄位。保留此型別宣告是為了讓舊有 YAML 能正確解析。
+   * @deprecated 使用 `pubDate` 代替
+   */
+  date?: string
+  /**
    * 建立時間。
    * WriteFlow 首次開啟文章時自動填入：
    * - 若原有 `date` 欄位有值 → 沿用 `date` 的值（date 是最接近建立時間的資訊）
@@ -99,6 +107,12 @@ export interface Frontmatter {
    */
   pubDate?: string
   lastmod?: string
+  /**
+   * 草稿旗標（Astro / Hugo 等框架慣例）。
+   * true = 建置時不公開；false 或未設定 = 正常發佈。
+   * WriteFlow 使用 `status` 管理狀態，此欄位保留供靜態框架讀取。
+   */
+  draft?: boolean
   status?: ArticleStatus     // 文章狀態，未設定預設為 draft
   tags?: string[]        // 改為可選，防止 undefined 導致崩潰
   categories?: string[]  // 改為可選，防止 undefined 導致崩潰
