@@ -8,125 +8,133 @@
  *   允許的路徑嘗試實際 fs 讀寫（會因檔案不存在拋出 "Failed to..."）。
  *   如此不需 mock fs 即可區分「被拒絕」vs「允許但檔案不存在」。
  */
-import { describe, it, expect, beforeEach } from "vitest"
-import { FileService } from "@/main/services/FileService"
-import path from "path"
+import { describe, it, expect, beforeEach } from "vitest";
+import { FileService } from "@/main/services/FileService";
+import path from "path";
 
 // 測試用根目錄（不需實際存在）
-const VAULT = path.resolve("/test/vault_unit")
-const BLOG = path.resolve("/test/blog_unit")
-const OUTSIDE = path.resolve("/etc/passwd_test")
+const VAULT = path.resolve("/test/vault_unit");
+const BLOG = path.resolve("/test/blog_unit");
+const OUTSIDE = path.resolve("/etc/passwd_test");
 
 /** 判斷成功通過路徑驗證（嘗試實際 fs 操作，會因不存在而失敗但不是 "拒絕存取"） */
 function isAllowed(err: unknown): boolean {
-  return err instanceof Error && !err.message.includes("拒絕存取")
+  return err instanceof Error && !err.message.includes("拒絕存取");
 }
 
 // ─── setAllowedPaths 行為 ─────────────────────────────────────────────────────
 
 describe("FileService — setAllowedPaths", () => {
-  let service: FileService
+  let service: FileService;
 
   beforeEach(() => {
-    service = new FileService()
-  })
+    service = new FileService();
+  });
 
   it("未設定白名單時，應拒絕存取（fail-close，S6-04）", async () => {
-    let err: unknown
+    let err: unknown;
     try {
-      await service.readFile(OUTSIDE)
+      await service.readFile(OUTSIDE);
     } catch (e) {
-      err = e
+      err = e;
     }
     // S6-04：白名單空時 fail-close，應拋出「拒絕存取」錯誤
-    expect(isAllowed(err)).toBe(false)
-    expect(err instanceof Error && err.message.includes("拒絕存取")).toBe(true)
-  })
+    expect(isAllowed(err)).toBe(false);
+    expect(err instanceof Error && err.message.includes("拒絕存取")).toBe(true);
+  });
 
   it("設定白名單後，白名單內路徑應被允許", async () => {
-    service.setAllowedPaths([VAULT])
-    const filePath = path.join(VAULT, "article.md")
-    let err: unknown
+    service.setAllowedPaths([VAULT]);
+    const filePath = path.join(VAULT, "article.md");
+    let err: unknown;
     try {
-      await service.readFile(filePath)
+      await service.readFile(filePath);
     } catch (e) {
-      err = e
+      err = e;
     }
-    expect(isAllowed(err)).toBe(true)
-  })
+    expect(isAllowed(err)).toBe(true);
+  });
 
   it("設定白名單後，白名單外路徑應拋出 拒絕存取", async () => {
-    service.setAllowedPaths([VAULT])
-    await expect(service.readFile(OUTSIDE)).rejects.toThrow("拒絕存取")
-  })
+    service.setAllowedPaths([VAULT]);
+    await expect(service.readFile(OUTSIDE)).rejects.toThrow("拒絕存取");
+  });
 
   it("允許根目錄本身被存取", async () => {
-    service.setAllowedPaths([VAULT])
-    let err: unknown
+    service.setAllowedPaths([VAULT]);
+    let err: unknown;
     try {
-      await service.readFile(VAULT)
+      await service.readFile(VAULT);
     } catch (e) {
-      err = e
+      err = e;
     }
-    expect(isAllowed(err)).toBe(true)
-  })
+    expect(isAllowed(err)).toBe(true);
+  });
 
   it("多個白名單根目錄應同時生效", async () => {
-    service.setAllowedPaths([VAULT, BLOG])
-    const vaultFile = path.join(VAULT, "a.md")
-    const blogFile = path.join(BLOG, "b.md")
-    let vaultErr: unknown, blogErr: unknown
-    try { await service.readFile(vaultFile) } catch (e) { vaultErr = e }
-    try { await service.readFile(blogFile) } catch (e) { blogErr = e }
-    expect(isAllowed(vaultErr)).toBe(true)
-    expect(isAllowed(blogErr)).toBe(true)
-  })
-})
+    service.setAllowedPaths([VAULT, BLOG]);
+    const vaultFile = path.join(VAULT, "a.md");
+    const blogFile = path.join(BLOG, "b.md");
+    let vaultErr: unknown, blogErr: unknown;
+    try {
+      await service.readFile(vaultFile);
+    } catch (e) {
+      vaultErr = e;
+    }
+    try {
+      await service.readFile(blogFile);
+    } catch (e) {
+      blogErr = e;
+    }
+    expect(isAllowed(vaultErr)).toBe(true);
+    expect(isAllowed(blogErr)).toBe(true);
+  });
+});
 
 // ─── 路徑穿越攻擊防禦 ─────────────────────────────────────────────────────────
 
 describe("FileService — 路徑穿越攻擊防禦", () => {
-  let service: FileService
+  let service: FileService;
 
   beforeEach(() => {
-    service = new FileService()
-    service.setAllowedPaths([VAULT])
-  })
+    service = new FileService();
+    service.setAllowedPaths([VAULT]);
+  });
 
   it("../ 路徑穿越應被拒絕", async () => {
-    const traversal = path.join(VAULT, "..", "secret.txt")
-    await expect(service.readFile(traversal)).rejects.toThrow("拒絕存取")
-  })
+    const traversal = path.join(VAULT, "..", "secret.txt");
+    await expect(service.readFile(traversal)).rejects.toThrow("拒絕存取");
+  });
 
   it("../../ 多層路徑穿越應被拒絕", async () => {
-    const traversal = path.join(VAULT, "..", "..", "etc", "passwd")
-    await expect(service.readFile(traversal)).rejects.toThrow("拒絕存取")
-  })
+    const traversal = path.join(VAULT, "..", "..", "etc", "passwd");
+    await expect(service.readFile(traversal)).rejects.toThrow("拒絕存取");
+  });
 
   it("相似字首但非子目錄的路徑應被拒絕", async () => {
     // /test/vault_unit_evil 不應被 /test/vault_unit 的白名單允許
-    const similar = path.resolve("/test/vault_unit_evil/file.txt")
-    await expect(service.readFile(similar)).rejects.toThrow("拒絕存取")
-  })
+    const similar = path.resolve("/test/vault_unit_evil/file.txt");
+    await expect(service.readFile(similar)).rejects.toThrow("拒絕存取");
+  });
 
   it("writeFile 也應進行路徑驗證", async () => {
-    const outside = path.join(VAULT, "..", "evil.sh")
-    await expect(service.writeFile(outside, "malicious")).rejects.toThrow("拒絕存取")
-  })
+    const outside = path.join(VAULT, "..", "evil.sh");
+    await expect(service.writeFile(outside, "malicious")).rejects.toThrow("拒絕存取");
+  });
 
   it("deleteFile 也應進行路徑驗證", async () => {
-    await expect(service.deleteFile(OUTSIDE)).rejects.toThrow("拒絕存取")
-  })
+    await expect(service.deleteFile(OUTSIDE)).rejects.toThrow("拒絕存取");
+  });
 
   it("readDirectory 也應進行路徑驗證", async () => {
-    await expect(service.readDirectory(OUTSIDE)).rejects.toThrow("拒絕存取")
-  })
+    await expect(service.readDirectory(OUTSIDE)).rejects.toThrow("拒絕存取");
+  });
 
   it("exists() 也應進行路徑驗證", async () => {
-    await expect(service.exists(OUTSIDE)).rejects.toThrow("拒絕存取")
-  })
+    await expect(service.exists(OUTSIDE)).rejects.toThrow("拒絕存取");
+  });
 
   it("checkWritable() 也應進行路徑驗證", async () => {
-    await expect(service.checkWritable(OUTSIDE)).rejects.toThrow("拒絕存取")
-  })
-})
+    await expect(service.checkWritable(OUTSIDE)).rejects.toThrow("拒絕存取");
+  });
+});

@@ -12,6 +12,8 @@ export const IPC = {
   WRITE_FILE: "write-file",
   DELETE_FILE: "delete-file",
   COPY_FILE: "copy-file",
+  /** S6-07: 從白名單外匯入圖片到 vault；只驗證 targetPath，sourcePath 允許任意外部路徑 */
+  IMPORT_EXTERNAL_FILE: "import-external-file",
   READ_DIRECTORY: "read-directory",
   CREATE_DIRECTORY: "create-directory",
   GET_FILE_STATS: "get-file-stats",
