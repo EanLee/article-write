@@ -9,8 +9,8 @@ export class FileService {
   async readFile(filePath: string): Promise<string> {
     try {
       return await fs.readFile(filePath, "utf-8");
-    } catch {
-      throw new Error(`Failed to read file: ${filePath}`);
+    } catch (err) {
+      throw new Error(`Failed to read file: ${filePath}`, { cause: err });
     }
   }
 
@@ -28,24 +28,24 @@ export class FileService {
   async deleteFile(filePath: string): Promise<void> {
     try {
       await fs.unlink(filePath);
-    } catch {
-      throw new Error(`Failed to delete file: ${filePath}`);
+    } catch (err) {
+      throw new Error(`Failed to delete file: ${filePath}`, { cause: err });
     }
   }
 
   async readDirectory(dirPath: string): Promise<string[]> {
     try {
       return await fs.readdir(dirPath);
-    } catch {
-      throw new Error(`Failed to read directory: ${dirPath}`);
+    } catch (err) {
+      throw new Error(`Failed to read directory: ${dirPath}`, { cause: err });
     }
   }
 
   async createDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true });
-    } catch {
-      throw new Error(`Failed to create directory: ${dirPath}`);
+    } catch (err) {
+      throw new Error(`Failed to create directory: ${dirPath}`, { cause: err });
     }
   }
 
