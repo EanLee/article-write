@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from "pinia";
 import { useAIPanelStore } from "@/stores/aiPanel";
 import { useSeoStore } from "@/stores/seo";
 import type { Article } from "@/types";
+import { ArticleStatus } from "@/types";
 import type { SEOGenerationResult } from "@/main/services/AIProvider/types";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ function makeMockArticle(overrides: Partial<Article> = {}): Article {
     title: "AI Panel 測試文章",
     slug: "ai-panel-test",
     filePath: "/vault/tech/ai-panel-test.md",
-    status: "draft",
+    status: ArticleStatus.Draft,
     frontmatter: {
       title: "AI Panel 測試文章",
       slug: "old-slug",
