@@ -17,6 +17,8 @@ export interface IAIProvider {
 export enum AIErrorCode {
   KeyMissing = "AI_KEY_MISSING",
   Timeout = "AI_API_TIMEOUT",
+  RateLimit = "AI_RATE_LIMIT",       // TOKEN6-04: 429 Too Many Requests
+  ContextTooLong = "AI_CONTEXT_TOO_LONG",  // TOKEN6-04: 輸入超出模型上限
   ApiError = "AI_API_ERROR",
 }
 
