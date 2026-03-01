@@ -55,7 +55,7 @@ export const useAIPanelStore = defineStore('aiPanel', () => {
         keywords: seoResult.value.keywords,
       }
     }
-    articleStore.updateArticle(updated)
+    articleStore.updateArticleInMemory(updated)
   }
 
   function clearSEO() {

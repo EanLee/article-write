@@ -203,8 +203,6 @@ const {
 
 // 其他狀態
 const imageFiles = ref<string[]>([])
-// 直接從 store 取得 allTags，不在組件中重複計算
-const allTags = computed(() => articleStore.allTags)
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -544,16 +542,6 @@ async function initializeObsidianSupport() {
     try {
         // 更新 ObsidianSyntaxService 的文章清單
         obsidianSyntax.updateArticles(articleStore.articles);
-
-        // Update tags from articles
-        const tagSet = new Set<string>();
-        articleStore.articles.forEach((article: Article) => {
-            // 防禦性檢查：確保 tags 存在且為陣列
-            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
-                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
-            }
-        });
-        allTags.value = Array.from(tagSet);
 
         // Update image files using Electron API
         const vaultPath = configStore.config.paths.obsidianVault;
