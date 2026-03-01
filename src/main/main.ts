@@ -12,6 +12,7 @@ import { GitService } from "./services/GitService.js";
 import { SearchService } from "./services/SearchService.js";
 import { AIService, AIError } from "./services/AIService.js";
 import { IPC } from "./ipc-channels.js";
+import { AppConfigSchema } from "./schemas/config.schema.js";
 import type { SearchQuery } from "../types/index.js";
 import type { SEOGenerationInput } from "./services/AIProvider/types.js";
 
@@ -136,10 +137,17 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC.GET_FILE_STATS, (_, path: string) => fileService.getFileStats(path));
 
   ipcMain.handle(IPC.GET_CONFIG, () => configService.getConfig());
-  ipcMain.handle(IPC.SET_CONFIG, async (_, config: any) => {
+  ipcMain.handle(IPC.SET_CONFIG, async (_, rawConfig: unknown) => {
+    // S-04: Zod 驗證—防止惡意 renderer 傳入非法 config 繞過路徑白名單
+    const result = AppConfigSchema.safeParse(rawConfig);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message).join("; ");
+      throw new Error(`config 驗證失敗: ${messages}`);
+    }
+    const config = result.data;
     await configService.setConfig(config);
     // 同步更新檔案存取白名單，防止路徑穿越攻擊
-    fileService.setAllowedPaths([config?.paths?.articlesDir, config?.paths?.targetBlog]);
+    fileService.setAllowedPaths([config.paths.articlesDir, config.paths.targetBlog]);
   });
   ipcMain.handle(IPC.VALIDATE_ARTICLES_DIR, (_, path: string) => configService.validateArticlesDir(path));
   ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG, (_, path: string) => configService.validateAstroBlog(path));

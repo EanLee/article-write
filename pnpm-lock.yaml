@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@anthropic-ai/sdk':
         specifier: ^0.74.0
-        version: 0.74.0
+        version: 0.74.0(zod@4.3.6)
       '@codemirror/autocomplete':
         specifier: ^6.20.0
         version: 6.20.0
@@ -91,13 +91,16 @@ importers:
         version: 2.1.1
       openai:
         specifier: ^6.22.0
-        version: 6.22.0(ws@8.19.0)
+        version: 6.22.0(ws@8.19.0)(zod@4.3.6)
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@5.9.3)(vue@3.5.28(typescript@5.9.3))
       vue:
         specifier: ^3.5.25
         version: 3.5.28(typescript@5.9.3)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@commitlint/cli':
         specifier: ^20.3.1
@@ -3973,6 +3976,9 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   7zip-bin@5.2.0: {}
@@ -3981,9 +3987,11 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@anthropic-ai/sdk@0.74.0':
+  '@anthropic-ai/sdk@0.74.0(zod@4.3.6)':
     dependencies:
       json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 4.3.6
 
   '@asamuzakjp/css-color@4.1.2':
     dependencies:
@@ -7380,9 +7388,10 @@ snapshots:
     dependencies:
       mimic-function: 5.0.1
 
-  openai@6.22.0(ws@8.19.0):
+  openai@6.22.0(ws@8.19.0)(zod@4.3.6):
     optionalDependencies:
       ws: 8.19.0
+      zod: 4.3.6
 
   optionator@0.9.4:
     dependencies:
@@ -8138,3 +8147,5 @@ snapshots:
       fd-slicer: 1.1.0
 
   yocto-queue@0.1.0: {}
+
+  zod@4.3.6: {}
