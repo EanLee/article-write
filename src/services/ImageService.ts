@@ -252,14 +252,14 @@ export class ImageService {
    * @returns {Promise<Map<string, boolean>>} 圖片存在性對照表
    */
   async checkMultipleImagesExist(imageNames: string[]): Promise<Map<string, boolean>> {
-    const results = new Map<string, boolean>();
-
-    for (const imageName of imageNames) {
-      const exists = await this.checkImageExists(imageName);
-      results.set(imageName, exists);
-    }
-
-    return results;
+    // 並行查詢，避免 N 次序列 IPC 呼叫 (P6-05)
+    const entries = await Promise.all(
+      imageNames.map(async (imageName) => {
+        const exists = await this.checkImageExists(imageName);
+        return [imageName, exists] as const;
+      }),
+    );
+    return new Map(entries);
   }
 
   /**
@@ -392,22 +392,47 @@ export class ImageService {
     const warnings: ImageValidationWarning[] = [];
     const lines = content.split("\n");
 
+    // 第一遍：僅用 regex 掃描，收集所有圖片名稱與位置（不呼叫 IPC）(P6-05)
+    type ImageRef = { imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" };
+    const refs: ImageRef[] = [];
+
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
 
-      // 檢查 Obsidian 格式圖片: ![[image.png]]
+      // Obsidian 格式: ![[image.png]]
       const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
       let match;
-
       while ((match = obsidianImageRegex.exec(line)) !== null) {
-        const imageName = match[1];
-        const exists = await this.checkImageExists(imageName);
+        refs.push({ imageName: match[1], lineIndex, colIndex: match.index, type: "obsidian" });
+      }
 
+      // 標準 Markdown 格式: ![alt](path)
+      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
+      while ((match = standardImageRegex.exec(line)) !== null) {
+        const imagePath = match[1];
+        if (imagePath.includes("images/") || imagePath.startsWith("./images/")) {
+          const imageName = imagePath.split("/").pop() || imagePath;
+          refs.push({ imageName, lineIndex, colIndex: match.index, type: "standard" });
+        }
+      }
+    }
+
+    if (refs.length === 0) {return warnings;}
+
+    // 第二步：去重後批量查詢（單次或並行 IPC，而非 N 次序列呼叫）
+    const uniqueNames = [...new Set(refs.map((r) => r.imageName))];
+    const existsMap = await this.checkMultipleImagesExist(uniqueNames);
+
+    // 第三遍：利用查詢結果建立警告
+    for (const { imageName, lineIndex, colIndex, type } of refs) {
+      const exists = existsMap.get(imageName) ?? false;
+
+      if (type === "obsidian") {
         if (!exists) {
           warnings.push({
             imageName,
             line: lineIndex + 1,
-            column: match.index + 1,
+            column: colIndex + 1,
             type: "missing-file",
             message: `圖片檔案 "${imageName}" 不存在`,
             suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
@@ -417,35 +442,25 @@ export class ImageService {
           warnings.push({
             imageName,
             line: lineIndex + 1,
-            column: match.index + 1,
+            column: colIndex + 1,
             type: "invalid-format",
             message: `"${imageName}" 不是有效的圖片格式`,
             suggestion: "支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp",
             severity: "warning",
           });
         }
-      }
-
-      // 檢查標準 Markdown 格式圖片: ![alt](path)
-      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
-      while ((match = standardImageRegex.exec(line)) !== null) {
-        const imagePath = match[1];
-        // 如果是相對路徑且指向 images 目錄，進行驗證
-        if (imagePath.includes("images/") || imagePath.startsWith("./images/")) {
-          const imageName = imagePath.split("/").pop() || imagePath;
-          const exists = await this.checkImageExists(imageName);
-
-          if (!exists) {
-            warnings.push({
-              imageName,
-              line: lineIndex + 1,
-              column: match.index + 1,
-              type: "missing-file",
-              message: `圖片檔案 "${imageName}" 不存在`,
-              suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
-              severity: "error",
-            });
-          }
+      } else {
+        // standard format
+        if (!exists) {
+          warnings.push({
+            imageName,
+            line: lineIndex + 1,
+            column: colIndex + 1,
+            type: "missing-file",
+            message: `圖片檔案 "${imageName}" 不存在`,
+            suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
+            severity: "error",
+          });
         }
       }
     }
