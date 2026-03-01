@@ -32,13 +32,21 @@ export const useArticleStore = defineStore("article", () => {
   });
   const loading = ref(false);
 
+  // P6-01: 模組層級建立單一 Collator 實例，避免每次排序建立物件（zh-TW 軟體排序成本高）
+  const zhCollator = new Intl.Collator("zh-TW", { sensitivity: "base" });
+
+  // P6-01: debouncedSearchText 僅在使用者停止輸入 300ms 後更新，避免每個鍵擊觸發全量重算
+  const debouncedSearchText = ref("");
+  let _searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   // Getters
   const filteredArticles = computed(() => {
     // 單次遍歷，合併所有過濾條件（優化從 O(n×m) 到 O(n)）
     const statusFilter = filter.value.status;
     const categoryFilter = filter.value.category;
     const tagsFilter = filter.value.tags;
-    const searchText = filter.value.searchText?.toLowerCase();
+    // P6-01: 使用防抖後的搜尋文字，避免每字覸挙全量重算
+    const searchText = debouncedSearchText.value.toLowerCase();
 
     return articles.value
       .filter((article) => {
@@ -77,8 +85,8 @@ export const useArticleStore = defineStore("article", () => {
         return true;
       })
       .sort((a, b) => {
-        // 按標題字母順序排序（穩定排序，不會因儲存而跳動）
-        return a.title.localeCompare(b.title, "zh-TW");
+        // P6-01: 使用預建 Collator 實例，避免每次排序建立新物件
+        return zhCollator.compare(a.title, b.title);
       });
   });
 
@@ -558,7 +566,20 @@ export const useArticleStore = defineStore("article", () => {
     },
     { deep: true },
   );
-
+  // P6-01: 監聴 searchText 變化，防抖 300ms 後才更新 debouncedSearchText
+  // 使用 watch 而非在 updateFilter 裡處理，可捕捧所有修改路徑（包含 v-model 直接綁定）
+  watch(
+    () => filter.value.searchText,
+    (newText) => {
+      if (_searchDebounceTimer !== null) {
+        clearTimeout(_searchDebounceTimer);
+      }
+      _searchDebounceTimer = setTimeout(() => {
+        debouncedSearchText.value = (newText ?? "").toLowerCase();
+        _searchDebounceTimer = null;
+      }, 300);
+    },
+  );
   // 初始化自動儲存：使用 nextTick 取代任意 setTimeout(100ms)，
   // 確保 Vue 響應式系統完成當前 tick 後再初始化，語意明確且可測試
   nextTick(() => {
