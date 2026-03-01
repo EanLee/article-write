@@ -26,7 +26,7 @@ ${input.existingSlug ? `現有 Slug：${input.existingSlug}` : ''}
 
     try {
       const response = await this.client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: 400,
         messages: [{ role: 'user', content: prompt }]
       })
