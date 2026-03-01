@@ -47,11 +47,26 @@ export const IPC = {
   // ── UI ─ invoke ───────────────────────────────────────────────────────────
   SELECT_DIRECTORY: "select-directory",
 
+  // ── Search ─ invoke ───────────────────────────────────────────────────────
+  SEARCH_QUERY: "search:query",
+  SEARCH_BUILD_INDEX: "search:build-index",
+
+  // ── Auto-Update ─ invoke + push events ────────────────────────────────────
+  INSTALL_UPDATE: "install-update",
+
+  // ── AI ─ invoke ───────────────────────────────────────────────────────────
+  AI_GENERATE_SEO: "ai:generate-seo",
+  AI_SET_API_KEY: "ai:set-api-key",
+  AI_GET_HAS_API_KEY: "ai:get-has-api-key",
+  AI_GET_ACTIVE_PROVIDER: "ai:get-active-provider",
+
   // ── Push events：main → renderer ─────────────────────────────────────────
   EVENT_FILE_CHANGE: "file-change",
   EVENT_PUBLISH_PROGRESS: "publish-progress",
   EVENT_SYNC_PROGRESS: "sync-progress",
   EVENT_SERVER_LOG: "server-log",
+  EVENT_UPDATE_AVAILABLE: "update-available",
+  EVENT_UPDATE_DOWNLOADED: "update-downloaded",
 } as const;
 
 /** IPC channel 名稱的聯集型別（供需要明確型別的參數使用） */
