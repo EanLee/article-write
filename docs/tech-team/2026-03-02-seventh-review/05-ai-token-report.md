@@ -156,8 +156,9 @@ export const AI_MODELS = {
 
 | 面向 | Q6 | Q7 | 說明 |
 |------|----|----|------|
-| Prompt 注入防護 | B+ | A- | XML 邊界完整，title 有輕微弱點 |
-| Token 成本效率 | B | B+ | 截斷上限合理，max_tokens 仍偏保守 |
-| 錯誤處理完整性 | C+ | B+ | 三 Provider 均有 Rate Limit 處理 |
-| Provider 可擴展性 | A | A | Factory 模式 + IAIProvider 介面 |
-| 可觀測性（成本追蹤）| F | F | 仍無 Token 使用量回報 |
+| Prompt 注入防護 | 7/10 | 8.5/10 | XML 邊界完整，title 無截斷為輕微弱點 |
+| Token 成本效率 | 6/10 | 8/10 | 截斷上限合理，max_tokens 仍偏保守 |
+| 錯誤處理完整性 | 5/10 | 8/10 | 三 Provider 均有 Rate Limit / Timeout 處理 |
+| Provider 可擴展性 | 9/10 | 9/10 | Factory 模式 + IAIProvider 介面，OCP 符合 |
+| 可觀測性（成本追蹤）| 1/10 | 1/10 | 仍無 Token 使用量回報 |
+| **AI Token 總分** | **5.6/10** | **6.9/10** | ↑ 可觀測性為主要拉低項 |

@@ -102,13 +102,14 @@ getActiveProvider(): AIProviderName | null {
 
 ## 四、SOLID 健康評分（本次）
 
-| 原則 | Q6 評分 | Q7 評分 | 變化說明 |
-|------|---------|---------|---------|
-| SRP | C+ | B+ | article.ts 拆分後職責更清晰 |
-| OCP | C | C | FilterCategory 硬編碼仍待處理 |
-| LSP | B | B | AutoSaveService 前置條件未改 |
-| ISP | B | B+ | electronAPI 介面已拆分 |
-| DIP | C | B | AutoSaveService Vue 解耦；ConfigService 尚有 Electron 耦合 |
+| 原則 | Q6 | Q7 | 變化說明 |
+|------|----|----|----------|
+| SRP | 6/10 | 8/10 | article.ts 拆分後職責更清晰 |
+| OCP | 5.5/10 | 5.5/10 | FilterCategory 硬編碼仍待處理 |
+| LSP | 7/10 | 7/10 | AutoSaveService 前置條件未改 |
+| ISP | 7/10 | 8/10 | electronAPI 介面已拆分 |
+| DIP | 5.5/10 | 7/10 | AutoSaveService Vue 解耦；ConfigService 尚有 Electron 耦合 |
+| **SOLID 總分** | **6.2/10** | **7.1/10** | ↑ |
 
 **彙總**: SOLID 基線從 Q6 的 C+ 提升至 Q7 的 B-，主要受惠於 SOLID6-01/08/10/11 修復。
 

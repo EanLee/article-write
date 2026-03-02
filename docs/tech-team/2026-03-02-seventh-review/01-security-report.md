@@ -107,10 +107,11 @@ getApiKey(provider: ...): string | null {
 
 | 面向 | Q6 | Q7 | 變化 |
 |------|----|----|------|
-| 路徑穿越防護 | B+ | A- | ↑（GitService 是唯一缺口） |
-| XSS 防護 | A | A | = |
-| 命令注入防護 | A | A | = |
-| API Key 儲存 | B | B+ | ↑（降級場景更清楚） |
-| IPC 輸入驗證 | A- | A- | = |
+| 路徑穿越防護 | 6/10 | 8/10 | ↑（FileService 白名單完整，GitService 為唯一缺口） |
+| XSS 防護 | 7/10 | 9/10 | ↑（DOMPurify 覆蓋完整） |
+| 命令注入防護 | 5/10 | 9/10 | ↑（shell:true 移除，execFile 直呼） |
+| API Key 儲存 | 4/10 | 7/10 | ↑（fail-close 已修；getApiKey 降級場景新發現） |
+| IPC 輸入驗證 | 6/10 | 8.5/10 | ↑（Zod schema + 白名單驗證） |
+| **資安總分** | **5.6/10** | **8.3/10** | ↑ |
 
 **整體安全基線**: 良好，但 GitService 路徑驗證缺失（S7-01）是本次最高優先的可行漏洞，應在下一個 Sprint 修復。

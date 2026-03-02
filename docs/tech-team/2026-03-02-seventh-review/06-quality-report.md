@@ -136,10 +136,11 @@ vs. `getConfig` / `setConfig` 使用 `async/await fs.readFile/writeFile`
 
 | 面向 | Q6 | Q7 | 說明 |
 |------|----|----|------|
-| 單元測試覆蓋 | D+ | C+ | ProcessService/ConfigService 補齊；AI/Publish 仍缺 |
-| E2E 測試覆蓋 | C | C+ | editor-flow 兩個案例完整 |
-| 同步/非同步一致性 | B | B- | ConfigService 混用同步發現 |
-| JSDoc 完整性 | C+ | B- | FileService 良好；ProcessService 仍弱 |
-| 測試隔離性 | B | B- | 單例汙染風險浮現 |
+| 單元測試覆蓋 | 4/10 | 6/10 | ProcessService/ConfigService 補齊；AI/Publish 仍缺 |
+| E2E 測試覆蓋 | 5.5/10 | 6/10 | editor-flow 兩個案例（Happy Path + 磁碟驗證）|
+| 同步/非同步一致性 | 7/10 | 6.5/10 | ConfigService 混用 readFileSync 新發現 |
+| JSDoc 完整性 | 6/10 | 6.5/10 | FileService 良好；ProcessService 仍缺方法級 JSDoc |
+| 測試隔離性 | 7/10 | 6.5/10 | AutoSaveService 單例跨測試汙染風險浮現 |
+| **品質總分** | **5.9/10** | **6.3/10** | ↑ 小幅提升，可觀測性類問題新增 |
 
 **本次品質結論**: Q6 修復了高優先測試缺口，Q7 主要發現中優先的可靠性與一致性問題，無新增的嚴重品質問題。

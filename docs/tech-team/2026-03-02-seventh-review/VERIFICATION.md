@@ -138,37 +138,4 @@
 | P7-03 | SearchService 短查詢線性掃描 | 接受現況（規模 < 1000 篇無影響）|
 | QUAL6-05 | article.ts 測試維護 | 降級觀察（SOLID6-01 修復後已改善）|
 
----
 
-## 優先行動計畫（下一 Sprint）
-
-### Sprint P1 — 安全補強（Git + Config）
-
-| 工作項 | 問題 | 估時 |
-|--------|------|------|
-| GitService 注入 ConfigService，驗證 repoPath | S7-01 / A7-01 | 2.5h |
-| ConfigService 建構子改 configDir 注入 + getApiKey/setApiKey 改 async | SOLID7-01 / QUAL7-04 / S7-02 | 3.5h |
-| 更新 ConfigService 12 項測試、GitService 測試 | QA | 2h |
-
-**Sprint 總計**: ~8h
-
-### Sprint P2 — Token 優化 + 效能補強
-
-| 工作項 | 問題 | 估時 |
-|--------|------|------|
-| max_tokens 400 → 600 + title .slice(0, 200) | TOKEN6-03 / TOKEN7-01 | 0.5h |
-| MetadataCacheService 串行改 Promise.all + concurrency limit | P6-03 | 2h |
-| AutoSaveService 測試配置加 afterEach destroy | QUAL7-02 | 0.5h |
-| AIService + Provider 基礎測試（mock SDK）| QA | 4h |
-
-**Sprint 總計**: ~7h
-
-### Sprint P3 — 整理與觀察（不急迫）
-
-| 工作項 | 問題 | 估時 |
-|--------|------|------|
-| AI_MODELS 常數提取到 ai-config.ts | TOKEN7-02 | 0.5h |
-| ProcessService clearTimeout fix | P7-01 / QUAL7-01 | 0.5h |
-| PublishService 測試補齊 | QA | 4h |
-| ImageService 型別抽離 types/image.ts | QUAL6-06 | 2h |
-| TODO stub 加 Issue 追蹤標記 | QUAL6-08 | 0.5h |

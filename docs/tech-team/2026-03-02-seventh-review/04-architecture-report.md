@@ -137,8 +137,9 @@ Preload 目前暴露的方法包括 `readFile`、`writeFile`、`deleteFile`、`c
 
 | 面向 | Q6 | Q7 | 說明 |
 |------|----|----|------|
-| 層次邊界清晰度 | B | B+ | registerIpcHandlers 提取後改善 |
-| 服務隔離 | B+ | B+ | 各 Service 關注點分離 |
-| 資料流一致性 | C+ | B | reloadArticle 統一後一致 |
-| 授權邊界完整性 | B | B- | GitService 缺口（A7-01）新發現 |
-| 可測試性 | C | C+ | ConfigService 建構子耦合待改 |
+| 層次邊界清晰度 | 7/10 | 8/10 | registerIpcHandlers 提取後改善 |
+| 服務隔離 | 7.5/10 | 7.5/10 | 各 Service 關注點分離 |
+| 資料流一致性 | 6/10 | 7/10 | reloadArticle 統一後一致 |
+| 授權邊界完整性 | 7/10 | 6.5/10 | GitService 缺口（A7-01）新發現 |
+| 可測試性 | 5/10 | 6/10 | ConfigService 建構子耦合待改 |
+| **架構總分** | **6.5/10** | **7.0/10** | ↑ 但 GitService 拉低授權邊界 |

@@ -19,6 +19,20 @@
 
 ---
 
+## 本次評分
+
+| 項目 | Q6 | Q7 | 說明 |
+|------|----|----|------|
+| **效能總分** | **5.0/10** | **7.0/10** | 三個 🔴 已修復，剩餘為 🟡 串行 I/O |
+| SearchService 索引效率 | 4/10 | 8/10 | Trigram 倒排索引，O(N×L) → 平均 O(K×B) |
+| ImageService 批次效率 | 3/10 | 7.5/10 | O(I×A×C) 三重巢狀 + 500 IPC 已批次改善 |
+| filteredArticles 反應性 | 5/10 | 7.5/10 | debounce + 緩存鍵，防止每鍵入重算 |
+| MetadataCacheService I/O | 7/10 | 7/10 | 快取機制良好，串行 I/O 仍待改 |
+| ConverterService 並發 | 6/10 | 6/10 | batchCopyImages 仍未被使用 |
+| Vue 響應式計算 | 5/10 | 5/10 | deep watch + 全量陣列替換，P3 |
+
+---
+
 ## 二、SearchService Trigram 索引複雜度驗證
 
 經程式碼審閱，P6-02 修復符合設計預期：
