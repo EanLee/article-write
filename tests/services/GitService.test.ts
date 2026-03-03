@@ -23,8 +23,18 @@ vi.mock("util", () => ({
 }));
 
 import { GitService } from "../../src/main/services/GitService";
+import type { ConfigService } from "../../src/main/services/ConfigService";
 
 const repoPath = "/test/astro-blog";
+
+// S7-01: mock ConfigService，使 validateRepoPath 允許測試用路徑 "/test/astro-blog"
+function createMockConfigService(targetBlog = repoPath): Partial<ConfigService> {
+  return {
+    getConfig: vi.fn().mockResolvedValue({
+      paths: { targetBlog, articlesDir: "/test/articles", imagesDir: "/test/images" },
+    }),
+  };
+}
 
 function mockExecSuccess(stdout: string, stderr = "") {
   mockExecFile.mockImplementation((_file: string, _args: string[], _opts: object, callback: Function) => {
@@ -46,7 +56,7 @@ describe("GitService", () => {
   let service: GitService;
 
   beforeEach(() => {
-    service = new GitService();
+    service = new GitService(createMockConfigService() as unknown as ConfigService);
     vi.clearAllMocks();
   });
 
@@ -219,6 +229,29 @@ describe("GitService", () => {
 
       expect(result.success).toBe(true);
       expect(result.output).toContain("新增文章");
+    });
+  });
+
+  describe("S7-01 路徑白名單驗證", () => {
+    it("使用允許路徑時應該正常執行", async () => {
+      mockExecSuccess("M src/content/blog/test.md");
+      const result = await service.getStatus(repoPath);
+      expect(result.success).toBe(true);
+    });
+
+    it("使用未允許路徑時應該拋出錯誤", async () => {
+      const result = await service.getStatus("/tmp/evil-path");
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("拒絕存取");
+    });
+
+    it("targetBlog 未設定時應該拋出錯誤", async () => {
+      const noPathService = new GitService(
+        createMockConfigService("") as unknown as ConfigService,
+      );
+      const result = await noPathService.getStatus(repoPath);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("targetBlog 路徑尚未設定");
     });
   });
 });
