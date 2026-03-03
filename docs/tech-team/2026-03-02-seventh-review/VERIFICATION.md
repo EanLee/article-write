@@ -1,7 +1,7 @@
 # 問題追蹤 — 第七次全面評估
 
-**評審日期**: 2026-03-02  
-**基準狀態**: 第六次 Sprint 所有 P0/P1 已完成  
+**評審日期**: 2026-03-02
+**基準狀態**: 第六次 Sprint 所有 P0/P1 已完成
 **前次問題追蹤**: [第六次 VERIFICATION.md](../2026-03-01-sixth-review/VERIFICATION.md)
 
 ---
@@ -12,7 +12,7 @@
 
 | ID | 嚴重性 | 描述 | 狀態 | 建議分支 |
 |----|--------|------|------|---------|
-| S7-01 | 🟠 CVSS 6.3 | GitService.repoPath 無路徑白名單驗證，Renderer 可傳任意 cwd 給 git 命令 | ⬜ 待修 | `fix/git-service-path-validation` |
+| S7-01 | 🟠 CVSS 6.3 | GitService.repoPath 無路徑白名單驗證，Renderer 可傳任意 cwd 給 git 命令 | ✅ 已修 `bd3dd49` | `fix/git-service-path-validation` |
 | S7-02 | 🟡 CVSS 3.7 | ConfigService.getApiKey 加密不可用時靜默返回亂碼（setApiKey fail-close 但 getApiKey 返回損毀值）| ⬜ 待修（搭 QUAL7-04）| `fix/config-service-async` |
 | S7-03 | 🟢 CVSS 2.1 | AppConfigSchema 路徑未驗證是否為絕對路徑（FileService 有縱深防禦）| 🟡 可選修 | — |
 
@@ -83,7 +83,7 @@
 
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
-| A7-01 | 🟠 | GitService 缺少架構邊界接入（路由層直接轉發 repoPath）與 S7-01 同根源 | ⬜ 待修（同 S7-01 分支）|
+| A7-01 | 🟠 | GitService 缺少架構邊界接入（路由層直接轉發 repoPath）與 S7-01 同根源 | ✅ 已修 `bd3dd49`（同 S7-01 分支）|
 | A7-02 | 🟡 | registerIpcHandlers 混入業務協調邏輯（FileWatch + SearchService 更新）| ⬜ P3 觀察，超過 200 行時拆分 |
 
 ---
@@ -115,7 +115,7 @@
 | ID | 嚴重性 | 描述 | 狀態 |
 |----|--------|------|------|
 | QUAL6-05 | 🟡 | article.ts 測試維護成本 | ✅ **降級為觀察**（SOLID6-01 拆分後行數降低，核心 Store 責任更清晰）|
-| QUAL6-06 | 🟠 | ImageService 648 行，型別定義混入實作 | ⬜ P3 |
+| QUAL6-06 | 🟠 | ImageService 648 行，型別定義混入實作 | ✅ 已修 `59a3cbe` |
 | QUAL6-08 | 🟡 | 4 個 TODO stub 無 Issue 追蹤標記 | ⬜ P3 |
 | QUAL6-10 | 🟡 | ProcessService 完全無 JSDoc | ⬜ P3（有行內注解，無方法級 JSDoc）|
 
@@ -137,5 +137,34 @@
 | A6-04 | Preload 暴露低階 FS 原語 | 接受現況（縱深防禦足夠）|
 | P7-03 | SearchService 短查詢線性掃描 | 接受現況（規模 < 1000 篇無影響）|
 | QUAL6-05 | article.ts 測試維護 | 降級觀察（SOLID6-01 修復後已改善）|
+
+---
+
+## 修正記錄（Q7 本次執行）
+
+### S7-01 + A7-01 — GitService repoPath 路徑白名單驗證
+
+- **Commit**: `bd3dd49`（分支 `fix/git-service-path-validation`，已 merge 回 `develop`）
+- **問題根因**: GitService 無建構子注入，所有方法直接以 IPC 傳入的 `repoPath` 字串作為 `git` 指令的 `cwd`，攻擊者可傳入任意路徑（CVSS 6.3）。同時缺乏架構邊界（A7-01），router 層直接轉發未驗證輸入。
+- **解決方案**:
+  1. `GitService` 加入建構子，透過 DI 注入 `ConfigService`（修正 A7-01 架構邊界）
+  2. 新增私有方法 `validateRepoPath(repoPath)` — 從 config 讀取 `paths.targetBlog`，使用 `path.normalize` + `path.resolve` 標準化後比對。路徑不在允許清單則拋出明確錯誤
+  3. 6 個公開方法（`getStatus`, `add`, `commit`, `push`, `addCommitPush`, `getLog`）頭部均呼叫 `validateRepoPath()`
+  4. `main.ts` 更新 `new GitService(configService)`
+  5. 新增 3 個安全測試案例：允許路徑通過、拒絕非法路徑、路徑未設定時拒絕
+
+### QUAL6-06 — ImageService 型別定義提取至 src/types/image.ts
+
+- **Commit**: `59a3cbe`（分支 `refactor/image-service-types`，已 merge 回 `develop`）
+- **問題根因**: `ImageService.ts`（666 行）將 5 個型別介面（`ImageInfo`, `ImageReference`, `ImageValidationResult`, `ImageValidationDetails`, `ImageValidationWarning`）混入實作檔案，3 個 Vue 元件和 1 個 composable 為取得型別而耦合 ImageService 實作。
+- **解決方案**:
+  1. 新建 `src/types/image.ts`，集中收納 5 個介面定義
+  2. `ImageService.ts` 改從 `@/types/image` 匯入並以 `export type { ... }` 重新匯出（向後相容）
+  3. 4 個消費端改為直接從 `@/types/image` 匯入，解除實作耦合：
+     - `src/components/CodeMirrorEditor.vue`
+     - `src/components/EditorPane.vue`
+     - `src/components/ImageManager.vue`
+     - `src/composables/useEditorValidation.ts`
+
 
 
