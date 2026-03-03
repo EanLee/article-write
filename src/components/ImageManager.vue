@@ -289,7 +289,7 @@ import { ref, computed, onMounted, watch } from "vue"
 import { useArticleStore } from "@/stores/article"
 import { useConfigStore } from "@/stores/config"
 import { useImageService } from "@/composables/useServices"
-import type { ImageInfo } from "@/services/ImageService"
+import type { ImageInfo } from "@/types/image"
 import { logger } from "@/utils/logger"
 
 // Props and Emits

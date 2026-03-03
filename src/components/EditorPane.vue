@@ -173,7 +173,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue"
 import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
-import type { ImageValidationWarning } from "@/services/ImageService"
+import type { ImageValidationWarning } from "@/types/image"
 import { autoSaveService } from "@/services/AutoSaveService"
 import EditorStatusBar from "./EditorStatusBar.vue"
 

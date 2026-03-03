@@ -78,7 +78,7 @@ import {
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
 import { autoSaveService } from "@/services/AutoSaveService"
 import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
-import type { ImageValidationWarning } from "@/services/ImageService"
+import type { ImageValidationWarning } from "@/types/image"
 import EditorStatusBar from "./EditorStatusBar.vue"
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
