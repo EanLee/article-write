@@ -28,18 +28,25 @@
 | 015 | AI Panel 設計 | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-015-2026-02-16-ai-panel-design](./topic-015-2026-02-16-ai-panel-design/) |
 | 016 | 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-016-2026-02-27-blog-content-analysis](./topic-016-2026-02-27-blog-content-analysis/) |
 | 017 | 整合 AI 規格與後續 Sprint 功能走向 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-017-2026-02-27-feature-direction-integration](./topic-017-2026-02-27-feature-direction-integration/) |
+| 018 | 市場方向與進度對焦 | 2026-03-03 | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 17
-**已決策**: 17
+**總討論數**: 18
+**已決策**: 18
 **討論中**: 0
 
 ---
 
 ## ✅ 最近完成的決策
+
+- ✅ [#018 市場方向與進度對焦](./topic-018-2026-03-03-market-direction-progress-check/) - 2026-03-03, 全體一致（條件）
+  - 3/11 Jordan 驗收 AI Phase 1 作為 go/no-go 決策點
+  - 3/15 Soft Launch（條件達成），Product Hunt 保留給正式推
+  - Phase 1+2 合併行銷策略改為分波推出
+  - 確立 10 個 P0/P1/P2 Action Items，含明確負責人與截止日
 
 - ✅ [#017 整合 AI 規格與後續 Sprint 功能走向](./topic-017-2026-02-27-feature-direction-integration/) - 2026-02-27, 全體一致
   - Sprint 3 主線：AI Phase 1（SEO 生成），前提 T-015 設計文件 + Sentry 先到位
@@ -93,4 +100,4 @@
 ---
 
 **文件版本**: v2.0
-**最後更新**: 2026-02-27 (topic-017 新增)
+**最後更新**: 2026-03-03 (topic-018 新增)
