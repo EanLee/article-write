@@ -35,7 +35,7 @@ const fileService = new FileService();
 const configService = new ConfigService();
 const processService = new ProcessService();
 const publishService = new PublishService(fileService);
-const gitService = new GitService();
+const gitService = new GitService(configService); // S7-01: 注入 ConfigService 以啟用 repoPath 白名單驗證
 const searchService = new SearchService();
 const aiService = new AIService(configService);
 
