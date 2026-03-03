@@ -3,7 +3,7 @@
  */
 import { ref, type Ref } from "vue"
 import type { SyntaxError } from "@/services/ObsidianSyntaxService"
-import type { ImageValidationWarning } from "@/services/ImageService"
+import type { ImageValidationWarning } from "@/types/image"
 import { useObsidianSyntaxService, useMarkdownService, useImageService } from "./useServices"
 
 export function useEditorValidation(contentRef: Ref<string>) {

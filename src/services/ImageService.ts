@@ -1,64 +1,8 @@
 import type { Article } from "@/types";
 import { logger } from "@/utils/logger";
-
-/**
- * 圖片資訊介面
- */
-export interface ImageInfo {
-  name: string;
-  path: string;
-  size: number;
-  lastModified: Date;
-  isUsed: boolean;
-  exists: boolean;
-  preview?: string;
-}
-
-/**
- * 圖片引用資訊介面
- */
-export interface ImageReference {
-  imageName: string;
-  articleId: string;
-  articleTitle: string;
-  line: number;
-  exists: boolean;
-}
-
-/**
- * 圖片驗證結果介面
- */
-export interface ImageValidationResult {
-  validImages: string[];
-  invalidImages: string[];
-  unusedImages: string[];
-  totalImages: number;
-}
-
-/**
- * 圖片驗證詳細結果介面
- */
-export interface ImageValidationDetails {
-  imageName: string;
-  exists: boolean;
-  isUsed: boolean;
-  referencedIn: string[];
-  filePath?: string;
-  errorMessage?: string;
-}
-
-/**
- * 圖片驗證警告介面
- */
-export interface ImageValidationWarning {
-  imageName: string;
-  line: number;
-  column: number;
-  type: "missing-file" | "invalid-format" | "broken-reference";
-  message: string;
-  suggestion: string;
-  severity: "error" | "warning";
-}
+// QUAL6-06: 型別定義已提取至 @/types/image，避免消費端耦合實作細節
+export type { ImageInfo, ImageReference, ImageValidationResult, ImageValidationDetails, ImageValidationWarning } from "@/types/image";
+import type { ImageInfo, ImageReference, ImageValidationResult, ImageValidationDetails, ImageValidationWarning } from "@/types/image";
 
 /**
  * 圖片服務類別
