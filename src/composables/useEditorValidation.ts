@@ -5,11 +5,13 @@ import { ref, type Ref } from "vue"
 import type { SyntaxError } from "@/services/ObsidianSyntaxService"
 import type { ImageValidationWarning } from "@/types/image"
 import { useObsidianSyntaxService, useMarkdownService, useImageService } from "./useServices"
+import { useConfigStore } from "@/stores/config"
 
 export function useEditorValidation(contentRef: Ref<string>) {
   const obsidianSyntax = useObsidianSyntaxService()
   const markdownService = useMarkdownService()
   const imageService = useImageService()
+  const configStore = useConfigStore()
 
   // 驗證狀態
   const syntaxErrors = ref<SyntaxError[]>([])
@@ -35,26 +37,25 @@ export function useEditorValidation(contentRef: Ref<string>) {
    * 執行語法驗證
    */
   async function validateSyntax() {
+    // 同步 vault 路徑，確保 ImageService 能正確查詢圖片是否存在
+    const vaultPath = configStore.config.paths.articlesDir
+    if (vaultPath) {
+      imageService.setVaultPath(vaultPath)
+    }
+
     // Obsidian 語法驗證
     const obsidianErrors = obsidianSyntax.validateSyntax(contentRef.value)
     
     // Markdown 語法驗證
     const markdownErrors = markdownService.validateMarkdownSyntax(contentRef.value)
 
-    // 圖片驗證
-    const imageWarnings = await imageService.getImageValidationWarnings(contentRef.value)
+    // 圖片驗證（只在有 vault 路徑時執行，避免假陽性）
+    const imageWarnings = vaultPath
+      ? await imageService.getImageValidationWarnings(contentRef.value)
+      : []
     imageValidationWarnings.value = imageWarnings
 
-    // 將圖片警告轉換為語法錯誤格式
-    const imageErrors: SyntaxError[] = imageWarnings.map(warning => ({
-      line: warning.line,
-      column: warning.column,
-      message: warning.message,
-      type: warning.severity,
-      suggestion: warning.suggestion
-    }))
-
-    // 合併所有驗證結果
+    // 合併語法驗證結果（不包含圖片警告，圖片警告已由 imageValidationWarnings 獨立顯示）
     syntaxErrors.value = [
       ...obsidianErrors,
       ...markdownErrors.map((error) => ({
@@ -64,7 +65,6 @@ export function useEditorValidation(contentRef: Ref<string>) {
         type: error.type as "error" | "warning",
         suggestion: ""
       })),
-      ...imageErrors
     ]
   }
 
