@@ -393,10 +393,17 @@ git commit -m "fix(...): 修復 [具體問題]
 - 修復方式
 - 影響範圍"
 
-# 步驟 7: 撰寫 Bug Fix 報告
+# 步驟 7: 撰寫 Bug Fix 報告（含完整根本原因）
 # 建立或更新 docs/fix-bug/YYYY-MM-DD-問題.md
+# 必須包含：呼叫鏈、根本原因、為何修復有效
 git add docs/fix-bug/
 git commit -m "docs(fix-bug): 新增/更新 [問題] 修復報告"
+
+# 步驟 7b: 若發現待討論異常，建立 PENDING 文件（見「問題根本原因記錄規範」）
+# 建立 docs/roundtable-discussions/topic-NNN-YYYY-MM-DD-描述/PENDING.md
+# 更新 docs/roundtable-discussions/README.md 索引
+git add docs/roundtable-discussions/
+git commit -m "docs(roundtable): 新增 topic-NNN 待議事項 - [問題描述]"
 
 # 步驟 8: 推送分支
 git push origin fix/問題描述
@@ -665,6 +672,140 @@ git commit -m "fix(...): 追加修正 - [具體問題]"
 - ✅ 實際執行並展示測試結果
 - ✅ 等待使用者確認後才合併
 - ✅ 驗證失敗時誠實追加修復
+
+## 問題根本原因記錄規範
+
+**⚠️ 重要：每個 Bug 必須找出根本原因並記錄，任何待討論的異常必須建立待議文件**
+
+### 1. 根本原因必須記錄
+
+修復任何 Bug 之前，必須在 Bug Fix 報告（`docs/fix-bug/`）中明確記錄：
+
+- **問題現象**：使用者看到了什麼
+- **呼叫鏈**：從使用者操作到錯誤發生的完整路徑（每一層）
+- **根本原因**：最底層的技術原因（不是表面現象）
+- **為什麼修復有效**：解釋修改如何切斷問題根因
+
+❌ **不允許的記錄方式**：
+```
+問題：圖片顯示錯誤
+修復：修改了 ImageService
+```
+
+✅ **必要的記錄方式**：
+```
+問題：開啟任何含圖片引用的文章都顯示「圖片不存在」
+
+呼叫鏈：
+MainEditor.onMounted → validateSyntax()
+  → imageService.getImageValidationWarnings(content)
+    → checkImageExists(imageName)
+      → !this.vaultPath → return false  ← 根本原因在這裡
+
+根本原因：useImageService() 建立 singleton 時從未呼叫 setVaultPath()，
+導致 vaultPath 永遠為空字串，checkImageExists() 一律回傳 false（假陽性）
+
+修復：在 validateSyntax() 執行前從 configStore 同步 vaultPath
+```
+
+### 2. 待討論異常必須建立 PENDING 文件
+
+在修復 Bug 或實作功能過程中，若發現以下情況，**必須建立待討論文件**，不可自行決定方向：
+
+**觸發條件**：
+- 發現某個行為缺乏明確的圓桌/技術會議決議支撐
+- 修復揭露出更深層的產品行為問題（不只是技術問題）
+- Bug 的根本原因涉及「當初為何這樣設計」的決策疑問
+- 修復後仍有潛在風險需要更高層決策
+
+**文件位置**：
+```
+docs/roundtable-discussions/topic-NNN-YYYY-MM-DD-簡短描述/PENDING.md
+```
+
+**編號規則**：讀取 `docs/roundtable-discussions/README.md` 取得最新編號後加一。
+
+### 3. PENDING 文件必要內容
+
+```markdown
+# topic-NNN｜[議題標題]
+
+**日期**: YYYY-MM-DD（待排程）
+**狀態**: ⚠️ 待圓桌決議 / ⚠️ 待技術會議 / ⚠️ 待 PM 決策
+**發起人**: [角色]
+**討論層次**: [見下方說明]
+
+## 背景與情境
+
+[描述為什麼這個問題被發現，以及當前狀況]
+
+## 問題核心
+
+[具體說明需要決策的問題是什麼，不是技術細節]
+
+## 已確認的技術事實
+
+[列出技術面已確認的事項，區分「事實」與「待決策」]
+
+## 待決策項目
+
+[列出需要哪些人決定什麼，提供選項對比]
+
+## 建議的討論層次
+
+| 議題 | 建議層次 | 原因 |
+|------|----------|------|
+| ... | 圓桌（戰略）| ... |
+| ... | 技術層 | ... |
+
+## 關聯文件
+
+- Bug Fix 報告：`docs/fix-bug/...`
+- 相關 commit：...
+```
+
+### 4. 討論層次判斷準則
+
+| 層次 | 適用情境 | 決策者 |
+|------|----------|--------|
+| **圓桌（戰略）** | 涉及使用者行為期望、產品承諾、安全性風險 | 全體角色（Alex 主持） |
+| **技術會議** | 純技術架構、實作方案選擇、效能取捨 | Sam + 相關技術成員 |
+| **PM 決策** | 功能優先級、UX 方向、時程取捨 | Alex |
+| **技術團隊自行決定** | 明確的程式錯誤、無行為影響的重構 | Sam 授權 |
+
+**判斷原則**：
+- 問題涉及「使用者會不知道發生了什麼」→ 圓桌
+- 問題涉及「資料可能被錯誤寫入」→ 圓桌（Critical）
+- 問題涉及「哪種技術方案更好」→ 技術會議
+- 問題是明確的 bug（行為不符合已決策的規格）→ 技術層自行修復
+
+### 5. 同步更新 README 索引
+
+建立 PENDING 文件後，**必須同步更新** `docs/roundtable-discussions/README.md`：
+
+```markdown
+| NNN | [議題標題] | YYYY-MM-DD | ⚠️ 待排程 | [層次] | [連結] |
+```
+
+統計欄位也要更新：`**待排程**: N`
+
+### 6. AI 助手執行清單（Bug Fix 時）
+
+修復任何 Bug 之前：
+- [ ] 找到完整呼叫鏈（不只是症狀，要到最底層原因）
+- [ ] 在 Bug Fix 報告中記錄完整根因分析
+
+修復過程中，若發現以下任一情況，立即建立 PENDING 文件：
+- [ ] 某行為無對應的圓桌決議（即「誰決定要這樣做的？」找不到答案）
+- [ ] 修復本身有 Race Condition、資料損毀等潛在風險
+- [ ] Bug 根因涉及產品層的行為決策（不只是技術錯誤）
+- [ ] 修復後仍有「應該如何」的未解問題
+
+建立 PENDING 文件後：
+- [ ] 更新 `docs/roundtable-discussions/README.md` 索引
+- [ ] 在 Bug Fix 報告中加入指向 PENDING 文件的連結
+
+---
 
 ## 測試規範
 
@@ -1015,5 +1156,5 @@ T-XXX-任務簡短描述.md
 
 ---
 
-**最後更新**: 2026-02-16
-**版本**: 1.8.1
+**最後更新**: 2026-03-07
+**版本**: 1.9.0
