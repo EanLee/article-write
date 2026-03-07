@@ -344,8 +344,9 @@ export class ArticleService {
   generateIdFromPath(filePath: string): string {
     // 正規化路徑：統一斜線方向並轉換為小寫，確保跨平台相同路徑產生相同 ID
     const normalizedPath = filePath.replace(/\\/g, "/").toLowerCase();
-    return Buffer.from(normalizedPath)
-      .toString("base64")
+    // encodeURIComponent 將 Unicode 路徑轉為 ASCII-safe 百分比編碼後再 btoa，
+    // 避免使用僅限 Node.js 的 Buffer API（renderer process 無此 global）
+    return btoa(encodeURIComponent(normalizedPath))
       .replace(/[^a-zA-Z0-9]/g, "")
       .substring(0, 16);
   }
