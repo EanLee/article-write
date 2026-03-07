@@ -1,22 +1,12 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import type { AppConfig } from "@/types"
+import { createDefaultAppConfig } from "@/types"
 import { logger } from "@/utils/logger"
 
 export const useConfigStore = defineStore("config", () => {
   // State
-  const config = ref<AppConfig>({
-    paths: {
-      articlesDir: "",
-      targetBlog: "",
-      imagesDir: ""
-    },
-    editorConfig: {
-      autoSave: true,
-      autoSaveInterval: 30000,
-      theme: "light"
-    }
-  })
+  const config = ref<AppConfig>(createDefaultAppConfig())
 
   const isConfigured = ref(false)
   const loading = ref(false)

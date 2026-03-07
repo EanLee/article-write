@@ -2,47 +2,10 @@ import { join } from "path";
 import { promises as fs } from "fs";
 import type { Article } from "../../types/index.js";
 import { ArticleStatus } from "../../types/index.js";
+import type { PublishConfig, PublishResult, PublishProgressCallback, SyncResult } from "../../types/publish.js";
+export type { PublishConfig, PublishResult, PublishProgressCallback, SyncResult };
 import { FileService } from "./FileService.js";
 import { logger } from "../mainLogger.js";
-
-/**
- * 發布配置
- */
-export interface PublishConfig {
-  /** 文章來源目錄 */
-  articlesDir: string;
-  /** Astro 部落格目錄 */
-  targetBlogDir: string;
-  /** 圖片來源目錄 */
-  imagesDir?: string;
-}
-
-/**
- * 發布結果
- */
-export interface PublishResult {
-  success: boolean;
-  message: string;
-  targetPath?: string;
-  errors?: string[];
-  warnings?: string[];
-}
-
-/**
- * 發布進度回調
- */
-export type PublishProgressCallback = (step: string, progress: number) => void;
-
-/**
- * 全量同步結果
- */
-export interface SyncResult {
-  total: number;
-  succeeded: number;
-  failed: number;
-  errors: string[];
-  warnings: string[];
-}
 
 /**
  * PublishService - 負責將文章從 Obsidian 發布到 Astro 部落格

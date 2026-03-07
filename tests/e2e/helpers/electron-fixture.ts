@@ -84,7 +84,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       const testConfig = {
         paths: {
           articlesDir: testVaultPath,
-          targetBlog: "",
+          targetDir: "",
           imagesDir: "",
         },
         editorConfig: {

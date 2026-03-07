@@ -20,7 +20,7 @@ Object.defineProperty(window, "electronAPI", {
 })
 
 const defaultConfig = {
-  paths: { articlesDir: "", targetBlog: "", imagesDir: "" },
+  paths: { articlesDir: "", targetDir: "", imagesDir: "" },
   editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" as const }
 }
 
@@ -34,7 +34,7 @@ describe("Config Store — Actions 補強", () => {
     it("從 electronAPI 載入設定後更新 config 與 isConfigured", async () => {
       const store = useConfigStore()
       mockElectronAPI.getConfig.mockResolvedValue({
-        paths: { articlesDir: "/vault", targetBlog: "/blog", imagesDir: "" },
+        paths: { articlesDir: "/vault", targetDir: "/blog", imagesDir: "" },
         editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "dark" }
       })
 
@@ -49,7 +49,7 @@ describe("Config Store — Actions 補強", () => {
     it("articlesDir 為空時 isConfigured 為 false", async () => {
       const store = useConfigStore()
       mockElectronAPI.getConfig.mockResolvedValue({
-        paths: { articlesDir: "", targetBlog: "/blog", imagesDir: "" },
+        paths: { articlesDir: "", targetDir: "/blog", imagesDir: "" },
         editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" }
       })
 
@@ -87,14 +87,14 @@ describe("Config Store — Actions 補強", () => {
       // 先設定完整路徑
       await store.saveConfig({
         ...defaultConfig,
-        paths: { articlesDir: "/vault", targetBlog: "/blog", imagesDir: "/images" }
+        paths: { articlesDir: "/vault", targetDir: "/blog", imagesDir: "/images" }
       })
 
       // 只更新 articlesDir
       await store.updatePaths({ articlesDir: "/new/vault" })
 
       expect(store.config.paths.articlesDir).toBe("/new/vault")
-      expect(store.config.paths.targetBlog).toBe("/blog")
+      expect(store.config.paths.targetDir).toBe("/blog")
       expect(store.config.paths.imagesDir).toBe("/images")
     })
   })

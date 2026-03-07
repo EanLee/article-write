@@ -168,7 +168,7 @@ function setupUpdateListeners() {
 onMounted(async () => {
   await configStore.loadConfig();
 
-  // 只要有 articlesDir 就載入文章（targetBlog 是發布用的，不影響文章載入）
+  // 只要有 articlesDir 就載入文章（targetDir 是發布用的，不影響文章載入）
   if (configStore.config.paths.articlesDir) {
     await articleStore.loadArticles();
     // 背景載入 metadata cache；超過 TTL 或不存在時自動背景掃描

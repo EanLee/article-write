@@ -79,7 +79,7 @@ export function registerIpcHandlers(services: AppServices): void {
     const config = result.data;
     await configService.setConfig(config);
     // 同步更新檔案存取白名單，防止路徑穿越攻擊
-    fileService.setAllowedPaths([config.paths.articlesDir, config.paths.targetBlog, config.paths.imagesDir]);
+    fileService.setAllowedPaths([config.paths.articlesDir, config.paths.targetDir, config.paths.imagesDir]);
   });
   ipcMain.handle(IPC.VALIDATE_ARTICLES_DIR, (_, path: string) => configService.validateArticlesDir(path));
   ipcMain.handle(IPC.VALIDATE_ASTRO_BLOG, (_, path: string) => configService.validateAstroBlog(path));

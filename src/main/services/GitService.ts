@@ -2,24 +2,10 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { normalize, resolve, sep } from "path";
 import type { ConfigService } from "./ConfigService.js";
+import type { GitResult, GitCommitOptions, GitPushOptions } from "../../types/git.js";
+export type { GitResult, GitCommitOptions, GitPushOptions };
 
 const execFileAsync = promisify(execFile);
-
-export interface GitResult {
-  success: boolean;
-  output: string;
-  error?: string;
-}
-
-export interface GitCommitOptions {
-  message: string;
-  addAll?: boolean;
-}
-
-export interface GitPushOptions {
-  remote?: string;
-  branch?: string;
-}
 
 /**
  * Git 自動化服務
@@ -28,21 +14,21 @@ export interface GitPushOptions {
  * 安全設計 (S7-01 / A7-01):
  * - ConfigService 透過建構子注入，確保架構邊界清晰
  * - 所有接收 repoPath 的公開方法必須先呼叫 validateRepoPath()
- *   驗證路徑只能為 config.paths.targetBlog，防止 Renderer 傳入任意 cwd（CVSS 6.3）
+ *   驗證路徑只能為 config.paths.targetDir，防止 Renderer 傳入任意 cwd（CVSS 6.3）
  */
 export class GitService {
   constructor(private readonly configService: ConfigService) {}
 
   /**
    * S7-01 路徑白名單驗證
-   * 確保 git cwd 只能落於 config.paths.targetBlog（或其子目錄）
+   * 確保 git cwd 只能落於 config.paths.targetDir（或其子目錄）
    * 若路徑不合法則拋出 Error，上層 IPC handler 會回傳 failure 給 Renderer
    */
   private async validateRepoPath(repoPath: string): Promise<void> {
     const config = await this.configService.getConfig();
-    const allowed = config.paths?.targetBlog;
+    const allowed = config.paths?.targetDir;
     if (!allowed) {
-      throw new Error("拒絕存取：targetBlog 路徑尚未設定，請先完成應用程式設定");
+      throw new Error("拒絕存取：targetDir 路徑尚未設定，請先完成應用程式設定");
     }
     const normalizedRepo = normalize(resolve(repoPath));
     const normalizedAllowed = normalize(resolve(allowed));

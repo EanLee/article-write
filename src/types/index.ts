@@ -130,16 +130,34 @@ export interface ConversionConfig {
 }
 
 // Configuration interfaces
+
+/** 文章/部落格路徑設定（AppConfig 的子型別，集中管理，避免各元件個別宣告） */
+export interface AppConfigPaths {
+  articlesDir: string;
+  targetDir: string;
+  imagesDir: string;
+}
+
+/** 編輯器設定（AppConfig 的子型別） */
+export interface AppEditorConfig {
+  autoSave: boolean;
+  autoSaveInterval: number;
+  theme: EditorTheme;
+}
+
 export interface AppConfig {
-  paths: {
-    articlesDir: string;
-    targetBlog: string;
-    imagesDir: string;
-  };
-  editorConfig: {
-    autoSave: boolean;
-    autoSaveInterval: number;
-    theme: EditorTheme;
+  paths: AppConfigPaths;
+  editorConfig: AppEditorConfig;
+}
+
+/**
+ * 建立預設 AppConfig 物件（factory，每次回傳新實例避免 reactive 共用參照）
+ * 所有元件/store 的初始值、resetToDefaults 應統一使用此函式
+ */
+export function createDefaultAppConfig(): AppConfig {
+  return {
+    paths: { articlesDir: "", targetDir: "", imagesDir: "" },
+    editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" },
   };
 }
 
@@ -178,6 +196,10 @@ export interface SaveState {
   lastSavedAt: Date | null;
   error: string | null;
 }
+
+// ===== Domain type re-exports（讓消費者可從單一入口 import）=====
+export type { PublishConfig, PublishResult, PublishProgressCallback, SyncResult } from "./publish.js";
+export type { GitResult, GitCommitOptions, GitPushOptions } from "./git.js";
 
 // ===== Search =====
 

@@ -73,7 +73,7 @@ describe("ConfigService", () => {
       const config = await service.getConfig();
 
       expect(config.paths.articlesDir).toBe("");
-      expect(config.paths.targetBlog).toBe("");
+      expect(config.paths.targetDir).toBe("");
       expect(config.paths.imagesDir).toBe("");
       expect(config.editorConfig.autoSave).toBe(true);
       expect(config.editorConfig.autoSaveInterval).toBe(30000);
@@ -86,7 +86,7 @@ describe("ConfigService", () => {
   describe("setConfig() + getConfig()", () => {
     it("寫入設定後，可正確讀回", async () => {
       const config = {
-        paths: { articlesDir: "/vault", targetBlog: "/blog", imagesDir: "/images" },
+        paths: { articlesDir: "/vault", targetDir: "/blog", imagesDir: "/images" },
         editorConfig: { autoSave: false, autoSaveInterval: 60000, theme: "dark" as const },
       };
 
@@ -94,7 +94,7 @@ describe("ConfigService", () => {
       const loaded = await service.getConfig();
 
       expect(loaded.paths.articlesDir).toBe("/vault");
-      expect(loaded.paths.targetBlog).toBe("/blog");
+      expect(loaded.paths.targetDir).toBe("/blog");
       expect(loaded.paths.imagesDir).toBe("/images");
       expect(loaded.editorConfig.autoSave).toBe(false);
       expect(loaded.editorConfig.theme).toBe("dark");

@@ -298,7 +298,7 @@ function handleDeleteArticle(article: Article) {
 // 同步所有已發布文章到 Blog
 async function handleSyncToBlog() {
   const config = configStore.config
-  if (!config.paths.articlesDir || !config.paths.targetBlog) {
+  if (!config.paths.articlesDir || !config.paths.targetDir) {
     notificationService.error("請先在設定中配置文章目錄和部落格路徑")
     return
   }
@@ -313,7 +313,7 @@ async function handleSyncToBlog() {
   try {
     const result = await window.electronAPI.syncAllPublished({
       articlesDir: config.paths.articlesDir,
-      targetBlogDir: config.paths.targetBlog,
+      targetBlogDir: config.paths.targetDir,
       imagesDir: config.paths.imagesDir
     })
 

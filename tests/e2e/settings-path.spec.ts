@@ -12,7 +12,7 @@ test.describe("設定路徑流程", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig();
       config.paths.articlesDir = "";
-      config.paths.targetBlog = "";
+      config.paths.targetDir = "";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config);
     });

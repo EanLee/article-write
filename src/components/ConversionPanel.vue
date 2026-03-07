@@ -304,7 +304,7 @@ const conversionStartTime = ref<number>(0)
 // 轉換設定
 const config = computed<ConversionConfig>(() => ({
   sourceDir: configStore.paths.obsidianVault,
-  targetDir: configStore.paths.targetBlog,
+  targetDir: configStore.paths.targetDir,
   imageSourceDir: configStore.paths.imagesDir,
   preserveStructure: true
 }))

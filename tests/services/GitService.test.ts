@@ -28,10 +28,10 @@ import type { ConfigService } from "../../src/main/services/ConfigService";
 const repoPath = "/test/astro-blog";
 
 // S7-01: mock ConfigService，使 validateRepoPath 允許測試用路徑 "/test/astro-blog"
-function createMockConfigService(targetBlog = repoPath): Partial<ConfigService> {
+function createMockConfigService(targetDir = repoPath): Partial<ConfigService> {
   return {
     getConfig: vi.fn().mockResolvedValue({
-      paths: { targetBlog, articlesDir: "/test/articles", imagesDir: "/test/images" },
+      paths: { targetDir, articlesDir: "/test/articles", imagesDir: "/test/images" },
     }),
   };
 }
@@ -245,13 +245,13 @@ describe("GitService", () => {
       expect(result.error).toContain("拒絕存取");
     });
 
-    it("targetBlog 未設定時應該拋出錯誤", async () => {
+    it("targetDir 未設定時應該拋出錯誤", async () => {
       const noPathService = new GitService(
         createMockConfigService("") as unknown as ConfigService,
       );
       const result = await noPathService.getStatus(repoPath);
       expect(result.success).toBe(false);
-      expect(result.error).toContain("targetBlog 路徑尚未設定");
+      expect(result.error).toContain("targetDir 路徑尚未設定");
     });
   });
 });

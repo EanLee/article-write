@@ -117,6 +117,7 @@ import { useConfigStore } from "@/stores/config"
 import { useArticleStore } from "@/stores/article"
 import { metadataCacheService } from "@/services/MetadataCacheService"
 import type { AppConfig } from "@/types"
+import { createDefaultAppConfig } from "@/types"
 import { logger } from "@/utils/logger"
 import BasicSettings from "@/components/settings/BasicSettings.vue"
 import FrameworkSettings from "@/components/settings/FrameworkSettings.vue"
@@ -140,18 +141,7 @@ const configStore = useConfigStore()
 const articleStore = useArticleStore()
 const activeTab = ref("basic")
 
-const localConfig = ref<AppConfig>({
-  paths: {
-    articlesDir: "",
-    targetBlog: "",
-    imagesDir: ""
-  },
-  editorConfig: {
-    autoSave: true,
-    autoSaveInterval: 30000,
-    theme: "light"
-  }
-})
+const localConfig = ref<AppConfig>(createDefaultAppConfig())
 
 const canSave = computed(() => {
   // 只需要文章資料夾即可儲存，部落格路徑為選填
@@ -197,18 +187,7 @@ async function handleSave() {
 }
 
 function resetToDefaults() {
-  localConfig.value = {
-    paths: {
-      articlesDir: "",
-      targetBlog: "",
-      imagesDir: ""
-    },
-    editorConfig: {
-      autoSave: true,
-      autoSaveInterval: 30000,
-      theme: "light"
-    }
-  }
+  localConfig.value = createDefaultAppConfig()
 }
 
 function handleClose() {
