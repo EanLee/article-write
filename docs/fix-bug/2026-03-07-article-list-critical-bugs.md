@@ -3,7 +3,7 @@
 **日期**: 2026-03-07
 **影響範圍**: 文章列表 UI（ArticleListTree）、AutoSave 服務、文章資料安全
 **嚴重程度**: 🔴 Critical（Bug 3 涉及使用者資料損毀風險）
-**狀態**: ⚠️ 待圓桌會議決策，尚未修復
+**狀態**: 🔧 技術面已修復（`fix/article-id-collision-and-autosave`），Bug 3 行為決策待圓桌 topic-019
 
 ---
 
@@ -145,9 +145,47 @@ d025d64  refactor(autosave): remove Vue ref coupling from AutoSaveService
 
 ---
 
+## 根本原因完整分析
+
+### Bug 1 根本原因（已修復）
+
+`generateIdFromPath` 使用 `btoa(encodeURIComponent(path)).substring(0, 16)`。
+
+`encodeURIComponent` 將中文字元（3 bytes）展開為 9 個 ASCII 百分比編碼字元，
+使同目錄下所有路徑的前 16 字元完全相同（共享目錄路徑前綴）→ **所有文章 ID 相同**。
+
+因 `isCurrent` 判斷 `article.id === articleStore.currentArticle?.id`，
+ID 碰撞 → 所有文章的 `isCurrent` 都為 `true` → 全部顯示藍色。
+
+### Bug 3 根本原因（技術面已修復，行為決策待圓桌）
+
+**完整呼叫鏈與資料損毀場景：**
+
+```
+setCurrentArticle(newArticle)
+  ├─ previousArticle = currentArticle.value    ← Vue reactive reference（非 snapshot！）
+  ├─ autoSaveService.saveOnArticleSwitch(previousArticle)
+  │    └─ hasContentChanged() → true（ID 碰撞 → 所有文章共用同一個 lastSavedContent 比較基準）
+  │         → saveCallback(previousArticle)    ← 寫入磁碟
+  └─ migrateArticleFrontmatter(newArticle)
+       └─ dirty=true → saveArticle(migrated)  ← 非同步
+            └─ updateArticleInMemory(migrated)
+                 └─ currentArticle.value?.id === migrated.id  ← ID 碰撞 → 永遠 true
+                      → currentArticle.value = migrated      ← 覆蓋 currentArticle！
+                           此時 previousArticle（reactive ref）的 content 已被改變
+                           → saveOnArticleSwitch 可能將錯誤內容存入磁碟
+```
+
+**已實施的技術修復：**
+
+1. `generateIdFromPath` 改為 FNV-1a 雙向 hash → ID 唯一，`updateArticleInMemory` 不再錯誤覆蓋
+2. `setCurrentArticle` 對 `previousArticle` 製作 shallow snapshot → 防止 reactive reference 被改變
+3. 改用 `filePath` 比較（而非 object identity）→ Vue proxy 環境下更可靠
+
 ## 關聯記錄
 
 - `docs/fix-bug/INVESTIGATION-autosave-trigger.md`（既有調查記錄）
+- `docs/roundtable-discussions/topic-019-2026-03-07-autosave-on-switch-behavior/PENDING.md`（待決策）
 - A6-01 修復：commit `e1417ff`
 - AutoSave 重構：commit `d025d64`
 - IDE 樹狀列表實作：commit `c92bbf0`

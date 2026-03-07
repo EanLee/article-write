@@ -29,14 +29,25 @@
 | 016 | 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-016-2026-02-27-blog-content-analysis](./topic-016-2026-02-27-blog-content-analysis/) |
 | 017 | 整合 AI 規格與後續 Sprint 功能走向 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-017-2026-02-27-feature-direction-integration](./topic-017-2026-02-27-feature-direction-integration/) |
 | 018 | 市場方向與進度對焦 | 2026-03-03 | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
+| 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | ⚠️ 待排程 | 戰略層次 | [topic-019-2026-03-07-autosave-on-switch-behavior](./topic-019-2026-03-07-autosave-on-switch-behavior/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 18
+**總討論數**: 19
 **已決策**: 18
-**討論中**: 0
+**待排程**: 1
+
+---
+
+## ⚠️ 待排程議題
+
+- ⚠️ [#019 切換文章時自動儲存行為決策](./topic-019-2026-03-07-autosave-on-switch-behavior/PENDING.md) - 2026-03-07, 戰略層次
+  - 「切換文章時自動儲存前一篇」的行為從未有圓桌決議支撐
+  - 涉及使用者心智模型（是否知道 Save 被觸發？）與產品安全承諾
+  - 相關 Bug 3 的技術面 Race Condition 已緩解（ID 碰撞修復 + snapshot 防護）
+  - 待決策：此行為是否保留？若保留，如何對使用者透明？
 
 ---
 
@@ -100,4 +111,4 @@
 ---
 
 **文件版本**: v2.0
-**最後更新**: 2026-03-03 (topic-018 新增)
+**最後更新**: 2026-03-07 (topic-019 待排程)

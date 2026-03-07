@@ -412,10 +412,15 @@ export const useArticleStore = defineStore("article", () => {
   }
 
   function setCurrentArticle(article: Article | null) {
-    // 在切換文章前自動儲存前一篇文章
-    const previousArticle = currentArticle.value;
-    if (previousArticle && previousArticle !== article) {
-      autoSaveService.saveOnArticleSwitch(previousArticle);
+    // 製作前一篇文章的 shallow snapshot（非 reactive reference）
+    // 防止 Vue 響應系統在非同步 migration save 完成後覆蓋 previousArticle 的內容
+    const previousSnapshot = currentArticle.value
+      ? { ...currentArticle.value, frontmatter: { ...currentArticle.value.frontmatter } }
+      : null;
+
+    // 在切換文章前自動儲存前一篇文章（使用 filePath 比較而非 object identity）
+    if (previousSnapshot && previousSnapshot.filePath !== article?.filePath) {
+      autoSaveService.saveOnArticleSwitch(previousSnapshot);
     }
 
     // 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
