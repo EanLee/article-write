@@ -342,13 +342,18 @@ export class ArticleService {
    * @returns 穩定的唯一識別碼（16 字元英數字）
    */
   generateIdFromPath(filePath: string): string {
-    // 正規化路徑：統一斜線方向並轉換為小寫，確保跨平台相同路徑產生相同 ID
     const normalizedPath = filePath.replace(/\\/g, "/").toLowerCase();
-    // encodeURIComponent 將 Unicode 路徑轉為 ASCII-safe 百分比編碼後再 btoa，
-    // 避免使用僅限 Node.js 的 Buffer API（renderer process 無此 global）
-    return btoa(encodeURIComponent(normalizedPath))
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .substring(0, 16);
+    // FNV-1a hash (forward + backward traversal) — 純 JS，同步，不依賴 Node.js Buffer 或 WebCrypto
+    // 雙向遍歷確保整條路徑的熵都被納入，避免相同前綴目錄下的路徑碰撞
+    let h1 = 2166136261; // FNV-1a offset basis
+    let h2 = 2166136261;
+    for (let i = 0; i < normalizedPath.length; i++) {
+      h1 ^= normalizedPath.charCodeAt(i);
+      h1 = Math.imul(h1, 16777619) >>> 0;
+      h2 ^= normalizedPath.charCodeAt(normalizedPath.length - 1 - i);
+      h2 = Math.imul(h2, 16777619) >>> 0;
+    }
+    return h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
   }
 
   /**
