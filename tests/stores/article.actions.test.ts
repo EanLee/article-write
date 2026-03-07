@@ -53,7 +53,7 @@ describe("Article Store — Actions 補強", () => {
     mockElectronAPI.createDirectory.mockResolvedValue(undefined);
     mockElectronAPI.getFileStats.mockResolvedValue(null);
     mockElectronAPI.getConfig.mockResolvedValue({
-      paths: { articlesDir: "/vault", targetBlog: "", imagesDir: "" },
+      paths: { articlesDir: "/vault", targetDir: "", imagesDir: "" },
       editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" },
     });
   });

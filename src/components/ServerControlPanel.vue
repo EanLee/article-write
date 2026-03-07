@@ -52,7 +52,7 @@
         <button
           v-if="!isRunning"
           class="btn btn-success btn-sm gap-1"
-          :disabled="loading || !hasTargetBlog"
+          :disabled="loading || !hasTargetDir"
           @click="startServer"
         >
           <Play :size="16" />
@@ -104,7 +104,7 @@
     </div>
 
     <!-- 未設定目標部落格提示 -->
-    <div v-if="!hasTargetBlog && expanded" class="p-3 bg-warning/10 text-warning text-sm">
+    <div v-if="!hasTargetDir && expanded" class="p-3 bg-warning/10 text-warning text-sm">
       <AlertTriangle :size="16" class="inline mr-1" />
       請先在設定中配置目標部落格路徑
     </div>
@@ -138,7 +138,7 @@ const logPanelHeight = ref(200)
 const logContainerRef = ref<HTMLElement>()
 
 // Computed
-const hasTargetBlog = computed(() => !!configStore.config.paths.targetBlog)
+const hasTargetDir = computed(() => !!configStore.config.paths.targetDir)
 
 const statusIndicatorClass = computed(() => {
   if (loading.value) {return "bg-warning animate-pulse"}
@@ -160,11 +160,11 @@ const statusText = computed(() => {
 
 // Methods
 async function startServer() {
-  if (!hasTargetBlog.value || loading.value) {return}
+  if (!hasTargetDir.value || loading.value) {return}
 
   loading.value = true
   try {
-    await window.electronAPI.startDevServer(configStore.config.paths.targetBlog)
+    await window.electronAPI.startDevServer(configStore.config.paths.targetDir)
     await updateStatus()
   } catch (error) {
     logger.error("啟動伺服器失敗:", error)

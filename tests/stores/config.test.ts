@@ -27,7 +27,7 @@ describe("Config Store", () => {
     const configStore = useConfigStore()
     
     expect(configStore.config.paths.articlesDir).toBe("")
-    expect(configStore.config.paths.targetBlog).toBe("")
+    expect(configStore.config.paths.targetDir).toBe("")
     expect(configStore.config.paths.imagesDir).toBe("")
     expect(configStore.config.editorConfig.autoSave).toBe(true)
     expect(configStore.config.editorConfig.autoSaveInterval).toBe(30000)
@@ -85,7 +85,7 @@ describe("Config Store", () => {
     const newConfig = {
       paths: {
         articlesDir: "/path/to/vault",
-        targetBlog: "/path/to/blog",
+        targetDir: "/path/to/blog",
         imagesDir: "/path/to/images"
       },
       editorConfig: {

@@ -11,7 +11,7 @@ import { AppConfigSchema } from "../../src/main/schemas/config.schema"
 const VALID_CONFIG = {
   paths: {
     articlesDir: "/vault/articles",
-    targetBlog: "/blog",
+    targetDir: "/blog",
     imagesDir: "/vault/images",
   },
   editorConfig: {
@@ -59,14 +59,19 @@ describe("AppConfigSchema — 路徑欄位驗證", () => {
     }
   })
 
-  it("targetBlog 為空字串應失敗", () => {
-    const config = { ...VALID_CONFIG, paths: { ...VALID_CONFIG.paths, targetBlog: "" } }
-    expect(AppConfigSchema.safeParse(config).success).toBe(false)
+  it("targetDir 為空字串應被接受（選填欄位）", () => {
+    const config = { ...VALID_CONFIG, paths: { ...VALID_CONFIG.paths, targetDir: "" } }
+    expect(AppConfigSchema.safeParse(config).success).toBe(true)
   })
 
-  it("imagesDir 為空字串應失敗", () => {
+  it("imagesDir 為空字串應被接受（選填欄位）", () => {
     const config = { ...VALID_CONFIG, paths: { ...VALID_CONFIG.paths, imagesDir: "" } }
-    expect(AppConfigSchema.safeParse(config).success).toBe(false)
+    expect(AppConfigSchema.safeParse(config).success).toBe(true)
+  })
+
+  it("只設定 articlesDir、其餘路徑為空字串應被接受（首次設定情境）", () => {
+    const config = { ...VALID_CONFIG, paths: { articlesDir: "/vault/articles", targetDir: "", imagesDir: "" } }
+    expect(AppConfigSchema.safeParse(config).success).toBe(true)
   })
 
   it("paths 缺失應失敗", () => {

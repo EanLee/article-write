@@ -65,10 +65,10 @@
               <code class="font-mono text-xs bg-base-300 px-1 rounded">src/content/blog</code>）
             </p>
             <div class="join w-full">
-              <input v-model="localPaths.targetBlog" type="text"
+              <input v-model="localPaths.targetDir" type="text"
                 placeholder="例如：C:\Users\你的名字\Projects\my-blog\src\content\blog"
                 class="input input-bordered join-item flex-1"
-                :class="{ 'input-error': localPaths.targetBlog && !blogValidation.valid && !blogValidation.warning }" />
+                :class="{ 'input-error': localPaths.targetDir && !blogValidation.valid && !blogValidation.warning }" />
               <button class="btn btn-primary join-item" @click="selectBlogPath">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor">
@@ -78,7 +78,7 @@
                 選擇資料夾
               </button>
             </div>
-            <div v-if="localPaths.targetBlog" class="flex items-center gap-2 mt-2">
+            <div v-if="localPaths.targetDir" class="flex items-center gap-2 mt-2">
               <div class="w-3 h-3 rounded-full"
                 :class="blogValidation.valid && !blogValidation.warning ? 'bg-success' : blogValidation.warning ? 'bg-warning' : 'bg-error'">
               </div>
@@ -217,9 +217,9 @@ async function validatePaths() {
     articlesValidation.value = { valid: false, message: "請選擇路徑" }
   }
 
-  if (localPaths.targetBlog) {
+  if (localPaths.targetDir) {
     try {
-      const result = await configStore.validateAstroBlog(localPaths.targetBlog)
+      const result = await configStore.validateAstroBlog(localPaths.targetDir)
       blogValidation.value = result
     } catch {
       blogValidation.value = { valid: false, message: "驗證失敗" }
@@ -260,10 +260,10 @@ async function selectBlogPath() {
     }
     const selectedPath = await window.electronAPI.selectDirectory({
       title: "選擇部落格專案資料夾",
-      defaultPath: localPaths.targetBlog,
+      defaultPath: localPaths.targetDir,
     })
     if (selectedPath) {
-      localPaths.targetBlog = selectedPath
+      localPaths.targetDir = selectedPath
     }
   } catch (error) {
     logger.error("選擇資料夾失敗:", error)

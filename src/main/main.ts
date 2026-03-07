@@ -121,7 +121,7 @@ app.whenReady().then(async () => {
   // 載入設定並初始化檔案路徑白名單
   try {
     const initialConfig = await configService.getConfig();
-    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetBlog, initialConfig?.paths?.imagesDir]);
+    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
   } catch {
     // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
   }

@@ -23,26 +23,26 @@ function createPublishedArticle(vaultPath: string): { filePath: string; slug: st
 }
 
 test.describe("同步發布流程", () => {
-  let targetBlogPath: string;
+  let targetDirPath: string;
 
   test.beforeEach(async ({ window, testVaultPath }) => {
     // 建立目標 Blog 目錄（獨立於 testVaultPath）
-    targetBlogPath = fs.mkdtempSync(path.join(os.tmpdir(), "writeflow-blog-"));
+    targetDirPath = fs.mkdtempSync(path.join(os.tmpdir(), "writeflow-blog-"));
 
     // 建立已發布文章
     createPublishedArticle(testVaultPath);
 
-    // 設定 articlesDir 與 targetBlog
+    // 設定 articlesDir 與 targetDir
     await window.evaluate(
       async ({ vault, blog }) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const config = await (window as any).electronAPI.getConfig();
         config.paths.articlesDir = vault;
-        config.paths.targetBlog = blog;
+        config.paths.targetDir = blog;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (window as any).electronAPI.setConfig(config);
       },
-      { vault: testVaultPath, blog: targetBlogPath },
+      { vault: testVaultPath, blog: targetDirPath },
     );
 
     // 重新載入讓文章清單更新
@@ -59,8 +59,8 @@ test.describe("同步發布流程", () => {
   });
 
   test.afterEach(() => {
-    if (targetBlogPath && fs.existsSync(targetBlogPath)) {
-      fs.rmSync(targetBlogPath, { recursive: true, force: true });
+    if (targetDirPath && fs.existsSync(targetDirPath)) {
+      fs.rmSync(targetDirPath, { recursive: true, force: true });
     }
   });
 
@@ -82,7 +82,7 @@ test.describe("同步發布流程", () => {
     await expect(syncButton).not.toHaveClass(/loading/, { timeout: 30000 });
 
     // Step 5: 驗證目標目錄出現 {slug}/index.md
-    const expectedFile = path.join(targetBlogPath, "e2e-publish-test", "index.md");
+    const expectedFile = path.join(targetDirPath, "e2e-publish-test", "index.md");
     await window.waitForTimeout(1000);
     expect(fs.existsSync(expectedFile)).toBe(true);
 

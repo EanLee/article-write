@@ -1,24 +1,8 @@
 import { promises as fs, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { app, safeStorage } from "electron";
-
-interface PathValidationResult {
-  valid: boolean;
-  message: string;
-}
-
-interface AppConfig {
-  paths: {
-    articlesDir: string;
-    targetBlog: string;
-    imagesDir: string;
-  };
-  editorConfig: {
-    autoSave: boolean;
-    autoSaveInterval: number;
-    theme: "light" | "dark";
-  };
-}
+import type { AppConfig, PathValidationResult } from "../../types/index.js";
+import { createDefaultAppConfig } from "../../types/index.js";
 
 export class ConfigService {
   private configPath: string;
@@ -136,17 +120,6 @@ export class ConfigService {
   }
 
   private getDefaultConfig(): AppConfig {
-    return {
-      paths: {
-        articlesDir: "",
-        targetBlog: "",
-        imagesDir: "",
-      },
-      editorConfig: {
-        autoSave: true,
-        autoSaveInterval: 30000,
-        theme: "light",
-      },
-    };
+    return createDefaultAppConfig();
   }
 }
