@@ -14,7 +14,7 @@
 
           <!-- Editor Content -->
           <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
-            <div v-if="!configStore.config.paths.articlesDir" class="flex items-center justify-center h-full p-8">
+            <div v-if="!configStore.config.paths.articlesDir" key="setup-required" class="flex items-center justify-center h-full p-8">
               <div class="card w-96 bg-base-100 shadow-xl">
                 <div class="card-body">
                   <h2 class="card-title">歡迎使用 WriteFlow</h2>
@@ -28,14 +28,14 @@
               </div>
             </div>
 
-            <div v-else-if="!articleStore.currentArticle" class="flex items-center justify-center h-full">
+            <div v-else-if="!articleStore.currentArticle" key="select-article" class="flex items-center justify-center h-full">
               <div class="text-center">
                 <FileText :size="64" class="mx-auto mb-4 text-base-content/30" />
                 <p class="text-lg text-base-content/70">請選擇一篇文章開始編輯</p>
               </div>
             </div>
 
-            <div v-else class="h-full flex flex-col">
+            <div v-else key="editor" class="h-full flex flex-col">
               <MainEditor />
             </div>
 
