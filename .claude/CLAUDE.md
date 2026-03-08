@@ -811,6 +811,24 @@ docs/roundtable-discussions/topic-NNN-YYYY-MM-DD-簡短描述/PENDING.md
 
 **⚠️ 重要：所有功能開發與修正必須通過測試才算完成**
 
+### 0. 核心鐵則：所有修改完後，必須全數通過測試
+
+**每一次修改（不論大小），在宣稱完成前必須執行：**
+
+```bash
+pnpm run test
+```
+
+**強制要求**：
+- ✅ 全數通過（0 failures）才算完成
+- ❌ 有任何測試失敗，不允許 commit、push、merge、或宣稱「修復完成」
+- ❌ 不允許跳過此步驟，即使「只改了一行」
+- ❌ 不允許以「應該不影響」代替實際執行驗證
+
+**適用於所有情況**：Feature 開發、Bug Fix、重構、文件更新以外的任何程式碼修改。
+
+> 此規則與 `superpowers:verification-before-completion` skill 一致：evidence before claims, always.
+
 ### 1. Service Layer 測試
 
 **規則**：所有 Service 層的變更必須有對應的 Unit Test
@@ -1157,4 +1175,4 @@ T-XXX-任務簡短描述.md
 ---
 
 **最後更新**: 2026-03-07
-**版本**: 1.9.0
+**版本**: 1.9.1
