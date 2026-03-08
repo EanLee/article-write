@@ -342,34 +342,34 @@ export class ImageService {
   /**
    * 取得文章內容中的圖片驗證警告
    * @param {string} content - 文章內容
+   * @param {string} articleFilePath - 文章檔案的絕對路徑（用於解析相對路徑圖片）
    * @returns {Promise<ImageValidationWarning[]>} 圖片驗證警告陣列
    */
-  async getImageValidationWarnings(content: string): Promise<ImageValidationWarning[]> {
+  async getImageValidationWarnings(content: string, articleFilePath: string = ""): Promise<ImageValidationWarning[]> {
     const warnings: ImageValidationWarning[] = [];
     const lines = content.split("\n");
 
-    // 第一遍：僅用 regex 掃描，收集所有圖片名稱與位置（不呼叫 IPC）(P6-05)
+    // 第一遍：僅用 regex 掃描，收集所有圖片引用（不呼叫 IPC）(P6-05)
     type ImageRef = { imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" };
     const refs: ImageRef[] = [];
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
 
-      // Obsidian 格式: ![[image.png]]
+      // Obsidian 格式: ![[image.png]] — imageName 為 vault 內名稱，查找 imagesPath 目錄
       const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
       let match;
       while ((match = obsidianImageRegex.exec(line)) !== null) {
         refs.push({ imageName: match[1], lineIndex, colIndex: match.index, type: "obsidian" });
       }
 
-      // 標準 Markdown 格式: ![alt](path)
+      // 標準 Markdown 格式: ![alt](path) — path 為相對或絕對路徑
       const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
       while ((match = standardImageRegex.exec(line)) !== null) {
         const imagePath = match[1];
-        if (imagePath.includes("images/") || imagePath.startsWith("./images/")) {
-          const imageName = imagePath.split("/").pop() || imagePath;
-          refs.push({ imageName, lineIndex, colIndex: match.index, type: "standard" });
-        }
+        // 跳過外部 URL（http/https/data URI）
+        if (/^https?:\/\/|^data:/i.test(imagePath)) {continue;}
+        refs.push({ imageName: imagePath, lineIndex, colIndex: match.index, type: "standard" });
       }
     }
 
@@ -377,15 +377,34 @@ export class ImageService {
       return warnings;
     }
 
-    // 第二步：去重後批量查詢（單次或並行 IPC，而非 N 次序列呼叫）
-    const uniqueNames = [...new Set(refs.map((r) => r.imageName))];
-    const existsMap = await this.checkMultipleImagesExist(uniqueNames);
+    // 第二步：Obsidian wiki links — 去重後批量查詢 imagesPath 目錄（P6-05）
+    const obsidianRefs = refs.filter((r) => r.type === "obsidian");
+    const uniqueObsidianNames = [...new Set(obsidianRefs.map((r) => r.imageName))];
+    const obsidianExistsMap =
+      uniqueObsidianNames.length > 0
+        ? await this.checkMultipleImagesExist(uniqueObsidianNames)
+        : new Map<string, boolean>();
 
-    // 第三遍：利用查詢結果建立警告
+    // 第三步：標準 Markdown — 解析完整路徑後並行查詢
+    const articleDir = articleFilePath
+      ? articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "")
+      : "";
+    const standardRefs = refs.filter((r) => r.type === "standard");
+    const uniqueStandardPaths = [...new Set(standardRefs.map((r) => r.imageName))];
+    const standardExistsMap = new Map<string, boolean>(
+      await Promise.all(
+        uniqueStandardPaths.map(async (imagePath) => {
+          const resolved = this.resolveImagePath(imagePath, articleDir);
+          const exists = await this.checkImageExistsByPath(resolved);
+          return [imagePath, exists] as const;
+        }),
+      ),
+    );
+
+    // 第四遍：利用查詢結果建立警告
     for (const { imageName, lineIndex, colIndex, type } of refs) {
-      const exists = existsMap.get(imageName) ?? false;
-
       if (type === "obsidian") {
+        const exists = obsidianExistsMap.get(imageName) ?? false;
         if (!exists) {
           warnings.push({
             imageName,
@@ -408,7 +427,7 @@ export class ImageService {
           });
         }
       } else {
-        // standard format
+        const exists = standardExistsMap.get(imageName) ?? false;
         if (!exists) {
           warnings.push({
             imageName,
@@ -416,7 +435,7 @@ export class ImageService {
             column: colIndex + 1,
             type: "missing-file",
             message: `圖片檔案 "${imageName}" 不存在`,
-            suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
+            suggestion: "請確認圖片路徑正確",
             severity: "error",
           });
         }
@@ -424,6 +443,46 @@ export class ImageService {
     }
 
     return warnings;
+  }
+
+  /**
+   * 解析圖片路徑（相對或絕對）為絕對路徑
+   * @param {string} imagePath - 圖片路徑（相對或絕對）
+   * @param {string} articleDir - 文章所在目錄的絕對路徑
+   * @returns {string} 解析後的絕對路徑
+   */
+  private resolveImagePath(imagePath: string, articleDir: string): string {
+    const normalized = imagePath.replace(/\\/g, "/");
+    // 絕對路徑：Unix（/...）或 Windows（C:/...）
+    if (normalized.startsWith("/") || /^[A-Za-z]:\//.test(normalized)) {
+      return normalized;
+    }
+    // 相對路徑：依文章目錄解析
+    if (!articleDir) {return normalized;}
+    const parts = (articleDir + "/" + normalized).split("/");
+    const resolved: string[] = [];
+    for (const part of parts) {
+      if (part === "..") {resolved.pop();}
+      else if (part !== ".") {resolved.push(part);}
+    }
+    return resolved.join("/");
+  }
+
+  /**
+   * 依完整絕對路徑檢查圖片是否存在
+   * @param {string} absolutePath - 圖片的絕對路徑
+   * @returns {Promise<boolean>} 檔案是否存在
+   */
+  async checkImageExistsByPath(absolutePath: string): Promise<boolean> {
+    if (!absolutePath || typeof window === "undefined" || !window.electronAPI) {
+      return false;
+    }
+    try {
+      const stats = await window.electronAPI.getFileStats(absolutePath);
+      return stats !== null && !stats.isDirectory;
+    } catch {
+      return false;
+    }
   }
 
   /**

@@ -93,7 +93,7 @@ describe("ImageService", () => {
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0]).toMatchObject({
-        imageName: "missing.png",
+        imageName: "./images/missing.png",
         line: 1,
         type: "missing-file",
         severity: "error",
