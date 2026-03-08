@@ -289,7 +289,7 @@ async function saveArticle() {
 
         if (result.success) {
             // 更新 store 中的資料（透過 store 的 action）
-            await articleStore.updateArticle(updatedArticle);
+            articleStore.updateArticleInMemory(updatedArticle);
         } else if (result.conflict) {
             logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
