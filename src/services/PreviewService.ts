@@ -10,6 +10,7 @@ export interface PreviewOptions {
   enableImagePreview: boolean;
   enableWikiLinks: boolean;
   baseImagePath?: string;
+  articleFilePath?: string;
   articleList?: Article[];
 }
 
@@ -83,8 +84,11 @@ export class PreviewService {
       // 使用 MarkdownService 渲染
       const html = this.markdownService.renderForPreview(processedContent, true);
 
-      // 後處理 HTML 以增強預覽效果
-      return this.postProcessHtml(html);
+      // 後處理 HTML 以增強預覽效果（含標準 Markdown 圖片路徑轉換）
+      const articleDir = options.articleFilePath
+        ? options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "")
+        : "";
+      return this.postProcessHtml(html, articleDir);
     } catch (error) {
       logger.error("Preview rendering error:", error);
       return this.renderErrorFallback(content, error);
@@ -174,26 +178,52 @@ export class PreviewService {
   }
 
   /**
-   * 解析圖片路徑
-   * @param {string} imageName - 圖片名稱
-   * @param {string} basePath - 基礎路徑
-   * @returns {string} 完整的圖片路徑
+   * 解析圖片路徑為可在 Electron renderer 顯示的 file:// URL
+   * @param {string} imageName - 圖片名稱（Obsidian wiki link 的 filename）
+   * @param {string} basePath - 圖片目錄的 OS 絕對路徑
+   * @returns {string} file:// URL
    */
   private resolveImagePath(imageName: string, basePath?: string): string {
-    const base = basePath || this.imageBasePath;
+    const base = (basePath || this.imageBasePath).replace(/\\/g, "/");
 
-    // 如果已經是完整路徑，直接返回
-    if (imageName.startsWith("http") || imageName.startsWith("/") || imageName.startsWith("./")) {
+    // 已是 URL（http/https/data/file）直接回傳
+    if (/^(https?|data|file):/.test(imageName)) {
       return imageName;
     }
 
-    // 構建相對路徑
     if (base) {
-      return `${base}/${imageName}`;
+      return this.toFileUrl(`${base}/${imageName}`);
     }
 
-    // 預設使用相對路徑
-    return `./images/${imageName}`;
+    return imageName;
+  }
+
+  /**
+   * 將 OS 絕對路徑轉為 file:// URL（Windows 和 Unix 均適用）
+   */
+  private toFileUrl(osPath: string): string {
+    const normalized = osPath.replace(/\\/g, "/");
+    return normalized.startsWith("/")
+      ? `file://${normalized}`           // Unix: /path → file:///path
+      : `file:///${normalized}`;         // Windows: C:/path → file:///C:/path
+  }
+
+  /**
+   * 解析相對圖片路徑（相對於文章目錄）為絕對路徑
+   */
+  private resolveRelativePath(imagePath: string, articleDir: string): string {
+    const normalized = imagePath.replace(/\\/g, "/");
+    // 已是絕對路徑
+    if (normalized.startsWith("/") || /^[A-Za-z]:\//.test(normalized)) {
+      return normalized;
+    }
+    const parts = (articleDir + "/" + normalized).split("/");
+    const resolved: string[] = [];
+    for (const part of parts) {
+      if (part === "..") {resolved.pop();}
+      else if (part !== ".") {resolved.push(part);}
+    }
+    return resolved.join("/");
   }
 
   /**
@@ -210,10 +240,19 @@ export class PreviewService {
   /**
    * 後處理 HTML 以增強預覽效果
    * @param {string} html - 原始 HTML
+   * @param {string} articleDir - 文章所在目錄（用於解析標準 Markdown 相對路徑圖片）
    * @returns {string} 處理後的 HTML
    */
-  private postProcessHtml(html: string): string {
+  private postProcessHtml(html: string, articleDir: string = ""): string {
     let processed = html;
+
+    // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（Electron renderer 才能顯示本地圖片）
+    processed = processed.replace(/<img([^>]*)\ssrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
+      if (/^(https?|data|file):/.test(src)) {return match;} // 已是 URL，不處理
+      if (!articleDir) {return match;} // 無文章目錄，無法解析相對路徑
+      const resolved = this.resolveRelativePath(src, articleDir);
+      return `<img${before} src="${this.toFileUrl(resolved)}"${after}>`;
+    });
 
     // 為程式碼區塊添加複製按鈕
     processed = processed.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_, attrs, code) => {

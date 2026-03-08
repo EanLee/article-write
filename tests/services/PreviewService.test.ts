@@ -237,7 +237,7 @@ More regular text.
         baseImagePath: basePath,
       });
 
-      expect(result).toContain(`src="${basePath}/test.png"`);
+      expect(result).toContain(`src="file://${basePath}/test.png"`);
     });
   });
 });

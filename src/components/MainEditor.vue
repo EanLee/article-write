@@ -412,19 +412,22 @@ function handleRawContentChange() {
 function updatePreview() {
     // Use enhanced PreviewService for rendering Obsidian format content
     try {
-        const vaultPath = configStore.config.paths.obsidianVault;
-        const imageBasePath = vaultPath ? `${vaultPath}/images` : "./images";
+        const articlesDir = configStore.config.paths.articlesDir;
+        // imagesDir 為圖片儲存目錄（Obsidian wiki link ![[name]] 的查找路徑）
+        const imagesDir = configStore.config.paths.imagesDir || (articlesDir ? `${articlesDir}/images` : "");
+        const articleFilePath = articleStore.currentArticle?.filePath ?? "";
 
         // Update preview service with current context
         previewService.updateArticles(articleStore.articles);
-        previewService.setImageBasePath(imageBasePath);
+        previewService.setImageBasePath(imagesDir);
 
         // Render with full Obsidian syntax support
         renderedContent.value = previewService.renderPreview(content.value, {
             enableObsidianSyntax: true,
             enableImagePreview: true,
             enableWikiLinks: true,
-            baseImagePath: imageBasePath,
+            baseImagePath: imagesDir,
+            articleFilePath,
             articleList: articleStore.articles
         });
 

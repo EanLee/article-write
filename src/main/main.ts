@@ -64,14 +64,14 @@ function createWindow() {
               "default-src 'self'; " +
               "script-src 'self' 'unsafe-inline' http://localhost:3002; " +
               "style-src 'self' 'unsafe-inline' http://localhost:3002; " +
-              "img-src 'self' data: http://localhost:3002; " +
+              "img-src 'self' data: file: http://localhost:3002; " +
               "connect-src 'self' ws://localhost:3002 http://localhost:3002; " +
               "font-src 'self' data:;"
             : // 生產模式：更嚴格的策略
               "default-src 'self'; " +
               "script-src 'self'; " +
               "style-src 'self' 'unsafe-inline'; " +
-              "img-src 'self' data:; " +
+              "img-src 'self' data: file:; " +
               "connect-src 'self'; " +
               "font-src 'self' data:;",
         ],
