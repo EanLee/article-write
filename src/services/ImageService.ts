@@ -10,6 +10,7 @@ import type { ImageInfo, ImageReference, ImageValidationResult, ImageValidationD
  */
 export class ImageService {
   private vaultPath: string = "";
+  private imagesPath: string = "";
   private articles: Article[] = [];
 
   /**
@@ -18,6 +19,15 @@ export class ImageService {
    */
   setVaultPath(path: string): void {
     this.vaultPath = path;
+  }
+
+  /**
+   * 設定圖片目錄路徑（對應 config.paths.imagesDir）
+   * 若未設定，getImagesPath() 將回退到 vaultPath/images
+   * @param {string} path - 圖片目錄絕對路徑
+   */
+  setImagesPath(path: string): void {
+    this.imagesPath = path;
   }
 
   /**
@@ -30,10 +40,12 @@ export class ImageService {
 
   /**
    * 取得圖片目錄路徑
+   * 優先使用使用者設定的 imagesPath（config.paths.imagesDir），
+   * 未設定時回退到 vaultPath/images
    * @returns {string} 圖片目錄路徑
    */
   getImagesPath(): string {
-    return `${this.vaultPath}/images`;
+    return this.imagesPath || `${this.vaultPath}/images`;
   }
 
   /**

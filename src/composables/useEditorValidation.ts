@@ -37,10 +37,12 @@ export function useEditorValidation(contentRef: Ref<string>) {
    * 執行語法驗證
    */
   async function validateSyntax() {
-    // 同步 vault 路徑，確保 ImageService 能正確查詢圖片是否存在
+    // 同步 vault 路徑與圖片目錄，確保 ImageService 能正確查詢圖片是否存在
     const vaultPath = configStore.config.paths.articlesDir
     if (vaultPath) {
       imageService.setVaultPath(vaultPath)
+      // 優先使用使用者設定的 imagesDir，未設定時 ImageService 內部回退到 vaultPath/images
+      imageService.setImagesPath(configStore.config.paths.imagesDir)
     }
 
     // Obsidian 語法驗證
