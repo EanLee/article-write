@@ -100,6 +100,80 @@ describe("ImageService", () => {
       });
     });
 
+    it("should resolve relative path against article directory", async () => {
+      mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
+
+      const content = "![Lock](./images/Lock.png)";
+      const articleFilePath = "/vault/Software/post.md";
+      const warnings = await imageService.getImageValidationWarnings(content, articleFilePath);
+
+      expect(warnings).toHaveLength(1);
+      // getFileStats 應被呼叫解析後的絕對路徑
+      expect(mockElectronAPI.getFileStats).toHaveBeenCalledWith("/vault/Software/images/Lock.png");
+    });
+
+    it("should resolve relative path with parent directory traversal (../)", async () => {
+      mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
+
+      const content = "![Lock](../assets/Lock.png)";
+      const articleFilePath = "/vault/Software/post.md";
+      const warnings = await imageService.getImageValidationWarnings(content, articleFilePath);
+
+      expect(warnings).toHaveLength(1);
+      expect(mockElectronAPI.getFileStats).toHaveBeenCalledWith("/vault/assets/Lock.png");
+    });
+
+    it("should use absolute path directly without resolving", async () => {
+      mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
+
+      const content = "![Lock](/absolute/path/Lock.png)";
+      const articleFilePath = "/vault/Software/post.md";
+      const warnings = await imageService.getImageValidationWarnings(content, articleFilePath);
+
+      expect(warnings).toHaveLength(1);
+      expect(mockElectronAPI.getFileStats).toHaveBeenCalledWith("/absolute/path/Lock.png");
+    });
+
+    it("should skip http/https URLs without warning", async () => {
+      const content = [
+        "![remote](https://example.com/image.png)",
+        "![remote2](http://cdn.example.com/photo.jpg)",
+        "![data](data:image/png;base64,abc123)",
+      ].join("\n");
+      const warnings = await imageService.getImageValidationWarnings(content);
+
+      expect(warnings).toHaveLength(0);
+      expect(mockElectronAPI.getFileStats).not.toHaveBeenCalled();
+    });
+
+    it("should not warn when image exists at resolved path", async () => {
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: 0 });
+
+      const content = "![Lock](./images/Lock.png)";
+      const articleFilePath = "/vault/Software/post.md";
+      const warnings = await imageService.getImageValidationWarnings(content, articleFilePath);
+
+      expect(warnings).toHaveLength(0);
+      expect(mockElectronAPI.getFileStats).toHaveBeenCalledWith("/vault/Software/images/Lock.png");
+    });
+
+    it("should handle mixed obsidian and standard markdown in same content", async () => {
+      // Obsidian wiki link: missing
+      // Standard markdown: existing
+      mockElectronAPI.getFileStats
+        .mockRejectedValueOnce(new Error("not found")) // Obsidian: wiki.png missing
+        .mockResolvedValueOnce({ isDirectory: false, mtime: 0 }); // Standard: Lock.png exists
+
+      const content = "![[wiki.png]]\n![Lock](./Lock.png)";
+      const articleFilePath = "/vault/post.md";
+      const warnings = await imageService.getImageValidationWarnings(content, articleFilePath);
+
+      // 只有 wiki.png 缺失
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0].imageName).toBe("wiki.png");
+      expect(warnings[0].type).toBe("missing-file");
+    });
+
     it("should provide correct line numbers for multi-line content", async () => {
       mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
 
@@ -120,6 +194,40 @@ Line 4 with ![[missing2.jpg]]`;
     it("should handle empty content gracefully", async () => {
       const warnings = await imageService.getImageValidationWarnings("");
       expect(warnings).toHaveLength(0);
+    });
+  });
+
+  describe("checkImageExistsByPath", () => {
+    it("should return true when file exists at given absolute path", async () => {
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: 0 });
+
+      const exists = await imageService.checkImageExistsByPath("/vault/Software/images/Lock.png");
+
+      expect(exists).toBe(true);
+      expect(mockElectronAPI.getFileStats).toHaveBeenCalledWith("/vault/Software/images/Lock.png");
+    });
+
+    it("should return false when file does not exist", async () => {
+      mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
+
+      const exists = await imageService.checkImageExistsByPath("/vault/missing.png");
+
+      expect(exists).toBe(false);
+    });
+
+    it("should return false when path is a directory", async () => {
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: true, mtime: 0 });
+
+      const exists = await imageService.checkImageExistsByPath("/vault/images");
+
+      expect(exists).toBe(false);
+    });
+
+    it("should return false for empty path", async () => {
+      const exists = await imageService.checkImageExistsByPath("");
+
+      expect(exists).toBe(false);
+      expect(mockElectronAPI.getFileStats).not.toHaveBeenCalled();
     });
   });
 
