@@ -395,7 +395,8 @@ export class ImageService {
       await Promise.all(
         uniqueStandardPaths.map(async (imagePath) => {
           const resolved = this.resolveImagePath(imagePath, articleDir);
-          const exists = await this.checkImageExistsByPath(resolved);
+          // resolved 為空字串代表相對路徑但無文章路徑可解析，跳過不報假陽性
+          const exists = resolved ? await this.checkImageExistsByPath(resolved) : true;
           return [imagePath, exists] as const;
         }),
       ),
@@ -457,8 +458,8 @@ export class ImageService {
     if (normalized.startsWith("/") || /^[A-Za-z]:\//.test(normalized)) {
       return normalized;
     }
-    // 相對路徑：依文章目錄解析
-    if (!articleDir) {return normalized;}
+    // 相對路徑：無文章目錄時無法解析，回傳空字串讓呼叫端跳過驗證
+    if (!articleDir) {return "";}
     const parts = (articleDir + "/" + normalized).split("/");
     const resolved: string[] = [];
     for (const part of parts) {

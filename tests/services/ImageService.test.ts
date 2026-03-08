@@ -84,12 +84,20 @@ describe("ImageService", () => {
       });
     });
 
-    it("should handle standard markdown image syntax", async () => {
-      // Mock file existence check
+    it("should skip relative path validation when no articleFilePath is provided", async () => {
+      // 相對路徑無文章路徑可解析，跳過驗證避免假陽性或觸發 FileService 路徑白名單拒絕
+      const content = "Test content with ![alt text](./images/missing.png)";
+      const warnings = await imageService.getImageValidationWarnings(content);
+
+      expect(warnings).toHaveLength(0);
+      expect(mockElectronAPI.getFileStats).not.toHaveBeenCalled();
+    });
+
+    it("should warn for missing standard markdown image when articleFilePath is provided", async () => {
       mockElectronAPI.getFileStats.mockRejectedValue(new Error("File not found"));
 
       const content = "Test content with ![alt text](./images/missing.png)";
-      const warnings = await imageService.getImageValidationWarnings(content);
+      const warnings = await imageService.getImageValidationWarnings(content, "/vault/post.md");
 
       expect(warnings).toHaveLength(1);
       expect(warnings[0]).toMatchObject({
