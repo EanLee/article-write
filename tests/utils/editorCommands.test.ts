@@ -6,6 +6,7 @@ import {
   insertLinkSpec,
   insertCodeBlockSpec,
   insertFootnoteSpec,
+  insertStrikethroughSpec,
 } from "@/utils/editorCommands"
 
 // Helper: create a state with a selection
@@ -102,5 +103,20 @@ describe("insertFootnoteSpec", () => {
     const newState = state.update(insertFootnoteSpec(state)).state
     expect(newState.doc.toString()).toContain("[^2]")
     expect(newState.doc.toString()).toContain("[^2]: ")
+  })
+})
+
+describe("insertStrikethroughSpec", () => {
+  it("wraps selected text with ~~", () => {
+    const state = stateWith("hello world", 0, 5)
+    const spec = insertStrikethroughSpec(state)
+    const newDoc = state.update(spec).state.doc.toString()
+    expect(newDoc).toBe("~~hello~~ world")
+  })
+
+  it("inserts placeholder when no selection", () => {
+    const state = stateWith("", 0, 0)
+    const newState = state.update(insertStrikethroughSpec(state)).state
+    expect(newState.doc.toString()).toBe("~~strikethrough~~")
   })
 })
