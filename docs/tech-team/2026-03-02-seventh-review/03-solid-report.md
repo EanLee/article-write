@@ -1,7 +1,7 @@
 # SOLID 原則評估報告 — 第七次全面評估
 
-**評審者**: Sol（SOLID 顧問）  
-**評審日期**: 2026-03-02  
+**評審者**: Sol（SOLID 顧問）
+**評審日期**: 2026-03-02
 **評審範圍**: 全程式碼庫（stores、services、composables、main process）
 
 ---
@@ -39,7 +39,7 @@
 // 4. 開關邏輯（isEnabled / initialized guard）
 ```
 
-這些責任高度內聚，拆分會增加協作複雜度，拆分成本 > 收益。  
+這些責任高度內聚，拆分會增加協作複雜度，拆分成本 > 收益。
 **重新評估決策**: 維持現況，不拆分（原先 P2 降為 P3 觀察）。
 
 ---
@@ -48,7 +48,7 @@
 
 ### SOLID7-01 🟡 — ConfigService 在建構子中硬連結 Electron 環境
 
-**原則**: DIP（相依性反轉）  
+**原則**: DIP（相依性反轉）
 **位置**: `src/main/services/ConfigService.ts`
 
 ```typescript
@@ -73,7 +73,7 @@ constructor() {
 
 ### SOLID7-02 🟢 — AIService.getActiveProvider 是 resolveProvider 的別名
 
-**原則**: SRP（微小的重複）  
+**原則**: SRP（微小的重複）
 **位置**: `src/main/services/AIService.ts`
 
 ```typescript
@@ -87,7 +87,7 @@ getActiveProvider(): AIProviderName | null {
 
 ### SOLID7-03 🟡 — registerIpcHandlers.ts：單一函式 100+ 行
 
-**原則**: SRP（大型函式）  
+**原則**: SRP（大型函式）
 **位置**: `src/main/registerIpcHandlers.ts`
 
 `registerIpcHandlers()` 函式目前管理所有 IPC domain（File、Config、Git、Publish、Search、AI、AutoUpdate、FileWatch），約 110 行。

@@ -1,0 +1,66 @@
+<h2>側欄大綱面板 — 佈局選項</h2>
+<p class="subtitle">大綱面板要放在哪裡、怎麼觸發？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Activity Bar 新增圖示</h3>
+      <p>在左側 Activity Bar 加入大綱圖示（類似 VS Code），點擊切換 sidebar 顯示大綱。與現有 ArticleList、AI、Settings 同層級。</p>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:flex-start">
+        <div style="width:28px;background:#2d2d2d;border-radius:4px;padding:8px 4px;display:flex;flex-direction:column;gap:12px;align-items:center;font-size:10px;color:#666">
+          <div style="color:#aaa">☰</div>
+          <div style="color:#888">🔍</div>
+          <div style="color:#4fc3f7;background:#1a1a2e;border-radius:3px;padding:2px 4px">¶</div>
+          <div style="color:#888">🤖</div>
+          <div style="color:#888">⚙</div>
+        </div>
+        <div style="width:140px;background:#1e1e1e;border-radius:4px;padding:8px;font-size:10px;color:#ccc">
+          <div style="color:#888;margin-bottom:6px;font-size:9px;text-transform:uppercase">大綱</div>
+          <div style="color:#4fc3f7;margin-bottom:3px">▸ H1 標題</div>
+          <div style="color:#ccc;margin-bottom:3px;padding-left:10px">— H2 節一</div>
+          <div style="color:#ccc;margin-bottom:3px;padding-left:10px">— H2 節二</div>
+          <div style="color:#ccc;margin-bottom:3px;padding-left:20px">· H3 小節</div>
+          <div style="color:#ccc;padding-left:10px">— H2 節三</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>預覽面板內嵌 TOC</h3>
+      <p>在右側預覽面板頂部固定顯示大綱目錄，點擊跳轉至對應段落，不另外佔用 sidebar 空間。</p>
+      <div style="margin-top:12px;width:200px;background:#1e1e1e;border-radius:4px;overflow:hidden;font-size:10px">
+        <div style="background:#252525;padding:6px 10px;color:#888;font-size:9px;text-transform:uppercase;border-bottom:1px solid #333">目錄</div>
+        <div style="padding:8px 10px;border-bottom:1px solid #2a2a2a">
+          <div style="color:#4fc3f7;margin-bottom:4px">H1 標題</div>
+          <div style="color:#aaa;margin-bottom:3px;padding-left:10px">H2 節一</div>
+          <div style="color:#aaa;padding-left:10px">H2 節二</div>
+        </div>
+        <div style="padding:8px 10px;color:#555;font-size:9px;font-style:italic">文章內容預覽...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>編輯器底部 Floating TOC</h3>
+      <p>編輯器右下角浮動按鈕，點開展開大綱抽屜（drawer），不常用時收起不佔空間。</p>
+      <div style="margin-top:12px;position:relative;width:200px;height:100px;background:#1e1e1e;border-radius:4px;font-size:10px;overflow:hidden">
+        <div style="position:absolute;bottom:8px;right:8px;background:#4fc3f7;color:#000;border-radius:12px;padding:4px 8px;font-size:9px;cursor:pointer">¶ 大綱</div>
+        <div style="position:absolute;bottom:32px;right:8px;width:140px;background:#252525;border-radius:4px;padding:8px;border:1px solid #333">
+          <div style="color:#4fc3f7;margin-bottom:3px">H1 標題</div>
+          <div style="color:#aaa;margin-bottom:3px;padding-left:10px">H2 節一</div>
+          <div style="color:#aaa;padding-left:10px">H2 節二</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <p class="subtitle">⭐ 建議：選項 A（Activity Bar 整合）— 與現有 sidebar 架構一致，擴充性最好。</p>
+</div>

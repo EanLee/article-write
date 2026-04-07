@@ -17,7 +17,7 @@ export function toggleInlineFormatSpec(
     if (
       selected.startsWith(marker) &&
       selected.endsWith(marker) &&
-      selected.length > mLen * 2
+      selected.length >= mLen * 2
     ) {
       // Unwrap
       return {

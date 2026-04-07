@@ -1,0 +1,71 @@
+<h2>Section 3 / 5 — Wiki Link 增強</h2>
+<p class="subtitle">輸入 [[ 觸發後，預覽 popup 要顯示什麼資訊？</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>精簡清單 + 狀態標籤</h3>
+      <p>現有清單基礎上加入：文章狀態徽章（Draft/Published）、分類標籤、字數。點擊直接插入。</p>
+      <div style="margin-top:10px;width:240px;background:#1e1e1e;border-radius:6px;border:1px solid #333;overflow:hidden;font-size:10px">
+        <div style="padding:6px 10px;background:#252525;border-bottom:1px solid #333;color:#888;font-size:9px">[[  搜尋文章...</div>
+        <div style="padding:6px 10px;border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center">
+          <span style="color:#e0e0e0">TypeScript 進階技巧</span>
+          <span style="background:#1a472a;color:#69db7c;padding:1px 5px;border-radius:3px;font-size:8px">Published</span>
+        </div>
+        <div style="padding:6px 10px;border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;background:#252525">
+          <span style="color:#4fc3f7">Vue 3 Composition API</span>
+          <span style="background:#1a2a47;color:#74b9ff;padding:1px 5px;border-radius:3px;font-size:8px">Draft</span>
+        </div>
+        <div style="padding:6px 10px;display:flex;justify-content:space-between;align-items:center">
+          <span style="color:#e0e0e0">系統設計思維</span>
+          <span style="background:#1a472a;color:#69db7c;padding:1px 5px;border-radius:3px;font-size:8px">Published</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>清單 + 側邊預覽卡片</h3>
+      <p>左側搜尋清單，右側即時顯示 hover 文章的摘要（description + 日期 + 標籤），方便確認是否為目標文章。</p>
+      <div style="margin-top:10px;display:flex;gap:4px;font-size:10px">
+        <div style="width:140px;background:#1e1e1e;border-radius:6px;border:1px solid #333;overflow:hidden">
+          <div style="padding:5px 8px;background:#252525;border-bottom:1px solid #333;color:#888;font-size:9px">[[ 搜尋...</div>
+          <div style="padding:5px 8px;color:#e0e0e0;border-bottom:1px solid #2a2a2a">TypeScript 進階</div>
+          <div style="padding:5px 8px;color:#4fc3f7;background:#252525;border-bottom:1px solid #2a2a2a">Vue 3 Composition</div>
+          <div style="padding:5px 8px;color:#e0e0e0">系統設計思維</div>
+        </div>
+        <div style="width:130px;background:#1a1a2e;border-radius:6px;border:1px solid #2a2a4a;padding:8px;font-size:9px">
+          <div style="color:#4fc3f7;margin-bottom:4px;font-weight:bold">Vue 3 Composition API</div>
+          <div style="color:#888;margin-bottom:4px">2026-03-15 · Draft</div>
+          <div style="color:#aaa;line-height:1.4">深入探討 Vue 3 的 Composition API 設計模式與最佳實踐...</div>
+          <div style="margin-top:6px;display:flex;gap:3px;flex-wrap:wrap">
+            <span style="background:#2a2a3a;color:#aaa;padding:1px 4px;border-radius:2px">Vue</span>
+            <span style="background:#2a2a3a;color:#aaa;padding:1px 4px;border-radius:2px">Frontend</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>精簡清單（維持現狀輕量化）</h3>
+      <p>維持目前清單樣式，只補強：鍵盤上下選擇、Enter 確認插入、Esc 關閉。不增加視覺複雜度。</p>
+      <div style="margin-top:10px;width:200px;background:#1e1e1e;border-radius:6px;border:1px solid #333;overflow:hidden;font-size:10px">
+        <div style="padding:5px 10px;background:#252525;color:#888;font-size:9px;border-bottom:1px solid #333">[[ 搜尋文章...</div>
+        <div style="padding:5px 10px;color:#e0e0e0;border-bottom:1px solid #2a2a2a">TypeScript 進階技巧</div>
+        <div style="padding:5px 10px;color:#fff;background:#2a3a5a;border-bottom:1px solid #2a2a2a">▶ Vue 3 Composition API</div>
+        <div style="padding:5px 10px;color:#e0e0e0">系統設計思維</div>
+        <div style="padding:3px 10px;color:#555;font-size:8px;background:#252525">↑↓ 選擇  Enter 插入  Esc 關閉</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px">
+  <p class="subtitle">⭐ 建議：選項 B — 預覽卡片能有效解決「不確定連到哪篇」的問題，直接對應你說的 C 痛點。</p>
+</div>

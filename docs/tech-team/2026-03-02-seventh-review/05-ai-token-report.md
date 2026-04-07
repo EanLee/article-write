@@ -1,7 +1,7 @@
 # AI Token 評估報告 — 第七次全面評估
 
-**評審者**: AI（AI/Token 分析師）  
-**評審日期**: 2026-03-02  
+**評審者**: AI（AI/Token 分析師）
+**評審日期**: 2026-03-02
 **評審範圍**: `src/main/services/AIProvider/`、`prompts.ts`、三個 Provider 實作
 
 ---

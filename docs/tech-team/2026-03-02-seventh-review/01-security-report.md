@@ -1,7 +1,7 @@
 # 資安評估報告 — 第七次全面評估
 
-**評審者**: Sec（資安工程師）  
-**評審日期**: 2026-03-02  
+**評審者**: Sec（資安工程師）
+**評審日期**: 2026-03-02
 **評審範圍**: 全程式碼庫（main process、preload、renderer services）
 
 ---
@@ -23,8 +23,8 @@
 
 ### S7-01 🟠 — GitService.repoPath 無路徑白名單驗證
 
-**嚴重性**: CVSS 6.3（本地利用，路徑洩漏 / 任意 Git 操作）  
-**位置**: `src/main/services/GitService.ts`（全部方法）  
+**嚴重性**: CVSS 6.3（本地利用，路徑洩漏 / 任意 Git 操作）
+**位置**: `src/main/services/GitService.ts`（全部方法）
 **注意**: `registerIpcHandlers.ts` Line 75-84 直接把 renderer 傳入的 `repoPath` 轉送給 GitService，GitService 沒有任何路徑驗證。
 
 **攻擊情境**:
@@ -52,7 +52,7 @@ await window.electronAPI.gitAddCommitPush("/tmp/evil-repo", "malicious message")
 
 ### S7-02 🟡 — ConfigService.getApiKey 加密降級靜默返回亂碼
 
-**嚴重性**: CVSS 3.7（功能失效但不暴露資料）  
+**嚴重性**: CVSS 3.7（功能失效但不暴露資料）
 **位置**: `src/main/services/ConfigService.ts`，`getApiKey()` 方法
 
 **問題**:
@@ -84,12 +84,12 @@ getApiKey(provider: ...): string | null {
 
 ### S7-03 🟢 — AppConfigSchema path 驗證無路徑格式約束
 
-**嚴重性**: CVSS 2.1（輸入驗證不完整）  
+**嚴重性**: CVSS 2.1（輸入驗證不完整）
 **位置**: `src/main/schemas/config.schema.ts`
 
 `z.string().min(1)` 只確保非空，但允許像 `"."` 或 `"../../etc"` 這類路徑通過 Zod 驗證（最終由 FileService 攔截）。Zod 層作為第一道防線，應儘早拒絕明顯的異常路徑。
 
-**建議**: 加入 `z.string().refine(p => path.isAbsolute(p), "路徑必須為絕對路徑")`  
+**建議**: 加入 `z.string().refine(p => path.isAbsolute(p), "路徑必須為絕對路徑")`
 **評估**: 低優先，因 FileService.validatePath 已作為縱深防禦，但 Zod 提前拒絕可提升錯誤訊息品質。
 
 ---
