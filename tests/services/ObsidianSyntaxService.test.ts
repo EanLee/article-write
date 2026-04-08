@@ -67,7 +67,7 @@ describe("ObsidianSyntaxService", () => {
         text: "[[Vue.js 基礎教學]]",
         displayText: "Vue.js 基礎教學",
         type: "wikilink",
-        description: "Software - published",
+        description: "Published · Software",
       });
     });
 
@@ -112,6 +112,74 @@ describe("ObsidianSyntaxService", () => {
 
       expect(suggestions).toHaveLength(0);
     });
+
+    it("應排除沒有 frontmatter title 的文章", () => {
+      const articlesWithNoTitle: Article[] = [
+        ...mockArticles,
+        {
+          id: "3",
+          title: "No Title Article",
+          slug: "no-title-article",
+          filePath: "/path/to/no-title.md",
+          status: ArticleStatus.Draft,
+          frontmatter: {
+            date: "2024-01-03",
+            tags: [],
+            categories: [],
+            // no title field
+          },
+          content: "# No Title",
+          lastModified: new Date("2024-01-03"),
+          category: ArticleCategory.Software,
+        },
+      ]
+      service.updateArticles(articlesWithNoTitle)
+
+      const context: AutocompleteContext = {
+        text: "Link to [[",
+        cursorPosition: 10,
+        lineNumber: 1,
+        columnNumber: 10,
+      }
+
+      const suggestions = service.getAutocompleteSuggestions(context)
+
+      // Article without frontmatter.title must not appear
+      expect(suggestions.map(s => s.displayText)).not.toContain("No Title Article")
+      expect(suggestions).toHaveLength(2) // only the 2 articles with frontmatter.title
+    })
+
+    it("插入文字應使用 frontmatter title 而非 article.title", () => {
+      const context: AutocompleteContext = {
+        text: "Link to [[vue",
+        cursorPosition: 13,
+        lineNumber: 1,
+        columnNumber: 13,
+      }
+
+      const suggestions = service.getAutocompleteSuggestions(context)
+
+      expect(suggestions).toHaveLength(1)
+      expect(suggestions[0].text).toBe("[[Vue.js 基礎教學]]")
+      expect(suggestions[0].displayText).toBe("Vue.js 基礎教學")
+    })
+
+    it("描述應包含狀態標籤（Published/Draft）", () => {
+      const context: AutocompleteContext = {
+        text: "Link to [[",
+        cursorPosition: 10,
+        lineNumber: 1,
+        columnNumber: 10,
+      }
+
+      const suggestions = service.getAutocompleteSuggestions(context)
+
+      const publishedSuggestion = suggestions.find(s => s.displayText === "Vue.js 基礎教學")
+      const draftSuggestion = suggestions.find(s => s.displayText === "TypeScript 進階技巧")
+
+      expect(publishedSuggestion?.description).toBe("Published · Software")
+      expect(draftSuggestion?.description).toBe("Draft · Software")
+    })
   });
 
   describe("Image Reference Auto-completion", () => {
@@ -377,7 +445,7 @@ invalid yaml without colon
         text: "[[Vue.js 基礎教學]]",
         displayText: "Vue.js 基礎教學",
         type: "wikilink" as const,
-        description: "Software - published",
+        description: "Published · Software",
       };
 
       const result = service.applySuggestionToText(mockTextarea, suggestion, 19); // Correct cursor position

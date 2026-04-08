@@ -1,4 +1,5 @@
 import type { Article } from "@/types"
+import { ArticleStatus } from "@/types"
 
 /**
  * Obsidian 語法建議介面
@@ -180,17 +181,25 @@ export class ObsidianSyntaxService {
    */
   private getWikiLinkSuggestions(query: string): SuggestionItem[] {
     return this.articles
-      .filter(article => 
-        article.title.toLowerCase().includes(query) ||
-        article.slug.toLowerCase().includes(query)
-      )
-      .map(article => ({
-        text: `[[${article.title}]]`,
-        displayText: article.title,
-        type: "wikilink" as const,
-        description: `${article.category} - ${article.status}`
-      }))
-      .slice(0, 10) // 限制建議數量
+      .filter(article => {
+        if (!article.frontmatter.title) { return false }
+        const q = query.toLowerCase()
+        return (
+          article.frontmatter.title.toLowerCase().includes(q) ||
+          article.slug.toLowerCase().includes(q)
+        )
+      })
+      .map(article => {
+        const fmTitle = article.frontmatter.title!
+        const statusLabel = article.status === ArticleStatus.Published ? "Published" : "Draft"
+        return {
+          text: `[[${fmTitle}]]`,
+          displayText: fmTitle,
+          type: "wikilink" as const,
+          description: `${statusLabel} · ${article.category}`,
+        }
+      })
+      .slice(0, 10)
   }
 
   /**
