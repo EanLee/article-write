@@ -67,6 +67,7 @@ export enum ViewMode {
 export enum SidebarView {
   Articles = "articles",
   Frontmatter = "frontmatter",
+  Outline = "outline",
 }
 
 // Core data structures

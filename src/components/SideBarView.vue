@@ -25,6 +25,15 @@
             <Info :size="14" />
             <span>文章資訊</span>
           </button>
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Outline }"
+            :disabled="!hasCurrentArticle"
+            @click="$emit('update:modelValue', SidebarView.Outline)"
+          >
+            <List :size="14" />
+            <span>大綱</span>
+          </button>
         </div>
       </div>
 
@@ -32,6 +41,11 @@
       <div class="sidebar-content">
         <ArticleListTree v-if="modelValue === SidebarView.Articles" />
         <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+        <OutlinePanel
+          v-else-if="modelValue === SidebarView.Outline"
+          :headings="props.outlineHeadings"
+          @scroll-to-line="$emit('scroll-to-outline-line', $event)"
+        />
       </div>
 
       <!-- Resize Handle -->
@@ -42,14 +56,23 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue"
-import { FileText, Info } from "lucide-vue-next"
+import { FileText, Info, List } from "lucide-vue-next"
 import { SidebarView } from "@/types"
 import { useArticleStore } from "@/stores/article"
 import { useFocusMode } from "@/composables/useFocusMode"
 import ArticleListTree from "./ArticleListTree.vue"
 import FrontmatterView from "./FrontmatterView.vue"
+import OutlinePanel from "./OutlinePanel.vue"
+import type { OutlineHeading } from "@/components/CodeMirrorEditor.vue"
 
-defineProps<{ isCollapsed: boolean }>()
+const props = defineProps<{
+  isCollapsed: boolean
+  outlineHeadings: OutlineHeading[]
+}>()
+
+defineEmits<{
+  "scroll-to-outline-line": [line: number]
+}>()
 
 const articleStore = useArticleStore()
 const { focusMode } = useFocusMode()

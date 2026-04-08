@@ -20,7 +20,8 @@
                     :image-validation-warnings="imageValidationWarnings" :dropdown-position="dropdownPosition"
                     :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
                     @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
-                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll" />
+                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll"
+                    @outline-change="handleOutlineChange" />
             </template>
 
             <!-- Raw 模式 -->
@@ -67,6 +68,7 @@ import { getArticleService } from "@/services/ArticleService";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
+import type { OutlineHeading } from "./CodeMirrorEditor.vue"
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -94,6 +96,23 @@ const previewPaneRef = ref<InstanceType<typeof PreviewPane>>();
 
 // Get editorRef from EditorPane component
 const editorRef = computed(() => editorPaneRef.value?.editorRef);
+
+// Outline state
+const outlineHeadings = ref<OutlineHeading[]>([])
+const emit = defineEmits<{
+  "outline-change": [headings: OutlineHeading[]]
+}>()
+
+function handleOutlineChange(headings: OutlineHeading[]) {
+  outlineHeadings.value = headings
+  emit("outline-change", headings)
+}
+
+function handleScrollToOutlineLine(line: number) {
+  editorPaneRef.value?.scrollToLine(line)
+}
+
+defineExpose({ outlineHeadings, handleScrollToOutlineLine })
 
 // Get preview container ref from PreviewPane component
 const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);

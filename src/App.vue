@@ -10,7 +10,9 @@
       <template v-if="currentMode === ViewMode.Editor">
         <div class="flex flex-1 overflow-hidden">
           <!-- Sidebar -->
-          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" />
+          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed"
+            :outline-headings="outlineHeadings"
+            @scroll-to-outline-line="handleScrollToOutlineLine" />
 
           <!-- Editor Content -->
           <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
@@ -36,7 +38,7 @@
             </div>
 
             <div v-else key="editor" class="h-full flex flex-col">
-              <MainEditor />
+              <MainEditor ref="mainEditorRef" @outline-change="handleOutlineChange" />
             </div>
 
           </main>
@@ -66,6 +68,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import type { OutlineHeading } from "@/components/CodeMirrorEditor.vue";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
@@ -92,6 +95,16 @@ const { focusMode } = useFocusMode();
 const aiPanelStore = useAIPanelStore();
 const showSettings = ref(false);
 const settingsInitialTab = ref("basic");
+const mainEditorRef = ref<InstanceType<typeof MainEditor>>();
+const outlineHeadings = ref<OutlineHeading[]>([])
+
+function handleOutlineChange(headings: OutlineHeading[]) {
+  outlineHeadings.value = headings
+}
+
+function handleScrollToOutlineLine(line: number) {
+  mainEditorRef.value?.handleScrollToOutlineLine(line)
+}
 function openSettings(tab?: string) {
   settingsInitialTab.value = tab ?? "basic";
   showSettings.value = true;
