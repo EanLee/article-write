@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from "vue"
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection } from "@codemirror/view"
-import { EditorState, type Extension } from "@codemirror/state"
+import { EditorState, type Extension, type TransactionSpec } from "@codemirror/state"
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
@@ -93,7 +93,7 @@ import EditorStatusBar from "./EditorStatusBar.vue"
 // ─── OutlineHeading ───────────────────────────────────────────────────────────
 
 export interface OutlineHeading {
-  level: number   // 1–4
+  level: number   // 1–6
   text: string
   line: number    // 0-indexed line number in document
 }
@@ -236,7 +236,7 @@ const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert
 // ─── Formatting Commands ──────────────────────────────────────────────────────
 
 function makeFormatCommand(
-  specFn: (state: EditorState) => import("@codemirror/state").TransactionSpec,
+  specFn: (state: EditorState) => TransactionSpec,
 ): Command {
   return (view) => {
     view.dispatch(view.state.update(specFn(view.state)))
@@ -318,7 +318,7 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
       const doc = update.state.doc
       for (let i = 1; i <= doc.lines; i++) {
         const line = doc.line(i)
-        const match = line.text.match(/^(#{1,4})\s+(.+)/)
+        const match = line.text.match(/^(#{1,6})\s+(.+)/)
         if (match) {
           headings.push({ level: match[1].length, text: match[2].trim(), line: i - 1 })
         }
@@ -449,7 +449,9 @@ const editorRef = computed(() => {
 function scrollToLine(lineNumber: number) {
   const view = editorView.value
   if (!view) { return }
-  const line = view.state.doc.line(lineNumber + 1) // lineNumber is 0-indexed
+  const targetLine = lineNumber + 1 // lineNumber is 0-indexed
+  if (targetLine < 1 || targetLine > view.state.doc.lines) { return }
+  const line = view.state.doc.line(targetLine)
   view.dispatch({
     effects: EditorView.scrollIntoView(line.from, { y: "start", yMargin: 50 }),
   })
