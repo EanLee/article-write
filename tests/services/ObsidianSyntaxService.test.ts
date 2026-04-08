@@ -55,7 +55,7 @@ describe("ObsidianSyntaxService", () => {
     it("should provide wiki link suggestions when typing [[", () => {
       const context: AutocompleteContext = {
         text: "This is a reference to [[vue",
-        cursorPosition: 27, // After "[[vue"
+        cursorPosition: 28, // After "[[vue"
         lineNumber: 1,
         columnNumber: 27,
       };

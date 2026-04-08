@@ -191,6 +191,7 @@ export class ObsidianSyntaxService {
       })
       .map(article => {
         const fmTitle = article.frontmatter.title!
+        // ArticleStatus has two values: Published and Draft
         const statusLabel = article.status === ArticleStatus.Published ? "Published" : "Draft"
         return {
           text: `[[${fmTitle}]]`,
