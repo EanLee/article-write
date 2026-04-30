@@ -602,12 +602,30 @@ export class MarkdownService {
     const errors: Array<{ line: number; message: string; type: "error" | "warning" }> = [];
     const lines = content.split("\n");
 
+    // 記錄程式碼圍欄（``` 或 ~~~）的開關狀態，避免誤判程式碼區塊內的語法
+    let inFencedCodeBlock = false;
+
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
 
-      // 檢查未閉合的 Wiki 連結
-      const openWikiLinks = (line.match(/\[\[/g) || []).length;
-      const closeWikiLinks = (line.match(/\]\]/g) || []).length;
+      // 偵測程式碼圍欄的開始/結束（``` 或 ~~~）
+      if (/^(`{3,}|~{3,})/.test(line.trimStart())) {
+        inFencedCodeBlock = !inFencedCodeBlock;
+        return; // 圍欄行本身不需驗證
+      }
+
+      // 程式碼區塊內的任何語法都不驗證
+      if (inFencedCodeBlock) {return;}
+
+      // 移除行內程式碼（`...`）後再驗證，避免程式碼內容觸發誤判
+      const strippedLine = line.replace(/`[^`]*`/g, "");
+
+      // 移除 Markdown 連結 URL 部分 [text](url)，避免 URL 內的 == 或 [[ 觸發誤判
+      const strippedForWiki = strippedLine.replace(/\[[^\]]*\]\([^)]*\)/g, "");
+
+      // 檢查未閉合的 Wiki 連結（排除 Markdown 連結 [text](url) 格式）
+      const openWikiLinks = (strippedForWiki.match(/\[\[/g) || []).length;
+      const closeWikiLinks = (strippedForWiki.match(/\]\]/g) || []).length;
       if (openWikiLinks !== closeWikiLinks) {
         errors.push({
           line: lineNumber,
@@ -616,8 +634,9 @@ export class MarkdownService {
         });
       }
 
-      // 檢查未閉合的高亮語法
-      const highlightMarks = (line.match(/==/g) || []).length;
+      // 檢查未閉合的高亮語法（排除 URL 中的 == query string）
+      const strippedForHighlight = strippedLine.replace(/https?:\/\/\S+/g, "");
+      const highlightMarks = (strippedForHighlight.match(/==/g) || []).length;
       if (highlightMarks % 2 !== 0) {
         errors.push({
           line: lineNumber,
@@ -627,7 +646,7 @@ export class MarkdownService {
       }
 
       // 檢查未閉合的註釋
-      const commentStart = (line.match(/%%/g) || []).length;
+      const commentStart = (strippedLine.match(/%%/g) || []).length;
       if (commentStart % 2 !== 0) {
         errors.push({
           line: lineNumber,

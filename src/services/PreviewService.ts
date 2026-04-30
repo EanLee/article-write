@@ -276,7 +276,7 @@ export class PreviewService {
 
     // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（Electron renderer 才能顯示本地圖片）
     processed = processed.replace(/<img([^>]*)\ssrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
-      if (/^(https?|data|file):/.test(src)) {return match;} // 已是 URL，不處理
+      if (/^(https?|data|file|local-file):/.test(src)) {return match;} // 已是 URL，不處理
       if (!articleDir) {return match;} // 無文章目錄，無法解析相對路徑
       const resolved = this.resolveRelativePath(src, articleDir);
       return `<img${before} src="${this.toFileUrl(resolved)}"${after}>`;
