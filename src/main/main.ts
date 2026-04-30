@@ -1,5 +1,5 @@
 import { initSentry } from "./sentry.js";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, protocol, net } from "electron";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import pkg from "electron-updater";
@@ -27,6 +27,21 @@ initSentry();
 
 // 停用 Autofill 功能以消除 DevTools protocol 警告
 app.commandLine.appendSwitch("disable-features", "AutofillServerCommunication");
+
+// 必須在 app.whenReady() 前宣告自訂 scheme（Electron 限制）
+// local-file:// 用於在 renderer 中安全載入 vault 內的本地圖片
+// 若 renderer 從 http://localhost:3002（開發模式）載入，瀏覽器同源政策會封鎖 file:// 請求
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "local-file",
+    privileges: {
+      standard: true,
+      secure: true,
+      corsEnabled: true,
+      supportFetchAPI: true,
+    },
+  },
+]);
 
 let mainWindow: BrowserWindow;
 
@@ -64,14 +79,14 @@ function createWindow() {
               "default-src 'self'; " +
               "script-src 'self' 'unsafe-inline' http://localhost:3002; " +
               "style-src 'self' 'unsafe-inline' http://localhost:3002; " +
-              "img-src 'self' data: file: http://localhost:3002; " +
+              "img-src 'self' data: file: local-file: http://localhost:3002; " +
               "connect-src 'self' ws://localhost:3002 http://localhost:3002; " +
               "font-src 'self' data:;"
             : // 生產模式：更嚴格的策略
               "default-src 'self'; " +
               "script-src 'self'; " +
               "style-src 'self' 'unsafe-inline'; " +
-              "img-src 'self' data: file:; " +
+              "img-src 'self' data: file: local-file:; " +
               "connect-src 'self'; " +
               "font-src 'self' data:;",
         ],
@@ -115,6 +130,20 @@ function setupAutoUpdater() {
 }
 
 app.whenReady().then(async () => {
+  // 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
+  // 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
+  protocol.handle("local-file", async (request) => {
+    try {
+      const url = new URL(request.url);
+      // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
+      const pathname = decodeURIComponent(url.pathname);
+      // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
+      return await net.fetch(`file://${pathname}`);
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+  });
+
   createWindow();
   setupAutoUpdater();
 

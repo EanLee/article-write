@@ -195,8 +195,8 @@ export class PreviewService {
   private convertMarkdownImagePaths(content: string, articleDir: string): string {
     return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
       const trimmedSrc = src.trim();
-      // 已是 URL（http/https/data/file），不處理
-      if (/^(https?|data|file):/.test(trimmedSrc)) {
+      // 已是 URL（http/https/data/file/local-file），不處理
+      if (/^(https?|data|file|local-file):/.test(trimmedSrc)) {
         return match;
       }
       const resolved = this.resolveRelativePath(trimmedSrc, articleDir);
@@ -213,8 +213,8 @@ export class PreviewService {
   private resolveImagePath(imageName: string, basePath?: string): string {
     const base = (basePath || this.imageBasePath).replace(/\\/g, "/");
 
-    // 已是 URL（http/https/data/file）直接回傳
-    if (/^(https?|data|file):/.test(imageName)) {
+    // 已是 URL（http/https/data/file/local-file）直接回傳
+    if (/^(https?|data|file|local-file):/.test(imageName)) {
       return imageName;
     }
 
@@ -226,13 +226,14 @@ export class PreviewService {
   }
 
   /**
-   * 將 OS 絕對路徑轉為 file:// URL（Windows 和 Unix 均適用）
+   * 將 OS 絕對路徑轉為 local-file:// URL
+   * 使用自訂 Protocol 避免開發模式下 http://localhost 被而蚗同源政策封鎖
    */
   private toFileUrl(osPath: string): string {
     const normalized = osPath.replace(/\\/g, "/");
     return normalized.startsWith("/")
-      ? `file://${normalized}`           // Unix: /path → file:///path
-      : `file:///${normalized}`;         // Windows: C:/path → file:///C:/path
+      ? `local-file://${normalized}`           // Unix: /path → local-file:///path
+      : `local-file:///${normalized}`;         // Windows: C:/path → local-file:///C:/path
   }
 
   /**

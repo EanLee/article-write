@@ -99,9 +99,9 @@ interface Props {
 const props = defineProps<Props>()
 
 // 使用 DOMPurify 消毒 markdown-it 輸出，防止 XSS 攻擊
-// Electron 本地圖片使用 file:// URL，需要在允許清單中加入 file: 協定
+// 允許 local-file: 協定（自訂 Electron Protocol）與 file: 協定（生產模式 file:// 載入時）
 const ALLOWED_URI_REGEXP =
-  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|file):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i
+  /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|file|local-file):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i
 
 const sanitizedContent = computed(() =>
   DOMPurify.sanitize(props.renderedContent, {
