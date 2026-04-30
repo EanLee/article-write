@@ -81,6 +81,14 @@ export class PreviewService {
         processedContent = this.processImageReferences(processedContent, options.baseImagePath || this.imageBasePath);
       }
 
+      // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（在渲染前處理，比 HTML 後處理更可靠）
+      if (options.enableImagePreview && options.articleFilePath) {
+        const articleDir = options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "");
+        if (articleDir) {
+          processedContent = this.convertMarkdownImagePaths(processedContent, articleDir);
+        }
+      }
+
       // 使用 MarkdownService 渲染
       const html = this.markdownService.renderForPreview(processedContent, true);
 
@@ -174,6 +182,25 @@ export class PreviewService {
     return content.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
       const imagePath = this.resolveImagePath(imageName, basePath);
       return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" loading="lazy" />`;
+    });
+  }
+
+  /**
+   * 將標準 Markdown 圖片語法中的相對路徑轉為 file:// URL
+   * 在 markdown-it 渲染前處理，確保 Electron renderer 能顯示本地圖片
+   * @param {string} content - Markdown 內容
+   * @param {string} articleDir - 文章所在目錄（絕對路徑，使用 / 分隔）
+   * @returns {string} 路徑轉換後的 Markdown 內容
+   */
+  private convertMarkdownImagePaths(content: string, articleDir: string): string {
+    return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      const trimmedSrc = src.trim();
+      // 已是 URL（http/https/data/file），不處理
+      if (/^(https?|data|file):/.test(trimmedSrc)) {
+        return match;
+      }
+      const resolved = this.resolveRelativePath(trimmedSrc, articleDir);
+      return `![${alt}](${this.toFileUrl(resolved)})`;
     });
   }
 
