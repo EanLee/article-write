@@ -227,13 +227,21 @@ export class PreviewService {
 
   /**
    * 將 OS 絕對路徑轉為 local-file:// URL
-   * 使用自訂 Protocol 避免開發模式下 http://localhost 被而蚗同源政策封鎖
+   * 使用自訂 Protocol 避免開發模式下 http://localhost 被同源政策封鎖。
+   *
+   * ⚠️ Windows 路徑必須使用 local-file://localhost/C:/path 格式（加入明確的 localhost authority）：
+   *    Chromium 處理標準 scheme 時會將 local-file:///C:/path 中的 /C:/ 視為 Windows drive letter，
+   *    並正規化為 local-file://c/path（C 變成 hostname、冒號被丟棄），導致 handler 收到錯誤路徑。
+   *    加入 localhost 可防止此正規化行為。
    */
   private toFileUrl(osPath: string): string {
     const normalized = osPath.replace(/\\/g, "/");
-    return normalized.startsWith("/")
-      ? `local-file://${normalized}`           // Unix: /path → local-file:///path
-      : `local-file:///${normalized}`;         // Windows: C:/path → local-file:///C:/path
+    if (/^[a-zA-Z]:\//.test(normalized)) {
+      // Windows 絕對路徑（如 C:/path）→ local-file://localhost/C:/path
+      return `local-file://localhost/${normalized}`;
+    }
+    // Unix 絕對路徑（如 /home/...）→ local-file:///path
+    return `local-file://${normalized}`;
   }
 
   /**
