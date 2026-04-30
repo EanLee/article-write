@@ -246,7 +246,7 @@ your-blog/
 
 ```bash
 # 手動執行 Electron 安裝腳本
-node node_modules/.pnpm/electron@39.2.7/node_modules/electron/install.js
+node node_modules/electron/install.js
 ```
 
 ### Port 占用問題
