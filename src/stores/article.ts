@@ -279,6 +279,21 @@ export const useArticleStore = defineStore("article", () => {
    * 更新文章在記憶體中的狀態
    * ⚠️ 只更新 Store，不寫入檔案
    */
+  /**
+   * 同步編輯器即時內容到 currentArticle（僅記憶體，topic-020 決議）
+   *
+   * 編輯器每次內容變更時呼叫，確保所有儲存路徑（計時器自動儲存、
+   * 切換文章儲存、手動儲存）取得的都是編輯器當前內容，
+   * 消除「store 舊快照覆寫磁碟」的來源不一致問題。
+   *
+   * 不更新 lastModified（尚未寫盤），不觸發任何儲存。
+   */
+  function updateCurrentArticleContent(content: string) {
+    if (currentArticle.value && currentArticle.value.content !== content) {
+      currentArticle.value.content = content;
+    }
+  }
+
   function updateArticleInMemory(updatedArticle: Article) {
     // updateFilter 已由 useArticleFilter composable 提供
     const index = articles.value.findIndex((a) => a.id === updatedArticle.id);
@@ -533,6 +548,7 @@ export const useArticleStore = defineStore("article", () => {
     loadArticles,
     createArticle,
     saveArticle,
+    updateCurrentArticleContent,
     updateArticleInMemory,
     deleteArticle,
     toggleStatus,

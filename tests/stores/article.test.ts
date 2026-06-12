@@ -71,4 +71,35 @@ describe("Article Store", () => {
     expect(store.draftArticles).toHaveLength(1);
     expect(store.publishedArticles).toHaveLength(1);
   });
+
+  describe("updateCurrentArticleContent（topic-020 儲存來源單一化）", () => {
+    it("即時同步編輯器內容到 currentArticle，不更新 lastModified", async () => {
+      const store = useArticleStore();
+      const article = await store.createArticle("Live Sync", ArticleCategory.Software);
+      store.setCurrentArticle(article);
+      const lastModifiedBefore = store.currentArticle!.lastModified;
+
+      store.updateCurrentArticleContent("使用者剛打的新內容");
+
+      expect(store.currentArticle!.content).toBe("使用者剛打的新內容");
+      expect(store.currentArticle!.lastModified).toBe(lastModifiedBefore);
+    });
+
+    it("無當前文章時靜默忽略", () => {
+      const store = useArticleStore();
+      expect(() => store.updateCurrentArticleContent("any")).not.toThrow();
+      expect(store.currentArticle).toBeNull();
+    });
+
+    it("內容相同時不重複賦值（避免不必要的響應式觸發）", async () => {
+      const store = useArticleStore();
+      const article = await store.createArticle("No-op", ArticleCategory.Software);
+      store.setCurrentArticle(article);
+      const ref = store.currentArticle;
+
+      store.updateCurrentArticleContent(store.currentArticle!.content);
+
+      expect(store.currentArticle).toBe(ref);
+    });
+  });
 });
