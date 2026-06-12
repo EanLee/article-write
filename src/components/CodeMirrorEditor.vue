@@ -261,7 +261,20 @@ const formattingKeymap = keymap.of([
 
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
-const buildExtensions = (getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
+// 解析標題供大綱面板使用（初次掛載與內容變更時都需呼叫）
+function emitOutline(doc: EditorState["doc"]) {
+  const headings: OutlineHeading[] = []
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i)
+    const match = line.text.match(/^(#{1,6})\s+(.+)/)
+    if (match) {
+      headings.push({ level: match[1].length, text: match[2].trim(), line: i - 1 })
+    }
+  }
+  emit("outline-change", headings)
+}
+
+const buildExtensions =(getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
   // Markdown 語法高亮
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   syntaxHighlighting(defaultHighlightStyle),
@@ -312,18 +325,7 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
       emit("update:modelValue", update.state.doc.toString())
       autoSaveService.markAsModified()
       isInternalUpdate = false
-
-      // Parse headings for outline panel
-      const headings: OutlineHeading[] = []
-      const doc = update.state.doc
-      for (let i = 1; i <= doc.lines; i++) {
-        const line = doc.line(i)
-        const match = line.text.match(/^(#{1,6})\s+(.+)/)
-        if (match) {
-          headings.push({ level: match[1].length, text: match[2].trim(), line: i - 1 })
-        }
-      }
-      emit("outline-change", headings)
+      emitOutline(update.state.doc)
     }
     if (update.selectionSet) {
       const sel = update.state.selection.main
@@ -389,6 +391,9 @@ onMounted(() => {
     state,
     parent: containerRef.value,
   })
+
+  // 初次掛載即解析大綱（updateListener 只在 docChanged 時觸發，不含初始載入）
+  emitOutline(state.doc)
 })
 
 onUnmounted(() => {
