@@ -1,6 +1,6 @@
 # 跨職能交互討論記錄 — 第七次全面評估
 
-**日期**: 2026-03-02
+**日期**: 2026-03-02  
 **參與者**: Sec（資安）、Perf（效能）、Sol（SOLID）、Arch（架構）、AI（Token 分析）、QA（品質）
 
 ---
@@ -45,11 +45,11 @@
 
 **Sec：** 我想從安全角度補充——目前 `getApiKey` 的 `readFileSync` 在同步執行時，如果文件讀取失敗（例如文件被鎖定），它直接 `catch {}` 靜默返回 `null`。改為 async 路徑後，行為不變，但 async 錯誤在 logger 裡更容易追蹤。
 
-**QA：** 所以修改計畫是：
-1. ConfigService 建構子加 `configDir?: string` 參數，預設 `app.getPath("userData")`
-2. `setApiKey/getApiKey` 改為 async
-3. 調整 `registerIpcHandlers.ts` 中的 `AI_SET_API_KEY` / `AI_GET_HAS_API_KEY` handler（它們本來就是 async 的，await 即可）
-4. 更新 ConfigService 測試
+**QA：** 所以修改計畫是：  
+1. ConfigService 建構子加 `configDir?: string` 參數，預設 `app.getPath("userData")`  
+2. `setApiKey/getApiKey` 改為 async  
+3. 調整 `registerIpcHandlers.ts` 中的 `AI_SET_API_KEY` / `AI_GET_HAS_API_KEY` handler（它們本來就是 async 的，await 即可）  
+4. 更新 ConfigService 測試  
 
 工時估算 3-4h，可以安排在修 S7-01 的同一個 Sprint（都是 ConfigService / main process 的改動，相近的程式碼區域）。
 

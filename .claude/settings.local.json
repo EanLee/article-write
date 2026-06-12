@@ -79,9 +79,7 @@
       "Bash(git stash:*)",
       "mcp__plugin_serena_serena__write_memory",
       "Bash(git push:*)",
-      "Bash(npx tsc:*)",
-      "Bash(pnpm run:*)",
-      "Bash(bash:*)"
+      "Bash(npx tsc:*)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 # 效能 / O(n) 評估報告 — 第七次全面評估
 
-**評審者**: Perf（效能工程師）
-**評審日期**: 2026-03-02
+**評審者**: Perf（效能工程師）  
+**評審日期**: 2026-03-02  
 **評審範圍**: Main process services、Renderer stores/composables、演算法設計
 
 ---
@@ -73,7 +73,7 @@ private extractTrigrams(text: string): Set<string> {
 
 ```typescript
 private hasContentChanged(article: Article): boolean {
-  return article.content !== this.lastSavedContent
+  return article.content !== this.lastSavedContent 
       || !isEqual(article.frontmatter, this.lastSavedFrontmatter);
 }
 ```
@@ -106,7 +106,7 @@ setTimeout(() => {        // ← 沒有對應的 clearTimeout！
 
 若 process 在 5 秒內正常退出（`proc.once("exit")`），5 秒後 setTimeout 仍然執行，對已解決的 Promise 呼叫 `resolve()`（無害但多餘）且再嘗試 kill 已 null 的 process（有 null-guard）。實際無 crash，但構成記憶體不必要的佔用 5 秒。
 
-**嚴重性**: 🟢 低（不影響正確性，只是資源殘留）
+**嚴重性**: 🟢 低（不影響正確性，只是資源殘留）  
 **建議**:
 ```typescript
 const forceKillTimer = setTimeout(() => { ... }, 5000);
@@ -118,12 +118,12 @@ proc.once("exit", () => {
 
 ### P7-02 🟡 — MetadataCacheService 串行 I/O（P6-03 延伸）
 
-仍未修復。在 vault 有 100 篇文章時，串行讀取約 100 × (avg 2ms I/O) = 200ms 啟動延遲。
+仍未修復。在 vault 有 100 篇文章時，串行讀取約 100 × (avg 2ms I/O) = 200ms 啟動延遲。  
 建議改為 `Promise.all()` + concurrency limit（避免同時開啟過多 fd）。
 
 ### P7-03 🟢 — SearchService 短查詢線性掃描是設計取捨
 
-< 3 字元查詢走線性 O(N)，這是對「兩字元 CJK 邊界不能形成三元語法」的合理回應。
+< 3 字元查詢走線性 O(N)，這是對「兩字元 CJK 邊界不能形成三元語法」的合理回應。  
 若要支援 2-gram（適合中文），需引入更複雜的 bigram 索引。當前 100 篇規模下不構成問題，P3。
 
 ---
