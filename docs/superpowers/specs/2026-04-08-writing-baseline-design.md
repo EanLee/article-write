@@ -59,14 +59,19 @@ WriteFlow 定位為 Obsidian → Astro 發布管線，但使用者希望能**直
 ## 功能二：側欄大綱面板
 
 ### 影響模組
-- `src/components/ActivityBar.vue` — 新增大綱圖示
-- `src/components/SideBarView.vue` — 新增大綱面板切換
+- `src/components/SideBarView.vue` — 新增「大綱」分頁切換
 - 新建 `src/components/OutlinePanel.vue`
+
+> **設計決策（2026-06-13，IA 審視後修訂）**：大綱入口採用 SideBarView 內部分頁（與「文章列表」「文章資訊」並列），**不**新增 ActivityBar 圖示。理由：
+> 1. ActivityBar 為模式切換層級（編輯/管理模式），大綱屬於「當前文章的衍生內容」，與文章資訊同級，放分頁符合語意層級
+> 2. 原規格「位置：ArticleList 與 AI 面板之間」前提有誤——ActivityBar 上並無 ArticleList 圖示（文章列表本身就是側欄分頁）
+> 3. VSCode 先例：Outline 為 Explorer 側欄內區塊，非 Activity Bar 圖示
+> 4. 若日後回饋切換頻繁，優先以快捷鍵（如 Ctrl+Shift+O）解決，而非增加圖示
 
 ### 行為規格
 
-- Activity Bar 新增大綱圖示（位置：ArticleList 與 AI 面板之間）
-- 點擊圖示切換 sidebar 顯示 `OutlinePanel`
+- SideBarView 頂部新增「大綱」分頁（與文章列表、文章資訊並列；無開啟文章時停用）
+- 點擊分頁切換 sidebar 顯示 `OutlinePanel`
 - 大綱面板即時解析當前編輯文章的 H1–H4 標題
 - 點擊大綱項目 → 編輯器滾動至對應行
 - 標題層級以縮排表示（H2 縮進 12px，H3 縮進 24px，H4 縮進 36px）
@@ -132,8 +137,7 @@ CodeMirrorEditor（內容變更）
 | 模組 | 異動類型 | 功能 |
 |------|----------|------|
 | `CodeMirrorEditor.vue` | 修改 | 快捷鍵、wiki popup 鍵盤導覽、footnote 插入 |
-| `ActivityBar.vue` | 修改 | 新增大綱圖示 |
-| `SideBarView.vue` | 修改 | 大綱面板切換邏輯 |
+| `SideBarView.vue` | 修改 | 大綱分頁切換邏輯（含入口，見功能二設計決策） |
 | `OutlinePanel.vue` | 新建 | 大綱面板元件 |
 | `ObsidianSyntaxService.ts` | 確認/微調 | title 來源確保為 frontmatter |
 | `ArticleService.ts` | 確認/微調 | loadArticle title 欄位來源 |
@@ -142,8 +146,11 @@ CodeMirrorEditor（內容變更）
 
 ## 成功標準
 
-- [ ] 所有快捷鍵在有/無選取文字時行為正確，toggle 正常運作
-- [ ] 大綱面板即時更新，點擊標題能精確跳轉
-- [ ] Wiki link 插入後文字為 frontmatter title（可驗證：建立一篇 frontmatter title 與檔名不同的文章）
-- [ ] Footnote 快速插入編號正確遞增，游標跳轉至定義行
-- [ ] 所有現有測試通過（pnpm run test）
+- [x] 所有快捷鍵在有/無選取文字時行為正確，toggle 正常運作（unit 23 項 + E2E `writing-baseline.spec.ts`，2026-06-13）
+- [x] 大綱面板即時更新，點擊標題能精確跳轉（E2E 驗證；初次載入為空的 bug 已修復，見 `docs/fix-bug/2026-06-13-outline-empty-on-load.md`）
+- [x] Wiki link 插入後文字為 frontmatter title（unit：`ObsidianSyntaxService.test.ts` 涵蓋 title 來源約束）
+- [x] Footnote 快速插入編號正確遞增，游標跳轉至定義行（unit + E2E）
+- [x] 所有現有測試通過（pnpm run test，616 passed，2026-06-13）
+
+> ⚠️ 已知問題：快捷鍵格式化後儲存，磁碟內容可能為舊快照（自動/手動儲存競態）。
+> 屬儲存機制設計問題，非本功能缺陷，待 topic-020 圓桌決議。
