@@ -2,6 +2,19 @@
 
 本文件定義此專案的 AI 輔助開發規則，所有 AI 助手必須遵循。
 
+## ⚠️ 底層工具規則（最高優先，不可跳過）
+
+**除了純文件記錄（撰寫/編輯 markdown 文件）之外，所有作業必須同時使用以下三項工具：**
+
+1. **rtk pre-command**：所有 Bash 指令經 rtk 截斷輸出（PreToolUse hook 自動套用）
+2. **MCP plugin:serena**：程式碼讀取、符號搜尋、編輯（語意層工具優先於原始檔案讀取）
+3. **MCP context-mode**：批次蒐集（`ctx_batch_execute`）、大輸出解析（`ctx_execute`）、知識召回（`ctx_search`）
+
+**只要其中任何一項未啟動或無法連線：立即停止作業，向使用者回報，不得以無工具方式繼續執行。**
+
+> 緣由：2026-06-13 topic-020 驗收期間，未善用上述工具導致大量 token 浪費。
+> 省 token 細則見 `docs/guides/E2E_TESTING_GUIDE.md` 第五章。
+
 ## 版本控制規範
 
 ### Git Flow 工作流程
