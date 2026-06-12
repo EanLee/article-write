@@ -615,7 +615,9 @@ export class MarkdownService {
       }
 
       // 程式碼區塊內的任何語法都不驗證
-      if (inFencedCodeBlock) {return;}
+      if (inFencedCodeBlock) {
+        return;
+      }
 
       // 移除行內程式碼（`...`）後再驗證，避免程式碼內容觸發誤判
       const strippedLine = line.replace(/`[^`]*`/g, "");

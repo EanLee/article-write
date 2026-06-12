@@ -93,9 +93,7 @@ export class PreviewService {
       const html = this.markdownService.renderForPreview(processedContent, true);
 
       // 後處理 HTML 以增強預覽效果（含標準 Markdown 圖片路徑轉換）
-      const articleDir = options.articleFilePath
-        ? options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "")
-        : "";
+      const articleDir = options.articleFilePath ? options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "") : "";
       return this.postProcessHtml(html, articleDir);
     } catch (error) {
       logger.error("Preview rendering error:", error);
@@ -256,8 +254,11 @@ export class PreviewService {
     const parts = (articleDir + "/" + normalized).split("/");
     const resolved: string[] = [];
     for (const part of parts) {
-      if (part === "..") {resolved.pop();}
-      else if (part !== ".") {resolved.push(part);}
+      if (part === "..") {
+        resolved.pop();
+      } else if (part !== ".") {
+        resolved.push(part);
+      }
     }
     return resolved.join("/");
   }
@@ -284,8 +285,12 @@ export class PreviewService {
 
     // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（Electron renderer 才能顯示本地圖片）
     processed = processed.replace(/<img([^>]*)\ssrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
-      if (/^(https?|data|file|local-file):/.test(src)) {return match;} // 已是 URL，不處理
-      if (!articleDir) {return match;} // 無文章目錄，無法解析相對路徑
+      if (/^(https?|data|file|local-file):/.test(src)) {
+        return match;
+      } // 已是 URL，不處理
+      if (!articleDir) {
+        return match;
+      } // 無文章目錄，無法解析相對路徑
       const resolved = this.resolveRelativePath(src, articleDir);
       return `<img${before} src="${this.toFileUrl(resolved)}"${after}>`;
     });
