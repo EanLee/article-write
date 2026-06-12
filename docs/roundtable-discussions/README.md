@@ -30,14 +30,15 @@
 | 017 | 整合 AI 規格與後續 Sprint 功能走向 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-017-2026-02-27-feature-direction-integration](./topic-017-2026-02-27-feature-direction-integration/) |
 | 018 | 市場方向與進度對焦 | 2026-03-03 | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
 | 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | ⚠️ 待排程 | 戰略層次 | [topic-019-2026-03-07-autosave-on-switch-behavior](./topic-019-2026-03-07-autosave-on-switch-behavior/) |
+| 020 | 儲存競態：自動儲存以舊快照覆寫磁碟 | 2026-06-13 | ⚠️ 待排程 | 戰略層次（Critical） | [topic-020-2026-06-13-save-race-data-overwrite](./topic-020-2026-06-13-save-race-data-overwrite/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 19
+**總討論數**: 20
 **已決策**: 18
-**待排程**: 1
+**待排程**: 2
 
 ---
 
@@ -48,6 +49,10 @@
   - 涉及使用者心智模型（是否知道 Save 被觸發？）與產品安全承諾
   - 相關 Bug 3 的技術面 Race Condition 已緩解（ID 碰撞修復 + snapshot 防護）
   - 待決策：此行為是否保留？若保留，如何對使用者透明？
+- ⚠️ [#020 儲存競態：自動儲存以舊快照覆寫磁碟](./topic-020-2026-06-13-save-race-data-overwrite/PENDING.md) - 2026-06-13, 戰略層次（Critical）
+  - E2E 檢驗發現：UI 顯示已儲存但磁碟為舊內容，frontmatter 欄位遺失
+  - 自動儲存（store 舊快照）與手動儲存（編輯器即時內容）來源不一致
+  - 與 #019 同源，建議合併討論儲存機制整體設計
 
 ---
 
