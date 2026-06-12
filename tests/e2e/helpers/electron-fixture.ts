@@ -105,7 +105,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       });
       // 預先等待 App 主視窗載入完成，並自動接受 beforeunload 對話框
       const win = await getAppWindow(app);
-      win.on("dialog", (dialog) => dialog.accept());
+      // accept() 可能因 dialog 已自行關閉而 reject（reload 競態），須捕捉避免讓後續測試失敗
+      win.on("dialog", (dialog) => dialog.accept().catch(() => {}));
       await use(app);
       try {
         await app.close();
