@@ -7,8 +7,8 @@ owner: tech-team
 updated: 2026-02-02
 source_of_truth: true
 supersedes:
-  - docs/archive/SETTINGS_COMPARISON.md
-  - docs/archive/SETTINGS_REDESIGN.md
+  - docs/product/business/SETTINGS_COMPARISON.md
+  - docs/product/business/SETTINGS_REDESIGN.md
 ---
 
 # 設定面板完整文件

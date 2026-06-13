@@ -1,6 +1,6 @@
 ---
 title: "架構設計文件"
-domain: archive
+domain: engineering
 type: spec
 status: archived
 owner: tech-team

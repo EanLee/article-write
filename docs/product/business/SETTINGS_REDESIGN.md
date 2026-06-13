@@ -1,6 +1,6 @@
 ---
 title: "設定面板 UI/UX 重新設計"
-domain: archive
+domain: product
 type: spec
 status: archived
 owner: tech-team

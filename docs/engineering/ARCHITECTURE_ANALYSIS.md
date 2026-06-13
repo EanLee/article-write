@@ -1,6 +1,6 @@
 ---
 title: "檔案服務架構分析 - 過度設計問題"
-domain: archive
+domain: engineering
 type: spec
 status: archived
 owner: tech-team

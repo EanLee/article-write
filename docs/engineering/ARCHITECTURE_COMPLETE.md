@@ -7,8 +7,8 @@ owner: tech-team
 updated: 2026-02-02
 source_of_truth: true
 supersedes:
-  - docs/archive/ARCHITECTURE.md
-  - docs/archive/ARCHITECTURE_ANALYSIS.md
+  - docs/engineering/ARCHITECTURE.md
+  - docs/engineering/ARCHITECTURE_ANALYSIS.md
 ---
 
 # 系統架構完整文件

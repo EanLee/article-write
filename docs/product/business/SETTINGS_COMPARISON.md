@@ -1,6 +1,6 @@
 ---
 title: "設定面板改版對比"
-domain: archive
+domain: product
 type: reference
 status: archived
 owner: tech-team

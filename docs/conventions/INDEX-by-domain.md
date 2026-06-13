@@ -42,6 +42,8 @@ related_docs:
 | [planning/MVP_SCOPE.md](../product/business/MVP_SCOPE.md) | WriteFlow MVP 範圍定義 | approved |
 | [guides/ARTICLE_TREE_USAGE.md](../reference/ARTICLE_TREE_USAGE.md) | IDE 風格文章樹使用指南 | approved |
 | [settings/SETTINGS_COMPLETE.md](../product/business/SETTINGS_COMPLETE.md) | 設定面板完整文件（SoT） | approved |
+| [settings/SETTINGS_COMPARISON.md](../product/business/SETTINGS_COMPARISON.md) | 設定面板改版對比（已取代） | archived |
+| [settings/SETTINGS_REDESIGN.md](../product/business/SETTINGS_REDESIGN.md) | 設定面板 UI/UX 重新設計（已取代） | archived |
 | [settings/SETTINGS_QUICK_REFERENCE.md](../product/business/SETTINGS_QUICK_REFERENCE.md) | 設定面板快速參考 | approved |
 | [settings/UI_COMPARISON.md](../product/business/UI_COMPARISON.md) | 文章列表 UI 改版對比 | approved |
 | [tech-team/T-011-settings-panel-ux-review.md](../product/discussions/T-011-settings-panel-ux-review.md) | 設定面板 UX 評估 | approved |
@@ -60,6 +62,8 @@ related_docs:
 | 文件 | 標題 | 狀態 |
 |---|---|---|
 | [architecture/ARCHITECTURE_COMPLETE.md](../engineering/ARCHITECTURE_COMPLETE.md) | 系統架構完整文件（SoT） | approved |
+| [architecture/ARCHITECTURE.md](../engineering/ARCHITECTURE.md) | 架構設計文件（已取代） | archived |
+| [architecture/ARCHITECTURE_ANALYSIS.md](../engineering/ARCHITECTURE_ANALYSIS.md) | 檔案服務架構分析 - 過度設計問題（已取代） | archived |
 | [guides/INTEGRATION_GUIDE.md](../engineering/INTEGRATION_GUIDE.md) | 核心功能整合指南 | approved |
 | [planning/REFACTORING_PLAN.md](../engineering/REFACTORING_PLAN.md) | 服務層重構計劃 | approved |
 | [planning/REFACTOR_CHECKLIST.md](../engineering/REFACTOR_CHECKLIST.md) | 重構檢查清單 | approved |
@@ -127,15 +131,11 @@ related_docs:
 |---|---|---|
 | [tech-team/T-003-github-actions-cicd.md](../operations/T-003-github-actions-cicd.md) | GitHub Actions CI/CD | approved |
 
-## archive
-
-| 文件 | 標題 | 狀態 |
-|---|---|---|
-| [ARCHITECTURE.md](../archive/ARCHITECTURE.md) | 架構設計文件（已取代） | archived |
-| [ARCHITECTURE_ANALYSIS.md](../archive/ARCHITECTURE_ANALYSIS.md) | 檔案服務架構分析 - 過度設計問題（已取代） | archived |
-| [SETTINGS_COMPARISON.md](../archive/SETTINGS_COMPARISON.md) | 設定面板改版對比（已取代） | archived |
-| [SETTINGS_REDESIGN.md](../archive/SETTINGS_REDESIGN.md) | 設定面板 UI/UX 重新設計（已取代） | archived |
-
 ---
 
-**統計**：conventions 7、product 17、engineering 24、delivery 12、quality 15、operations 1、archive 4（共 80 份已標記 `domain` 的文件，不含本索引自身）
+**統計**：conventions 7、product 19、engineering 26、delivery 12、quality 15、operations 1（共 80 份已標記 `domain` 的文件，不含本索引自身）
+
+> `archived` 狀態的文件（已被取代但仍保留歷史記錄）留在原本的 domain 分類中，
+> 不獨立成 `archive` 分類——`domain` 代表主題歸屬，`status` 代表生命週期，
+> 兩者是不同維度。doc-viewer sidebar 會將各 domain 下 `status: archived` 的文件
+> 收進該分類的「已封存文件」子分組。
