@@ -18,42 +18,21 @@
 
 ## 版本控制規範
 
-### Git Flow
+完整規範（分支說明表、各類分支操作流程、Commit type/scope 對照表、Git Hooks 設定） → [Git Flow 與分支管理](../docs/conventions/GUIDELINE-2026-06-13-git-branching.md)、[Commit 規範與 Git Hooks](../docs/conventions/GUIDELINE-2026-06-13-commit-conventions.md)
 
-`main`（生產）/ `develop`（整合）/ `feature/*` / `fix/*`、`hotfix/*`（從 `main`）/ `release/*`
-
-### 分支規則
+**隨時必須生效的核心鐵則：**
 
 - **⚠️ 絕對不要直接修改 `develop` 或 `main`**
 - **⚠️ 一個分支只處理一件事（SRP）**：一個 bug、一個功能、或一項重構，不混合不相關變更
 - **任務前必檢查分支**：`git branch --show-current`；若在 `develop`/`main` → 立即警告使用者、建議建立新分支、不要直接修改程式碼（需使用者同意才建立）
 - **Feature Branch 完成定義（RETRO-001）**：合併前必須端到端可用（資料能正確儲存/讀取/顯示），不只是 UI 有顯示。實作中若發現需修改其他層（型別、服務層等），在**同一分支**內完成，不另開分支
+- **Commit**：Conventional Commits（`<type>(<scope>): <subject>`）、必須**繁體中文**、Atomic + SRP、**不署名**
+- **禁止 `git commit --no-verify`**：commit 失敗時排查 Pre-commit（ESLint）/ Commit-msg（commitlint）問題並修正
+- **合併**：Feature 建 PR 到 develop；Fix/Hotfix 使用者驗證通過後 `git merge --no-ff`（見 `bugfix-workflow` skill）；hotfix 需同時合併進 `main` 與 `develop`
 
-### Commit 規範（Conventional Commits）
+## 程式碼風格與型別規範
 
-```
-<type>(<scope>): <subject>
-
-<body>
-```
-
-- **type**: feat / fix / docs / style / refactor / perf / test / chore
-- **scope**: editor / ui / service / store / types / config
-- **原則**：必須使用**繁體中文**；每個 commit 原子性（Atomic）、單一職責（SRP）
-
-### Git Hooks（commit 失敗時依此排查，禁止 `--no-verify`）
-
-- **Pre-commit**：自動執行 ESLint 並修復可修復的問題
-- **Commit-msg**：自動驗證 commit message 是否符合 Conventional Commits 格式
-
-### 合併規則
-
-- **Feature**：建立 PR 合併到 develop，不要直接 `git merge`
-- **Fix/Hotfix**：使用者驗證通過後直接 `git merge --no-ff`（見 `bugfix-workflow` skill）；hotfix 需同時合併進 `main` 與 `develop`
-
-## TypeScript Enum 規範
-
-固定選項集合（狀態、分類、主題等）優先使用 **Enum**（PascalCase 命名，集中定義於 `src/types/index.ts`），不使用字串字面值類型。→ `typescript-enum-conventions` skill
+TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../docs/conventions/GUIDELINE-2026-06-13-code-style.md)（Enum 規範詳見 `typescript-enum-conventions` skill）
 
 ## Bug Fix
 
@@ -79,12 +58,12 @@
 
 ## 參考文件
 
-- [Commit 詳細指南](../docs/COMMIT_GUIDE.md)
-- [整合指南](../docs/INTEGRATION_GUIDE.md)
-- [潛在問題清單](../docs/POTENTIAL_ISSUES.md)
+- [Git Flow 與分支管理](../docs/conventions/GUIDELINE-2026-06-13-git-branching.md)
+- [Commit 規範與 Git Hooks](../docs/conventions/GUIDELINE-2026-06-13-commit-conventions.md)
+- [程式碼風格與型別規範](../docs/conventions/GUIDELINE-2026-06-13-code-style.md)
 - [Bug Fix 報告範例](../docs/fix-bug/)
 
 ---
 
 **最後更新**: 2026-06-13
-**版本**: 2.0.0
+**版本**: 2.1.0

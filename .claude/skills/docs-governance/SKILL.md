@@ -178,3 +178,25 @@ flowchart TD
   Q -->|被新版取代，功能仍存在| A[status: deprecated\n留在原目錄\n加 superseded_by]
   Q -->|對應功能已完全廢棄| B[搬離原目錄或刪除\nstatus: deprecated]
 ```
+
+## Step 8 — GUIDELINE ↔ Skill 同步檢查（Retro）
+
+`docs/conventions/` 下的 GUIDELINE 是開發規範的**單一來源**；`.claude/CLAUDE.md` 與各 skill 是衍生給 AI agent 的操作規則。兩者必須保持一致，避免重新出現「同一規則在多處重複定義、甚至互相矛盾」的問題（例如 GUIDELINE-2026-06-13-git-branching.md 修正前，root `DEVELOPMENT.md` 用 `bugfix/*`、`CLAUDE.md`/skill 用 `fix/*` 的矛盾案例）。
+
+### 觸發時機
+
+- **修改任何 GUIDELINE 文件後**：立即檢查 `.claude/CLAUDE.md` 與相關 skill 是否有對應段落需同步更新
+- **新增或修改 skill 時**：檢查內容是否與既有 GUIDELINE 一致；若 skill 引入了新規範，應同步補進對應 GUIDELINE（GUIDELINE 為準）
+- **定期排程觸發**（見下方）：即使沒有手動修改，也要檢查兩者是否已產生隱性偏差
+
+### 檢查清單
+
+- [ ] 列出 `docs/conventions/*.md` 與 `.claude/CLAUDE.md`、`.claude/skills/**/SKILL.md` 中涵蓋相同主題的段落
+- [ ] 逐項比對：規則內容是否一致（例如分支命名、commit scope、enum 規範）
+- [ ] 發現矛盾 → 以 GUIDELINE 為準，修正 CLAUDE.md/skill；若 GUIDELINE 本身已過時，先更新 GUIDELINE（`status` 走 `draft → pending-review`）
+- [ ] 發現 GUIDELINE 已涵蓋但 CLAUDE.md/skill 未指回 → 補上指向連結，移除重複內容
+- [ ] 確認 `.claude/CLAUDE.md`「參考文件」等連結未指向不存在的檔案
+
+### 排程提醒
+
+建議以 `loop` skill 或 `scheduled-tasks` 設定**每月一次**的排程，內容為：「依 docs-governance skill Step 8 執行 GUIDELINE ↔ CLAUDE.md/skill 同步檢查，回報發現的偏差」。
