@@ -110,7 +110,7 @@
 ## 📚 參考資料
 
 - [圓桌會議運作規則](./governance/ROUNDTABLE_RULES.md)
-- [角色卡](./governance/CHARACTER_CARDS.md)
+- [角色卡](./governance/character-cards/INDEX.md)
 - [初始系統評估（topic-000）](./topic-000-2026-02-02-initial-system-evaluation/)
 
 ---

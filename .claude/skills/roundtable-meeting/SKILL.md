@@ -37,7 +37,7 @@ description: 圓桌會議與技術會議規則。發起戰略/技術決策討論
 | 🔧 Ops | Sam Liu | 穩定性、維運成本、部署 |
 | 💻 CTO | Taylor Wu | 技術架構、技術債、長期發展 |
 
-每個角色派發**獨立 sub-agent**（並行 Task tool），收到：專案現況 + 角色特質（`CHARACTER_CARDS.md`）+ 今天議題。
+每個角色派發**獨立 sub-agent**（並行 Task tool），收到：專案現況 + 角色特質（`docs/conventions/governance/character-cards/`）+ 今天議題。
 
 ### 文件結構與命名
 
