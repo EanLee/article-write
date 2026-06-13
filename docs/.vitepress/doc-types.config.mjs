@@ -22,26 +22,15 @@ export default {
     AIDR:  { label: 'AI/角色討論記錄', dir: 'roundtable-discussions' },
   },
 
-  // 標記允許「混合多種 doc_type / domain」的目錄（T-017 落差四）
-  // 這些目錄內的文件改以 frontmatter `domain` 欄位標示實際性質，
-  // 而非依賴目錄路徑本身。
-  mixedDirs: [
-    'roundtable-discussions',
-    'tech-team',
-    'planning',
-    'analysis',
-    'guides',
-  ],
-
   // 註冊索引檔，供未來 lint 檢查序號/連結一致性（T-017 落差一）
   registries: [
-    { dir: 'adr', index: 'README.md' },
-    { dir: 'tech-team', index: 'TEAM.md' },
-    { dir: 'roundtable-discussions', index: 'README.md' },
+    { dir: 'engineering/adr', index: 'README.md' },
+    { dir: 'conventions', index: 'TEAM.md' },
+    { dir: 'conventions', index: 'ROUNDTABLE-DISCUSSIONS-INDEX.md' },
   ],
 
-  // mixedDirs 內允許使用的 domain 值（對應 docs-governance 8-domain 的子集）
-  domains: ['product', 'engineering', 'quality', 'delivery', 'conventions', 'operations'],
+  // 8-domain 分類允許使用的 domain 值（T-018/T-019 起，目錄結構本身即代表 domain）
+  domains: ['product', 'engineering', 'quality', 'delivery', 'conventions', 'operations', 'reference', 'archive'],
 
   // 舊文件狀態詞彙 → docs-governance 五階段 status 對照表（T-018 落差九）
   // 補 frontmatter 時依此表將舊文件中的自由文字狀態轉換為標準值。
