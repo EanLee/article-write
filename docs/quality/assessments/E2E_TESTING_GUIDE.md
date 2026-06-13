@@ -43,7 +43,7 @@ source_of_truth: true
 
 **現象**：`page.reload: Timeout 30000ms exceeded`，間歇性、且總是發生在「前一個測試留有未儲存編輯」之後。
 
-**原因**：[App.vue](../../src/App.vue) 的 `beforeunload` 在 `hasUnsavedChanges()` 時觸發確認對話框；
+**原因**：[App.vue](../../../src/App.vue) 的 `beforeunload` 在 `hasUnsavedChanges()` 時觸發確認對話框；
 Playwright Electron 的 dialog 自動接受與 reload 導航存在競態，會讓 reload 永遠等不到 `load`。
 
 **對策**：

@@ -29,7 +29,7 @@
 
 ### 修正方式
 
-[App.vue:123-126](../../src/App.vue#L123)：
+[App.vue:123-126](../../../../src/App.vue#L123)：
 
 ```diff
 - if ((e.metaKey || e.ctrlKey) && e.key === "f") {
@@ -67,7 +67,7 @@ Ctrl+S
 
 ### 修正方式
 
-1. [AutoSaveService.ts:223-233](../../src/services/AutoSaveService.ts#L223) 新增 `notifySaved(article)`：
+1. [AutoSaveService.ts:223-233](../../../../src/services/AutoSaveService.ts#L223) 新增 `notifySaved(article)`：
 
 ```ts
 /**
@@ -80,13 +80,13 @@ notifySaved(article: Article): void {
 }
 ```
 
-2. [article.ts:250-253](../../src/stores/article.ts#L250) 在 `saveArticle()` 成功後呼叫：
+2. [article.ts:250-253](../../../../src/stores/article.ts#L250) 在 `saveArticle()` 成功後呼叫：
 
 ```ts
 autoSaveService.notifySaved(articleToSave);
 ```
 
-3. [SaveStatusIndicator.vue:37,168-183](../../src/components/SaveStatusIndicator.vue#L37) 移除重複的全域 `Ctrl+S` keydown 監聽器（`handleKeyDown` / `onMounted` / `onUnmounted`），改由 `MainEditor` 的 `useEditorShortcuts` 統一處理 `Ctrl+S`。
+3. [SaveStatusIndicator.vue:37,168-183](../../../../src/components/SaveStatusIndicator.vue#L37) 移除重複的全域 `Ctrl+S` keydown 監聽器（`handleKeyDown` / `onMounted` / `onUnmounted`），改由 `MainEditor` 的 `useEditorShortcuts` 統一處理 `Ctrl+S`。
 
 **為何有效**：手動儲存後立即同步 `AutoSaveService` 的內部快取與狀態，UI 狀態與磁碟狀態一致；移除重複的全域監聽器後，同一次 `Ctrl+S` 不再觸發兩筆並行儲存。
 
@@ -124,9 +124,9 @@ articleStore.saveArticle() (第二次)
 
 ### 修正方式
 
-1. [MarkdownService.ts:277-310](../../src/services/MarkdownService.ts#L277) `parseFrontmatter()` 新增 `created`/`pubDate`/`draft`/`status` 的驗證與寫入（呼應圓桌 #007 決議的欄位命名）。
+1. [MarkdownService.ts:277-310](../../../../src/services/MarkdownService.ts#L277) `parseFrontmatter()` 新增 `created`/`pubDate`/`draft`/`status` 的驗證與寫入（呼應圓桌 #007 決議的欄位命名）。
 
-2. [MarkdownService.ts:321-340](../../src/services/MarkdownService.ts#L321) `generateFrontmatter()` 由白名單逐欄位列舉改為**遍歷所有已定義欄位**：
+2. [MarkdownService.ts:321-340](../../../../src/services/MarkdownService.ts#L321) `generateFrontmatter()` 由白名單逐欄位列舉改為**遍歷所有已定義欄位**：
 
 ```ts
 const cleanData: Record<string, unknown> = {};
@@ -138,7 +138,7 @@ for (const [key, value] of Object.entries(data)) {
 }
 ```
 
-3. [ArticleService.ts:34-39,113-119,135](../../src/services/ArticleService.ts#L34) 新增 `lastWrittenContent: Map<string, string>`，記錄每個檔案自己最後寫入的內容；衝突偵測時若「磁碟內容 === 自己上次寫入的內容」，視為 own-write，不視為外部衝突：
+3. [ArticleService.ts:34-39,113-119,135](../../../../src/services/ArticleService.ts#L34) 新增 `lastWrittenContent: Map<string, string>`，記錄每個檔案自己最後寫入的內容；衝突偵測時若「磁碟內容 === 自己上次寫入的內容」，視為 own-write，不視為外部衝突：
 
 ```ts
 const isOwnWrite =
@@ -160,8 +160,8 @@ if (conflictResult.hasConflict && !isOwnWrite) {
 
 ### 測試
 
-- [MarkdownService.test.ts](../../tests/services/MarkdownService.test.ts) 新增 `generateFrontmatter 欄位保留（topic-020 Action 3）` describe 區塊，涵蓋 pubDate/created/draft 保留、自訂欄位保留、undefined/null 不輸出。
-- [ArticleService.test.ts](../../tests/services/ArticleService.test.ts) 新增 own-write 豁免、真外部修改仍判定衝突的測試案例。
+- [MarkdownService.test.ts](../../../../tests/services/MarkdownService.test.ts) 新增 `generateFrontmatter 欄位保留（topic-020 Action 3）` describe 區塊，涵蓋 pubDate/created/draft 保留、自訂欄位保留、undefined/null 不輸出。
+- [ArticleService.test.ts](../../../../tests/services/ArticleService.test.ts) 新增 own-write 豁免、真外部修改仍判定衝突的測試案例。
 - E2E：`writing-baseline.spec.ts` 第 5 個測試（「快捷鍵格式化後 Ctrl+S，內容實際寫入磁碟」）驗證儲存後磁碟內容包含 `2026-06-13`（pubDate）與 `draft` 欄位。
 
 ---
@@ -194,7 +194,7 @@ if (conflictResult.hasConflict && !isOwnWrite) {
 
 ### 修正方式
 
-[useFocusMode.ts:28-33](../../src/composables/useFocusMode.ts#L28)：
+[useFocusMode.ts:28-33](../../../../src/composables/useFocusMode.ts#L28)：
 
 ```ts
 function handleKeydown(e: KeyboardEvent) {
@@ -245,7 +245,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 ### 修正方式
 
-[App.vue:121-134](../../src/App.vue#L121)：
+[App.vue:121-134](../../../../src/App.vue#L121)：
 
 ```ts
 function handleGlobalKeydown(e: KeyboardEvent) {
