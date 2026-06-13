@@ -119,6 +119,12 @@ function toggleSidebar() {
 }
 
 function handleGlobalKeydown(e: KeyboardEvent) {
+  // 編輯器內的 Ctrl+B（粗體）已透過 preventDefault 處理，
+  // 此時不應再觸發側邊欄收合（避免兩個 handler 搶同一組快捷鍵）
+  if (e.defaultPrevented) {
+    return;
+  }
+
   if (e.ctrlKey && e.key === "b") {
     e.preventDefault();
     toggleSidebar();
