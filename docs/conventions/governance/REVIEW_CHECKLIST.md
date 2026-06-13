@@ -1,6 +1,6 @@
 ---
 title: "技術審查檢查清單"
-domain: quality
+domain: conventions
 type: guide
 status: approved
 owner: tech-team

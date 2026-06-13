@@ -1,8 +1,8 @@
 ---
 title: "設定面板 UI/UX 重新設計"
-domain: product
+domain: archive
 type: spec
-status: deprecated
+status: archived
 owner: tech-team
 updated: 2026-06-13
 source_of_truth: false

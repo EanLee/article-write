@@ -1,8 +1,8 @@
 ---
 title: "架構設計文件"
-domain: engineering
+domain: archive
 type: spec
-status: deprecated
+status: archived
 owner: tech-team
 updated: 2026-06-13
 source_of_truth: false

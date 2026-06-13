@@ -1,8 +1,8 @@
 ---
 title: "設定面板改版對比"
-domain: product
+domain: archive
 type: reference
-status: deprecated
+status: archived
 owner: tech-team
 updated: 2026-06-13
 source_of_truth: false

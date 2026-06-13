@@ -1,6 +1,6 @@
 ---
 title: "Git Commit 指南"
-domain: conventions
+domain: reference
 type: guide
 status: approved
 owner: tech-team
