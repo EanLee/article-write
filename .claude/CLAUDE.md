@@ -14,7 +14,7 @@
 **只要其中任何一項未啟動或無法連線：立即停止作業，向使用者回報，不得以無工具方式繼續執行。**
 
 > 緣由：2026-06-13 topic-020 驗收期間，未善用上述工具導致大量 token 浪費。
-> 省 token 細則見 `docs/guides/E2E_TESTING_GUIDE.md` 第五章。
+> 省 token 細則見 `docs/quality/assessments/E2E_TESTING_GUIDE.md` 第五章。
 
 ## 版本控制規範
 
@@ -61,7 +61,7 @@ TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../
 - [Git Flow 與分支管理](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-git-branching.md)
 - [Commit 規範與 Git Hooks](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-commit-conventions.md)
 - [程式碼風格與型別規範](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md)
-- [Bug Fix 報告範例](../docs/fix-bug/)
+- [Bug Fix 報告範例](../docs/quality/assessments/fix-bug/)
 
 ---
 

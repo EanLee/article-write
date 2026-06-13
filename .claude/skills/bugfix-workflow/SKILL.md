@@ -22,7 +22,7 @@ description: 修復任何 bug、撰寫 Bug Fix 報告、記錄根本原因、建
 
 ## Bug Fix 報告規範
 
-- 位置：`docs/fix-bug/YYYY-MM-DD-簡短描述.md`
+- 位置：`docs/quality/assessments/fix-bug/YYYY-MM-DD-簡短描述.md`
 - 必含三部分：**問題描述**（現象/條件/重現步驟）、**原因分析**（根本原因）、**修正方式**（檔案/邏輯/為何有效/替代方案）＋相關 Commit
 - 同一問題的追加修復**補充在原報告底部**（`## 追加修復 (YYYY-MM-DD)`），不建新檔
 - 在使用者驗證**之前**完成報告
@@ -48,9 +48,9 @@ description: 修復任何 bug、撰寫 Bug Fix 報告、記錄根本原因、建
 
 **觸發條件**：行為缺乏圓桌決議支撐／修復揭露產品層行為問題／根因涉及「當初為何這樣設計」／修復後仍有 Race Condition、資料損毀等風險。
 
-- 位置：`docs/roundtable-discussions/topic-NNN-YYYY-MM-DD-描述/PENDING.md`（編號讀 README.md 最新值加一）
+- 位置：`docs/<domain>/discussions/topic-NNN-YYYY-MM-DD-描述/PENDING.md`（`<domain>` 依議題性質判斷；編號讀 `docs/conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md` 最新值加一）
 - 必含：背景與情境、問題核心、已確認的技術事實（區分事實與待決策）、待決策項目、建議討論層次表、關聯文件
-- 建立後**同步更新** `docs/roundtable-discussions/README.md` 索引與統計
+- 建立後**同步更新** `docs/conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md` 索引與統計
 
 **討論層次判斷**：
 | 情境 | 層次 |
