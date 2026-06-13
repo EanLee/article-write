@@ -41,23 +41,33 @@
 - **scope**: editor / ui / service / store / types / config
 - **原則**：必須使用**繁體中文**；每個 commit 原子性（Atomic）、單一職責（SRP）
 
+### Git Hooks（commit 失敗時依此排查，禁止 `--no-verify`）
+
+- **Pre-commit**：自動執行 ESLint 並修復可修復的問題
+- **Commit-msg**：自動驗證 commit message 是否符合 Conventional Commits 格式
+
+### 合併規則
+
+- **Feature**：建立 PR 合併到 develop，不要直接 `git merge`
+- **Fix/Hotfix**：使用者驗證通過後直接 `git merge --no-ff`（見 `bugfix-workflow` skill）；hotfix 需同時合併進 `main` 與 `develop`
+
 ## TypeScript Enum 規範
 
-固定選項集合（狀態、分類、主題等）優先使用 **Enum**（PascalCase 命名，集中定義於 `src/types/index.ts`），不使用字串字面值類型。詳見 `typescript-enum-conventions` skill。
+固定選項集合（狀態、分類、主題等）優先使用 **Enum**（PascalCase 命名，集中定義於 `src/types/index.ts`），不使用字串字面值類型。→ `typescript-enum-conventions` skill
 
-## Bug Fix 流程
+## Bug Fix
 
-所有 bug 修復必須遵循 `bugfix-workflow` skill：fix/hotfix 分支流程、Bug Fix 報告格式、根本原因記錄、PENDING 待議文件、假修復防範、**使用者驗證前禁止合併**。
+修復任何 bug → 必用 `bugfix-workflow` skill
 
 ## 測試規範
 
 **核心鐵則**：所有修改完成前必執行 `pnpm run test`，**0 failures** 才算完成；不可跳過、不可以「應該不影響」代替實際驗證。
-Service/UI 測試對應規則與 Definition of Done 詳見 `testing-standards` skill。
+詳細規則與 Definition of Done → `testing-standards` skill
 
 ## 技術文件與會議
 
-- 技術作業文件（CI/CD、架構決策、技術選型、基礎設施變更等）→ `tech-team-docs` skill
-- 圓桌會議 / 技術會議（角色 sub-agent、即時記錄、升級機制）→ `roundtable-meeting` skill
+- CI/CD、架構決策、技術選型、基礎設施變更 → `tech-team-docs` skill
+- 圓桌會議 / 技術會議 → `roundtable-meeting` skill
 - 文件分類、frontmatter、命名規則 → `docs-governance` skill
 
 ## 工具偏好
