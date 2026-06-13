@@ -1,3 +1,14 @@
+---
+title: "設定面板改版對比"
+domain: product
+type: reference
+status: deprecated
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+superseded_by: docs/settings/SETTINGS_COMPLETE.md
+---
+
 # 設定面板改版對比
 
 > **對比版本**: v1.0 → v2.0

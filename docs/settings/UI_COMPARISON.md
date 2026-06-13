@@ -1,3 +1,13 @@
+---
+title: "文章列表 UI 改版對比"
+domain: product
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-01-24
+source_of_truth: true
+---
+
 # 📊 文章列表 UI 改版對比
 
 ## 舊版 vs 新版對比
