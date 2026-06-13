@@ -34,6 +34,13 @@ pnpm run test
 - 工具：Playwright（`pnpm run test:e2e`）
 - 涵蓋：關鍵使用者流程、互動行為、錯誤狀態、邊界條件
 
+### E2E（Electron + Playwright）除錯流程 — 必讀 `docs/guides/E2E_TESTING_GUIDE.md`
+
+- ❌ **禁止盲跑全套 E2E 猜原因**：每輪 build + Electron 啟動約 3~7 分鐘，從 Playwright 表層錯誤訊息猜測根因會浪費大量時間與 token
+- ✅ **失敗時第一步讀 `test-results/renderer-console.log`**：`electron-fixture.ts` 會把 renderer 端 `console.log` 全部捕捉到此檔，可直接看到 app 端實際發生什麼（例如 `File conflict detected`）
+- ✅ **正確流程**：單測（`playwright test <spec> -g "<test name>"`）→ 讀 `renderer-console.log` → 修 → 單測 → 全 spec → 全 unit
+- ✅ **落盤類測試**：UI 顯示正確 ≠ 磁碟內容正確（topic-020 核心教訓），必須 `expect.poll(() => fs.readFileSync(...))` 驗證實際檔案內容
+
 ## Definition of Done — Feature 開發
 
 - [ ] 程式碼符合規範，ESLint / TypeScript 檢查通過
