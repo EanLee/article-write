@@ -132,4 +132,4 @@ related_docs:
 
 ---
 
-**統計**：conventions 6、product 18、engineering 26、delivery 12、quality 15、operations 1（共 78 份已標記 `domain` 的文件）
+**統計**：conventions 6、product 19、engineering 26、delivery 12、quality 15、operations 1（共 79 份已標記 `domain` 的文件，不含本索引自身）
