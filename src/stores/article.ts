@@ -250,6 +250,10 @@ export const useArticleStore = defineStore("article", () => {
       if (result.success) {
         // 儲存成功，只更新記憶體中的狀態，不觸發 reload
         updateArticleInMemory(articleToSave);
+        // 同步 AutoSaveService 狀態（topic-020）：
+        // Ctrl+S 等直接呼叫 saveArticle 的路徑不經過 autoSaveService.saveCurrentArticle()，
+        // 若不同步會導致 UI 持續顯示「未儲存」直到下次自動儲存輪詢
+        autoSaveService.notifySaved(articleToSave);
       } else if (result.conflict) {
         // 檔案衝突
         notify.warning("檔案衝突", "檔案在外部被修改，建議重新載入", {
