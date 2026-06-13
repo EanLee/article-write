@@ -31,20 +31,23 @@
 | 018 | 市場方向與進度對焦 | 2026-03-03 | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
 | 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | ✅ 已決策（併入 020） | 全體一致 | [topic-019-2026-03-07-autosave-on-switch-behavior](./topic-019-2026-03-07-autosave-on-switch-behavior/) |
 | 020 | 儲存機制整體設計（儲存競態，合併 019） | 2026-06-13 | ✅ 已決策 | 全體一致 | [topic-020-2026-06-13-save-race-data-overwrite](./topic-020-2026-06-13-save-race-data-overwrite/) |
+| 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | ⚠️ 待排程 | - | [topic-021-2026-06-13-articlelisttree-reactivity](./topic-021-2026-06-13-articlelisttree-reactivity/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 20
+**總討論數**: 21
 **已決策**: 20
-**待排程**: 0
+**待排程**: 1
 
 ---
 
 ## ⚠️ 待排程議題
 
-（目前無待排程議題）
+> #021 ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章（reactivity 根因未定位）。
+> topic-020 E2E 驗收時發現，已將 `tests/e2e/writing-baseline.spec.ts` 第 6 個測試標記 `test.fixme`。
+> 詳見 [topic-021 PENDING.md](./topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md)
 
 > #019、#020 已於 2026-06-13 合併圓桌決議：儲存來源單一化（方案 A），
 > 切換時儲存保留但走統一路徑，Sprint 4 第零優先，未修復不得 Soft Launch。
