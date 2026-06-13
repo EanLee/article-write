@@ -27,7 +27,8 @@ related_docs:
 |---|---|---|
 | [guides/COMMIT_GUIDE.md](./guides/COMMIT_GUIDE.md) | Git Commit 指南 | approved |
 | [tech-team/T-017-doc-viewer-docs-governance-gap-analysis.md](./tech-team/T-017-doc-viewer-docs-governance-gap-analysis.md) | doc-viewer docs-governance 文件分類落差分析與改進建議 | approved |
-| [tech-team/T-018-docs-reorganization-plan.md](./tech-team/T-018-docs-reorganization-plan.md) | 文件治理：戰略面與工程技術面分類規劃 | draft |
+| [tech-team/T-018-docs-reorganization-plan.md](./tech-team/T-018-docs-reorganization-plan.md) | 文件治理：戰略面與工程技術面分類規劃 | approved |
+| [tech-team/T-019-docs-governance-migration-report.md](./tech-team/T-019-docs-governance-migration-report.md) | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | approved |
 | [conventions/GUIDELINE-2026-06-13-git-branching.md](./conventions/GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 | draft |
 | [conventions/GUIDELINE-2026-06-13-commit-conventions.md](./conventions/GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks | draft |
 | [conventions/GUIDELINE-2026-06-13-code-style.md](./conventions/GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 | draft |
@@ -132,4 +133,4 @@ related_docs:
 
 ---
 
-**統計**：conventions 6、product 19、engineering 26、delivery 12、quality 15、operations 1（共 79 份已標記 `domain` 的文件，不含本索引自身）
+**統計**：conventions 7、product 19、engineering 26、delivery 12、quality 15、operations 1（共 80 份已標記 `domain` 的文件，不含本索引自身）

@@ -62,6 +62,7 @@
 | T-015 | AI Service 技術架構設計文件 | 2026-02-27 | engineering | ✅ 完成 |
 | T-016 | Phase 2 三角度分析 Token 消耗評估 | 2026-02-27 | engineering | ✅ 完成 |
 | T-017 | doc-viewer docs-governance 文件分類落差分析與改進建議 | 2026-06-13 | conventions | ✅ 完成（待回報 doc-viewer） |
-| T-018 | 文件治理：戰略面與工程技術面分類規劃 | 2026-06-13 | conventions | 📋 規劃中 |
+| T-018 | 文件治理：戰略面與工程技術面分類規劃 | 2026-06-13 | conventions | ✅ 完成 |
+| T-019 | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | 2026-06-13 | conventions | ✅ 完成 |
 | UX-001 | 表單設計規範 | 2026-02-15 | product | ✅ 完成 |
 | RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | delivery | ✅ 完成 |
