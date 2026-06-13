@@ -123,7 +123,7 @@ function handleGlobalKeydown(e: KeyboardEvent) {
     e.preventDefault();
     toggleSidebar();
   }
-  if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "f") {
     e.preventDefault();
     searchStore.open();
   }
