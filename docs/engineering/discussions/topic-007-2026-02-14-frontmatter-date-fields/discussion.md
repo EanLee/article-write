@@ -8,16 +8,6 @@ updated: 2026-02-14
 source_of_truth: false
 ---
 
----
-title: "圓桌會議 #007：Frontmatter 時間欄位命名與語意釐清"
-domain: engineering
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-14
-source_of_truth: false
----
-
 # 圓桌會議 #007：Frontmatter 時間欄位命名與語意釐清
 
 > **話題編號**: #007

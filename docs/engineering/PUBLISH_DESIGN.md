@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 發布哲學與設計決策"
-domain: engineering
-type: spec
-status: draft
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # WriteFlow 發布哲學與設計決策
 
 > **建立日期**: 2026-02-14

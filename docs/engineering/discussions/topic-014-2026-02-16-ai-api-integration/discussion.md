@@ -8,16 +8,6 @@ updated: 2026-02-16
 source_of_truth: false
 ---
 
----
-title: "討論記錄：AI API 串接評估"
-domain: engineering
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-16
-source_of_truth: false
----
-
 # 討論記錄：AI API 串接評估
 
 > **話題編號**: topic-014

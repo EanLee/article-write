@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "Week X 週檢查點 - YYYY-MM-DD"
-domain: delivery
-type: guide
-status: draft
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # Week X 週檢查點 - YYYY-MM-DD
 
 **日期**：YYYY-MM-DD

@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "Service 層 SOLID 原則分析報告"
-domain: engineering
-type: spec
-status: draft
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # Service 層 SOLID 原則分析報告
 
 **分析日期**: 2026-01-27

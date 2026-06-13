@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "👤 Jordan Lee - 一般使用者 (User)"
-domain: conventions
-type: reference
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # 👤 Jordan Lee - 一般使用者 (User)
 
 > 📑 [角色卡總覽](./INDEX.md) ｜ [角色對比總結](./COMPARISON.md)

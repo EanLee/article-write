@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "ADR-0001：以 CodeMirror 6 取代原生 textarea 編輯器"
-domain: engineering
-type: adr
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # ADR-0001：以 CodeMirror 6 取代原生 textarea 編輯器
 
 | 欄位 | 內容 |

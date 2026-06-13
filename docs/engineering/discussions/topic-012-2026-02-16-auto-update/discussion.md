@@ -8,16 +8,6 @@ updated: 2026-02-16
 source_of_truth: false
 ---
 
----
-title: "線上自動更新機制評估"
-domain: engineering
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-16
-source_of_truth: false
----
-
 # 線上自動更新機制評估
 
 > **話題編號**: topic-012

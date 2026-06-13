@@ -8,16 +8,6 @@ updated: 2026-02-27
 source_of_truth: false
 ---
 
----
-title: "topic-017 整合 AI 規格與後續 Sprint 功能走向"
-domain: product
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-27
-source_of_truth: false
----
-
 # topic-017 整合 AI 規格與後續 Sprint 功能走向
 
 **議題**：整合 topic-014（AI API 整合）、topic-015（AI Panel 設計）、topic-016（文章建議三角度分析）的決策，確定後續 Sprint 功能走向。

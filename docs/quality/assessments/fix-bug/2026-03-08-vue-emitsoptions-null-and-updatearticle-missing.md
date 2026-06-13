@@ -8,16 +8,6 @@ updated: 2026-03-08
 source_of_truth: false
 ---
 
----
-title: "Vue emitsOptions null 錯誤與 updateArticle 缺失 Bug Fix 報告"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # Vue emitsOptions null 錯誤與 updateArticle 缺失 Bug Fix 報告
 
 **日期**: 2026-03-08

@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "Sentry 錯誤追蹤設定指南"
-domain: operations
-type: runbook
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # Sentry 錯誤追蹤設定指南
 
 **建立日期**: 2026-02-04

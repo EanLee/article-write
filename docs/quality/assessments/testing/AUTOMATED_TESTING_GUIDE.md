@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "自動化測試指南"
-domain: quality
-type: guide
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # 自動化測試指南
 
 本文件說明如何執行專案的自動化測試，確保修正後的問題不再發生。

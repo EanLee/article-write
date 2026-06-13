@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "架構重構進度報告"
-domain: engineering
-type: spec
-status: draft
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # 架構重構進度報告
 
 ## 📋 重構目標

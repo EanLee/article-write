@@ -8,16 +8,6 @@ updated: 2026-02-12
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 專案圓桌會議 - 現實重組與計畫調整"
-domain: product
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-12
-source_of_truth: false
----
-
 # WriteFlow 專案圓桌會議 - 現實重組與計畫調整
 
 > **會議日期**: 2026-02-12 20:00

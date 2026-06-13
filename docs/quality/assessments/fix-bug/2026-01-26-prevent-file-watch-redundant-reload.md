@@ -8,16 +8,6 @@ updated: 2026-01-26
 source_of_truth: false
 ---
 
----
-title: "防止檔案監聽重複 Reload Bug Fix 報告"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # 防止檔案監聽重複 Reload Bug Fix 報告
 
 **日期**: 2026-01-26

@@ -8,16 +8,6 @@ updated: 2026-03-01
 source_of_truth: false
 ---
 
----
-title: "Fix: TOKEN6-01/02/04/05 — AI 層安全與穩健性"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # Fix: TOKEN6-01/02/04/05 — AI 層安全與穩健性
 
 **日期**: 2026-03-01  

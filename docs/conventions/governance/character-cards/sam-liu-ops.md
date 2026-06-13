@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "🔧 Sam Liu - 維運人員 (Ops)"
-domain: conventions
-type: reference
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # 🔧 Sam Liu - 維運人員 (Ops)
 
 > 📑 [角色卡總覽](./INDEX.md) ｜ [角色對比總結](./COMPARISON.md)

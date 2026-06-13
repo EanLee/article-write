@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "自動儲存誤觸發調查"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # 自動儲存誤觸發調查
 
 ## 問題現象

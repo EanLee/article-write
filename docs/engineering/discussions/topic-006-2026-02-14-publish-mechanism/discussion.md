@@ -8,16 +8,6 @@ updated: 2026-02-14
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 圓桌會議 #006 — 發布機制落差確認"
-domain: engineering
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-14
-source_of_truth: false
----
-
 # WriteFlow 圓桌會議 #006 — 發布機制落差確認
 
 > **會議日期**: 2026-02-14

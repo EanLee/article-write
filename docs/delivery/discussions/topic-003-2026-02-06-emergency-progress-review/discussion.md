@@ -8,16 +8,6 @@ updated: 2026-02-06
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 專案緊急圓桌會議 - 進度檢討與方向修正"
-domain: delivery
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-06
-source_of_truth: false
----
-
 # WriteFlow 專案緊急圓桌會議 - 進度檢討與方向修正
 
 > **會議日期**: 2026-02-06 23:15

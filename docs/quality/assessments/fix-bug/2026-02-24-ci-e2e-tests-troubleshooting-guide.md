@@ -8,16 +8,6 @@ updated: 2026-02-24
 source_of_truth: false
 ---
 
----
-title: "CI E2E 測試問題排除完整指南"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # CI E2E 測試問題排除完整指南
 
 **日期**: 2026-02-24  

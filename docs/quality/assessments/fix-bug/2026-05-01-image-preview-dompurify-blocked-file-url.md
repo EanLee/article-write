@@ -8,16 +8,6 @@ updated: 2026-05-01
 source_of_truth: false
 ---
 
----
-title: "文章圖片無法顯示 Bug Fix 報告"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # 文章圖片無法顯示 Bug Fix 報告
 
 **日期**: 2026-05-01

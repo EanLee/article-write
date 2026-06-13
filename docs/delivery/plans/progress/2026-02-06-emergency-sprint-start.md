@@ -8,16 +8,6 @@ updated: 2026-02-06
 source_of_truth: false
 ---
 
----
-title: "Week 2 Day 5 (緊急衝刺啟動) - 進度報告"
-domain: delivery
-type: plan
-status: approved
-owner: tech-team
-updated: 2026-02-04
-source_of_truth: false
----
-
 # Week 2 Day 5 (緊急衝刺啟動) - 進度報告
 
 **日期**: 2026-02-06  

@@ -8,16 +8,6 @@ updated: 2026-02-14
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 圓桌會議 #008 — Sprint Retrospective"
-domain: delivery
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-14
-source_of_truth: false
----
-
 # WriteFlow 圓桌會議 #008 — Sprint Retrospective
 
 > **會議日期**: 2026-02-14

@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "WriteFlow Smoke Test Checklist"
-domain: quality
-type: guide
-status: approved
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # WriteFlow Smoke Test Checklist
 
 > **負責人**: Taylor (CTO)

@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "週檢查點記錄"
-domain: delivery
-type: guide
-status: draft
-owner: tech-team
-updated: 2026-06-13
-source_of_truth: false
----
-
 # 週檢查點記錄
 
 本目錄包含每週的自我檢查點記錄。

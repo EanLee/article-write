@@ -8,16 +8,6 @@ updated: 2026-06-13
 source_of_truth: false
 ---
 
----
-title: "topic-020 儲存來源單一化 — E2E 驗收期間發現的修復"
-domain: quality
-type: assessment
-status: approved
-owner: tech-team
-updated: 2026-01-26
-source_of_truth: false
----
-
 # topic-020 儲存來源單一化 — E2E 驗收期間發現的修復
 
 > 分支：`fix/save-single-source-of-truth`

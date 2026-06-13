@@ -8,16 +8,6 @@ updated: 2026-02-13
 source_of_truth: false
 ---
 
----
-title: "WriteFlow 圓桌會議 - Week 3 進度回報與方向修正"
-domain: delivery
-type: rpd
-status: approved
-owner: roundtable-discussions
-updated: 2026-02-13
-source_of_truth: false
----
-
 # WriteFlow 圓桌會議 - Week 3 進度回報與方向修正
 
 > **會議日期**: 2026-02-13
