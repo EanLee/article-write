@@ -1,3 +1,14 @@
+---
+title: "設定面板 UI/UX 重新設計"
+domain: product
+type: spec
+status: deprecated
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+superseded_by: docs/settings/SETTINGS_COMPLETE.md
+---
+
 # 設定面板 UI/UX 重新設計
 
 > **版本**: 2.0

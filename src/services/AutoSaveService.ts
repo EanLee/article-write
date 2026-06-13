@@ -224,6 +224,17 @@ export class AutoSaveService {
   }
 
   /**
+   * 通知已透過統一儲存路徑（articleStore.saveArticle）成功寫入磁碟（topic-020）
+   * 同步 lastSavedContent/lastSavedFrontmatter 並將狀態設為已儲存，
+   * 確保 Ctrl+S 等不經由 saveCurrentArticle() 的路徑，UI 狀態仍能正確反映「已儲存」
+   * @param {Article} article - 已成功儲存的文章
+   */
+  notifySaved(article: Article): void {
+    this.updateLastSavedContent(article);
+    this.updateSaveState(SaveStatus.Saved);
+  }
+
+  /**
    * 設定新文章時重置儲存狀態
    * @param {Article | null} article - 新的當前文章
    */

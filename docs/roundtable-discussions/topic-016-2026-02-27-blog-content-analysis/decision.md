@@ -1,3 +1,13 @@
+---
+title: "部落格文章內容品質分析（SEO/行銷/學習者）"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-27
+source_of_truth: true
+---
+
 # topic-016 決策記錄：部落格文章內容品質分析——SEO / 行銷 / 學習者三角度
 
 > **話題編號**: topic-016

@@ -1,3 +1,13 @@
+---
+title: "IDE 風格文章樹使用指南"
+domain: product
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 📁 IDE 風格文章樹使用指南
 
 ## 🌟 概述

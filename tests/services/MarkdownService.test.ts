@@ -65,9 +65,45 @@ describe("MarkdownService Enhanced Features", () => {
 
   it("should get supported languages for syntax highlighting", () => {
     const languages = markdownService.getSupportedLanguages()
-    
+
     expect(Array.isArray(languages)).toBe(true)
     expect(languages.length).toBeGreaterThan(0)
     expect(languages).toContain("javascript")
+  })
+
+  describe("generateFrontmatter 欄位保留（topic-020 Action 3）", () => {
+    it("保留 pubDate、created、draft 等非白名單欄位，不得遺失", () => {
+      const result = markdownService.generateFrontmatter({
+        title: "測試文章",
+        pubDate: "2026-06-13",
+        created: "2026-06-01",
+        draft: true,
+      } as never)
+
+      expect(result).toContain("title: 測試文章")
+      expect(result).toMatch(/pubDate: '?2026-06-13'?/)
+      expect(result).toMatch(/created: '?2026-06-01'?/)
+      expect(result).toContain("draft: true")
+    })
+
+    it("保留未知的自訂欄位（round-trip 不破壞使用者資料）", () => {
+      const result = markdownService.generateFrontmatter({
+        title: "測試",
+        customField: "使用者自訂值",
+      } as never)
+
+      expect(result).toContain("customField: 使用者自訂值")
+    })
+
+    it("undefined 與 null 欄位不輸出", () => {
+      const result = markdownService.generateFrontmatter({
+        title: "測試",
+        description: undefined,
+        slug: null,
+      } as never)
+
+      expect(result).not.toContain("description")
+      expect(result).not.toContain("slug")
+    })
   })
 })

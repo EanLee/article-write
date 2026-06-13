@@ -1,3 +1,13 @@
+---
+title: "AI 面板 Phase 2-3 Prompt 設計"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # T-012 AI Panel Phase 2/3 + 使用者自訂 Prompt 設計
 
 **日期**: 2026-02-17

@@ -1,3 +1,13 @@
+---
+title: "設定面板 UX 評估"
+domain: product
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # T-011 Settings Panel UX 評估
 
 **日期**: 2026-02-17

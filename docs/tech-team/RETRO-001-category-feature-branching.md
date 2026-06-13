@@ -1,3 +1,13 @@
+---
+title: "分類功能分支開發回顧"
+domain: delivery
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: true
+---
+
 # Retro-001 — 分類功能一個需求變三個 Branch
 
 > **日期**: 2026-02-15

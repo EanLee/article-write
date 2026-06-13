@@ -1,3 +1,13 @@
+---
+title: "Sprint Retro"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 決策記錄：Sprint Retrospective — 瓶頸識別與改善行動
 
 > **話題編號**: topic-008

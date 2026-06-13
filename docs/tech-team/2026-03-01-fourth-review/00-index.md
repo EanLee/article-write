@@ -1,3 +1,13 @@
+---
+title: "第四次技術評估 — 索引"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: true
+---
+
 # 第四次技術評估 — 索引
 
 **日期**: 2026-03-01

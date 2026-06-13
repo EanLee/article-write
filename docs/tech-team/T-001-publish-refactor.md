@@ -1,3 +1,13 @@
+---
+title: "發布流程重構"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 技術討論 T-001 — 發布機制重構
 
 > **日期**: 2026-02-14

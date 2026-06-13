@@ -1,3 +1,16 @@
+---
+title: "系統架構完整文件"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+supersedes:
+  - docs/architecture/ARCHITECTURE.md
+  - docs/architecture/ARCHITECTURE_ANALYSIS.md
+---
+
 # 系統架構完整文件
 
 > **版本**: 2.0

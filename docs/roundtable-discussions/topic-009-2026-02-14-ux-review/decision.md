@@ -1,3 +1,13 @@
+---
+title: "UX Review"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 決策記錄：編輯器 UX 體驗問題 — 優先級與行動方案
 
 > **話題編號**: topic-009

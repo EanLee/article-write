@@ -105,7 +105,19 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       });
       // 預先等待 App 主視窗載入完成，並自動接受 beforeunload 對話框
       const win = await getAppWindow(app);
-      win.on("dialog", (dialog) => dialog.accept());
+      // accept() 可能因 dialog 已自行關閉而 reject（reload 競態），須捕捉避免讓後續測試失敗
+      win.on("dialog", (dialog) => dialog.accept().catch(() => {}));
+      // 捕捉 renderer console 到檔案，供測試失敗時直接定位 app 端行為（不進測試輸出）
+      const consoleLogPath = path.join(ROOT, "test-results", "renderer-console.log");
+      fs.mkdirSync(path.dirname(consoleLogPath), { recursive: true });
+      fs.writeFileSync(consoleLogPath, "");
+      win.on("console", (msg) => {
+        try {
+          fs.appendFileSync(consoleLogPath, `[${new Date().toISOString()}] [${msg.type()}] ${msg.text()}\n`);
+        } catch {
+          // log 寫入失敗不影響測試
+        }
+      });
       await use(app);
       try {
         await app.close();

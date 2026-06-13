@@ -1,3 +1,13 @@
+---
+title: "自動儲存機制（TDR）"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 技術討論 T-002 — 自動儲存機制評估與實作決策
 
 > **日期**: 2026-02-14

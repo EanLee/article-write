@@ -1,3 +1,13 @@
+---
+title: "GitHub Actions CI/CD"
+domain: operations
+type: runbook
+status: approved
+owner: tech-team
+updated: 2026-02-15
+source_of_truth: true
+---
+
 # T-003 GitHub Actions CI/CD 建置
 
 **日期**: 2026-02-15

@@ -165,6 +165,14 @@ pnpm run lint
 pnpm run lint:fix
 ```
 
+## 開發規範
+
+貢獻程式碼前請閱讀：
+
+- [Git Flow 與分支管理](docs/conventions/GUIDELINE-2026-06-13-git-branching.md)
+- [Commit 規範與 Git Hooks](docs/conventions/GUIDELINE-2026-06-13-commit-conventions.md)
+- [程式碼風格與型別規範](docs/conventions/GUIDELINE-2026-06-13-code-style.md)
+
 ## 架構設計
 
 ### 分層架構
@@ -246,7 +254,7 @@ your-blog/
 
 ```bash
 # 手動執行 Electron 安裝腳本
-node node_modules/.pnpm/electron@39.2.7/node_modules/electron/install.js
+node node_modules/electron/install.js
 ```
 
 ### Port 占用問題

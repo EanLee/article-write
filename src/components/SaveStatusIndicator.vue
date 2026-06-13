@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from "vue"
+import { computed } from "vue"
 import { Check, Loader2, AlertCircle, FileEdit, Save } from "lucide-vue-next"
 import { useArticleStore } from "@/stores/article"
 import { autoSaveService } from "@/services/AutoSaveService"
@@ -168,19 +168,6 @@ async function handleSave() {
   }
 }
 
-// 監聽鍵盤快捷鍵 Ctrl+S
-function handleKeyDown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault()
-    handleSave()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown)
-})
+// Ctrl+S 快捷鍵由 MainEditor 的 useEditorShortcuts 統一處理（topic-020）
+// 此處的全域 window keydown 曾與編輯器路徑重複觸發，造成每次 Ctrl+S 兩筆並行儲存的競態
 </script>

@@ -1,3 +1,13 @@
+---
+title: "潛在問題清單"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 🐛 潛在問題清單
 
 本文件記錄了程式碼庫中發現的所有潛在問題，依優先級和類別分類。

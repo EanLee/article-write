@@ -1,3 +1,13 @@
+---
+title: "第七次全面技術評估 — 索引"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: true
+---
+
 # 第七次全面技術評估 — 索引
 
 **評審日期**: 2026-03-02

@@ -1,3 +1,13 @@
+---
+title: "正確的開發優先級路線圖"
+domain: delivery
+type: plan
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 正確的開發優先級路線圖
 
 **核心原則**: 先打好基礎，再添加 AI 能力

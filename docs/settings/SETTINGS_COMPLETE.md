@@ -1,3 +1,16 @@
+---
+title: "設定面板完整文件"
+domain: product
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+supersedes:
+  - docs/settings/SETTINGS_COMPARISON.md
+  - docs/settings/SETTINGS_REDESIGN.md
+---
+
 # 設定面板完整文件
 
 > **版本**: 2.0

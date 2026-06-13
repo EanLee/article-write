@@ -8,46 +8,51 @@
 
 ## 📋 討論索引
 
-| 編號 | 話題 | 發起日期 | 狀態 | 決策類型 | 檔案 |
-|------|------|---------|------|---------|------|
-| 000 | 初始系統多角色評估 | 2026-02-02 | ✅ 已決策 | 全體一致 | [topic-000-2026-02-02-initial-system-evaluation](./topic-000-2026-02-02-initial-system-evaluation/) |
-| 001 | 產品推出策略與規劃 | 2026-02-03 | ✅ 已決策 | 全體一致 | [topic-001-2026-02-03-product-launch-strategy](./topic-001-2026-02-03-product-launch-strategy/) |
-| 002 | Week 2 進度回顧 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-002-2026-02-06-progress-review-week2](./topic-002-2026-02-06-progress-review-week2/) |
-| 003 | 緊急進度檢討與方向修正 | 2026-02-06 | ✅ 已決策 | 全體一致 | [topic-003-2026-02-06-emergency-progress-review](./topic-003-2026-02-06-emergency-progress-review/) |
-| 004 | 現實重組與計畫調整 | 2026-02-12 | ✅ 已決策 | 全體一致 | [topic-004-2026-02-12-reality-reset](./topic-004-2026-02-12-reality-reset/) |
-| 005 | Week 3 進度回報與方向修正 | 2026-02-13 | ✅ 已決策 | 全體一致 | [topic-005-2026-02-13-week3-progress-review](./topic-005-2026-02-13-week3-progress-review/) |
-| 006 | 發布機制落差確認 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-006-2026-02-14-publish-mechanism](./topic-006-2026-02-14-publish-mechanism/) |
-| 007 | Frontmatter 時間欄位命名釐清 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-007-2026-02-14-frontmatter-date-fields](./topic-007-2026-02-14-frontmatter-date-fields/) |
-| 008 | Sprint Retrospective — 瓶頸識別與改善行動 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-008-2026-02-14-sprint-retro](./topic-008-2026-02-14-sprint-retro/) |
-| 009 | 編輯器 UX 體驗問題 — 優先級與行動方案 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-009-2026-02-14-ux-review](./topic-009-2026-02-14-ux-review/) |
-| 010 | 編輯器底層框架選型（CodeMirror 6 vs textarea 強化） | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-010-2026-02-14-editor-ux-decision](./topic-010-2026-02-14-editor-ux-decision/) |
-| 011 | v0.2 Sprint 方向決策：品質鞏固 vs 功能擴展 | 2026-02-14 | ✅ 已決策 | 全體一致 | [topic-011-2026-02-14-quality-sprint-planning](./topic-011-2026-02-14-quality-sprint-planning/) |
-| 012 | 線上自動更新機制評估（Auto-Update） | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-012-2026-02-16-auto-update](./topic-012-2026-02-16-auto-update/) |
-| 013 | v0.2 後半 Sprint 方向決策 | 2026-02-16 | ✅ 已決策 | 多數共識 | [topic-013-2026-02-16-next-sprint-direction](./topic-013-2026-02-16-next-sprint-direction/) |
-| 014 | AI API 串接評估 | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-014-2026-02-16-ai-api-integration](./topic-014-2026-02-16-ai-api-integration/) |
-| 015 | AI Panel 設計 | 2026-02-16 | ✅ 已決策 | 全體一致 | [topic-015-2026-02-16-ai-panel-design](./topic-015-2026-02-16-ai-panel-design/) |
-| 016 | 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-016-2026-02-27-blog-content-analysis](./topic-016-2026-02-27-blog-content-analysis/) |
-| 017 | 整合 AI 規格與後續 Sprint 功能走向 | 2026-02-27 | ✅ 已決策 | 全體一致 | [topic-017-2026-02-27-feature-direction-integration](./topic-017-2026-02-27-feature-direction-integration/) |
-| 018 | 市場方向與進度對焦 | 2026-03-03 | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
-| 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | ⚠️ 待排程 | 戰略層次 | [topic-019-2026-03-07-autosave-on-switch-behavior](./topic-019-2026-03-07-autosave-on-switch-behavior/) |
+| 編號 | 話題 | 發起日期 | Domain | 狀態 | 決策類型 | 檔案 |
+|------|------|---------|--------|------|---------|------|
+| 000 | 初始系統多角色評估 | 2026-02-02 | quality | ✅ 已決策 | 全體一致 | [topic-000-2026-02-02-initial-system-evaluation](./topic-000-2026-02-02-initial-system-evaluation/) |
+| 001 | 產品推出策略與規劃 | 2026-02-03 | product | ✅ 已決策 | 全體一致 | [topic-001-2026-02-03-product-launch-strategy](./topic-001-2026-02-03-product-launch-strategy/) |
+| 002 | Week 2 進度回顧 | 2026-02-06 | delivery | ✅ 已決策 | 全體一致 | [topic-002-2026-02-06-progress-review-week2](./topic-002-2026-02-06-progress-review-week2/) |
+| 003 | 緊急進度檢討與方向修正 | 2026-02-06 | delivery | ✅ 已決策 | 全體一致 | [topic-003-2026-02-06-emergency-progress-review](./topic-003-2026-02-06-emergency-progress-review/) |
+| 004 | 現實重組與計畫調整 | 2026-02-12 | product | ✅ 已決策 | 全體一致 | [topic-004-2026-02-12-reality-reset](./topic-004-2026-02-12-reality-reset/) |
+| 005 | Week 3 進度回報與方向修正 | 2026-02-13 | delivery | ✅ 已決策 | 全體一致 | [topic-005-2026-02-13-week3-progress-review](./topic-005-2026-02-13-week3-progress-review/) |
+| 006 | 發布機制落差確認 | 2026-02-14 | engineering | ✅ 已決策 | 全體一致 | [topic-006-2026-02-14-publish-mechanism](./topic-006-2026-02-14-publish-mechanism/) |
+| 007 | Frontmatter 時間欄位命名釐清 | 2026-02-14 | engineering | ✅ 已決策 | 全體一致 | [topic-007-2026-02-14-frontmatter-date-fields](./topic-007-2026-02-14-frontmatter-date-fields/) |
+| 008 | Sprint Retrospective — 瓶頸識別與改善行動 | 2026-02-14 | delivery | ✅ 已決策 | 全體一致 | [topic-008-2026-02-14-sprint-retro](./topic-008-2026-02-14-sprint-retro/) |
+| 009 | 編輯器 UX 體驗問題 — 優先級與行動方案 | 2026-02-14 | product | ✅ 已決策 | 全體一致 | [topic-009-2026-02-14-ux-review](./topic-009-2026-02-14-ux-review/) |
+| 010 | 編輯器底層框架選型（CodeMirror 6 vs textarea 強化） | 2026-02-14 | product | ✅ 已決策 | 全體一致 | [topic-010-2026-02-14-editor-ux-decision](./topic-010-2026-02-14-editor-ux-decision/) |
+| 011 | v0.2 Sprint 方向決策：品質鞏固 vs 功能擴展 | 2026-02-14 | delivery | ✅ 已決策 | 全體一致 | [topic-011-2026-02-14-quality-sprint-planning](./topic-011-2026-02-14-quality-sprint-planning/) |
+| 012 | 線上自動更新機制評估（Auto-Update） | 2026-02-16 | engineering | ✅ 已決策 | 全體一致 | [topic-012-2026-02-16-auto-update](./topic-012-2026-02-16-auto-update/) |
+| 013 | v0.2 後半 Sprint 方向決策 | 2026-02-16 | product | ✅ 已決策 | 多數共識 | [topic-013-2026-02-16-next-sprint-direction](./topic-013-2026-02-16-next-sprint-direction/) |
+| 014 | AI API 串接評估 | 2026-02-16 | engineering | ✅ 已決策 | 全體一致 | [topic-014-2026-02-16-ai-api-integration](./topic-014-2026-02-16-ai-api-integration/) |
+| 015 | AI Panel 設計 | 2026-02-16 | engineering | ✅ 已決策 | 全體一致 | [topic-015-2026-02-16-ai-panel-design](./topic-015-2026-02-16-ai-panel-design/) |
+| 016 | 部落格文章內容品質分析：SEO / 行銷 / 學習者三角度 | 2026-02-27 | product | ✅ 已決策 | 全體一致 | [topic-016-2026-02-27-blog-content-analysis](./topic-016-2026-02-27-blog-content-analysis/) |
+| 017 | 整合 AI 規格與後續 Sprint 功能走向 | 2026-02-27 | product | ✅ 已決策 | 全體一致 | [topic-017-2026-02-27-feature-direction-integration](./topic-017-2026-02-27-feature-direction-integration/) |
+| 018 | 市場方向與進度對焦 | 2026-03-03 | product | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](./topic-018-2026-03-03-market-direction-progress-check/) |
+| 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | engineering | ✅ 已決策（併入 020） | 全體一致 | [topic-019-2026-03-07-autosave-on-switch-behavior](./topic-019-2026-03-07-autosave-on-switch-behavior/) |
+| 020 | 儲存機制整體設計（儲存競態，合併 019） | 2026-06-13 | engineering | ✅ 已決策 | 全體一致 | [topic-020-2026-06-13-save-race-data-overwrite](./topic-020-2026-06-13-save-race-data-overwrite/) |
+| 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | engineering | ⚠️ 待排程 | - | [topic-021-2026-06-13-articlelisttree-reactivity](./topic-021-2026-06-13-articlelisttree-reactivity/) |
+| 022 | 進度回顧（原編號 topic-012，已重新編號） | 2026-02-28 | delivery | ✅ 已決策 | 全體一致 | [topic-022-2026-02-28-progress-review](./topic-022-2026-02-28-progress-review/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 19
-**已決策**: 18
+**總討論數**: 22
+**已決策**: 21
 **待排程**: 1
 
 ---
 
 ## ⚠️ 待排程議題
 
-- ⚠️ [#019 切換文章時自動儲存行為決策](./topic-019-2026-03-07-autosave-on-switch-behavior/PENDING.md) - 2026-03-07, 戰略層次
-  - 「切換文章時自動儲存前一篇」的行為從未有圓桌決議支撐
-  - 涉及使用者心智模型（是否知道 Save 被觸發？）與產品安全承諾
-  - 相關 Bug 3 的技術面 Race Condition 已緩解（ID 碰撞修復 + snapshot 防護）
-  - 待決策：此行為是否保留？若保留，如何對使用者透明？
+> #021 ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章（reactivity 根因未定位）。
+> topic-020 E2E 驗收時發現，已將 `tests/e2e/writing-baseline.spec.ts` 第 6 個測試標記 `test.fixme`。
+> 詳見 [topic-021 PENDING.md](./topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md)
+
+> #019、#020 已於 2026-06-13 合併圓桌決議：儲存來源單一化（方案 A），
+> 切換時儲存保留但走統一路徑，Sprint 4 第零優先，未修復不得 Soft Launch。
+> 詳見 [topic-020 decision.md](./topic-020-2026-06-13-save-race-data-overwrite/decision.md)
 
 ---
 

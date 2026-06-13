@@ -1,3 +1,14 @@
+---
+title: "檔案服務架構分析 - 過度設計問題"
+domain: engineering
+type: spec
+status: deprecated
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+superseded_by: docs/architecture/ARCHITECTURE_COMPLETE.md
+---
+
 # 檔案服務架構分析 - 過度設計問題
 
 **日期**: 2026-01-26

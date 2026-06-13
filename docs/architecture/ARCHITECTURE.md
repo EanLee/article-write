@@ -1,3 +1,14 @@
+---
+title: "架構設計文件"
+domain: engineering
+type: spec
+status: deprecated
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+superseded_by: docs/architecture/ARCHITECTURE_COMPLETE.md
+---
+
 # 架構設計文件
 
 > 基於 PRODUCT_SPEC.md 的技術架構說明

@@ -1,3 +1,13 @@
+---
+title: "全文搜尋設計（TDR）"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # T-009 全文搜尋功能設計
 
 **日期**: 2026-02-16

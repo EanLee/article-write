@@ -28,6 +28,20 @@ export class ArticleService {
   private backupService: BackupService;
 
   /**
+   * per-file 儲存佇列（topic-020）
+   * 同一檔案的儲存必須序列化：衝突檢查與實際寫入之間有備份等耗時步驟，
+   * 並行儲存會交錯導致先發起的舊內容晚寫入、覆蓋後發起的新內容（TOCTOU）。
+   */
+  private saveQueues: Map<string, Promise<unknown>> = new Map();
+
+  /**
+   * 自己最後寫入各檔案的內容（topic-020 own-write 豁免）
+   * 衝突偵測以 mtime 判斷，無法分辨「佇列中前一筆自己的寫入」與「外部修改」；
+   * 磁碟內容等於自己上次寫入時不視為衝突。
+   */
+  private lastWrittenContent: Map<string, string> = new Map();
+
+  /**
    * 建構子 - 使用依賴注入
    * @param fileSystem - 檔案系統介面（可選，預設使用 ElectronFileSystem）
    * @param markdownService - Markdown 服務（可選）
@@ -70,11 +84,40 @@ export class ArticleService {
       skipBackup?: boolean;
     } = {},
   ): Promise<{ success: boolean; conflict?: boolean; error?: Error }> {
+    // 同一檔案的儲存排入佇列依序執行；前一個儲存失敗不阻擋下一個
+    const previous = this.saveQueues.get(article.filePath) ?? Promise.resolve();
+    const current = previous.then(() => this.performSave(article, options));
+    const tail = current.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.saveQueues.set(article.filePath, tail);
+    try {
+      return await current;
+    } finally {
+      // 自己仍是佇列尾端時清除，避免 Map 無限增長
+      if (this.saveQueues.get(article.filePath) === tail) {
+        this.saveQueues.delete(article.filePath);
+      }
+    }
+  }
+
+  private async performSave(
+    article: Article,
+    options: {
+      skipConflictCheck?: boolean;
+      skipBackup?: boolean;
+    },
+  ): Promise<{ success: boolean; conflict?: boolean; error?: Error }> {
     try {
       // 1. 衝突檢測（除非跳過）
       if (!options.skipConflictCheck) {
         const conflictResult = await this.backupService.detectConflict(article);
-        if (conflictResult.hasConflict) {
+        // own-write 豁免：磁碟內容正是自己上次寫入的內容 → 非外部衝突
+        const isOwnWrite =
+          conflictResult.currentFileContent !== undefined &&
+          conflictResult.currentFileContent === this.lastWrittenContent.get(article.filePath);
+        if (conflictResult.hasConflict && !isOwnWrite) {
           return {
             success: false,
             conflict: true,
@@ -92,6 +135,7 @@ export class ArticleService {
 
       // 4. 寫入檔案（透過抽象介面）
       await this.fileSystem.writeFile(article.filePath, markdownContent);
+      this.lastWrittenContent.set(article.filePath, markdownContent);
 
       return { success: true };
     } catch (error) {

@@ -1,3 +1,13 @@
+---
+title: "第二週進度回顧"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: true
+---
+
 # WriteFlow 專案進度檢討圓桌會議
 
 > **會議日期**: 2026-02-06 (Week 2 Day 5)

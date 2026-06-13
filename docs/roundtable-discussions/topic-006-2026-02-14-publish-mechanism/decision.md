@@ -1,3 +1,13 @@
+---
+title: "發布機制架構決策"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 決策記錄：發布機制落差確認
 
 > **話題編號**: topic-006

@@ -1,3 +1,13 @@
+---
+title: "AI API 整合架構"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # 決策記錄：AI API 整合策略
 
 > **話題編號**: topic-014

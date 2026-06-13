@@ -1,3 +1,13 @@
+---
+title: "重構檢查清單"
+domain: engineering
+type: plan
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 重構檢查清單
 
 > 基於產品規劃文件（PRODUCT_SPEC.md）的具體執行清單

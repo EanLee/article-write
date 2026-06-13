@@ -1,3 +1,13 @@
+---
+title: "Electron 自動更新（electron-updater）"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # T-008 — Auto-Update 機制實作（electron-updater）
 
 **日期**: 2026-02-16

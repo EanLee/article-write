@@ -1,3 +1,13 @@
+---
+title: "表單設計系統"
+domain: product
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # UX-001 表單設計規範
 
 **日期**: 2026-02-15

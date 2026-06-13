@@ -20,7 +20,8 @@
                     :image-validation-warnings="imageValidationWarnings" :dropdown-position="dropdownPosition"
                     :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
                     @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
-                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll" />
+                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll"
+                    @outline-change="handleOutlineChange" />
             </template>
 
             <!-- Raw 模式 -->
@@ -67,6 +68,7 @@ import { getArticleService } from "@/services/ArticleService";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
+import type { OutlineHeading } from "./CodeMirrorEditor.vue"
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -94,6 +96,23 @@ const previewPaneRef = ref<InstanceType<typeof PreviewPane>>();
 
 // Get editorRef from EditorPane component
 const editorRef = computed(() => editorPaneRef.value?.editorRef);
+
+// Outline state
+const outlineHeadings = ref<OutlineHeading[]>([])
+const emit = defineEmits<{
+  "outline-change": [headings: OutlineHeading[]]
+}>()
+
+function handleOutlineChange(headings: OutlineHeading[]) {
+  outlineHeadings.value = headings
+  emit("outline-change", headings)
+}
+
+function handleScrollToOutlineLine(line: number) {
+  editorPaneRef.value?.scrollToLine(line)
+}
+
+defineExpose({ outlineHeadings, handleScrollToOutlineLine })
 
 // Get preview container ref from PreviewPane component
 const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
@@ -220,7 +239,6 @@ const previewValidation = ref({
 
 // Methods
 function handleContentChange() {
-    // ✅ 只更新 UI 相關的邏輯，不直接修改 store
     if (showPreview.value) {
         updatePreview();
     }
@@ -231,6 +249,8 @@ function handleContentChange() {
 
     // 文章載入期間不標記為已修改（避免開啟文件即誤觸儲存）
     if (!isLoadingArticle.value) {
+        // 即時同步編輯器內容到 store（topic-020：所有儲存路徑統一取編輯器當前內容）
+        articleStore.updateCurrentArticleContent(content.value);
         autoSaveService.markAsModified();
     }
 }
@@ -284,21 +304,12 @@ async function saveArticle() {
             );
         }
 
-        // 調用 service 儲存到磁碟
-        const result = await articleService.saveArticle(updatedArticle);
-
-        if (result.success) {
-            // 更新 store 中的資料（透過 store 的 action）
-            articleStore.updateArticleInMemory(updatedArticle);
-        } else if (result.conflict) {
-            logger.warn("[Editor] File conflict detected during auto-save");
-            // 衝突時不強制儲存
-        } else if (result.error) {
-            logger.error("[Editor] Failed to save article:", result.error);
-        }
+        // 統一走 store 儲存路徑（topic-020）：
+        // 含 FileWatch ignoreNextChange、衝突彈窗通知、記憶體同步
+        await articleStore.saveArticle(updatedArticle);
     } catch (error) {
-        // 靜默處理錯誤，自動儲存失敗不需要通知用戶
-        logger.error("[Editor] Auto-save error:", error);
+        // store 已對衝突/失敗發出使用者通知，這裡僅記錄
+        logger.error("[Editor] Save error:", error);
     }
 }
 

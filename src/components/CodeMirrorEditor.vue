@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from "vue"
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection } from "@codemirror/view"
-import { EditorState, type Extension } from "@codemirror/state"
+import { EditorState, type Extension, type TransactionSpec } from "@codemirror/state"
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
@@ -76,10 +76,27 @@ import {
   type Completion,
 } from "@codemirror/autocomplete"
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
+import type { Command } from "@codemirror/view"
+import {
+  toggleInlineFormatSpec,
+  toggleHeadingSpec,
+  insertLinkSpec,
+  insertCodeBlockSpec,
+  insertFootnoteSpec,
+  insertStrikethroughSpec,
+} from "@/utils/editorCommands"
 import { autoSaveService } from "@/services/AutoSaveService"
 import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
 import type { ImageValidationWarning } from "@/types/image"
 import EditorStatusBar from "./EditorStatusBar.vue"
+
+// ─── OutlineHeading ───────────────────────────────────────────────────────────
+
+export interface OutlineHeading {
+  level: number   // 1–6
+  text: string
+  line: number    // 0-indexed line number in document
+}
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
@@ -110,6 +127,7 @@ const emit = defineEmits<{
   "toggle-line-numbers": []
   "toggle-word-wrap": []
   "scroll": []
+  "outline-change": [headings: OutlineHeading[]]
 }>()
 
 // ─── Refs ────────────────────────────────────────────────────────────────────
@@ -215,9 +233,48 @@ const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert
   return true
 })
 
+// ─── Formatting Commands ──────────────────────────────────────────────────────
+
+function makeFormatCommand(
+  specFn: (state: EditorState) => TransactionSpec,
+): Command {
+  return (view) => {
+    view.dispatch(view.state.update(specFn(view.state)))
+    return true
+  }
+}
+
+const formattingKeymap = keymap.of([
+  { key: "Mod-b", run: makeFormatCommand(s => toggleInlineFormatSpec("**", "bold text", s)) },
+  { key: "Mod-i", run: makeFormatCommand(s => toggleInlineFormatSpec("*", "italic text", s)) },
+  { key: "Mod-k", run: makeFormatCommand(s => insertLinkSpec(s)) },
+  { key: "Mod-Shift-c", run: makeFormatCommand(s => insertCodeBlockSpec(s)) },
+  { key: "Mod-Shift-x", run: makeFormatCommand(s => insertStrikethroughSpec(s)) },
+  { key: "Mod-Shift-f", run: makeFormatCommand(s => insertFootnoteSpec(s)) },
+  { key: "Mod-1", run: makeFormatCommand(s => toggleHeadingSpec(1, s)) },
+  { key: "Mod-2", run: makeFormatCommand(s => toggleHeadingSpec(2, s)) },
+  { key: "Mod-3", run: makeFormatCommand(s => toggleHeadingSpec(3, s)) },
+  { key: "Mod-4", run: makeFormatCommand(s => toggleHeadingSpec(4, s)) },
+  { key: "Mod-5", run: makeFormatCommand(s => toggleHeadingSpec(5, s)) },
+  { key: "Mod-6", run: makeFormatCommand(s => toggleHeadingSpec(6, s)) },
+])
+
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
-const buildExtensions = (getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
+// 解析標題供大綱面板使用（初次掛載與內容變更時都需呼叫）
+function emitOutline(doc: EditorState["doc"]) {
+  const headings: OutlineHeading[] = []
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i)
+    const match = line.text.match(/^(#{1,6})\s+(.+)/)
+    if (match) {
+      headings.push({ level: match[1].length, text: match[2].trim(), line: i - 1 })
+    }
+  }
+  emit("outline-change", headings)
+}
+
+const buildExtensions =(getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
   // Markdown 語法高亮
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   syntaxHighlighting(defaultHighlightStyle),
@@ -250,6 +307,9 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
   // Obsidian 自動完成（如果有 getSuggestions）
   ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
 
+  // 格式化快捷鍵（必須在 defaultKeymap 之前，避免被預設行為攔截）
+  formattingKeymap,
+
   // 鍵盤快捷鍵
   keymap.of([
     ...defaultKeymap,
@@ -265,6 +325,7 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
       emit("update:modelValue", update.state.doc.toString())
       autoSaveService.markAsModified()
       isInternalUpdate = false
+      emitOutline(update.state.doc)
     }
     if (update.selectionSet) {
       const sel = update.state.selection.main
@@ -330,6 +391,9 @@ onMounted(() => {
     state,
     parent: containerRef.value,
   })
+
+  // 初次掛載即解析大綱（updateListener 只在 docChanged 時觸發，不含初始載入）
+  emitOutline(state.doc)
 })
 
 onUnmounted(() => {
@@ -387,10 +451,23 @@ const editorRef = computed(() => {
   }
 })
 
+function scrollToLine(lineNumber: number) {
+  const view = editorView.value
+  if (!view) { return }
+  const targetLine = lineNumber + 1 // lineNumber is 0-indexed
+  if (targetLine < 1 || targetLine > view.state.doc.lines) { return }
+  const line = view.state.doc.line(targetLine)
+  view.dispatch({
+    effects: EditorView.scrollIntoView(line.from, { y: "start", yMargin: 50 }),
+  })
+  view.focus()
+}
+
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
+  scrollToLine,
 })
 </script>
 

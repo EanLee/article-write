@@ -81,13 +81,19 @@ export class PreviewService {
         processedContent = this.processImageReferences(processedContent, options.baseImagePath || this.imageBasePath);
       }
 
+      // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（在渲染前處理，比 HTML 後處理更可靠）
+      if (options.enableImagePreview && options.articleFilePath) {
+        const articleDir = options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "");
+        if (articleDir) {
+          processedContent = this.convertMarkdownImagePaths(processedContent, articleDir);
+        }
+      }
+
       // 使用 MarkdownService 渲染
       const html = this.markdownService.renderForPreview(processedContent, true);
 
       // 後處理 HTML 以增強預覽效果（含標準 Markdown 圖片路徑轉換）
-      const articleDir = options.articleFilePath
-        ? options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "")
-        : "";
+      const articleDir = options.articleFilePath ? options.articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "") : "";
       return this.postProcessHtml(html, articleDir);
     } catch (error) {
       logger.error("Preview rendering error:", error);
@@ -178,6 +184,25 @@ export class PreviewService {
   }
 
   /**
+   * 將標準 Markdown 圖片語法中的相對路徑轉為 file:// URL
+   * 在 markdown-it 渲染前處理，確保 Electron renderer 能顯示本地圖片
+   * @param {string} content - Markdown 內容
+   * @param {string} articleDir - 文章所在目錄（絕對路徑，使用 / 分隔）
+   * @returns {string} 路徑轉換後的 Markdown 內容
+   */
+  private convertMarkdownImagePaths(content: string, articleDir: string): string {
+    return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      const trimmedSrc = src.trim();
+      // 已是 URL（http/https/data/file/local-file），不處理
+      if (/^(https?|data|file|local-file):/.test(trimmedSrc)) {
+        return match;
+      }
+      const resolved = this.resolveRelativePath(trimmedSrc, articleDir);
+      return `![${alt}](${this.toFileUrl(resolved)})`;
+    });
+  }
+
+  /**
    * 解析圖片路徑為可在 Electron renderer 顯示的 file:// URL
    * @param {string} imageName - 圖片名稱（Obsidian wiki link 的 filename）
    * @param {string} basePath - 圖片目錄的 OS 絕對路徑
@@ -186,8 +211,8 @@ export class PreviewService {
   private resolveImagePath(imageName: string, basePath?: string): string {
     const base = (basePath || this.imageBasePath).replace(/\\/g, "/");
 
-    // 已是 URL（http/https/data/file）直接回傳
-    if (/^(https?|data|file):/.test(imageName)) {
+    // 已是 URL（http/https/data/file/local-file）直接回傳
+    if (/^(https?|data|file|local-file):/.test(imageName)) {
       return imageName;
     }
 
@@ -199,13 +224,22 @@ export class PreviewService {
   }
 
   /**
-   * 將 OS 絕對路徑轉為 file:// URL（Windows 和 Unix 均適用）
+   * 將 OS 絕對路徑轉為 local-file:// URL
+   * 使用自訂 Protocol 避免開發模式下 http://localhost 被同源政策封鎖。
+   *
+   * ⚠️ Windows 路徑必須使用 local-file://localhost/C:/path 格式（加入明確的 localhost authority）：
+   *    Chromium 處理標準 scheme 時會將 local-file:///C:/path 中的 /C:/ 視為 Windows drive letter，
+   *    並正規化為 local-file://c/path（C 變成 hostname、冒號被丟棄），導致 handler 收到錯誤路徑。
+   *    加入 localhost 可防止此正規化行為。
    */
   private toFileUrl(osPath: string): string {
     const normalized = osPath.replace(/\\/g, "/");
-    return normalized.startsWith("/")
-      ? `file://${normalized}`           // Unix: /path → file:///path
-      : `file:///${normalized}`;         // Windows: C:/path → file:///C:/path
+    if (/^[a-zA-Z]:\//.test(normalized)) {
+      // Windows 絕對路徑（如 C:/path）→ local-file://localhost/C:/path
+      return `local-file://localhost/${normalized}`;
+    }
+    // Unix 絕對路徑（如 /home/...）→ local-file:///path
+    return `local-file://${normalized}`;
   }
 
   /**
@@ -220,8 +254,11 @@ export class PreviewService {
     const parts = (articleDir + "/" + normalized).split("/");
     const resolved: string[] = [];
     for (const part of parts) {
-      if (part === "..") {resolved.pop();}
-      else if (part !== ".") {resolved.push(part);}
+      if (part === "..") {
+        resolved.pop();
+      } else if (part !== ".") {
+        resolved.push(part);
+      }
     }
     return resolved.join("/");
   }
@@ -248,8 +285,12 @@ export class PreviewService {
 
     // 將標準 Markdown 圖片的相對路徑轉為 file:// URL（Electron renderer 才能顯示本地圖片）
     processed = processed.replace(/<img([^>]*)\ssrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
-      if (/^(https?|data|file):/.test(src)) {return match;} // 已是 URL，不處理
-      if (!articleDir) {return match;} // 無文章目錄，無法解析相對路徑
+      if (/^(https?|data|file|local-file):/.test(src)) {
+        return match;
+      } // 已是 URL，不處理
+      if (!articleDir) {
+        return match;
+      } // 無文章目錄，無法解析相對路徑
       const resolved = this.resolveRelativePath(src, articleDir);
       return `<img${before} src="${this.toFileUrl(resolved)}"${after}>`;
     });

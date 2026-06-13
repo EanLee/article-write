@@ -1,3 +1,13 @@
+---
+title: "產品規劃文件"
+domain: product
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-01-24
+source_of_truth: true
+---
+
 # 產品規劃文件
 
 > **版本**：1.0

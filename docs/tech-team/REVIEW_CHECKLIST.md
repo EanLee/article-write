@@ -1,3 +1,13 @@
+---
+title: "技術審查檢查清單"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: true
+---
+
 # 技術評審檢查清單
 
 **適用專案**: WriteFlow (Electron + Vue 3 + TypeScript + Pinia)

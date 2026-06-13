@@ -1,3 +1,15 @@
+---
+title: "設定面板快速參考"
+domain: product
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+related_docs:
+  - docs/settings/SETTINGS_COMPLETE.md
+---
+
 # 設定面板快速參考
 
 > **版本**: 2.0

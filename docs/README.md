@@ -1,8 +1,8 @@
 # 專案文件導航
 
-> **最後更新**: 2026-02-02
-> **版本**: 2.0
-> **狀態**: 重新整理後的文件結構
+> **最後更新**: 2026-06-13
+> **版本**: 3.0
+> **狀態**: 依 docs-governance 補上 `domain` frontmatter 標記後的文件結構
 
 ---
 
@@ -11,6 +11,9 @@
 ```
 docs/
 ├── README.md (本文件)
+├── INDEX-by-domain.md  # 跨目錄文件索引（依 domain：product/engineering/quality/delivery/conventions/operations）
+├── conventions/        # 開發規範（Git Flow、Commit、程式碼風格）
+├── adr/                 # 架構決策記錄（ADR）
 ├── analysis/           # 產品分析與規劃
 ├── architecture/       # 系統架構設計
 ├── guides/             # 使用與開發指南
@@ -18,8 +21,14 @@ docs/
 ├── planning/           # 開發規劃與路線圖
 ├── settings/           # 設定面板設計
 ├── fix-bug/            # Bug 修復報告
-└── multi-role-analysis/  # 多角色系統評估
+├── roundtable-discussions/  # 圓桌會議討論記錄（topic-NNN）
+└── tech-team/          # 技術團隊討論記錄（T-NNN）與多輪品質評估
 ```
+
+> **混合目錄說明**：`roundtable-discussions/`、`tech-team/`、`planning/`、`analysis/`、`guides/`
+> 內混合了多種性質（戰略/工程/品質/交付）的文件，各文件已於 frontmatter 補上 `domain` 欄位標示
+> 實際性質，目錄位置維持不動（詳見 [doc-types.config.mjs](./.vitepress/doc-types.config.mjs) 的
+> `mixedDirs` 宣告）。**跨目錄依 domain 檢視，請參考** [INDEX-by-domain.md](./INDEX-by-domain.md)。
 
 ---
 
@@ -43,10 +52,11 @@ docs/
 - [已知問題清單](./analysis/POTENTIAL_ISSUES.md) - 目前已知的問題與優先級
 - [Bug 修復報告](./fix-bug/) - 所有 Bug 修復的詳細記錄
 
-### 系統評估
+### 團隊討論記錄
 
-- [多角色分析總覽](./multi-role-analysis/README.md) - 從不同角色評估系統
-- [綜合分析報告](./multi-role-analysis/COMPREHENSIVE_ANALYSIS.md) - 整合評估結果
+- [圓桌會議討論記錄](./roundtable-discussions/README.md) - 跨角色戰略/產品/工程決策（topic-NNN）
+- [技術團隊討論記錄](./tech-team/TEAM.md) - 技術選型、TDR、UX 評估、品質回顧（T-NNN）
+- [開發規範](./conventions/) - Git Flow、Commit 規範、程式碼風格（GUIDELINE-*）
 
 ---
 
@@ -114,18 +124,35 @@ docs/
 - [README.md](./fix-bug/README.md) - Bug Fix 報告撰寫規範
 - [Bug 修復報告列表](./fix-bug/) - 依日期排序的修復記錄
 
-### 8. multi-role-analysis/ - 多角色系統評估
+### 8. roundtable-discussions/ - 圓桌會議討論記錄
 
-從不同角色的視角全面評估系統：
+跨角色（PM / Marketing / CTO / Ops / User）討論與決策記錄，依 `topic-NNN-YYYY-MM-DD-主題` 資料夾編號：
 
-| 文件 | 角色 | 評估重點 |
-|------|------|---------|
-| [product-manager.md](./multi-role-analysis/product-manager.md) | 產品經理 | 產品定位、用戶需求、功能規劃 |
-| [marketing.md](./multi-role-analysis/marketing.md) | 行銷專員 | 市場定位、目標受眾、推廣策略 |
-| [end-user.md](./multi-role-analysis/end-user.md) | 一般使用者 | 使用體驗、學習曲線、實際應用 |
-| [operations.md](./multi-role-analysis/operations.md) | 維運人員 | 部署、監控、維護、穩定性 |
-| [cto.md](./multi-role-analysis/cto.md) | 技術長 | 技術架構、技術債、長期發展 |
-| [COMPREHENSIVE_ANALYSIS.md](./multi-role-analysis/COMPREHENSIVE_ANALYSIS.md) | 綜合報告 | 整合所有角色的評估結果 |
+- [README.md](./roundtable-discussions/README.md) - 討論索引（含 domain 標記）
+- [ROUNDTABLE_RULES.md](./roundtable-discussions/ROUNDTABLE_RULES.md) - 運作規則
+- 每個 `topic-*/decision.md` 已標記 `domain`（product/engineering/quality/delivery）
+
+### 9. tech-team/ - 技術團隊討論記錄
+
+技術選型決策（TDR）、UX 評估、流程回顧（RETRO）、多輪品質評估，依 `T-NNN` 編號：
+
+- [TEAM.md](./tech-team/TEAM.md) - 討論記錄索引（含 domain 標記）
+- 每個 `T-*.md` 已標記 `domain`（engineering/quality/product/delivery/operations/conventions）
+
+### 10. conventions/ - 開發規範
+
+依 docs-governance 規範整併的治理文件：
+
+| 文件 | 說明 |
+|------|------|
+| [GUIDELINE-2026-06-13-git-branching.md](./conventions/GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 |
+| [GUIDELINE-2026-06-13-commit-conventions.md](./conventions/GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks |
+| [GUIDELINE-2026-06-13-code-style.md](./conventions/GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 |
+
+### 11. adr/ - 架構決策記錄（ADR）
+
+- [README.md](./adr/README.md) - ADR 索引
+- [ADR-0001-codemirror6-editor-migration.md](./adr/ADR-0001-codemirror6-editor-migration.md)
 
 ---
 
@@ -160,6 +187,11 @@ docs/
 2. 參考設定面板設計：[SETTINGS_COMPLETE.md](./settings/SETTINGS_COMPLETE.md)
 3. 查看 UI 對比分析：[UI_COMPARISON.md](./settings/UI_COMPARISON.md)
 
+### 場景 6: 我想找「所有戰略/工程/品質面文件」（跨目錄）
+
+1. 查看 [INDEX-by-domain.md](./INDEX-by-domain.md)，依 `domain`（product/engineering/quality/delivery/conventions/operations）分組瀏覽
+2. `roundtable-discussions/`、`tech-team/`、`planning/`、`analysis/`、`guides/` 為混合目錄，實際性質以各文件 frontmatter 的 `domain` 為準，目錄位置不變
+
 ---
 
 ## 📝 文件維護
@@ -168,17 +200,20 @@ docs/
 
 - **v1.0** (2026-01-26): 初始文件結構
 - **v2.0** (2026-02-02): 重新整理，合併重複文件，新增多角色評估
+- **v3.0** (2026-06-13): 依 docs-governance 為 ~80 份文件補上 `domain`/`status`/`source_of_truth`
+  等 frontmatter（詳見 [T-018](./tech-team/T-018-docs-reorganization-plan.md)），新增
+  [INDEX-by-domain.md](./INDEX-by-domain.md) 跨目錄索引；移除已不存在的 `multi-role-analysis/` 章節，
+  補上 `roundtable-discussions/`、`tech-team/`、`conventions/`、`adr/` 章節
 
-### 已合併的文件
+### 已標記 `source_of_truth` 的重複文件
 
-為了提高可維護性，以下文件已被合併：
+以下文件群組同主題存在多份檔案，已透過 frontmatter `source_of_truth` / `status: deprecated` /
+`supersedes` / `superseded_by` 標示哪份為現行版本（舊版仍保留原位，不搬移）：
 
-| 原文件 | 合併至 | 原因 |
+| 主題 | 現行版本（SoT） | 已取代版本 |
 |--------|--------|------|
-| ARCHITECTURE.md | ARCHITECTURE_COMPLETE.md | 內容高度相關，分散不利閱讀 |
-| ARCHITECTURE_ANALYSIS.md | ARCHITECTURE_COMPLETE.md | 內容高度相關，分散不利閱讀 |
-| SETTINGS_COMPARISON.md | SETTINGS_COMPLETE.md | 內容高度相關，分散不利閱讀 |
-| SETTINGS_REDESIGN.md | SETTINGS_COMPLETE.md | 內容高度相關，分散不利閱讀 |
+| 系統架構 | [ARCHITECTURE_COMPLETE.md](./architecture/ARCHITECTURE_COMPLETE.md) | ARCHITECTURE.md、ARCHITECTURE_ANALYSIS.md |
+| 設定面板 | [SETTINGS_COMPLETE.md](./settings/SETTINGS_COMPLETE.md) | SETTINGS_COMPARISON.md、SETTINGS_REDESIGN.md |
 
 ### 文件撰寫規範
 

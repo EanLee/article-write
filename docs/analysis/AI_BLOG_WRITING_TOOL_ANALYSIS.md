@@ -1,3 +1,13 @@
+---
+title: "AI 輔助部落格寫作工具 - 專業分析報告"
+domain: product
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-24
+source_of_truth: true
+---
+
 # AI 輔助部落格寫作工具 - 專業分析報告
 
 **分析日期**: 2026-01-24  
