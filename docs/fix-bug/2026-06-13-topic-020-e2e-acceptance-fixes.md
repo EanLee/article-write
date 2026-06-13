@@ -4,7 +4,7 @@
 > 對應規範：`tests/e2e/writing-baseline.spec.ts`（寫作基線 + topic-020 驗收）
 
 本報告記錄在為 topic-020（儲存來源單一化）補齊 `writing-baseline.spec.ts` 全套 E2E 時，
-額外發現並修復的 4 個獨立問題。每個問題均附完整呼叫鏈與驗證方式。
+額外發現並修復的 5 個獨立問題。每個問題均附完整呼叫鏈與驗證方式。
 
 ---
 
@@ -221,14 +221,63 @@ function handleKeydown(e: KeyboardEvent) {
 
 ---
 
+## Fix #5：Ctrl+B 編輯器粗體誤觸發側邊欄收合
+
+### 問題描述
+
+- **現象**：在 full-suite 執行 `writing-baseline.spec.ts` 時，測試 7（大綱面板）找不到 `.tab-btn "大綱"`，因為整個側邊欄（含分頁列）被收合隱藏。單獨執行測試 7 則通過。
+
+### 原因分析（呼叫鏈）
+
+```
+使用者按下 Ctrl+B（粗體格式化）
+  → CodeMirror keymap（Mod-b → makeFormatCommand）
+    → handler 回傳 true → InputState.runHandlers 對該 keydown event 呼叫 event.preventDefault()
+      → 事件仍冒泡到 window
+        → App.vue 的 handleGlobalKeydown
+          → 舊判斷：e.ctrlKey && e.key === "b"（未檢查 e.defaultPrevented）
+            → toggleSidebar() 被呼叫，sidebarCollapsed 狀態被切換 ← 根本原因
+```
+
+測試 1、2、5 各按一次 `Ctrl+B`（共 3 次，奇數次切換），導致 `sidebarCollapsed` 從初始 `false` 變為 `true`，使測試 7 執行時整個側邊欄（`.tab-btn` 分頁列 + 內容）被 `v-if` 卸載。
+
+此問題與 Fix #4（`useFocusMode` 的 `Ctrl+Shift+F`）為**同一根因模式**：CodeMirror 的格式化快捷鍵已 `preventDefault()`，但 `App.vue` 的全域 `Ctrl+B` 側邊欄收合監聽器未檢查 `e.defaultPrevented`，對同一按鍵又執行自己的邏輯。
+
+### 修正方式
+
+[App.vue:121-134](../../src/App.vue#L121)：
+
+```ts
+function handleGlobalKeydown(e: KeyboardEvent) {
+  // 編輯器內的 Ctrl+B（粗體）已透過 preventDefault 處理，
+  // 此時不應再觸發側邊欄收合（避免兩個 handler 搶同一組快捷鍵）
+  if (e.defaultPrevented) {
+    return;
+  }
+
+  if (e.ctrlKey && e.key === "b") {
+    e.preventDefault();
+    toggleSidebar();
+  }
+  ...
+}
+```
+
+**為何有效**：與 Fix #4 相同模式，跳過已被編輯器處理的按鍵事件，使全域側邊欄收合快捷鍵與編輯器的格式化快捷鍵互不干擾。
+
+### 驗證
+
+完整 7 項 serial 套件重新執行：測試 1、2、3、4、5、7 全部 `passed`，測試 6 維持 `test.fixme`（skipped）；整體 exit code 0。
+
+---
+
 ## 整體測試結果
 
-- 單元測試：`pnpm run test` 全數通過（含 `MarkdownService.test.ts`、`ArticleService.test.ts` 新增案例）
+- 單元測試：`pnpm run test` 全數通過（45 個測試檔，626 passed | 3 skipped，0 failures）
 - E2E（`writing-baseline.spec.ts`，serial mode，7 項）：
-  - 測試 1-5：通過
-  - 測試 6（切換文章自動儲存）：仍逾時失敗，**已確認與 Fix #4 無關的獨立問題**，標記 `test.fixme` 並建立 [topic-021 PENDING](../roundtable-discussions/topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md) 待技術會議排查根因
-  - 測試 7（大綱面板）：test 6 fixme 後不再切換文章，於主文章上正常通過
+  - 測試 1-5、7：全部通過
+  - 測試 6（切換文章自動儲存）：仍逾時失敗，**已確認與 Fix #4/#5 無關的獨立問題**，標記 `test.fixme` 並建立 [topic-021 PENDING](../roundtable-discussions/topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md) 待技術會議排查根因
 
 ## 相關 Commit
 
-見本分支 `fix/save-single-source-of-truth` 後續 commit（依 Fix #1-4 與測試/文件分別提交，採 Conventional Commits + SRP）。
+見本分支 `fix/save-single-source-of-truth` 後續 commit（依 Fix #1-5 與測試/文件分別提交，採 Conventional Commits + SRP）。
