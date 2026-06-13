@@ -1,3 +1,13 @@
+---
+title: "進度回顧（原編號 topic-012，已重新編號）"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-28
+source_of_truth: true
+---
+
 # 決策記錄：v0.2 品質衝刺與 v0.3 路線規劃
 
 > **話題編號**: topic-012

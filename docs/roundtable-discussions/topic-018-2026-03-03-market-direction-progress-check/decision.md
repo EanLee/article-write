@@ -1,3 +1,13 @@
+---
+title: "市場方向進度檢視"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-03-03
+source_of_truth: true
+---
+
 # 決策記錄：市場方向與進度對焦
 
 > **話題編號**: topic-018

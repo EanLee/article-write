@@ -1,3 +1,13 @@
+---
+title: "品質衝刺規劃"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 決策記錄：v0.2 品質鞏固 Sprint
 
 > **話題編號**: topic-011

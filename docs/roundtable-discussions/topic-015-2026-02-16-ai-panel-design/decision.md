@@ -1,3 +1,13 @@
+---
+title: "AI 面板設計"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # topic-015 AI Panel 設計決策
 
 **議題**：Left sidebar 加入 AI icon 後，右側 AI 操作 Panel 應該放什麼？

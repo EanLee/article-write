@@ -1,3 +1,13 @@
+---
+title: "下一階段 Sprint 方向"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # 決策記錄：v0.2 後半 Sprint 方向
 
 > **話題編號**: topic-013

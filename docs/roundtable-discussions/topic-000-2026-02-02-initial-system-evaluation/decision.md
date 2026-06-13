@@ -1,3 +1,13 @@
+---
+title: "初始系統評估（多角色基準評估）"
+domain: quality
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 綜合分析報告
 
 > **評估日期**: 2026-02-02  

@@ -1,3 +1,13 @@
+---
+title: "整合 AI 規格與後續 Sprint 功能走向"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-27
+source_of_truth: true
+---
+
 # 決策記錄：整合 AI 規格與後續 Sprint 功能走向
 
 > **話題編號**: topic-017

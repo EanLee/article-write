@@ -1,3 +1,13 @@
+---
+title: "編輯器 UX 決策"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 圓桌 #010 決策記錄：Editor UX 改善
 
 > **日期**: 2026-02-14

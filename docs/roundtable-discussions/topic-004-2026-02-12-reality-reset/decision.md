@@ -1,3 +1,13 @@
+---
+title: "Reality Reset（戰略方向重置）"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-12
+source_of_truth: true
+---
+
 # 決策記錄：現實重組與計畫調整
 
 > **話題編號**: topic-004

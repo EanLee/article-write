@@ -1,3 +1,13 @@
+---
+title: "Autosave 切換行為（待排程）"
+domain: engineering
+type: rpd
+status: pending
+owner: roundtable-discussions
+updated: 2026-03-07
+source_of_truth: true
+---
+
 # topic-019｜切換文章時自動儲存的行為決策
 
 **日期**: 2026-03-07（待排程）

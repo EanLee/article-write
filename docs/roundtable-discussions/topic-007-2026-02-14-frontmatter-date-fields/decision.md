@@ -1,3 +1,13 @@
+---
+title: "Frontmatter 日期欄位設計"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: true
+---
+
 # 決策記錄：Frontmatter 時間欄位命名與語意釐清
 
 > **話題編號**: topic-007

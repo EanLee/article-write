@@ -1,3 +1,13 @@
+---
+title: "緊急進度回顧"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: true
+---
+
 # 決策記錄：緊急進度檢討與方向修正
 
 > **話題編號**: topic-003

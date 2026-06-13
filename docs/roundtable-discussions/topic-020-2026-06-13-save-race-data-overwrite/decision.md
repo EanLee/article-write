@@ -1,3 +1,13 @@
+---
+title: "儲存機制整體設計（合併解決 topic-019）"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-06-13
+source_of_truth: true
+---
+
 # topic-020 決議｜儲存機制整體設計（合併解決 topic-019）
 
 **日期**: 2026-06-13
