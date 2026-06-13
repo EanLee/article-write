@@ -44,23 +44,24 @@
 
 ## 討論記錄索引
 
-| 編號 | 主題 | 日期 | 狀態 |
-|------|------|------|------|
-| T-001 | 發布機制重構技術規劃 | 2026-02-14 | ✅ 完成 |
-| T-002 | 技術評估：自動儲存機制（Hash vs Dirty Flag） | 2026-02-14 | ✅ 完成 |
-| T-003 | GitHub Actions CI/CD 建置 | 2026-02-15 | ✅ 完成 |
-| T-004 | Changelog 自動化方案評估（release-please） | 2026-02-15 | ✅ 完成 |
-| T-005 | Metadata Cache 設計評估（分類/標籤快取） | 2026-02-15 | ✅ 完成 |
-| T-006 | Article.category 型別重構（enum → string） | 2026-02-15 | ✅ 完成 |
-| T-007 | Playwright + Electron E2E 測試環境建置方案評估 | 2026-02-15 | ✅ 完成 |
-| T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | ✅ 完成 |
-| T-009 | 全文搜尋功能設計 | 2026-02-16 | ✅ 完成 |
-| T-010 | AI Service 技術架構設計 | 2026-02-16 | ✅ 完成 |
-| T-011 | Settings Panel UX 評估（scrollbar / AI tab 發現性） | 2026-02-17 | ✅ 完成 |
-| T-012 | AI Panel Phase 2/3 + 使用者自訂 Prompt 設計 | 2026-02-17 | ✅ 完成 |
-| T-013 | Sprint 3 實作優先順序與分工規劃 | 2026-02-27 | ✅ 完成 |
-| T-015 | AI Service 技術架構設計文件 | 2026-02-27 | ✅ 完成 |
-| T-016 | Phase 2 三角度分析 Token 消耗評估 | 2026-02-27 | ✅ 完成 |
-| T-017 | doc-viewer docs-governance 文件分類落差分析與改進建議 | 2026-06-13 | ✅ 完成（待回報 doc-viewer） |
-| UX-001 | 表單設計規範 | 2026-02-15 | ✅ 完成 |
-| RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | ✅ 完成 |
+| 編號 | 主題 | 日期 | Domain | 狀態 |
+|------|------|------|--------|------|
+| T-001 | 發布機制重構技術規劃 | 2026-02-14 | engineering | ✅ 完成 |
+| T-002 | 技術評估：自動儲存機制（Hash vs Dirty Flag） | 2026-02-14 | engineering | ✅ 完成 |
+| T-003 | GitHub Actions CI/CD 建置 | 2026-02-15 | operations | ✅ 完成 |
+| T-004 | Changelog 自動化方案評估（release-please） | 2026-02-15 | engineering | ✅ 完成 |
+| T-005 | Metadata Cache 設計評估（分類/標籤快取） | 2026-02-15 | engineering | ✅ 完成 |
+| T-006 | Article.category 型別重構（enum → string） | 2026-02-15 | engineering | ✅ 完成 |
+| T-007 | Playwright + Electron E2E 測試環境建置方案評估 | 2026-02-15 | quality | ✅ 完成 |
+| T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | engineering | ✅ 完成 |
+| T-009 | 全文搜尋功能設計 | 2026-02-16 | engineering | ✅ 完成 |
+| T-010 | AI Service 技術架構設計 | 2026-02-16 | engineering | ✅ 完成 |
+| T-011 | Settings Panel UX 評估（scrollbar / AI tab 發現性） | 2026-02-17 | product | ✅ 完成 |
+| T-012 | AI Panel Phase 2/3 + 使用者自訂 Prompt 設計 | 2026-02-17 | engineering | ✅ 完成 |
+| T-013 | Sprint 3 實作優先順序與分工規劃 | 2026-02-27 | delivery | ✅ 完成 |
+| T-015 | AI Service 技術架構設計文件 | 2026-02-27 | engineering | ✅ 完成 |
+| T-016 | Phase 2 三角度分析 Token 消耗評估 | 2026-02-27 | engineering | ✅ 完成 |
+| T-017 | doc-viewer docs-governance 文件分類落差分析與改進建議 | 2026-06-13 | conventions | ✅ 完成（待回報 doc-viewer） |
+| T-018 | 文件治理：戰略面與工程技術面分類規劃 | 2026-06-13 | conventions | 📋 規劃中 |
+| UX-001 | 表單設計規範 | 2026-02-15 | product | ✅ 完成 |
+| RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | delivery | ✅ 完成 |

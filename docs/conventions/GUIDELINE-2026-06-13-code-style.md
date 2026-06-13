@@ -2,6 +2,7 @@
 doc_type: GUIDELINE
 doc_id: GUIDELINE-2026-06-13-code-style
 title: "程式碼風格與型別規範"
+domain: conventions
 status: draft
 bounded_context: engineering-conventions
 version: 1

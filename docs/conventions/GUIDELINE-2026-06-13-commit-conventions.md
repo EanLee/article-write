@@ -2,6 +2,7 @@
 doc_type: GUIDELINE
 doc_id: GUIDELINE-2026-06-13-commit-conventions
 title: "Commit 規範與 Git Hooks"
+domain: conventions
 status: draft
 bounded_context: engineering-conventions
 version: 1

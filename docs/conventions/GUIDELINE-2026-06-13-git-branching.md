@@ -2,6 +2,7 @@
 doc_type: GUIDELINE
 doc_id: GUIDELINE-2026-06-13-git-branching
 title: "Git Flow 與分支管理規範"
+domain: conventions
 status: draft
 bounded_context: engineering-conventions
 version: 1
