@@ -1,3 +1,13 @@
+---
+title: "中文 Slug 處理評估報告"
+domain: engineering
+type: assessment
+status: reviewing
+owner: tech-team
+updated: 2026-02-04
+source_of_truth: true
+---
+
 # 中文 Slug 處理評估報告
 
 **日期**: 2026-02-04

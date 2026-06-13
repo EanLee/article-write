@@ -1,3 +1,13 @@
+---
+title: "Phase 0 功能缺口分析"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-25
+source_of_truth: true
+---
+
 # Phase 0 功能缺口分析
 
 **分析時間**: 2026-01-25

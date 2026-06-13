@@ -1,3 +1,13 @@
+---
+title: "服務層重構計劃"
+domain: engineering
+type: plan
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 服務層重構計劃
 
 **目標**: 簡化架構，遵循 SOLID 原則，修復列表跳動問題

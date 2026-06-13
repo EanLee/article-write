@@ -1,3 +1,13 @@
+---
+title: "P0 功能缺口分析報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-06
+source_of_truth: true
+---
+
 # P0 Gap Analysis Report
 
 **日期**: 2026-02-06

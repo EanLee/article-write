@@ -1,3 +1,13 @@
+---
+title: "Git Commit 指南"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # Git Commit 指南
 
 本文檔提供建議的 commit 訊息，用於提交本次開發的所有功能。

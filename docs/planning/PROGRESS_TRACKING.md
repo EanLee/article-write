@@ -1,3 +1,13 @@
+---
+title: "WriteFlow 進度追蹤機制"
+domain: delivery
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-04
+source_of_truth: true
+---
+
 # WriteFlow 進度追蹤機制
 
 **建立日期**: 2026-02-04

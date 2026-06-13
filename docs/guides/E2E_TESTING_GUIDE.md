@@ -1,3 +1,13 @@
+---
+title: "E2E 測試指南（Electron + Playwright）"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
+---
+
 # E2E 測試指南（Electron + Playwright）
 
 > **建立日期**: 2026-06-13

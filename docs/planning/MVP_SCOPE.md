@@ -1,3 +1,13 @@
+---
+title: "WriteFlow MVP 範圍定義"
+domain: product
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-13
+source_of_truth: true
+---
+
 # WriteFlow MVP 範圍定義
 
 > **版本**: v0.1.0

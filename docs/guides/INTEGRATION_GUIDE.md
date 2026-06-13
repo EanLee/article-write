@@ -1,3 +1,13 @@
+---
+title: "核心功能整合指南"
+domain: engineering
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-02
+source_of_truth: true
+---
+
 # 核心功能整合指南
 
 本文檔說明如何將新開發的核心功能整合到編輯器中。

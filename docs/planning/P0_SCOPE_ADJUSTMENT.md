@@ -1,3 +1,13 @@
+---
+title: "P0 範圍調整決策：移除 Git 自動化"
+domain: delivery
+type: plan
+status: approved
+owner: tech-team
+updated: 2026-02-06
+source_of_truth: true
+---
+
 # P0 範圍調整決策：移除 Git 自動化
 
 > **決策日期**: 2026-02-06
