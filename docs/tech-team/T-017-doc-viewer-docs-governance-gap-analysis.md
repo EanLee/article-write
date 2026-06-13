@@ -1,3 +1,13 @@
+---
+title: "doc-viewer docs-governance 文件分類落差分析與改進建議"
+domain: conventions
+type: discussion
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
+---
+
 # T-017 doc-viewer docs-governance 文件分類落差分析與改進建議
 
 **日期**: 2026-06-13

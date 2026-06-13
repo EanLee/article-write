@@ -1,3 +1,13 @@
+---
+title: "Playwright Electron E2E 環境建置"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # T-007 — Playwright + Electron E2E 測試環境建置方案評估
 
 > **日期**: 2026-02-15

@@ -1,3 +1,13 @@
+---
+title: "第五次全面技術評審 — 索引"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: true
+---
+
 # 第五次全面技術評審 — 索引
 
 **評審日期**: 2026-03-01

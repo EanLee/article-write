@@ -1,3 +1,13 @@
+---
+title: "Metadata 快取設計（TDR）"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # 技術討論 T-005 — Metadata Cache 設計評估
 
 > **日期**: 2026-02-15

@@ -1,3 +1,13 @@
+---
+title: "AI Service 架構"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: true
+---
+
 # T-010 AI Service 技術架構設計
 
 **日期**: 2026-02-16

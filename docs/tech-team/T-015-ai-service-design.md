@@ -1,3 +1,13 @@
+---
+title: "AI Service 設計"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-27
+source_of_truth: true
+---
+
 # T-015 AI Service 技術架構設計文件
 
 **日期**: 2026-02-27

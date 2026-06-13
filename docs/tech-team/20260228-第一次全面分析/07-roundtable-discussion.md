@@ -1,3 +1,13 @@
+---
+title: "第一次全面分析 — 圓桌討論"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-28
+source_of_truth: true
+---
+
 # WriteFlow 技術團隊圓桌討論記錄
 
 **討論日期：** 2026-02-28

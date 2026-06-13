@@ -1,3 +1,13 @@
+---
+title: "Phase 2 Token 成本評估"
+domain: engineering
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: true
+---
+
 # T-016 Phase 2 三角度分析 Token 消耗評估
 
 **日期**: 2026-02-27

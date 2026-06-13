@@ -1,3 +1,13 @@
+---
+title: "Changelog 自動化"
+domain: engineering
+type: spec
+status: approved
+owner: tech-team
+updated: 2026-02-15
+source_of_truth: true
+---
+
 # T-004 自動化 Changelog 生成
 
 **日期**: 2026-02-15

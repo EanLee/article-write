@@ -1,3 +1,13 @@
+---
+title: "Sprint 3 實作規劃"
+domain: delivery
+type: plan
+status: approved
+owner: tech-team
+updated: 2026-02-17
+source_of_truth: true
+---
+
 # T-013 Sprint 3 實作優先順序與分工規劃
 
 **日期**: 2026-02-27
