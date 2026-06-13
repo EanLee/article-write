@@ -2,7 +2,7 @@
 
 > **建立日期**: 2026-02-03
 > **目的**: 記錄所有跨角色討論、決策過程和執行結果
-> **規則**: 參考 [圓桌會議運作規則](./ROUNDTABLE_RULES.md)
+> **規則**: 參考 [圓桌會議運作規則](./governance/ROUNDTABLE_RULES.md)
 
 ---
 
@@ -109,8 +109,8 @@
 
 ## 📚 參考資料
 
-- [圓桌會議運作規則](./ROUNDTABLE_RULES.md)
-- [角色卡](./CHARACTER_CARDS.md)
+- [圓桌會議運作規則](./governance/ROUNDTABLE_RULES.md)
+- [角色卡](./governance/CHARACTER_CARDS.md)
 - [初始系統評估（topic-000）](./topic-000-2026-02-02-initial-system-evaluation/)
 
 ---

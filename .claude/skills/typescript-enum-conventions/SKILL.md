@@ -5,7 +5,7 @@ description: TypeScript Enum 使用規範與命名慣例。新增或修改固定
 
 # TypeScript Enum 規範
 
-完整規範（命名規則、範例、組織結構、優點）→ [程式碼風格與型別規範](../../../docs/conventions/GUIDELINE-2026-06-13-code-style.md)（本 skill 為該 GUIDELINE 衍生的 agent 操作判斷準則）
+完整規範（命名規則、範例、組織結構、優點）→ [程式碼風格與型別規範](../../../docs/conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md)（本 skill 為該 GUIDELINE 衍生的 agent 操作判斷準則）
 
 ## 判斷準則（修改/新增 src/types/index.ts 時套用）
 

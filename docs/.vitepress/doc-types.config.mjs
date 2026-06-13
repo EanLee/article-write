@@ -25,7 +25,7 @@ export default {
   // 註冊索引檔，供未來 lint 檢查序號/連結一致性（T-017 落差一）
   registries: [
     { dir: 'engineering/adr', index: 'README.md' },
-    { dir: 'conventions', index: 'TEAM.md' },
+    { dir: 'conventions/governance', index: 'TEAM.md' },
     { dir: 'conventions', index: 'ROUNDTABLE-DISCUSSIONS-INDEX.md' },
   ],
 

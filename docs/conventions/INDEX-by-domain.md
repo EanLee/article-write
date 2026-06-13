@@ -7,7 +7,7 @@ owner: tech-team
 updated: 2026-06-13
 source_of_truth: true
 related_docs:
-  - docs/conventions/T-018-docs-reorganization-plan.md
+  - docs/conventions/docs-governance/T-018-docs-reorganization-plan.md
   - docs/.vitepress/doc-types.config.mjs
 ---
 
@@ -26,12 +26,12 @@ related_docs:
 | 文件 | 標題 | 狀態 |
 |---|---|---|
 | [guides/COMMIT_GUIDE.md](../reference/COMMIT_GUIDE.md) | Git Commit 指南 | approved |
-| [tech-team/T-017-doc-viewer-docs-governance-gap-analysis.md](./T-017-doc-viewer-docs-governance-gap-analysis.md) | doc-viewer docs-governance 文件分類落差分析與改進建議 | approved |
-| [tech-team/T-018-docs-reorganization-plan.md](./T-018-docs-reorganization-plan.md) | 文件治理：戰略面與工程技術面分類規劃 | approved |
-| [tech-team/T-019-docs-governance-migration-report.md](./T-019-docs-governance-migration-report.md) | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | approved |
-| [conventions/GUIDELINE-2026-06-13-git-branching.md](./GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 | draft |
-| [conventions/GUIDELINE-2026-06-13-commit-conventions.md](./GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks | draft |
-| [conventions/GUIDELINE-2026-06-13-code-style.md](./GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 | draft |
+| [conventions/docs-governance/T-017-doc-viewer-docs-governance-gap-analysis.md](./docs-governance/T-017-doc-viewer-docs-governance-gap-analysis.md) | doc-viewer docs-governance 文件分類落差分析與改進建議 | approved |
+| [conventions/docs-governance/T-018-docs-reorganization-plan.md](./docs-governance/T-018-docs-reorganization-plan.md) | 文件治理：戰略面與工程技術面分類規劃 | approved |
+| [conventions/docs-governance/T-019-docs-governance-migration-report.md](./docs-governance/T-019-docs-governance-migration-report.md) | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | approved |
+| [conventions/dev-standards/GUIDELINE-2026-06-13-git-branching.md](./dev-standards/GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 | draft |
+| [conventions/dev-standards/GUIDELINE-2026-06-13-commit-conventions.md](./dev-standards/GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks | draft |
+| [conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md](./dev-standards/GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 | draft |
 
 ## product
 

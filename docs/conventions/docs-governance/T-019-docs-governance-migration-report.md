@@ -7,8 +7,8 @@ owner: tech-team
 updated: 2026-06-13
 source_of_truth: true
 related_docs:
-  - docs/conventions/T-018-docs-reorganization-plan.md
-  - docs/conventions/T-017-doc-viewer-docs-governance-gap-analysis.md
+  - docs/conventions/docs-governance/T-018-docs-reorganization-plan.md
+  - docs/conventions/docs-governance/T-017-doc-viewer-docs-governance-gap-analysis.md
   - docs/conventions/INDEX-by-domain.md
   - docs/.vitepress/doc-types.config.mjs
 tags:

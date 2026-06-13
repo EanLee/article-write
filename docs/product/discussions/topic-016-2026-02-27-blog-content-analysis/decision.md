@@ -150,4 +150,4 @@ async function analyzeArticle(
 
 - [discussion.md](./discussion.md)
 - [topic-015 AI Panel 設計決策](../../../engineering/discussions/topic-015-2026-02-16-ai-panel-design/decision.md)
-- [CHARACTER_CARDS.md](../../../conventions/CHARACTER_CARDS.md)
+- [CHARACTER_CARDS.md](../../../conventions/governance/CHARACTER_CARDS.md)

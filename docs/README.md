@@ -55,7 +55,7 @@ docs/
 ### 團隊討論記錄
 
 - [圓桌會議討論記錄](./conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md) - 跨角色戰略/產品/工程決策（topic-NNN）
-- [技術團隊討論記錄](./conventions/TEAM.md) - 技術選型、TDR、UX 評估、品質回顧（T-NNN）
+- [技術團隊討論記錄](./conventions/governance/TEAM.md) - 技術選型、TDR、UX 評估、品質回顧（T-NNN）
 - [開發規範](./conventions/) - Git Flow、Commit 規範、程式碼風格（GUIDELINE-*）
 
 ---
@@ -129,14 +129,14 @@ docs/
 跨角色（PM / Marketing / CTO / Ops / User）討論與決策記錄，依 `topic-NNN-YYYY-MM-DD-主題` 資料夾編號：
 
 - [README.md](./conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md) - 討論索引（含 domain 標記）
-- [ROUNDTABLE_RULES.md](./conventions/ROUNDTABLE_RULES.md) - 運作規則
+- [ROUNDTABLE_RULES.md](./conventions/governance/ROUNDTABLE_RULES.md) - 運作規則
 - 每個 `topic-*/decision.md` 已標記 `domain`（product/engineering/quality/delivery）
 
 ### 9. tech-team/ - 技術團隊討論記錄
 
 技術選型決策（TDR）、UX 評估、流程回顧（RETRO）、多輪品質評估，依 `T-NNN` 編號：
 
-- [TEAM.md](./conventions/TEAM.md) - 討論記錄索引（含 domain 標記）
+- [TEAM.md](./conventions/governance/TEAM.md) - 討論記錄索引（含 domain 標記）
 - 每個 `T-*.md` 已標記 `domain`（engineering/quality/product/delivery/operations/conventions）
 
 ### 10. conventions/ - 開發規範
@@ -145,9 +145,9 @@ docs/
 
 | 文件 | 說明 |
 |------|------|
-| [GUIDELINE-2026-06-13-git-branching.md](./conventions/GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 |
-| [GUIDELINE-2026-06-13-commit-conventions.md](./conventions/GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks |
-| [GUIDELINE-2026-06-13-code-style.md](./conventions/GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 |
+| [GUIDELINE-2026-06-13-git-branching.md](./conventions/dev-standards/GUIDELINE-2026-06-13-git-branching.md) | Git Flow 與分支管理規範 |
+| [GUIDELINE-2026-06-13-commit-conventions.md](./conventions/dev-standards/GUIDELINE-2026-06-13-commit-conventions.md) | Commit 規範與 Git Hooks |
+| [GUIDELINE-2026-06-13-code-style.md](./conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md) | 程式碼風格與型別規範 |
 
 ### 11. adr/ - 架構決策記錄（ADR）
 
@@ -201,7 +201,7 @@ docs/
 - **v1.0** (2026-01-26): 初始文件結構
 - **v2.0** (2026-02-02): 重新整理，合併重複文件，新增多角色評估
 - **v3.0** (2026-06-13): 依 docs-governance 為 ~80 份文件補上 `domain`/`status`/`source_of_truth`
-  等 frontmatter（詳見 [T-018](./conventions/T-018-docs-reorganization-plan.md)），新增
+  等 frontmatter（詳見 [T-018](./conventions/docs-governance/T-018-docs-reorganization-plan.md)），新增
   [INDEX-by-domain.md](./conventions/INDEX-by-domain.md) 跨目錄索引；移除已不存在的 `multi-role-analysis/` 章節，
   補上 `roundtable-discussions/`、`tech-team/`、`conventions/`、`adr/` 章節
 

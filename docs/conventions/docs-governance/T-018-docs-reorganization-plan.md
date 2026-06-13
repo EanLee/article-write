@@ -11,8 +11,8 @@ last_reviewed: 2026-06-13
 source: 延續 T-017 落差分析，回應「現有 docs 混亂、戰略面與工程技術面混雜」之盤點需求
 ai_generated: true
 related_docs:
-  - docs/conventions/T-017-doc-viewer-docs-governance-gap-analysis.md
-  - docs/conventions/T-019-docs-governance-migration-report.md
+  - docs/conventions/docs-governance/T-017-doc-viewer-docs-governance-gap-analysis.md
+  - docs/conventions/docs-governance/T-019-docs-governance-migration-report.md
 ---
 
 # T-018 文件治理：戰略面與工程技術面分類規劃
@@ -174,7 +174,7 @@ T-017 已提出六項落差（序號+索引模式、Topic 資料夾、累加式�
 
 1. **`topic-012` 編號重複**：`topic-012-2026-02-16-auto-update`（工程）與 `topic-012-2026-02-28-progress-review`（進度回顧）共用同一編號。建議後者改為 `topic-022`（沿用既有最大編號 +1），並更新所有引用此編號的連結。
 2. **`topic-019` 與 `topic-021` 仍為 `PENDING.md`**：建議在 `doc-types.config.mjs` 規劃時，將 T-017 提到的「`status: pending` 前置狀態」一併納入，避免這類檔案被誤判為遺漏。
-3. **命名規則不一致**：除 `docs/conventions/GUIDELINE-2026-06-13-*.md` 外，絕大多數既有文件仍是 `SCREAMING_SNAKE_CASE.md`，不符合新訂的 `YYYY-MM-DD-kebab-description.md`。本規劃**不要求**既有檔案重新命名（成本過高），但建議新文件一律遵循新規則。
+3. **命名規則不一致**：除 `docs/conventions/dev-standards/GUIDELINE-2026-06-13-*.md` 外，絕大多數既有文件仍是 `SCREAMING_SNAKE_CASE.md`，不符合新訂的 `YYYY-MM-DD-kebab-description.md`。本規劃**不要求**既有檔案重新命名（成本過高），但建議新文件一律遵循新規則。
 4. **`docs/README.md`（2026-02-02 版，v2.0）已過期**：未反映 `roundtable-discussions/`、`tech-team/`、`fix-bug/` 等後續新增的目錄，且未提及 `conventions/`。建議下一階段更新此索引，至少補上目錄總覽與「混合目錄」標註。
 
 ## 分階段執行計畫（後續工作，本文件不執行）

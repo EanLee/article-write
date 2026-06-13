@@ -18,7 +18,7 @@
 
 ## 版本控制規範
 
-完整規範（分支說明表、各類分支操作流程、Commit type/scope 對照表、Git Hooks 設定） → [Git Flow 與分支管理](../docs/conventions/GUIDELINE-2026-06-13-git-branching.md)、[Commit 規範與 Git Hooks](../docs/conventions/GUIDELINE-2026-06-13-commit-conventions.md)
+完整規範（分支說明表、各類分支操作流程、Commit type/scope 對照表、Git Hooks 設定） → [Git Flow 與分支管理](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-git-branching.md)、[Commit 規範與 Git Hooks](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-commit-conventions.md)
 
 **隨時必須生效的核心鐵則：**
 
@@ -32,7 +32,7 @@
 
 ## 程式碼風格與型別規範
 
-TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../docs/conventions/GUIDELINE-2026-06-13-code-style.md)（Enum 規範詳見 `typescript-enum-conventions` skill）
+TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md)（Enum 規範詳見 `typescript-enum-conventions` skill）
 
 ## Bug Fix
 
@@ -58,9 +58,9 @@ TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../
 
 ## 參考文件
 
-- [Git Flow 與分支管理](../docs/conventions/GUIDELINE-2026-06-13-git-branching.md)
-- [Commit 規範與 Git Hooks](../docs/conventions/GUIDELINE-2026-06-13-commit-conventions.md)
-- [程式碼風格與型別規範](../docs/conventions/GUIDELINE-2026-06-13-code-style.md)
+- [Git Flow 與分支管理](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-git-branching.md)
+- [Commit 規範與 Git Hooks](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-commit-conventions.md)
+- [程式碼風格與型別規範](../docs/conventions/dev-standards/GUIDELINE-2026-06-13-code-style.md)
 - [Bug Fix 報告範例](../docs/fix-bug/)
 
 ---
