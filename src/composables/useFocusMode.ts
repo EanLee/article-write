@@ -26,6 +26,12 @@ export function useFocusMode() {
   }
 
   function handleKeydown(e: KeyboardEvent) {
+    // 編輯器內的 Ctrl+Shift+F（插入腳註）已透過 preventDefault 處理，
+    // 此時不應再觸發專注模式切換（避免兩個 handler 搶同一組快捷鍵）
+    if (e.defaultPrevented) {
+      return
+    }
+
     if (e.ctrlKey && e.shiftKey && e.key === "F") {
       e.preventDefault()
       toggleFocusMode()
