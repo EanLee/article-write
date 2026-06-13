@@ -1,3 +1,23 @@
+---
+title: "S6-03/04 修正：FileService 路徑白名單漏洞"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "S6-03/04 修正：FileService 路徑白名單漏洞"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # S6-03/04 修正：FileService 路徑白名單漏洞
 
 **日期**: 2026-03-01  

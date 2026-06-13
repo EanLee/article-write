@@ -1,3 +1,23 @@
+---
+title: "WriteFlow 專案進度與落差分析圓桌會議"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: false
+---
+
+---
+title: "WriteFlow 專案進度與落差分析圓桌會議"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: false
+---
+
 # WriteFlow 專案進度與落差分析圓桌會議
 
 > **會議日期**: 2026-02-06

@@ -1,3 +1,23 @@
+---
+title: "功能測試指南"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "功能測試指南"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 功能測試指南
 
 本文檔提供所有新功能的測試步驟與預期結果。

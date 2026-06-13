@@ -1,3 +1,13 @@
+---
+title: "WriteFlow 效能與演算法複雜度評估報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-28
+source_of_truth: false
+---
+
 # WriteFlow 效能與演算法複雜度評估報告
 
 **評估日期：** 2026-02-28

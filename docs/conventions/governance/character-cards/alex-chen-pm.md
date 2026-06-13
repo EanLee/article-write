@@ -1,3 +1,23 @@
+---
+title: "🎯 Alex Chen - 產品經理 (PM)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "🎯 Alex Chen - 產品經理 (PM)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 🎯 Alex Chen - 產品經理 (PM)
 
 > 📑 [角色卡總覽](./INDEX.md) ｜ [角色對比總結](./COMPARISON.md)

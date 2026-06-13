@@ -1,3 +1,23 @@
+---
+title: "Bug Fix 報告指南"
+domain: quality
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "Bug Fix 報告指南"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # Bug Fix 報告指南
 
 本資料夾存放所有 Bug Fix 的詳細報告。

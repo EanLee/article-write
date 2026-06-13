@@ -1,3 +1,13 @@
+---
+title: "第五次全面評審 — 問題追蹤驗證表"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 第五次全面評審 — 問題追蹤驗證表
 
 **狀態基準**: commit `3fbb641` (2026-03-01)

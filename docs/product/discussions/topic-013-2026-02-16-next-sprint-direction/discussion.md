@@ -1,3 +1,23 @@
+---
+title: "v0.2 後半 Sprint 方向決策"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: false
+---
+
+---
+title: "v0.2 後半 Sprint 方向決策"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: false
+---
+
 # v0.2 後半 Sprint 方向決策
 
 > **話題編號**: topic-013

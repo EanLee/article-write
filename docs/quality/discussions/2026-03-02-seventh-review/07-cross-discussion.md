@@ -1,3 +1,13 @@
+---
+title: "跨職能交互討論記錄 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # 跨職能交互討論記錄 — 第七次全面評估
 
 **日期**: 2026-03-02  

@@ -1,3 +1,23 @@
+---
+title: "手動測試指南 - 文章列表跳動問題修復"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "手動測試指南 - 文章列表跳動問題修復"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 手動測試指南 - 文章列表跳動問題修復
 
 **測試目標**: 驗證文章列表在點擊文章或儲存後不會跳動到第一項

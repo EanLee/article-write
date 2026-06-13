@@ -1,3 +1,23 @@
+---
+title: "P6-05 修正：ImageService 批量 IPC 查詢效能問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "P6-05 修正：ImageService 批量 IPC 查詢效能問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # P6-05 修正：ImageService 批量 IPC 查詢效能問題
 
 **日期**: 2026-03-01  

@@ -1,3 +1,13 @@
+---
+title: "可維護性評估報告 — 第五次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 可維護性評估報告 — 第五次全面評估
 
 **審查者**: 資深工程師 Agent

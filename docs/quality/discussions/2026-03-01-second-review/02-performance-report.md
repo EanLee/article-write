@@ -1,3 +1,13 @@
+---
+title: "WriteFlow 效能評估報告（第二次）"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # WriteFlow 效能評估報告（第二次）
 
 **評估日期**：2026-03-01

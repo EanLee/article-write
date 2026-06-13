@@ -1,3 +1,23 @@
+---
+title: "Fix: QUAL6-01 + QUAL6-07 — ProcessService 硬編碼問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "Fix: QUAL6-01 + QUAL6-07 — ProcessService 硬編碼問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # Fix: QUAL6-01 + QUAL6-07 — ProcessService 硬編碼問題
 
 **日期**: 2026-03-01

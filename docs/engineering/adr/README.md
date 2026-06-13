@@ -1,3 +1,23 @@
+---
+title: "Architecture Decision Records (ADR)"
+domain: engineering
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "Architecture Decision Records (ADR)"
+domain: engineering
+type: adr
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # Architecture Decision Records (ADR)
 
 本目錄記錄專案中重要的架構決策。

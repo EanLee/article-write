@@ -1,3 +1,23 @@
+---
+title: "SearchService 路徑正規化 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-27
+source_of_truth: false
+---
+
+---
+title: "SearchService 路徑正規化 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # SearchService 路徑正規化 Bug Fix 報告
 
 **日期**: 2026-02-27

@@ -1,3 +1,23 @@
+---
+title: "WriteFlow MVP 行動項目清單（調整版）"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: false
+---
+
+---
+title: "WriteFlow MVP 行動項目清單（調整版）"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-06
+source_of_truth: false
+---
+
 # WriteFlow MVP 行動項目清單（調整版）
 
 > **建立日期**: 2026-02-06

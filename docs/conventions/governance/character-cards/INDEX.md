@@ -1,3 +1,23 @@
+---
+title: "圓桌會議角色卡"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "圓桌會議角色卡"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 圓桌會議角色卡
 
 > **建立日期**: 2026-02-03

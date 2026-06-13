@@ -1,3 +1,23 @@
+---
+title: "AutoSave 開啟文件誤觸儲存 Bug 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: false
+---
+
+---
+title: "AutoSave 開啟文件誤觸儲存 Bug 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # AutoSave 開啟文件誤觸儲存 Bug 報告
 
 **日期**: 2026-02-14

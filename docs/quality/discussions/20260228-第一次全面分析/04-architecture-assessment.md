@@ -1,3 +1,13 @@
+---
+title: "WriteFlow 系統架構評估報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-28
+source_of_truth: false
+---
+
 # WriteFlow 系統架構評估報告
 
 **評估日期：** 2026-02-28

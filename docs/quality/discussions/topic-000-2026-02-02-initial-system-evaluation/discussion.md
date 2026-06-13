@@ -1,3 +1,13 @@
+---
+title: "產品圓桌會議記錄"
+domain: quality
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-02
+source_of_truth: false
+---
+
 # 產品圓桌會議記錄
 
 > **會議日期**: 2026-02-02

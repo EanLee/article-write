@@ -1,3 +1,23 @@
+---
+title: "Fix: QUAL6-02 + QUAL6-09 — ProcessService 競態條件與停止等待"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "Fix: QUAL6-02 + QUAL6-09 — ProcessService 競態條件與停止等待"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # Fix: QUAL6-02 + QUAL6-09 — ProcessService 競態條件與停止等待
 
 **日期**: 2026-03-01  

@@ -1,3 +1,23 @@
+---
+title: "Full-Text Search Implementation Plan"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: false
+---
+
+---
+title: "Full-Text Search Implementation Plan"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: false
+---
+
 # Full-Text Search Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

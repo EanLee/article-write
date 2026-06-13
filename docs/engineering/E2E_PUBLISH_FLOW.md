@@ -1,3 +1,23 @@
+---
+title: "端到端發布流程文件"
+domain: engineering
+type: spec
+status: draft
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "端到端發布流程文件"
+domain: engineering
+type: spec
+status: draft
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 端到端發布流程文件
 
 > **建立日期**: 2026-02-13

@@ -1,3 +1,23 @@
+---
+title: "圓桌會議運作規則"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "圓桌會議運作規則"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 圓桌會議運作規則
 
 > **建立日期**: 2026-02-03

@@ -1,3 +1,13 @@
+---
+title: "SOLID 原則評估報告 — 第六次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # SOLID 原則評估報告 — 第六次全面評估
 
 **審查者**: SOLID 原則工程師 Agent

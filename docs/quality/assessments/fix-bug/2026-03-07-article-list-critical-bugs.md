@@ -1,3 +1,23 @@
+---
+title: "文章列表三項嚴重問題 Bug 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-07
+source_of_truth: false
+---
+
+---
+title: "文章列表三項嚴重問題 Bug 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # 文章列表三項嚴重問題 Bug 報告
 
 **日期**: 2026-03-07

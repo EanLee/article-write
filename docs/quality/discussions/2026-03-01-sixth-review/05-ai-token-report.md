@@ -1,3 +1,13 @@
+---
+title: "AI Token 成本評估報告 — 第六次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # AI Token 成本評估報告 — 第六次全面評估
 
 **審查者**: AI Token 成本與效率工程師 Agent

@@ -1,3 +1,23 @@
+---
+title: "儲存機制整體設計（合併 topic-019）"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "儲存機制整體設計（合併 topic-019）"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 儲存機制整體設計（合併 topic-019）
 
 > **話題編號**: topic-020

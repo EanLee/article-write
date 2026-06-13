@@ -1,3 +1,13 @@
+---
+title: "第四次技術評估 — 問題追蹤 VERIFICATION"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 第四次技術評估 — 問題追蹤 VERIFICATION
 
 **評估日期**: 2026-03-01

@@ -1,3 +1,13 @@
+---
+title: "程式品質評估報告 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # 程式品質評估報告 — 第七次全面評估
 
 **評審者**: QA（品質工程師）  

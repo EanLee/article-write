@@ -1,3 +1,23 @@
+---
+title: "大綱面板初次載入為空 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "大綱面板初次載入為空 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # 大綱面板初次載入為空 Bug Fix 報告
 
 **日期**: 2026-06-13

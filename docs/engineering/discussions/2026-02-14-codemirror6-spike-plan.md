@@ -1,3 +1,23 @@
+---
+title: "CodeMirror 6 整合 Spike 計畫"
+domain: engineering
+type: discussion
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: false
+---
+
+---
+title: "CodeMirror 6 整合 Spike 計畫"
+domain: engineering
+type: discussion
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: false
+---
+
 # CodeMirror 6 整合 Spike 計畫
 
 > **作者**: Taylor Wu（CTO）

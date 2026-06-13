@@ -1,3 +1,13 @@
+---
+title: "跨角色交互討論 — 第四次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 跨角色交互討論 — 第四次全面評估
 
 **主持**: 系統架構師 Agent

@@ -1,3 +1,23 @@
+---
+title: "Writing Baseline Implementation Plan"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-04-08
+source_of_truth: false
+---
+
+---
+title: "Writing Baseline Implementation Plan"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: false
+---
+
 # Writing Baseline Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

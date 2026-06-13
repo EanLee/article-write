@@ -1,3 +1,23 @@
+---
+title: "WriteFlow MVP 功能狀態"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "WriteFlow MVP 功能狀態"
+domain: delivery
+type: plan
+status: draft
+owner: tech-team
+updated: 2026-02-16
+source_of_truth: false
+---
+
 # WriteFlow MVP 功能狀態
 
 > **負責人**: Alex (PM)

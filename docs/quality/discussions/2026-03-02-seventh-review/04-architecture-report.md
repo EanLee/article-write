@@ -1,3 +1,13 @@
+---
+title: "架構評估報告 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # 架構評估報告 — 第七次全面評估
 
 **評審者**: Arch（架構師）  

@@ -1,3 +1,13 @@
+---
+title: "SOLID 原則評估報告 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # SOLID 原則評估報告 — 第七次全面評估
 
 **評審者**: Sol（SOLID 顧問）  

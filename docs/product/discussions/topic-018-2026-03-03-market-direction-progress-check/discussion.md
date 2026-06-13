@@ -1,3 +1,23 @@
+---
+title: "topic-018 討論記錄：市場方向與進度對焦"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-03-03
+source_of_truth: false
+---
+
+---
+title: "topic-018 討論記錄：市場方向與進度對焦"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-03-03
+source_of_truth: false
+---
+
 # topic-018 討論記錄：市場方向與進度對焦
 
 **日期**: 2026-03-03

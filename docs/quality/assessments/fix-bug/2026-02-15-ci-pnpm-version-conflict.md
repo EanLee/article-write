@@ -1,3 +1,23 @@
+---
+title: "CI pnpm 版本衝突 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-02-15
+source_of_truth: false
+---
+
+---
+title: "CI pnpm 版本衝突 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # CI pnpm 版本衝突 Bug Fix 報告
 
 **日期**: 2026-02-15

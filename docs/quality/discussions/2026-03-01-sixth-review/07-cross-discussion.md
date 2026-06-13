@@ -1,3 +1,13 @@
+---
+title: "跨角色技術討論 — 第六次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 跨角色技術討論 — 第六次全面評估
 
 **形式**: 圓桌討論

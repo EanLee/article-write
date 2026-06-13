@@ -1,3 +1,13 @@
+---
+title: "WriteFlow 寫作基線功能設計文件"
+domain: reference
+type: spec
+status: draft
+owner: tech-team
+updated: 2026-04-08
+source_of_truth: false
+---
+
 # WriteFlow 寫作基線功能設計文件
 
 **日期**: 2026-04-08  

@@ -1,3 +1,23 @@
+---
+title: "效能與程式碼品質審查報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "效能與程式碼品質審查報告"
+domain: quality
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 效能與程式碼品質審查報告
 
 **審查日期**: 2026-01-29

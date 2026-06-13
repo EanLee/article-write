@@ -1,3 +1,23 @@
+---
+title: "議題一：產品推出策略與規劃"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-03
+source_of_truth: false
+---
+
+---
+title: "議題一：產品推出策略與規劃"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-03
+source_of_truth: false
+---
+
 # 議題一：產品推出策略與規劃
 
 > **話題編號**: topic-001

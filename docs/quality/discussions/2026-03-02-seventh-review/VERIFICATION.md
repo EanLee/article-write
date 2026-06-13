@@ -1,3 +1,13 @@
+---
+title: "問題追蹤 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # 問題追蹤 — 第七次全面評估
 
 **評審日期**: 2026-03-02

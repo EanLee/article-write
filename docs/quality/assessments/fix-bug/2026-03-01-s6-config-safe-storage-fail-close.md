@@ -1,3 +1,23 @@
+---
+title: "S6-02 修正：ConfigService safeStorage fail-close"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "S6-02 修正：ConfigService safeStorage fail-close"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # S6-02 修正：ConfigService safeStorage fail-close
 
 **日期**: 2026-03-01  

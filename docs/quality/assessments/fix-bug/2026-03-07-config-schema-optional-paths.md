@@ -1,3 +1,23 @@
+---
+title: "Config Schema 路徑欄位強制驗證 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-07
+source_of_truth: false
+---
+
+---
+title: "Config Schema 路徑欄位強制驗證 Bug Fix 報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # Config Schema 路徑欄位強制驗證 Bug Fix 報告
 
 **日期**: 2026-03-07

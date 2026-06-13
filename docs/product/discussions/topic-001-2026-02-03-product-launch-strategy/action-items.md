@@ -1,3 +1,23 @@
+---
+title: "項目清單與分工：WriteFlow 產品推出"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-03
+source_of_truth: false
+---
+
+---
+title: "項目清單與分工：WriteFlow 產品推出"
+domain: product
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-03
+source_of_truth: false
+---
+
 # 項目清單與分工：WriteFlow 產品推出
 
 > **話題編號**: topic-001

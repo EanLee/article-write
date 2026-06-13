@@ -1,3 +1,23 @@
+---
+title: "A6-01 修正：reloadArticle 欄位不一致問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "A6-01 修正：reloadArticle 欄位不一致問題"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # A6-01 修正：reloadArticle 欄位不一致問題
 
 **日期**: 2026-03-01  

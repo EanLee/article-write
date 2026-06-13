@@ -1,3 +1,23 @@
+---
+title: "決策記錄：[議題標題]"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "決策記錄：[議題標題]"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 決策記錄：[議題標題]
 
 > **話題編號**: topic-NNN

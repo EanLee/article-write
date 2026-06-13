@@ -1,3 +1,13 @@
+---
+title: "效能 / O(n) 評估報告 — 第七次全面評估"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-02
+source_of_truth: false
+---
+
 # 效能 / O(n) 評估報告 — 第七次全面評估
 
 **評審者**: Perf（效能工程師）  

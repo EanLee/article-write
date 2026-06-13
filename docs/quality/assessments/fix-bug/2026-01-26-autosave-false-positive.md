@@ -1,3 +1,23 @@
+---
+title: "自動儲存誤判問題分析報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
+---
+title: "自動儲存誤判問題分析報告"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # 自動儲存誤判問題分析報告
 
 **日期**: 2026-01-26

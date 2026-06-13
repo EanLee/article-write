@@ -1,3 +1,23 @@
+---
+title: "topic-015 AI Panel 設計討論"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: false
+---
+
+---
+title: "topic-015 AI Panel 設計討論"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-16
+source_of_truth: false
+---
+
 # topic-015 AI Panel 設計討論
 
 **議題**：Left sidebar 加入 AI icon 後，右側 AI 操作 Panel 應該放什麼？

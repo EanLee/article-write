@@ -1,3 +1,23 @@
+---
+title: "topic-020｜儲存競態：自動儲存以舊快照覆寫磁碟"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "topic-020｜儲存競態：自動儲存以舊快照覆寫磁碟"
+domain: engineering
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # topic-020｜儲存競態：自動儲存以舊快照覆寫磁碟
 
 **日期**: 2026-06-13（待排程）

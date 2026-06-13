@@ -1,3 +1,13 @@
+---
+title: "修正驗證指南（VERIFICATION）"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
 # 修正驗證指南（VERIFICATION）
 
 **建立原因**: 第三次評估後發現多個「曾在之前評估中出現、修正過但未完整」或「評估報告撰寫時已修正但報告未更新」的問題，導致反覆出現的假象。

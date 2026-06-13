@@ -1,3 +1,23 @@
+---
+title: "📚 Morgan Chen - 學習者 (Learner)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "📚 Morgan Chen - 學習者 (Learner)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 📚 Morgan Chen - 學習者 (Learner)
 
 > 📑 [角色卡總覽](./INDEX.md) ｜ [角色對比總結](./COMPARISON.md)

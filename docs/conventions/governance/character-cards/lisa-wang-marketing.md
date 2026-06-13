@@ -1,3 +1,23 @@
+---
+title: "📢 Lisa Wang - 行銷專員 (Marketing)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "📢 Lisa Wang - 行銷專員 (Marketing)"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 📢 Lisa Wang - 行銷專員 (Marketing)
 
 > 📑 [角色卡總覽](./INDEX.md) ｜ [角色對比總結](./COMPARISON.md)

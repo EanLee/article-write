@@ -1,3 +1,13 @@
+---
+title: "專案文件導航"
+domain: reference
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 專案文件導航
 
 > **最後更新**: 2026-06-13

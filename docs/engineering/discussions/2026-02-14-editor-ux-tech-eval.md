@@ -1,3 +1,23 @@
+---
+title: "技術評估：編輯器 UX 升級選型"
+domain: engineering
+type: discussion
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: false
+---
+
+---
+title: "技術評估：編輯器 UX 升級選型"
+domain: engineering
+type: discussion
+status: approved
+owner: tech-team
+updated: 2026-02-14
+source_of_truth: false
+---
+
 # 技術評估：編輯器 UX 升級選型
 
 > **作者**: Taylor Wu（CTO）

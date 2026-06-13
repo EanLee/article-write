@@ -1,3 +1,13 @@
+---
+title: "多角色系統評估"
+domain: quality
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-02
+source_of_truth: false
+---
+
 # 多角色系統評估
 
 > **評估日期**: 2026-02-02

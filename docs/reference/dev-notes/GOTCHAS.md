@@ -1,3 +1,13 @@
+---
+title: "開發特別注意事項"
+domain: reference
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 開發特別注意事項
 
 > 記錄開發過程中遇到的命名限制、語意陷阱、特殊規則等，避免後續開發者重複踩坑。

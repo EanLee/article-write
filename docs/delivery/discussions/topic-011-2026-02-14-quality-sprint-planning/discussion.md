@@ -1,3 +1,23 @@
+---
+title: "圓桌會議 #011：v0.2 Sprint 方向決策"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: false
+---
+
+---
+title: "圓桌會議 #011：v0.2 Sprint 方向決策"
+domain: delivery
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-14
+source_of_truth: false
+---
+
 # 圓桌會議 #011：v0.2 Sprint 方向決策
 
 > **日期**: 2026-02-14

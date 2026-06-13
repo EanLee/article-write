@@ -1,3 +1,23 @@
+---
+title: "圓桌會議角色卡 - 角色對比總結"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+---
+title: "圓桌會議角色卡 - 角色對比總結"
+domain: conventions
+type: reference
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
 # 圓桌會議角色卡 - 角色對比總結
 
 > 📑 [角色卡總覽](./INDEX.md)

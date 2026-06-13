@@ -1,3 +1,13 @@
+---
+title: "一般使用者視角：系統評估報告"
+domain: quality
+type: rpd
+status: approved
+owner: roundtable-discussions
+updated: 2026-02-02
+source_of_truth: false
+---
+
 # 一般使用者視角：系統評估報告
 
 > **角色**: 一般使用者 / 內容創作者 (End User)

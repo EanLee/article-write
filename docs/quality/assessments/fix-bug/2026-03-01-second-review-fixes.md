@@ -1,3 +1,23 @@
+---
+title: "第二次技術評估修正記錄"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-03-01
+source_of_truth: false
+---
+
+---
+title: "第二次技術評估修正記錄"
+domain: quality
+type: assessment
+status: approved
+owner: tech-team
+updated: 2026-01-26
+source_of_truth: false
+---
+
 # 第二次技術評估修正記錄
 
 **建立日期**：2026-03-01
