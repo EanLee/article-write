@@ -38,7 +38,7 @@
 
 ## 目前任務來源
 
-[圓桌會議 #006 行動項目](../engineering/discussions/topic-006-2026-02-14-publish-mechanism/decision.md)
+[圓桌會議 #006 行動項目](../../engineering/discussions/topic-006-2026-02-14-publish-mechanism/decision.md)
 
 ---
 

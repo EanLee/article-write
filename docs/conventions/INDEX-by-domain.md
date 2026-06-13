@@ -44,8 +44,6 @@ related_docs:
 | [settings/SETTINGS_COMPLETE.md](../product/business/SETTINGS_COMPLETE.md) | 設定面板完整文件（SoT） | approved |
 | [settings/SETTINGS_QUICK_REFERENCE.md](../product/business/SETTINGS_QUICK_REFERENCE.md) | 設定面板快速參考 | approved |
 | [settings/UI_COMPARISON.md](../product/business/UI_COMPARISON.md) | 文章列表 UI 改版對比 | approved |
-| [settings/SETTINGS_COMPARISON.md](../archive/SETTINGS_COMPARISON.md) | 設定面板改版對比（已取代） | deprecated |
-| [settings/SETTINGS_REDESIGN.md](../archive/SETTINGS_REDESIGN.md) | 設定面板 UI/UX 重新設計（已取代） | deprecated |
 | [tech-team/T-011-settings-panel-ux-review.md](../product/discussions/T-011-settings-panel-ux-review.md) | 設定面板 UX 評估 | approved |
 | [tech-team/UX-001-form-design-system.md](../product/discussions/UX-001-form-design-system.md) | 表單設計系統 | approved |
 | [roundtable-discussions/topic-001-2026-02-03-product-launch-strategy/decision.md](../product/discussions/topic-001-2026-02-03-product-launch-strategy/decision.md) | 產品上市策略 | approved |
@@ -62,8 +60,6 @@ related_docs:
 | 文件 | 標題 | 狀態 |
 |---|---|---|
 | [architecture/ARCHITECTURE_COMPLETE.md](../engineering/ARCHITECTURE_COMPLETE.md) | 系統架構完整文件（SoT） | approved |
-| [architecture/ARCHITECTURE.md](../archive/ARCHITECTURE.md) | 架構設計文件（已取代） | deprecated |
-| [architecture/ARCHITECTURE_ANALYSIS.md](../archive/ARCHITECTURE_ANALYSIS.md) | 檔案服務架構分析 - 過度設計問題（已取代） | deprecated |
 | [guides/INTEGRATION_GUIDE.md](../engineering/INTEGRATION_GUIDE.md) | 核心功能整合指南 | approved |
 | [planning/REFACTORING_PLAN.md](../engineering/REFACTORING_PLAN.md) | 服務層重構計劃 | approved |
 | [planning/REFACTOR_CHECKLIST.md](../engineering/REFACTOR_CHECKLIST.md) | 重構檢查清單 | approved |
@@ -114,7 +110,7 @@ related_docs:
 | [planning/PHASE_0_GAP_ANALYSIS.md](../quality/assessments/PHASE_0_GAP_ANALYSIS.md) | Phase 0 功能缺口分析 | approved |
 | [planning/P0_GAP_ANALYSIS.md](../quality/assessments/P0_GAP_ANALYSIS.md) | P0 功能缺口分析報告 | approved |
 | [guides/E2E_TESTING_GUIDE.md](../quality/assessments/E2E_TESTING_GUIDE.md) | E2E 測試指南（Electron + Playwright） | approved |
-| [tech-team/REVIEW_CHECKLIST.md](./REVIEW_CHECKLIST.md) | 技術審查檢查清單 | approved |
+| [governance/REVIEW_CHECKLIST.md](./governance/REVIEW_CHECKLIST.md) | 技術審查檢查清單 | approved |
 | [tech-team/T-007-playwright-electron-e2e-setup.md](../quality/discussions/T-007-playwright-electron-e2e-setup.md) | Playwright Electron E2E 環境建置 | approved |
 | [tech-team/20260228-第一次全面分析/07-roundtable-discussion.md](../quality/discussions/20260228-第一次全面分析/07-roundtable-discussion.md) | 第一次全面分析 — 圓桌討論 | approved |
 | [tech-team/2026-03-01-second-review/00-index.md](../quality/discussions/2026-03-01-second-review/00-index.md) | WriteFlow 第二次技術評估：索引 | approved |
@@ -131,6 +127,15 @@ related_docs:
 |---|---|---|
 | [tech-team/T-003-github-actions-cicd.md](../operations/T-003-github-actions-cicd.md) | GitHub Actions CI/CD | approved |
 
+## archive
+
+| 文件 | 標題 | 狀態 |
+|---|---|---|
+| [ARCHITECTURE.md](../archive/ARCHITECTURE.md) | 架構設計文件（已取代） | archived |
+| [ARCHITECTURE_ANALYSIS.md](../archive/ARCHITECTURE_ANALYSIS.md) | 檔案服務架構分析 - 過度設計問題（已取代） | archived |
+| [SETTINGS_COMPARISON.md](../archive/SETTINGS_COMPARISON.md) | 設定面板改版對比（已取代） | archived |
+| [SETTINGS_REDESIGN.md](../archive/SETTINGS_REDESIGN.md) | 設定面板 UI/UX 重新設計（已取代） | archived |
+
 ---
 
-**統計**：conventions 7、product 19、engineering 26、delivery 12、quality 15、operations 1（共 80 份已標記 `domain` 的文件，不含本索引自身）
+**統計**：conventions 7、product 17、engineering 24、delivery 12、quality 15、operations 1、archive 4（共 80 份已標記 `domain` 的文件，不含本索引自身）
