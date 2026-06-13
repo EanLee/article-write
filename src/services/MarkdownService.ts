@@ -7,6 +7,7 @@ import markdownItTaskLists from "markdown-it-task-lists";
 import markdownItMark from "markdown-it-mark";
 import markdownItFootnote from "markdown-it-footnote";
 import type { Frontmatter } from "@/types";
+import { ArticleStatus } from "@/types";
 import { generateSlug } from "@/utils/slugUtils";
 import { logger } from "@/utils/logger";
 
@@ -276,6 +277,40 @@ export class MarkdownService {
       }
     }
 
+    // Created validation（圓桌 #007：建立時間）
+    if (data.created) {
+      const createdStr = String(data.created);
+      if (this.isValidDateString(createdStr)) {
+        frontmatter.created = createdStr;
+      } else {
+        errors.push("created must be in YYYY-MM-DD format");
+      }
+    }
+
+    // PubDate validation（圓桌 #007：發佈時間）
+    if (data.pubDate) {
+      const pubDateStr = String(data.pubDate);
+      if (this.isValidDateString(pubDateStr)) {
+        frontmatter.pubDate = pubDateStr;
+      } else {
+        errors.push("pubDate must be in YYYY-MM-DD format");
+      }
+    }
+
+    // Draft validation（Astro/Hugo 慣例：草稿旗標）
+    if (data.draft !== undefined) {
+      frontmatter.draft = Boolean(data.draft);
+    }
+
+    // Status validation
+    if (data.status !== undefined) {
+      if (data.status === ArticleStatus.Draft || data.status === ArticleStatus.Published) {
+        frontmatter.status = data.status;
+      } else {
+        errors.push("status must be 'draft' or 'published'");
+      }
+    }
+
     return frontmatter;
   }
 
@@ -286,42 +321,21 @@ export class MarkdownService {
    */
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
-      // Create a clean object with only defined values
+      // 保留所有已定義欄位（topic-020 Action 3）：
+      // 早期白名單寫法會丟棄 pubDate/created/draft 與使用者自訂欄位，
+      // 造成 topic-007 移轉後的日期資料在儲存時遺失（round-trip 資料毀損）
       const cleanData: Record<string, unknown> = {};
-
-      if (data.title) {
-        cleanData.title = data.title;
-      }
-      if (data.description) {
-        cleanData.description = data.description;
-      }
-      if (data.date) {
-        cleanData.date = data.date;
-      }
-      if (data.lastmod) {
-        cleanData.lastmod = data.lastmod;
-      }
-      if (data.status) {
-        cleanData.status = data.status;
-      }
-      if (data.tags && data.tags.length > 0) {
-        cleanData.tags = data.tags;
-      }
-      if (data.categories && data.categories.length > 0) {
-        cleanData.categories = data.categories;
-      }
-      if (data.slug) {
-        cleanData.slug = data.slug;
-      }
-      if (data.keywords && data.keywords.length > 0) {
-        cleanData.keywords = data.keywords;
-      }
-      // 新增系列欄位支援
-      if (data.series) {
-        cleanData.series = data.series;
-      }
-      if (data.seriesOrder) {
-        cleanData.seriesOrder = data.seriesOrder;
+      for (const [key, value] of Object.entries(data)) {
+        if (value === undefined || value === null) {
+          continue;
+        }
+        if (typeof value === "string" && value === "") {
+          continue;
+        }
+        if (Array.isArray(value) && value.length === 0) {
+          continue;
+        }
+        cleanData[key] = value;
       }
 
       const yamlString = yaml.dump(cleanData, {
