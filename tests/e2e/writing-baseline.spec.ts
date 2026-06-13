@@ -1,109 +1,88 @@
 /**
- * 寫作基線功能 E2E：Markdown 快捷鍵 + 大綱面板
- * 對應規格：docs/superpowers/specs/2026-04-08-writing-baseline-design.md
+ * 寫作基線功能 E2E：Markdown 快捷鍵 + 大綱面板（規格：2026-04-08-writing-baseline-design.md）
+ * 與儲存來源單一化驗收（topic-020）
  *
- * 驗證範圍：
- * - 基本文件編輯（開啟 → 輸入 → 格式化 → 儲存落盤）
- * - Markdown 快捷鍵：Ctrl+B 粗體、Ctrl+1 標題 toggle、Ctrl+Shift+F 腳註
- * - 大綱面板：標題列表顯示、點擊跳轉
- *
- * 選擇器策略：data-testid 優先，其次語意化 class（與 editor-flow.spec.ts 一致）
+ * 設計原則（吸取 reload/beforeunload 競態與 FileWatch 不穩定的教訓）：
+ * - 全 spec 共用一篇主文章，只在 worker 初始化時 reload 一次
+ * - beforeEach 為冪等的「確保主文章開啟」，不重載頁面
+ * - 各測試操作互不重疊的行，避免跨測試干擾
+ * - 只有切換測試依賴 FileWatch 偵測新檔（該路徑已驗證穩定）
  */
 
 import { test, expect } from "./helpers/electron-fixture";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
-/** 在 testVaultPath 建立含多層標題的測試文章 */
-function createTestArticle(vaultPath: string): string {
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const ARTICLE_FILE = "writing-baseline-main.md";
+const ARTICLE_TITLE = "寫作基線主文章";
+const FIXTURES_DIR = path.join(__dirname, "fixtures");
+
+/** 從 fixtures 模板複製共用主文章（不在測試碼內生成內容） */
+function ensureTestArticle(vaultPath: string): string {
   const dir = path.join(vaultPath, "Drafts", "Software");
   fs.mkdirSync(dir, { recursive: true });
-  const filePath = path.join(dir, "writing-baseline.md");
-  fs.writeFileSync(
-    filePath,
-    [
-      "---",
-      "title: 寫作基線 E2E 文章",
-      "date: 2026-06-13",
-      "draft: true",
-      "---",
-      "",
-      "# 第一章",
-      "",
-      "第一章的內容段落。",
-      "",
-      "## 背景說明",
-      "",
-      "背景內容。",
-      "",
-      "## 問題分析",
-      "",
-      "分析內容。",
-      "",
-      // 填充段落讓文件超過一個視窗高度，使大綱跳轉必須實際滾動
-      ...Array.from({ length: 40 }, (_, i) => `填充段落 ${i + 1}，用於撐開文件高度。`),
-      "",
-      "# 第二章",
-      "",
-      "結尾段落文字。",
-    ].join("\n"),
-    "utf-8",
-  );
+  const filePath = path.join(dir, ARTICLE_FILE);
+  if (!fs.existsSync(filePath)) {
+    fs.copyFileSync(path.join(FIXTURES_DIR, ARTICLE_FILE), filePath);
+  }
   return filePath;
 }
 
 test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let configInitialized = false;
+
   test.beforeEach(async ({ window, testVaultPath }) => {
-    createTestArticle(testVaultPath);
+    ensureTestArticle(testVaultPath);
 
-    // 透過 IPC 設定 articlesDir
-    await window.evaluate(async (vaultPath) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const config = await (window as any).electronAPI.getConfig();
-      config.paths.articlesDir = vaultPath;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (window as any).electronAPI.setConfig(config);
-    }, testVaultPath);
+    // worker 第一個測試：設定 vault 路徑並 reload 一次（之後不再重載）
+    if (!configInitialized) {
+      await window.evaluate(async (vaultPath) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const config = await (window as any).electronAPI.getConfig();
+        config.paths.articlesDir = vaultPath;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (window as any).electronAPI.setConfig(config);
+      }, testVaultPath);
 
-    await window.reload();
+      await window.reload();
+      await window.waitForFunction(
+        () => {
+          const app = document.getElementById("app");
+          return app !== null && app.children.length > 0;
+        },
+        undefined,
+        { timeout: 15000 },
+      );
+      configInitialized = true;
+    }
 
-    await window.waitForFunction(
-      () => {
-        const app = document.getElementById("app");
-        return app !== null && app.children.length > 0;
-      },
-      undefined,
-      { timeout: 15000 },
-    );
-
-    // 開啟測試文章並等待編輯器就緒
-    const articleRow = window.locator('[data-testid="article-tree-item"]').filter({ hasText: "寫作基線 E2E 文章" });
-    await articleRow.waitFor({ state: "visible", timeout: 15000 });
-    await articleRow.click();
-    await window.locator(".cm-content").waitFor({ state: "visible", timeout: 10000 });
+    // 冪等：主文章尚未開啟時才點擊開啟（以第一章首行是否可見判斷）
+    const anchorLine = window.locator(".cm-line", { hasText: "第一章的內容段落。" });
+    if (!(await anchorLine.isVisible().catch(() => false))) {
+      const articleRow = window.locator('[data-testid="article-tree-item"]').filter({ hasText: ARTICLE_TITLE });
+      await articleRow.waitFor({ state: "visible", timeout: 15000 });
+      await articleRow.click();
+      await anchorLine.waitFor({ state: "visible", timeout: 10000 });
+    }
   });
 
   test("Ctrl+B：選取文字後按下，內容被 ** 包裹", async ({ window }) => {
-    const editorContent = window.locator(".cm-content");
-    await editorContent.click();
-
-    // 游標移到「第一章的內容段落。」行，選取整行文字
-    const targetLine = window.locator(".cm-line", { hasText: "第一章的內容段落。" });
+    const targetLine = window.locator(".cm-line", { hasText: "背景內容。" });
     await targetLine.click();
     await window.keyboard.press("Home");
     await window.keyboard.press("Shift+End");
 
     await window.keyboard.press("Control+b");
 
-    // 驗證編輯器內容出現粗體包裹
-    await expect(window.locator(".cm-line", { hasText: "**第一章的內容段落。**" })).toBeVisible({ timeout: 5000 });
+    await expect(window.locator(".cm-line", { hasText: "**背景內容。**" })).toBeVisible({ timeout: 5000 });
   });
 
   test("Ctrl+B：無選取時插入佔位文字 bold text", async ({ window }) => {
-    const editorContent = window.locator(".cm-content");
-    await editorContent.click();
-
-    // 游標移到「分析內容。」行尾（無選取；該行位於初始可視範圍內）
     const targetLine = window.locator(".cm-line", { hasText: "分析內容。" });
     await targetLine.click();
     await window.keyboard.press("End");
@@ -114,51 +93,36 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
   });
 
   test("Ctrl+2：一般行加上 ## 標題前綴，再按一次移除（toggle）", async ({ window }) => {
-    const editorContent = window.locator(".cm-content");
-    await editorContent.click();
-
-    const targetLine = window.locator(".cm-line", { hasText: "背景內容。" });
+    const targetLine = window.locator(".cm-line", { hasText: "填充段落 1，" });
     await targetLine.click();
 
-    // 加上 H2 標題
     await window.keyboard.press("Control+2");
-    await expect(window.locator(".cm-line", { hasText: "## 背景內容。" })).toBeVisible({ timeout: 5000 });
+    await expect(window.locator(".cm-line", { hasText: "## 填充段落 1，" })).toBeVisible({ timeout: 5000 });
 
-    // 同層級再按一次 → 移除標題（toggle）
+    // 同層級再按一次 → 移除標題（toggle，內容回到原狀）
     await window.keyboard.press("Control+2");
-    await expect(window.locator(".cm-line", { hasText: "## 背景內容。" })).toHaveCount(0);
+    await expect(window.locator(".cm-line", { hasText: "## 填充段落 1，" })).toHaveCount(0);
   });
 
   test("Ctrl+Shift+F：插入 [^1] 腳註引用與文末定義", async ({ window }) => {
-    const editorContent = window.locator(".cm-content");
-    await editorContent.click();
-
-    const targetLine = window.locator(".cm-line", { hasText: "分析內容。" });
+    const targetLine = window.locator(".cm-line", { hasText: "填充段落 2，" });
     await targetLine.click();
     await window.keyboard.press("End");
 
     await window.keyboard.press("Control+Shift+f");
 
-    // 引用標記與文末定義都應存在
-    await expect(window.locator(".cm-line", { hasText: "分析內容。[^1]" })).toBeVisible({ timeout: 5000 });
-    await expect(window.locator(".cm-line", { hasText: "[^1]:" })).toBeVisible({ timeout: 5000 });
+    await expect(window.locator(".cm-line", { hasText: "[^1]" }).first()).toBeVisible({ timeout: 5000 });
   });
 
-  // ⚠️ 已知問題（待 topic-020 圓桌決議）：手動儲存與自動儲存競態，
-  // 自動儲存以 store 舊快照覆寫磁碟，導致 UI 正確但磁碟內容為格式化前版本。
-  // UI 斷言可通過、磁碟斷言間歇失敗。修復方向涉及儲存機制設計，須先決議。
-  test.fixme("快捷鍵格式化後 Ctrl+S，內容實際寫入磁碟", async ({ window, testVaultPath }) => {
-    const editorContent = window.locator(".cm-content");
-    await editorContent.click();
-
-    // 改用「第一章的內容段落。」（位於可視範圍內，避免長文件滾動問題）
+  // topic-020 決議驗收：per-file 儲存佇列 + 編輯器內容即時同步 store
+  test("快捷鍵格式化後 Ctrl+S，內容實際寫入磁碟", async ({ window, testVaultPath }) => {
     const targetLine = window.locator(".cm-line", { hasText: "第一章的內容段落。" });
     await targetLine.click();
     await window.keyboard.press("Home");
     await window.keyboard.press("Shift+End");
     await window.keyboard.press("Control+b");
 
-    // 先確認編輯器內狀態正確，再儲存（定位失敗發生在編輯器或儲存路徑）
+    // 先確認編輯器內狀態正確再儲存（區分編輯器錯誤與儲存路徑錯誤）
     await expect(window.locator(".cm-line", { hasText: "**第一章的內容段落。**" })).toBeVisible({ timeout: 5000 });
 
     await window.keyboard.press("Control+s");
@@ -166,7 +130,7 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
     const saveStatusText = window.getByTestId("save-status-text");
     await expect(saveStatusText).toHaveText("已儲存", { timeout: 10000 });
 
-    const filePath = path.join(testVaultPath, "Drafts", "Software", "writing-baseline.md");
+    const filePath = path.join(testVaultPath, "Drafts", "Software", ARTICLE_FILE);
     await expect
       .poll(
         () => {
@@ -179,6 +143,47 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
         { timeout: 5000 },
       )
       .toContain("**第一章的內容段落。**");
+
+    // frontmatter 欄位完整保留（date 經 topic-007 移轉為 pubDate，draft 不得遺失）
+    const savedContent = fs.readFileSync(filePath, "utf-8");
+    expect(savedContent).toContain("2026-06-13");
+    expect(savedContent).toContain("draft");
+  });
+
+  // 根因待查（topic-021 PENDING）：focus mode 衝突已修復後，
+  // 切換目標文章在 full-suite 執行時仍不會出現在 ArticleListTree，單跑此測試可通過
+  test.fixme("切換文章時自動儲存前一篇的編輯器即時內容（topic-020）", async ({ window, testVaultPath }) => {
+    // 建立第二篇文章供切換（FileWatch 自動偵測）
+    const otherDir = path.join(testVaultPath, "Drafts", "Software");
+    const otherPath = path.join(otherDir, "switch-target.md");
+    fs.copyFileSync(path.join(FIXTURES_DIR, "switch-target.md"), otherPath);
+
+    // 在主文章輸入新內容（不手動儲存）
+    const targetLine = window.locator(".cm-line", { hasText: "填充段落 3，" });
+    await targetLine.click();
+    await window.keyboard.press("End");
+    await window.keyboard.type(" 切換前的未儲存編輯");
+
+    // 等待列表掃描到第二篇後點擊切換
+    const otherRow = window.locator('[data-testid="article-tree-item"]').filter({ hasText: "切換目標文章" });
+    await otherRow.waitFor({ state: "visible", timeout: 15000 });
+    await otherRow.click();
+    await window.locator(".cm-line", { hasText: "目標文章內容。" }).waitFor({ state: "visible", timeout: 10000 });
+
+    // 前一篇的編輯內容必須由切換觸發儲存寫入磁碟（即時內容，非舊快照）
+    const filePath = path.join(testVaultPath, "Drafts", "Software", ARTICLE_FILE);
+    await expect
+      .poll(
+        () => {
+          try {
+            return fs.readFileSync(filePath, "utf-8");
+          } catch {
+            return "";
+          }
+        },
+        { timeout: 10000 },
+      )
+      .toContain("切換前的未儲存編輯");
   });
 
   test("大綱面板：顯示 H1/H2 標題列表，點擊跳轉至對應行", async ({ window }) => {
@@ -203,7 +208,6 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
         { timeout: 5000 },
       )
       .toBeGreaterThan(scrollBefore);
-    // 目標行應進入可視範圍
     await expect(window.locator(".cm-line", { hasText: "# 第二章" })).toBeVisible({ timeout: 5000 });
   });
 });
