@@ -69,12 +69,13 @@
 - CI/CD、架構決策、技術選型、基礎設施變更 → `tech-team-docs` skill
 - 圓桌會議 / 技術會議 → `roundtable-meeting` skill
 - 文件分類、frontmatter、命名規則 → `docs-governance` skill
+- 起草 PRD / 設計文件 / RFC（無清晰結構）→ `doc-coauthoring` skill
+- 既有文件補 frontmatter、套用 doc-viewer → `doc-migration` skill
+- doc-viewer 工具鏈本身開發（scripts、site.generated.mjs、skills） → `doc-viewer-dev` skill
 
 ## 工具偏好
 
-- **優先使用**：Context7 和 Serena MCP 工具
 - **Commit 工具**：使用 `/commit` skill（如果可用）
-- **測試工具**：Vitest（Unit Test）、Playwright（E2E Test）
 
 ## 參考文件
 
