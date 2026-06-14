@@ -171,7 +171,7 @@ export class MarkdownService {
 
     // Date validation
     if (data.date) {
-      const dateStr = String(data.date);
+      const dateStr = this.toDateString(data.date);
       if (this.isValidDateString(dateStr)) {
         frontmatter.date = dateStr;
       } else {
@@ -181,7 +181,7 @@ export class MarkdownService {
 
     // Last modified validation
     if (data.lastmod) {
-      const lastmodStr = String(data.lastmod);
+      const lastmodStr = this.toDateString(data.lastmod);
       if (this.isValidDateString(lastmodStr)) {
         frontmatter.lastmod = lastmodStr;
       } else {
@@ -279,7 +279,7 @@ export class MarkdownService {
 
     // Created validation（圓桌 #007：建立時間）
     if (data.created) {
-      const createdStr = String(data.created);
+      const createdStr = this.toDateString(data.created);
       if (this.isValidDateString(createdStr)) {
         frontmatter.created = createdStr;
       } else {
@@ -289,7 +289,7 @@ export class MarkdownService {
 
     // PubDate validation（圓桌 #007：發佈時間）
     if (data.pubDate) {
-      const pubDateStr = String(data.pubDate);
+      const pubDateStr = this.toDateString(data.pubDate);
       if (this.isValidDateString(pubDateStr)) {
         frontmatter.pubDate = pubDateStr;
       } else {
@@ -384,6 +384,24 @@ export class MarkdownService {
    */
   generateMarkdown(frontmatter: Partial<Frontmatter>, content: string): string {
     return this.combineContent(frontmatter, content);
+  }
+
+  /**
+   * 將 frontmatter 日期欄位轉為字串
+   *
+   * js-yaml 的預設 schema 會將未加引號的 YYYY-MM-DD 純量（例如 `date: 2026-06-13`）
+   * 自動解析為 JS Date 物件，而非字串。若直接 String(date) 會得到
+   * Date.toString() 的本地時間表示（例如 "Sat Jun 13 2026 ..."），
+   * 無法通過 isValidDateString 的格式驗證，導致欄位被整個捨棄。
+   * 此處將 Date 物件轉回 ISO 的 YYYY-MM-DD（yaml 解析的純日期一律為 UTC 午夜）。
+   * @param {unknown} value - 原始 frontmatter 欄位值
+   * @returns {string} 字串形式的日期
+   */
+  private toDateString(value: unknown): string {
+    if (value instanceof Date) {
+      return value.toISOString().split("T")[0];
+    }
+    return String(value);
   }
 
   /**
