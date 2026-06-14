@@ -18,6 +18,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import os from "os";
 import fs from "fs";
+import { execSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -119,12 +120,41 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         }
       });
       await use(app);
-      try {
-        await app.close();
-      } catch {
-        // 關閉時若有殘留對話框則忽略
+      // 若編輯器有未儲存變更，App.vue 的 beforeunload 會 preventDefault，
+      // 導致主程序無 will-prevent-unload 處理而視窗無法關閉、app.close() 永遠不 resolve。
+      // 加上逾時保護：超時後強制終止 process，避免拖垂 worker teardown（60s/90s）。
+      let closed = false;
+      const closePromise = app
+        .close()
+        .then(() => {
+          closed = true;
+        })
+        .catch(() => {
+          closed = true;
+        });
+      await Promise.race([closePromise, new Promise((resolve) => setTimeout(resolve, 5000))]);
+      if (!closed) {
+        const proc = app.process();
+        const exited = new Promise<void>((resolve) => proc.once("exit", () => resolve()));
+        // 視窗無法關閉時，app.process().kill() 只會終止主程序，
+        // GPU/renderer/utility 等子程序會變成孤兒並持續鎖住 testVaultPath 內的檔案。
+        // Windows 上以 taskkill /T /F 終止整個程序樹；其他平台 fallback 為 proc.kill()。
+        if (process.platform === "win32" && proc.pid) {
+          try {
+            execSync(`taskkill /pid ${proc.pid} /T /F`, { stdio: "ignore" });
+          } catch {
+            // 程序可能已結束
+          }
+        } else {
+          proc.kill();
+        }
+        await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 5000))]);
       }
-      fs.rmSync(userDataPath, { recursive: true, force: true });
+      try {
+        fs.rmSync(userDataPath, { recursive: true, force: true });
+      } catch {
+        // process 結束後檔案鎖可能延遲釋放，清理失敗不影響測試結果
+      }
     },
     { scope: "worker", timeout: 60000 },
   ],
