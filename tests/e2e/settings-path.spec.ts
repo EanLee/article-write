@@ -3,19 +3,23 @@
  * Happy Path：「填入路徑 → 儲存設定 → 重啟後路徑保留」
  */
 
+import os from "os";
+import path from "path";
 import { test, expect } from "./helpers/electron-fixture";
 
 test.describe("設定路徑流程", () => {
   test("填入 articlesDir → 儲存設定 → 重啟後路徑保留", async ({ window, testVaultPath }) => {
-    // 前置：清空 config，從乾淨狀態開始
-    await window.evaluate(async () => {
+    // 前置：將 articlesDir 設為與 testVaultPath 不同的路徑，從「尚未設定目標路徑」的狀態開始
+    // （AppConfigSchema 要求 articlesDir 不得為空，故不能設為 ""）
+    const placeholderDir = path.join(os.tmpdir(), "writeflow-settings-path-placeholder");
+    await window.evaluate(async (placeholder) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const config = await (window as any).electronAPI.getConfig();
-      config.paths.articlesDir = "";
+      config.paths.articlesDir = placeholder;
       config.paths.targetDir = "";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (window as any).electronAPI.setConfig(config);
-    });
+    }, placeholderDir);
     await window.reload();
     await window.waitForFunction(
       () => {
