@@ -13,7 +13,7 @@ description: 圓桌會議與技術會議規則。發起戰略/技術決策討論
 | 參與者 | 全體五角色 | 技術團隊成員 |
 | 討論內容 | 產品方向、優先級、使用者價值、風險評估 | 實作方式、架構、程式細節 |
 | 程式碼 | ❌ 不出現（除非需上層決策） | ✅ 正常出現 |
-| 文件位置 | `docs/<domain>/discussions/topic-NNN-.../`（索引：`docs/conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md`） | `docs/<domain>/discussions/T-XXX-*.md`（索引：`docs/conventions/governance/TEAM.md`） |
+| 文件位置 | `docs/<domain>/discussions/topic-NNN-.../`（索引：`docs/conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md`） | `docs/<domain>/discussions/T-XXX-*.md`（索引：`docs/conventions/governance/team-composition.md`） |
 
 **升級機制**：技術實作中發現「風險影響產品方向／需要多人決策／實作結果與戰略假設有落差」→ **主動發起圓桌**，不需等待指示。發起前必先備妥討論材料（議題說明、背景、選項、影響評估），禁止空手發起。
 
@@ -23,7 +23,7 @@ description: 圓桌會議與技術會議規則。發起戰略/技術決策討論
 
 1. 讀 `docs/conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md` 確認最新議題編號
 2. 讀最近 2~3 個 `decision.md` 掌握已決策事項與待辦 Action Items
-3. 讀 `docs/conventions/governance/TEAM.md` 確認技術現況
+3. 讀 `docs/conventions/governance/team-composition.md` 確認技術現況
 4. 確認 codebase 實際狀態（`src/` 有什麼、`git log` 最近做了什麼）
 5. **未備妥材料禁止開會**
 
@@ -121,6 +121,6 @@ docs/<domain>/discussions/topic-NNN-YYYY-MM-DD-簡短描述/
 - 討論沿觀點串延伸至自然收斂，能收斂記入共識，**不需表決**
 - 無法收斂的分歧 → Sam（Tech Lead）裁決，或升級圓桌（涉及產品方向時）
 - 全程對話體即時記錄至對應 `T-XXX` 文件「討論記錄」章節，含立場轉折過程，**每個觀點串收斂後立即同步寫入並 commit**
-- 討論完成後補充「設計決策」章節，更新 `TEAM.md` 索引
+- 討論完成後補充「設計決策」章節，更新 `team-composition.md` 索引
 
-完整規則見 `docs/conventions/governance/ROUNDTABLE_RULES.md`。
+完整規則見 `docs/conventions/governance/roundtable-rules.md`。

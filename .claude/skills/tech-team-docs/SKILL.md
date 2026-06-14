@@ -20,7 +20,7 @@ description: T-XXX 技術作業文件規範。CI/CD 變更、架構決策、技�
 docs/<domain>/discussions/T-XXX-任務簡短描述.md
 ```
 
-`<domain>` 依任務性質判斷；編號依序遞增，查看 `docs/conventions/governance/TEAM.md` 現有最大編號後加一。
+`<domain>` 依任務性質判斷；編號依序遞增，查看 `docs/conventions/governance/team-composition.md` 現有最大編號後加一。
 
 ## 必要內容
 

@@ -42,7 +42,7 @@ source_of_truth: false
 - 討論沿觀點串延伸至自然收斂，能收斂的記入共識，**不需表決**
 - 無法收斂的分歧 → Sam（Tech Lead）裁決，或升級圓桌（涉及產品方向時）
 - 全程對話體即時記錄至對應 `T-XXX` 文件，含立場轉折過程
-- 詳細規則見 [ROUNDTABLE_RULES.md](./ROUNDTABLE_RULES.md)「討論進行方式」
+- 詳細規則見 [roundtable-rules.md](./roundtable-rules.md)「討論進行方式」
 
 ---
 
