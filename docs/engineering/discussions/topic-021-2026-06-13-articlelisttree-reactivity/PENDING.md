@@ -4,7 +4,7 @@ domain: engineering
 type: rpd
 status: pending
 owner: roundtable-discussions
-updated: 2026-06-13
+updated: 2026-06-14
 source_of_truth: true
 ---
 
@@ -36,6 +36,20 @@ source_of_truth: true
 1. **根因調查方向**：是否為 `computed` 快取在 full-suite 長時間執行下未正確標記 dirty？或 Pinia store 在多個 `window.reload()`/測試間的 effect scope 被提前釋放？
 2. **修復策略**：根因確定後，是技術層自行修復（明確 bug）還是需重新檢視 `useArticleFilter` 的設計（可能涉及「當初為何這樣設計」）？
 3. **test 6/7 暫時狀態**：目前 test 6 已標記 `test.fixme` 並附註本文件連結；test 7（大綱面板）在 test 6 fixme 後因不再切換文章、留在主文章上，可正常通過——是否接受此暫時狀態直到根因修復？
+
+## T-020 技術會議結果（2026-06-14）
+
+已召開技術會議 [T-020](../T-020-articlelisttree-reactivity-investigation.md)，結論如下：
+
+- **已排除的假設**：
+  - ❌「多個 `window.reload()`/effect scope 被提前釋放」——全 spec 共用一個 Electron App + window，全程只有一次 `window.reload()`（test 1 的 beforeEach），Pinia store 不會重建
+  - ❌「`FileWatchService.recentEvents`/`ignoreNextChange` debounce 污染導致 change 事件未送達」——`articleStore.articles.value` 1→2 是在 full-suite 失敗案例中確認的事實，資料確實送到 store
+  - ❌「`ArticleListTree.vue` 的 `loadSettings()` 非同步時序競態使 `collapsedGroups` 收合 `_standalone`」——`loadSettings()` 為同步函式，且 worker 的 `localStorage` 初始為空，`collapsedGroups` 不會被填入
+  - ❌「`treeContainerRef` 的 `handleKeydown` 被冒泡鍵盤事件誤觸發收合」——`handleKeydown` 只處理 Ctrl/Cmd+F 聚焦搜尋框，不會動 `collapsedGroups`
+- **範圍收斂**：問題確定出在 `useArticleFilter.filteredArticles`（store 層）→ `ArticleListTree.vue` 元件層 `filteredArticles` → `seriesGroups` 這條 computed 鏈中的某一層，在 full-suite 下未正確重新計算或渲染，但純讀程式碼已無法再縮小範圍
+- **下一步**：分層 debug log + `renderer-console.log` 比對（T-020 Action Item #1，負責人 Wei，P1）
+- **附帶發現**：`FileWatchService.recentEvents` 去抖 key 未納入 `event` type，視為獨立技術債，於同分支一併處理（T-020 Action Item #2，負責人 Lin，P2）
+- **暫時狀態**：test 6 維持 `test.fixme`，待 T-020 Action Item #1 找出斷裂層後再排修復（T-020 Action Item #3）
 
 ## 建議的討論層次
 
