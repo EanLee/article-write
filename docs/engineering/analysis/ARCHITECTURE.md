@@ -6,7 +6,7 @@ status: archived
 owner: tech-team
 updated: 2026-06-13
 source_of_truth: false
-superseded_by: docs/engineering/ARCHITECTURE_COMPLETE.md
+superseded_by: docs/engineering/analysis/ARCHITECTURE_COMPLETE.md
 ---
 
 # 架構設計文件

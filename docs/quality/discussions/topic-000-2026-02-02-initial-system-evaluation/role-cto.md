@@ -84,7 +84,7 @@ interface BlogAdapter {
 **問題**: 過度工程，違反 SOLID 原則
 
 **建議**:
-參考 docs/engineering/ARCHITECTURE_COMPLETE.md 的重構建議
+參考 docs/engineering/analysis/ARCHITECTURE_COMPLETE.md 的重構建議
 
 ---
 

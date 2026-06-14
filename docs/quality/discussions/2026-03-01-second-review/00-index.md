@@ -93,5 +93,5 @@ AI 模組（P0 今日 + P1）
 ## 相關文件
 
 - 前次技術評估：[docs/quality/discussions/20260228-第一次全面分析/](../20260228-第一次全面分析/README.md)
-- 架構文件：[docs/engineering/ARCHITECTURE.md](../../../engineering/ARCHITECTURE.md)
+- 架構文件：[docs/engineering/ARCHITECTURE.md](../../../engineering/analysis/ARCHITECTURE.md)
 - 開發備忘：[docs/reference/dev-notes/GOTCHAS.md](../../../reference/dev-notes/GOTCHAS.md)
