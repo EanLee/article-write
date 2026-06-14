@@ -1,14 +1,14 @@
 ---
-title: "功能測試指南"
+title: "功能測試核對清單 (Feature Test Checklist)"
 domain: quality
-type: guide
+type: checklist
 status: approved
 owner: tech-team
 updated: 2026-06-13
 source_of_truth: false
 ---
 
-# 功能測試指南
+# 功能測試核對清單 (Feature Test Checklist)
 
 本文檔提供所有新功能的測試步驟與預期結果。
 
