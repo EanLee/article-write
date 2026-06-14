@@ -34,7 +34,7 @@ pnpm run test
 - 工具：Playwright（`pnpm run test:e2e`）
 - 涵蓋：關鍵使用者流程、互動行為、錯誤狀態、邊界條件
 
-### E2E（Electron + Playwright）除錯流程 — 必讀 `docs/engineering/playbooks/E2E_TESTING_GUIDE.md`
+### E2E（Electron + Playwright）除錯流程 — 必讀 `docs/engineering/playbooks/e2e-testing-guide.md`
 
 - ❌ **禁止盲跑全套 E2E 猜原因**：每輪 build + Electron 啟動約 3~7 分鐘，從 Playwright 表層錯誤訊息猜測根因會浪費大量時間與 token
 - ✅ **失敗時第一步讀 `test-results/renderer-console.log`**：`electron-fixture.ts` 會把 renderer 端 `console.log` 全部捕捉到此檔，可直接看到 app 端實際發生什麼（例如 `File conflict detected`）

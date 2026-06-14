@@ -113,7 +113,7 @@ related_docs:
 | [analysis/POTENTIAL_ISSUES.md](../quality/assessments/POTENTIAL_ISSUES.md) | 潛在問題清單 | approved |
 | [planning/PHASE_0_GAP_ANALYSIS.md](../quality/assessments/PHASE_0_GAP_ANALYSIS.md) | Phase 0 功能缺口分析 | approved |
 | [planning/P0_GAP_ANALYSIS.md](../quality/assessments/P0_GAP_ANALYSIS.md) | P0 功能缺口分析報告 | approved |
-| [guides/E2E_TESTING_GUIDE.md](../quality/assessments/E2E_TESTING_GUIDE.md) | E2E 測試指南（Electron + Playwright） | approved |
+| [playbooks/e2e-testing-guide.md](../engineering/playbooks/e2e-testing-guide.md) | E2E 測試指南（Electron + Playwright） | approved |
 | [governance/REVIEW_CHECKLIST.md](./governance/REVIEW_CHECKLIST.md) | 技術審查檢查清單 | approved |
 | [tech-team/T-007-playwright-electron-e2e-setup.md](../quality/discussions/T-007-playwright-electron-e2e-setup.md) | Playwright Electron E2E 環境建置 | approved |
 | [tech-team/20260228-第一次全面分析/07-roundtable-discussion.md](../quality/discussions/20260228-第一次全面分析/07-roundtable-discussion.md) | 第一次全面分析 — 圓桌討論 | approved |

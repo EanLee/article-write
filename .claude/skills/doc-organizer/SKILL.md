@@ -10,6 +10,7 @@ description: 用於整理 docs/ 目錄下既有文件——當檔名、frontmatt
 - 檔名 ↔ frontmatter `title` ↔ `type` ↔ 正文 `H1` 四者不一致
 - 同主題出現多份 `source_of_truth: true` 衝突
 - 文件所屬 `domain` 與實際內容/路徑不符，需要搬移
+- 單一文件內的章節分屬不同分類（律法/經驗/紀錄）或主題範圍超出標題所述，需評估是否拆分為多份文件
 
 **與其他 doc 系列 skill 的分工：**
 
@@ -32,9 +33,9 @@ description: 用於整理 docs/ 目錄下既有文件——當檔名、frontmatt
 
 本技能補充 GUIDELINE 未涵蓋的 agent 操作細節：
 
-- **診斷階段**：用 `list_dir` / `read_file`（serena）或 `ctx_batch_execute`（context-mode）盤點目錄
-- **提案階段**：以對比表格呈現（原路徑/名稱 → 目標路徑/名稱 → 建議 type → 理由），**等待使用者確認後才執行**
-- **執行階段**：`mv` 搬移 + `Edit`/`replace_content` 同步 frontmatter 與 H1，逐項驗證四維對齊
+- **診斷階段**：用 `list_dir` / `read_file`（serena）或 `ctx_batch_execute`（context-mode）盤點目錄；逐份文件掃描 H2/H3 標題分群，判斷各群是否分屬不同分類（律法/經驗/紀錄）或與標題主題無關，作為拆分候選
+- **提案階段**：以對比表格呈現（原路徑/名稱 → 目標路徑/名稱 → 建議 type → 理由），**等待使用者確認後才執行**；拆分案需列出「保留章節」與「移出章節」對應的新檔案路徑/frontmatter
+- **執行階段**：`mv` 搬移 + `Edit`/`replace_content` 同步 frontmatter 與 H1，逐項驗證四維對齊；拆分後必須搜尋並更新所有引用舊檔案（章節）的 skill、`CLAUDE.md`、其他文件連結，確保引用點與新結構一致
 
 ## 迭代與回饋原則 (Self-Improvement Loop)
 

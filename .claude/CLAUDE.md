@@ -14,7 +14,7 @@
 **只要其中任何一項未啟動或無法連線：立即停止作業，向使用者回報，不得以無工具方式繼續執行。**
 
 > 緣由：2026-06-13 topic-020 驗收期間，未善用上述工具導致大量 token 浪費。
-> 省 token 細則見 `docs/engineering/playbooks/E2E_TESTING_GUIDE.md` 第五章。
+> 省 token 細則見 `docs/conventions/dev-standards/2026-06-14-ai-assisted-development-token-optimization.md`。
 
 ## 版本控制規範
 
