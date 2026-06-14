@@ -8,7 +8,7 @@ export const nav = [
   },
   {
     "text": "治理與規範",
-    "link": "/conventions/dev-standards/GUIDELINE-2026-06-13-code-style"
+    "link": "/conventions/dev-standards/2026-06-14-ai-assisted-development-token-optimization"
   },
   {
     "text": "交付計畫",
@@ -44,6 +44,10 @@ export const sidebar = [
         "text": "開發規範",
         "items": [
           {
+            "text": "AI 輔助開發 Token 優化方案",
+            "link": "/conventions/dev-standards/2026-06-14-ai-assisted-development-token-optimization"
+          },
+          {
             "text": "程式碼風格與型別規範",
             "link": "/conventions/dev-standards/GUIDELINE-2026-06-13-code-style"
           },
@@ -64,6 +68,14 @@ export const sidebar = [
           {
             "text": "T-020 執行期間的文件分類與 doc-viewer 優化回饋",
             "link": "/conventions/docs-governance/2026-06-13-t020-doc-classification-feedback"
+          },
+          {
+            "text": "文件維護與調整工作流 (Doc Maintenance Workflow)",
+            "link": "/conventions/docs-governance/2026-06-14-doc-maintenance-workflow"
+          },
+          {
+            "text": "文件分類定義原則 (Docs Classification Logic)",
+            "link": "/conventions/docs-governance/2026-06-14-docs-classification-logic"
           },
           {
             "text": "doc-viewer docs-governance 文件分類落差分析與改進建議",
@@ -141,15 +153,15 @@ export const sidebar = [
           },
           {
             "text": "技術審查檢查清單",
-            "link": "/conventions/governance/REVIEW_CHECKLIST"
+            "link": "/conventions/governance/review-checklist"
           },
           {
             "text": "圓桌會議運作規則",
-            "link": "/conventions/governance/ROUNDTABLE_RULES"
+            "link": "/conventions/governance/roundtable-rules"
           },
           {
             "text": "WriteFlow 技術團隊",
-            "link": "/conventions/governance/TEAM"
+            "link": "/conventions/governance/team-composition"
           }
         ],
         "collapsed": true
@@ -318,16 +330,8 @@ export const sidebar = [
             "collapsed": true
           },
           {
-            "text": "Week 2 Day 6 - P0-1 設定介面開發計畫",
-            "link": "/delivery/plans/2026-02-07-day-6-plan"
-          },
-          {
             "text": "Full-Text Search Implementation Plan",
             "link": "/delivery/plans/2026-02-16-full-text-search"
-          },
-          {
-            "text": "Writing Baseline Implementation Plan",
-            "link": "/delivery/plans/2026-04-08-writing-baseline"
           },
           {
             "text": "正確的開發優先級路線圖",
@@ -368,6 +372,38 @@ export const sidebar = [
           {
             "text": "ADR-0001：以 CodeMirror 6 取代原生 textarea 編輯器",
             "link": "/engineering/adr/ADR-0001-codemirror6-editor-migration"
+          }
+        ],
+        "collapsed": true
+      },
+      {
+        "text": "analysis",
+        "items": [
+          {
+            "text": "系統架構完整文件",
+            "link": "/engineering/analysis/ARCHITECTURE_COMPLETE"
+          },
+          {
+            "text": "架構重構進度報告",
+            "link": "/engineering/analysis/ARCHITECTURE_REFACTOR"
+          },
+          {
+            "text": "Service 層 SOLID 原則分析報告",
+            "link": "/engineering/analysis/SOLID_ANALYSIS"
+          },
+          {
+            "text": "已封存文件",
+            "items": [
+              {
+                "text": "架構設計文件",
+                "link": "/engineering/analysis/ARCHITECTURE"
+              },
+              {
+                "text": "檔案服務架構分析 - 過度設計問題",
+                "link": "/engineering/analysis/ARCHITECTURE_ANALYSIS"
+              }
+            ],
+            "collapsed": true
           }
         ],
         "collapsed": true
@@ -539,12 +575,22 @@ export const sidebar = [
         "collapsed": true
       },
       {
-        "text": "系統架構完整文件",
-        "link": "/engineering/ARCHITECTURE_COMPLETE"
+        "text": "playbooks",
+        "items": [
+          {
+            "text": "E2E 測試指南（Electron + Playwright）",
+            "link": "/engineering/playbooks/e2e-testing-guide"
+          }
+        ],
+        "collapsed": true
       },
       {
-        "text": "架構重構進度報告",
-        "link": "/engineering/ARCHITECTURE_REFACTOR"
+        "text": "重構檢查清單",
+        "link": "/engineering/2026-02-02-refactor-checklist"
+      },
+      {
+        "text": "服務層重構計劃",
+        "link": "/engineering/2026-02-02-refactoring-plan"
       },
       {
         "text": "端到端發布流程文件",
@@ -559,34 +605,8 @@ export const sidebar = [
         "link": "/engineering/PUBLISH_DESIGN"
       },
       {
-        "text": "服務層重構計劃",
-        "link": "/engineering/REFACTORING_PLAN"
-      },
-      {
-        "text": "重構檢查清單",
-        "link": "/engineering/REFACTOR_CHECKLIST"
-      },
-      {
-        "text": "Service 層 SOLID 原則分析報告",
-        "link": "/engineering/SOLID_ANALYSIS"
-      },
-      {
         "text": "中文 Slug 處理評估報告",
         "link": "/engineering/chinese-slug-evaluation"
-      },
-      {
-        "text": "已封存文件",
-        "items": [
-          {
-            "text": "架構設計文件",
-            "link": "/engineering/ARCHITECTURE"
-          },
-          {
-            "text": "檔案服務架構分析 - 過度設計問題",
-            "link": "/engineering/ARCHITECTURE_ANALYSIS"
-          }
-        ],
-        "collapsed": true
       }
     ],
     "collapsed": true
@@ -937,8 +957,8 @@ export const sidebar = [
                 "link": "/quality/assessments/testing/PERFORMANCE_CODE_REVIEW"
               },
               {
-                "text": "功能測試指南",
-                "link": "/quality/assessments/testing/TESTING_GUIDE"
+                "text": "功能測試核對清單 (Feature Test Checklist)",
+                "link": "/quality/assessments/testing/feature-test-checklist"
               },
               {
                 "text": "WriteFlow Smoke Test Checklist",
@@ -950,10 +970,6 @@ export const sidebar = [
           {
             "text": "部落格撰寫應用程式 - UI/UX 與知識管理專家分析報告",
             "link": "/quality/assessments/ANALYSIS_REPORT"
-          },
-          {
-            "text": "E2E 測試指南（Electron + Playwright）",
-            "link": "/quality/assessments/E2E_TESTING_GUIDE"
           },
           {
             "text": "P0 功能缺口分析報告",
@@ -1333,10 +1349,6 @@ export const sidebar = [
       {
         "text": "IDE 風格文章樹使用指南",
         "link": "/reference/ARTICLE_TREE_USAGE"
-      },
-      {
-        "text": "Git Commit 指南",
-        "link": "/reference/COMMIT_GUIDE"
       }
     ],
     "collapsed": true
