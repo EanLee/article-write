@@ -48,7 +48,7 @@ source_of_truth: true
 
 | # | 行動項目 | 負責人 | 優先級 | 完成條件 | 狀態 |
 |---|---------|-------|-------|---------|------|
-| 1 | 過渡防護：寫入前 mtime/hash 比對＋衝突彈窗（含 E2E） | Sam | P0 | 半天內上線，衝突時彈窗詢問、不覆寫 | 🔄 進行中：`BackupService.detectConflict()` 已實作 mtime 比對，衝突時以 `notify.warning` 提示「重新載入」；尚缺 hash 比對與正式彈窗（目前為 toast） |
+| 1 | 過渡防護：寫入前 mtime/hash 比對＋衝突彈窗（含 E2E） | Sam | P0 | 半天內上線，衝突時彈窗詢問、不覆寫 | 🔄 進行中：`BackupService.detectConflict()` 已改為 hash 比對（FNV-1a），並新增 `SaveConflictDialog.vue` 正式三選一彈窗（重新載入／覆寫／取消），取代原 toast；unit test 已涵蓋。尚缺 E2E 覆蓋 |
 | 2 | 儲存來源單一化實作（A 方案，含切換時儲存路徑） | Taylor／技術團隊 | P0 | 三路徑統一取編輯器即時內容，unit + E2E 通過，1.5~2 天 | ✅ 完成（`84ac097 fix(store): 編輯器內容即時同步 store，統一儲存來源（topic-020 方案 A）`） |
 | 3 | frontmatter 序列化欄位保留修復 | Taylor／技術團隊 | P0 | date/draft 等欄位儲存後不遺失，同分支 | ✅ 完成（`1712aab fix(service): frontmatter 欄位完整保留與 own-write 衝突豁免`） |
 | 4 | 寫入後驗證＋Sentry 事件 | Sam | P1 | 不一致時可在 Sentry 看到事件 | ⏳ 待開始：尚無 Sentry 整合 |

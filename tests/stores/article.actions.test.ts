@@ -122,6 +122,81 @@ describe("Article Store — Actions 補強", () => {
     });
   });
 
+  describe("儲存衝突處理（topic-020 Action Item #1）", () => {
+    it("磁碟內容與基準不一致時，設定 conflictState 並拋出錯誤", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+
+      // 第一次儲存成功，記錄目前寫入內容作為基準
+      await store.saveArticle(article);
+
+      // 模擬檔案在外部被修改
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      expect(store.conflictState).not.toBeNull();
+      expect(store.conflictState?.currentFileContent).toBe("外部程式改過的內容");
+      expect(store.conflictState?.article.id).toBe(article.id);
+    });
+
+    it("resolveConflictCancel 清除 conflictState 且不寫入檔案", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      mockElectronAPI.writeFile.mockClear();
+      store.resolveConflictCancel();
+
+      expect(store.conflictState).toBeNull();
+      expect(mockElectronAPI.writeFile).not.toHaveBeenCalled();
+    });
+
+    it("resolveConflictOverwrite 以編輯器內容覆寫磁碟並清除 conflictState", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      mockElectronAPI.writeFile.mockClear();
+      await store.resolveConflictOverwrite();
+
+      expect(store.conflictState).toBeNull();
+      expect(mockElectronAPI.writeFile).toHaveBeenCalledWith(article.filePath, expect.any(String));
+    });
+
+    it("resolveConflictReload 以磁碟內容重新載入並清除 conflictState", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      await store.resolveConflictReload();
+
+      expect(store.conflictState).toBeNull();
+      expect(store.currentArticle?.content).toBe("外部程式改過的內容");
+    });
+  });
+
   describe("saveCurrentArticle", () => {
     it("無 currentArticle 時不拋出錯誤", async () => {
       const store = useArticleStore();
