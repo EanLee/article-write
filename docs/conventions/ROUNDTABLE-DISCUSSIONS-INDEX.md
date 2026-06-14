@@ -4,7 +4,7 @@ domain: conventions
 type: reference
 status: approved
 owner: tech-team
-updated: 2026-06-13
+updated: 2026-06-14
 source_of_truth: false
 ---
 
@@ -41,7 +41,7 @@ source_of_truth: false
 | 018 | 市場方向與進度對焦 | 2026-03-03 | product | ✅ 已決策 | 全體一致（條件）| [topic-018-2026-03-03-market-direction-progress-check](../product/discussions/topic-018-2026-03-03-market-direction-progress-check/) |
 | 019 | 切換文章時自動儲存行為決策 | 2026-03-07 | engineering | ✅ 已決策（併入 020） | 全體一致 | [topic-019-2026-03-07-autosave-on-switch-behavior](../engineering/discussions/topic-019-2026-03-07-autosave-on-switch-behavior/) |
 | 020 | 儲存機制整體設計（儲存競態，合併 019） | 2026-06-13 | engineering | ✅ 已決策 | 全體一致 | [topic-020-2026-06-13-save-race-data-overwrite](../engineering/discussions/topic-020-2026-06-13-save-race-data-overwrite/) |
-| 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | engineering | ⚠️ 待排程 | - | [topic-021-2026-06-13-articlelisttree-reactivity](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/) |
+| 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | engineering | ✅ 已解決 | 技術會議結論 | [topic-021-2026-06-13-articlelisttree-reactivity](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/) |
 | 022 | 進度回顧（原編號 topic-012，已重新編號） | 2026-02-28 | delivery | ✅ 已決策 | 全體一致 | [topic-022-2026-02-28-progress-review](../delivery/discussions/topic-022-2026-02-28-progress-review/) |
 | 023 | App 在有未儲存變更時關閉視窗會無聲卡住 | 2026-06-14 | engineering | ⚠️ 待排程 | - | [topic-023-2026-06-14-quit-with-unsaved-changes](../engineering/discussions/topic-023-2026-06-14-quit-with-unsaved-changes/) |
 
@@ -50,8 +50,8 @@ source_of_truth: false
 ## 📊 統計資訊
 
 **總討論數**: 23
-**已決策**: 21
-**待排程**: 2
+**已決策**: 22
+**待排程**: 1
 
 ---
 
@@ -62,10 +62,6 @@ source_of_truth: false
 > 需 PM 決策退出流程 UX（直接捨棄 / 提示儲存 / 自動儲存）。
 > 詳見 [topic-023 PENDING.md](../engineering/discussions/topic-023-2026-06-14-quit-with-unsaved-changes/PENDING.md)
 
-> #021 ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章（reactivity 根因未定位）。
-> topic-020 E2E 驗收時發現，已將 `tests/e2e/writing-baseline.spec.ts` 第 6 個測試標記 `test.fixme`。
-> 詳見 [topic-021 PENDING.md](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md)
-
 > #019、#020 已於 2026-06-13 合併圓桌決議：儲存來源單一化（方案 A），
 > 切換時儲存保留但走統一路徑，Sprint 4 第零優先，未修復不得 Soft Launch。
 > 詳見 [topic-020 decision.md](../engineering/discussions/topic-020-2026-06-13-save-race-data-overwrite/decision.md)
@@ -73,6 +69,10 @@ source_of_truth: false
 ---
 
 ## ✅ 最近完成的決策
+
+- ✅ [#021 ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/) - 2026-06-14, 技術會議結論
+  - 根因確認為 Fix #5（Ctrl+B 編輯器粗體誤觸發側邊欄收合，commit `be570b4`），非 reactivity 斷裂
+  - 移除 `tests/e2e/writing-baseline.spec.ts` 測試 6 的 `test.fixme`，[PR #40](https://github.com/EanLee/article-write/pull/40) 已合併
 
 - ✅ [#018 市場方向與進度對焦](../product/discussions/topic-018-2026-03-03-market-direction-progress-check/) - 2026-03-03, 全體一致（條件）
   - 3/11 Jordan 驗收 AI Phase 1 作為 go/no-go 決策點
@@ -131,5 +131,5 @@ source_of_truth: false
 
 ---
 
-**文件版本**: v2.0
-**最後更新**: 2026-03-07 (topic-019 待排程)
+**文件版本**: v2.1
+**最後更新**: 2026-06-14 (topic-021 已解決，索引同步)
