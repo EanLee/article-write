@@ -22,6 +22,18 @@ import type { BackupService } from "./BackupService";
 import { electronFileSystem } from "./ElectronFileSystem";
 import { logger } from "@/utils/logger";
 
+export interface SaveConflictDetails {
+  currentFileContent?: string;
+  fileModifiedTime?: Date;
+}
+
+export interface SaveResult {
+  success: boolean;
+  conflict?: boolean;
+  conflictDetails?: SaveConflictDetails;
+  error?: Error;
+}
+
 export class ArticleService {
   private fileSystem: IFileSystem;
   private markdownService: MarkdownService;
@@ -35,9 +47,9 @@ export class ArticleService {
   private saveQueues: Map<string, Promise<unknown>> = new Map();
 
   /**
-   * 自己最後寫入各檔案的內容（topic-020 own-write 豁免）
-   * 衝突偵測以 mtime 判斷，無法分辨「佇列中前一筆自己的寫入」與「外部修改」；
-   * 磁碟內容等於自己上次寫入時不視為衝突。
+   * 各檔案目前的磁碟內容基準（topic-020 衝突偵測）
+   * 由 loadArticle 讀取時、performSave 寫入後更新；存檔前比對磁碟現況的
+   * hash 與此基準的 hash，不同即代表檔案在外部被修改過。
    */
   private lastWrittenContent: Map<string, string> = new Map();
 
@@ -83,7 +95,7 @@ export class ArticleService {
       skipConflictCheck?: boolean;
       skipBackup?: boolean;
     } = {},
-  ): Promise<{ success: boolean; conflict?: boolean; error?: Error }> {
+  ): Promise<SaveResult> {
     // 同一檔案的儲存排入佇列依序執行；前一個儲存失敗不阻擋下一個
     const previous = this.saveQueues.get(article.filePath) ?? Promise.resolve();
     const current = previous.then(() => this.performSave(article, options));
@@ -108,19 +120,22 @@ export class ArticleService {
       skipConflictCheck?: boolean;
       skipBackup?: boolean;
     },
-  ): Promise<{ success: boolean; conflict?: boolean; error?: Error }> {
+  ): Promise<SaveResult> {
     try {
-      // 1. 衝突檢測（除非跳過）
+      // 1. 衝突檢測（除非跳過）：比對磁碟現況 hash 與基準 hash
       if (!options.skipConflictCheck) {
-        const conflictResult = await this.backupService.detectConflict(article);
-        // own-write 豁免：磁碟內容正是自己上次寫入的內容 → 非外部衝突
-        const isOwnWrite =
-          conflictResult.currentFileContent !== undefined &&
-          conflictResult.currentFileContent === this.lastWrittenContent.get(article.filePath);
-        if (conflictResult.hasConflict && !isOwnWrite) {
+        const conflictResult = await this.backupService.detectConflict(
+          article.filePath,
+          this.lastWrittenContent.get(article.filePath),
+        );
+        if (conflictResult.hasConflict) {
           return {
             success: false,
             conflict: true,
+            conflictDetails: {
+              currentFileContent: conflictResult.currentFileContent,
+              fileModifiedTime: conflictResult.fileModifiedTime,
+            },
           };
         }
       }
@@ -309,6 +324,9 @@ export class ArticleService {
     // 讀取檔案內容
     const content = await this.fileSystem.readFile(filePath);
     const { frontmatter, content: articleContent } = this.markdownService.parseMarkdown(content);
+
+    // 記錄目前磁碟內容作為衝突偵測的基準（topic-020）
+    this.lastWrittenContent.set(filePath, content);
 
     // 取得檔案的最後修改時間
     const fileStats = await this.fileSystem.getFileStats(filePath);

@@ -15,6 +15,28 @@ import { useFileWatching } from "@/composables/useFileWatching";
 import { useArticleFilter } from "@/composables/useArticleFilter";
 import { logger } from "@/utils/logger";
 
+/**
+ * 儲存衝突詳細資訊（topic-020 Action Item #1）
+ * 偵測到磁碟內容與基準不一致時，由 saveArticle 寫入此狀態，
+ * 交由 SaveConflictDialog 顯示並讓使用者選擇後續處理。
+ */
+export interface SaveConflict {
+  article: Article;
+  articleToSave: Article;
+  currentFileContent?: string;
+  fileModifiedTime?: Date;
+}
+
+/**
+ * 儲存衝突專用錯誤：與一般儲存失敗區分，避免重複跳出「儲存失敗」通知
+ */
+class SaveConflictError extends Error {
+  constructor() {
+    super("File conflict detected");
+    this.name = "SaveConflictError";
+  }
+}
+
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
   const articleService = getArticleService();
@@ -23,6 +45,9 @@ export const useArticleStore = defineStore("article", () => {
   // State
   const articles = ref<Article[]>([]);
   const currentArticle = ref<Article | null>(null);
+
+  // 儲存衝突狀態（topic-020 Action Item #1）：非 null 時顯示 SaveConflictDialog
+  const conflictState = ref<SaveConflict | null>(null);
 
   // 檔案監聽 composable（在 handleFileChangeEvent 定義前用 let 聲明，函式稍後賦值）
   // SOLID6-01: 過濾與排序關注點提取到 useArticleFilter composable
@@ -231,7 +256,10 @@ export const useArticleStore = defineStore("article", () => {
    * ⚠️ 這個函數會執行實際的檔案寫入操作
    * 成功後會自動更新 store 狀態
    */
-  async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
+  async function saveArticle(
+    article: Article,
+    options?: { preserveLastModified?: boolean; skipConflictCheck?: boolean },
+  ) {
     try {
       assertElectronAvailable();
 
@@ -245,7 +273,9 @@ export const useArticleStore = defineStore("article", () => {
       fileWatchService.ignoreNextChange(articleToSave.filePath, 5000);
 
       // 使用 ArticleService 儲存（包含備份、衝突檢測、檔案寫入）
-      const result = await articleService.saveArticle(articleToSave);
+      const result = await articleService.saveArticle(articleToSave, {
+        skipConflictCheck: options?.skipConflictCheck,
+      });
 
       if (result.success) {
         // 儲存成功，只更新記憶體中的狀態，不觸發 reload
@@ -255,20 +285,22 @@ export const useArticleStore = defineStore("article", () => {
         // 若不同步會導致 UI 持續顯示「未儲存」直到下次自動儲存輪詢
         autoSaveService.notifySaved(articleToSave);
       } else if (result.conflict) {
-        // 檔案衝突
-        notify.warning("檔案衝突", "檔案在外部被修改，建議重新載入", {
-          action: {
-            label: "重新載入",
-            callback: () => reloadArticle(article.id),
-          },
-        });
-        throw new Error("File conflict detected");
+        // 檔案衝突：交由 SaveConflictDialog 顯示，讓使用者選擇重新載入／覆寫／取消
+        conflictState.value = {
+          article,
+          articleToSave,
+          currentFileContent: result.conflictDetails?.currentFileContent,
+          fileModifiedTime: result.conflictDetails?.fileModifiedTime,
+        };
+        throw new SaveConflictError();
       } else if (result.error) {
         throw result.error;
       }
     } catch (error) {
       logger.error("Failed to save article:", error);
-      notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
+      if (!(error instanceof SaveConflictError)) {
+        notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
+      }
       throw error;
     }
   }
@@ -492,6 +524,37 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
+  /**
+   * 儲存衝突 - 重新載入：捨棄編輯器變更，以磁碟上的最新內容為準（topic-020）
+   */
+  async function resolveConflictReload() {
+    if (!conflictState.value) {
+      return;
+    }
+    const { article } = conflictState.value;
+    conflictState.value = null;
+    await reloadArticle(article.id);
+  }
+
+  /**
+   * 儲存衝突 - 覆寫：以編輯器內容覆蓋磁碟上的外部修改（topic-020）
+   */
+  async function resolveConflictOverwrite() {
+    if (!conflictState.value) {
+      return;
+    }
+    const { articleToSave } = conflictState.value;
+    conflictState.value = null;
+    await saveArticle(articleToSave, { skipConflictCheck: true, preserveLastModified: true });
+  }
+
+  /**
+   * 儲存衝突 - 取消：關閉對話框，維持編輯器內容不變、不寫入磁碟（topic-020）
+   */
+  function resolveConflictCancel() {
+    conflictState.value = null;
+  }
+
   // 初始化自動儲存服務  // 儲存狀態（橋接 AutoSaveService 純資料狀態為 Vue 響應式 ref）
   const saveState = ref<SaveState>({
     status: SaveStatus.Saved,
@@ -538,6 +601,7 @@ export const useArticleStore = defineStore("article", () => {
     currentArticle,
     filter,
     loading,
+    conflictState,
 
     // Getters
     filteredArticles,
@@ -561,6 +625,9 @@ export const useArticleStore = defineStore("article", () => {
     reloadArticle,
     saveCurrentArticle,
     initializeAutoSave,
+    resolveConflictReload,
+    resolveConflictOverwrite,
+    resolveConflictCancel,
     // 內部方法（供測試使用）
     reloadArticleFromDisk,
     removeArticleFromMemory,

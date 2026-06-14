@@ -136,6 +136,26 @@ Test content`;
 
       await expect(service.loadArticle(filePath, ArticleCategory.Software)).rejects.toThrow("File not found");
     });
+
+    it("載入後應記錄磁碟內容作為衝突偵測基準（topic-020）", async () => {
+      const filePath = "/vault/Drafts/Software/test-article.md";
+      const fileContent = `---
+title: Test Article
+date: 2026-01-26
+tags: [test]
+categories: [Software]
+---
+
+Test content`;
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+      await mockFileSystem.writeFile(filePath, fileContent);
+
+      const article = await service.loadArticle(filePath, ArticleCategory.Software);
+      await service.saveArticle(article);
+
+      expect(mockDetectConflict).toHaveBeenCalledWith(filePath, fileContent);
+    });
   });
 
   describe("loadAllArticles", () => {
@@ -209,7 +229,7 @@ Test content`;
       // 驗證
       expect(result.success).toBe(true);
       expect(mockCombineContent).toHaveBeenCalled();
-      expect(mockDetectConflict).toHaveBeenCalledWith(article);
+      expect(mockDetectConflict).toHaveBeenCalledWith(article.filePath, undefined);
 
       // 驗證檔案已寫入
       const exists = await mockFileSystem.exists(article.filePath);
@@ -217,7 +237,12 @@ Test content`;
     });
 
     it("應該處理衝突情況", async () => {
-      mockDetectConflict.mockResolvedValueOnce({ hasConflict: true });
+      const fileModifiedTime = new Date("2026-01-27T00:00:00Z");
+      mockDetectConflict.mockResolvedValueOnce({
+        hasConflict: true,
+        currentFileContent: "外部程式改過的內容",
+        fileModifiedTime,
+      });
 
       const article: Article = {
         id: "test-id",
@@ -240,6 +265,8 @@ Test content`;
 
       expect(result.success).toBe(false);
       expect(result.conflict).toBe(true);
+      expect(result.conflictDetails?.currentFileContent).toBe("外部程式改過的內容");
+      expect(result.conflictDetails?.fileModifiedTime).toBe(fileModifiedTime);
     });
 
     it("應該支援跳過衝突檢查和備份", async () => {
@@ -310,7 +337,7 @@ Test content`;
       expect(finalContent).not.toContain("OLD content");
     });
 
-    it("磁碟內容等於自己上次寫入時不視為衝突（own-write 豁免，topic-020）", async () => {
+    it("儲存成功後，下次衝突偵測會以剛寫入的內容作為基準（topic-020 hash 比對基準）", async () => {
       const makeArticle = (content: string): Article => ({
         id: "test-id",
         title: "Test",
@@ -325,19 +352,13 @@ Test content`;
 
       await mockFileSystem.createDirectory("/vault/Drafts/Software");
 
-      // 第一筆儲存成功，service 記錄自己寫入的內容
+      // 第一筆儲存成功，service 記錄自己寫入的內容作為下次衝突偵測的基準
       const first = await service.saveArticle(makeArticle("FIRST content"));
       expect(first.success).toBe(true);
       const writtenByUs = await mockFileSystem.readFile("/vault/Drafts/Software/test.md");
 
-      // 衝突偵測回報 mtime 較新，但磁碟內容正是自己剛寫入的 → 不得視為衝突
-      mockDetectConflict.mockResolvedValueOnce({
-        hasConflict: true,
-        currentFileContent: writtenByUs,
-      });
-      const second = await service.saveArticle(makeArticle("SECOND content"));
-      expect(second.success).toBe(true);
-      expect(await mockFileSystem.readFile("/vault/Drafts/Software/test.md")).toContain("SECOND content");
+      await service.saveArticle(makeArticle("SECOND content"));
+      expect(mockDetectConflict).toHaveBeenLastCalledWith("/vault/Drafts/Software/test.md", writtenByUs);
     });
 
     it("磁碟內容與自己上次寫入不同時維持衝突判定（真外部修改）", async () => {

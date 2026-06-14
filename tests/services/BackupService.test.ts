@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest"
 import { BackupService } from "@/services/BackupService"
 import type { Article } from "@/types"
 import { ArticleStatus, ArticleCategory } from "@/types"
+import { MockFileSystem } from "../mocks/MockFileSystem"
 
 describe("BackupService", () => {
   let backupService: BackupService
@@ -94,6 +95,51 @@ describe("BackupService", () => {
       expect(stats.totalBackups).toBe(0)
       expect(stats.oldestBackup).toBeNull()
       expect(stats.newestBackup).toBeNull()
+    })
+  })
+
+  describe("detectConflict（topic-020 hash 比對）", () => {
+    const filePath = "/test/path/test-article.md"
+
+    it("檔案不存在時不視為衝突", async () => {
+      const mockFileSystem = new MockFileSystem()
+      const service = new BackupService(mockFileSystem)
+
+      const result = await service.detectConflict(filePath, "baseline content")
+
+      expect(result.hasConflict).toBe(false)
+    })
+
+    it("基準內容未知（尚未載入過）時不視為衝突", async () => {
+      const mockFileSystem = new MockFileSystem()
+      await mockFileSystem.writeFile(filePath, "目前磁碟內容")
+      const service = new BackupService(mockFileSystem)
+
+      const result = await service.detectConflict(filePath, undefined)
+
+      expect(result.hasConflict).toBe(false)
+    })
+
+    it("磁碟內容與基準一致時不視為衝突（own-write 豁免）", async () => {
+      const mockFileSystem = new MockFileSystem()
+      await mockFileSystem.writeFile(filePath, "相同內容")
+      const service = new BackupService(mockFileSystem)
+
+      const result = await service.detectConflict(filePath, "相同內容")
+
+      expect(result.hasConflict).toBe(false)
+    })
+
+    it("磁碟內容與基準不同時視為衝突，並回傳目前內容與修改時間", async () => {
+      const mockFileSystem = new MockFileSystem()
+      await mockFileSystem.writeFile(filePath, "外部程式改過的內容")
+      const service = new BackupService(mockFileSystem)
+
+      const result = await service.detectConflict(filePath, "原始基準內容")
+
+      expect(result.hasConflict).toBe(true)
+      expect(result.currentFileContent).toBe("外部程式改過的內容")
+      expect(result.fileModifiedTime).toBeInstanceOf(Date)
     })
   })
 

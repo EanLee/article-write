@@ -43,6 +43,9 @@
         <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
             @update="handleFrontmatterUpdate" />
 
+        <!-- Save Conflict Dialog（topic-020 Action Item #1） -->
+        <SaveConflictDialog />
+
     </div>
 </template>
 
@@ -55,6 +58,7 @@ import EditorHeader from "./EditorHeader.vue";
 import CodeMirrorEditor from "./CodeMirrorEditor.vue";
 import PreviewPane from "./PreviewPane.vue";
 import FrontmatterEditor from "./FrontmatterEditor.vue";
+import SaveConflictDialog from "./SaveConflictDialog.vue";
 import SearchReplace from "./SearchReplace.vue";
 import { useServices } from "@/composables/useServices";
 import { useAutocomplete } from "@/composables/useAutocomplete";
