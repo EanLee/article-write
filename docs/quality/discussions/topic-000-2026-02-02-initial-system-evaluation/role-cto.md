@@ -357,5 +357,5 @@ interface BlogAdapter {
 **下一步**: 制定詳細的技術路線圖和重構計畫
 **相關文件**: 
 - [架構分析](../../../engineering/analysis/ARCHITECTURE_COMPLETE.md)
-- [重構計畫](../../../conventions/dev-standards/REFACTORING_PLAN.md)
+- [重構計畫](../../../engineering/2026-02-02-refactoring-plan.md)
 - [SOLID 分析](../../../engineering/analysis/SOLID_ANALYSIS.md)

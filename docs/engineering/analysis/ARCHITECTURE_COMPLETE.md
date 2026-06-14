@@ -295,5 +295,5 @@ export interface BlogAdapter {
 
 **參考文件**：
 - [PRODUCT_SPEC.md](../product/business/PRODUCT_SPEC.md)
-- [REFACTORING_PLAN.md](./REFACTORING_PLAN.md)
+- [2026-02-02-refactoring-plan.md](../2026-02-02-refactoring-plan.md)
 - [SOLID_ANALYSIS.md](./SOLID_ANALYSIS.md)

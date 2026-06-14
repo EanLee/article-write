@@ -747,9 +747,9 @@ const visibleLineNumbers = computed(() => {
 
 ## 📝 相關文件
 
-- [ARCHITECTURE.md](../../../testing/ARCHITECTURE.md) - 系統架構文件
-- [TESTING_GUIDE.md](./TESTING_GUIDE.md) - 測試指南
-- [REFACTORING_PLAN.md](../../../testing/REFACTORING_PLAN.md) - 重構計畫
+- [ARCHITECTURE.md](../../../engineering/analysis/ARCHITECTURE.md) - 系統架構文件
+- [feature-test-checklist.md](./feature-test-checklist.md) - 測試指南
+- [2026-02-02-refactoring-plan.md](../../../engineering/2026-02-02-refactoring-plan.md) - 重構計畫
 
 ---
 

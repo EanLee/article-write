@@ -64,7 +64,7 @@ docs/
 
 - [Commit 規範](./reference/COMMIT_GUIDE.md) - Git commit 訊息格式與提交順序
 - [測試指南](./quality/assessments/testing/TESTING_GUIDE.md) - 功能測試步驟與預期結果
-- [重構計劃](./engineering/REFACTORING_PLAN.md) - 架構重構的階段性計劃
+- [重構計劃](./engineering/2026-02-02-refactoring-plan.md) - 架構重構的階段性計劃
 
 ### Bug 修復
 
@@ -106,8 +106,8 @@ docs/
 | [ARCHITECTURE_REFACTOR.md](./engineering/ARCHITECTURE_REFACTOR.md) | 重構方案設計 | 開發者 |
 | [SOLID_ANALYSIS.md](./engineering/SOLID_ANALYSIS.md) | SOLID 原則分析 | 開發者 |
 | [INTEGRATION_GUIDE.md](./engineering/INTEGRATION_GUIDE.md) | 核心功能整合說明 | 開發者 |
-| [REFACTORING_PLAN.md](./engineering/REFACTORING_PLAN.md) | 服務層重構計劃、進度追蹤 | 技術主管 |
-| [REFACTOR_CHECKLIST.md](./engineering/REFACTOR_CHECKLIST.md) | 重構任務清單 | 開發者 |
+| [2026-02-02-refactoring-plan.md](./engineering/2026-02-02-refactoring-plan.md) | 服務層重構計劃、進度追蹤 | 技術主管 |
+| [2026-02-02-refactor-checklist.md](./engineering/2026-02-02-refactor-checklist.md) | 重構任務清單 | 開發者 |
 | [adr/](./engineering/adr/) | 架構決策記錄（ADR），見 [README.md](./engineering/adr/README.md) | 架構師 |
 | [discussions/](./engineering/discussions/) | 圓桌會議與技術會議討論記錄（engineering domain 的 `topic-NNN-*`、`T-NNN-*`） | 開發者 |
 
@@ -186,7 +186,7 @@ CI/CD、部署相關的技術討論記錄（如 GitHub Actions CI/CD 建置）�
 ### 場景 4: 我要進行架構重構
 
 1. 閱讀 [ARCHITECTURE_COMPLETE.md](./engineering/ARCHITECTURE_COMPLETE.md)  的「現狀問題分析」和「重構路線圖」
-2. 參考 [REFACTORING_PLAN.md](./engineering/REFACTORING_PLAN.md)
+2. 參考 [2026-02-02-refactoring-plan.md](./engineering/2026-02-02-refactoring-plan.md)
 3. 檢視 [SOLID_ANALYSIS.md](./engineering/SOLID_ANALYSIS.md)
 
 ### 場景 5: 我要設計或修改 UI

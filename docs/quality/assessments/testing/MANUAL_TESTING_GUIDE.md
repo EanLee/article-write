@@ -257,7 +257,7 @@ source_of_truth: false
 ### ✅ 如果所有測試通過
 1. 更新 Bug Fix 報告，標記為「已驗證修復」
 2. 合併分支到 `develop`
-3. 更新 REFACTORING_PLAN.md，標記 Phase 2 完成
+3. 更新 2026-02-02-refactoring-plan.md，標記 Phase 2 完成
 
 ### ❌ 如果有測試失敗
 1. 在 Bug Fix 報告中補充「追加修復」章節

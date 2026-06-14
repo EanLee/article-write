@@ -65,8 +65,8 @@ related_docs:
 | [architecture/ARCHITECTURE.md](../engineering/ARCHITECTURE.md) | 架構設計文件（已取代） | archived |
 | [architecture/ARCHITECTURE_ANALYSIS.md](../engineering/ARCHITECTURE_ANALYSIS.md) | 檔案服務架構分析 - 過度設計問題（已取代） | archived |
 | [guides/INTEGRATION_GUIDE.md](../engineering/INTEGRATION_GUIDE.md) | 核心功能整合指南 | approved |
-| [planning/REFACTORING_PLAN.md](../engineering/REFACTORING_PLAN.md) | 服務層重構計劃 | approved |
-| [planning/REFACTOR_CHECKLIST.md](../engineering/REFACTOR_CHECKLIST.md) | 重構檢查清單 | approved |
+| [2026-02-02-refactoring-plan.md](../engineering/2026-02-02-refactoring-plan.md) | 服務層重構計劃 | approved |
+| [2026-02-02-refactor-checklist.md](../engineering/2026-02-02-refactor-checklist.md) | 重構檢查清單 | approved |
 | [analysis/chinese-slug-evaluation.md](../engineering/chinese-slug-evaluation.md) | 中文 Slug 處理評估報告 | reviewing |
 | [tech-team/T-001-publish-refactor.md](../engineering/discussions/T-001-publish-refactor.md) | 發布流程重構 | approved |
 | [tech-team/T-002-autosave-mechanism.md](../engineering/discussions/T-002-autosave-mechanism.md) | 自動儲存機制（TDR） | approved |
