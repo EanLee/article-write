@@ -85,5 +85,9 @@ test.describe("全文搜尋流程", () => {
     const hasResults = await window.locator("ul li").count();
     const noResults = await window.locator("text=找不到").count();
     expect(hasResults + noResults).toBeGreaterThan(0);
+
+    // 關閉搜尋面板，避免遮罩殘留影響共用同一 Electron App 實例的後續測試
+    await window.keyboard.press("Escape");
+    await expect(window.locator('input[placeholder="搜尋文章內容..."]')).not.toBeVisible();
   });
 });
