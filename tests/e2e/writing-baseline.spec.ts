@@ -150,9 +150,7 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
     expect(savedContent).toContain("draft");
   });
 
-  // 根因待查（topic-021 PENDING）：focus mode 衝突已修復後，
-  // 切換目標文章在 full-suite 執行時仍不會出現在 ArticleListTree，單跑此測試可通過
-  test.fixme("切換文章時自動儲存前一篇的編輯器即時內容（topic-020）", async ({ window, testVaultPath }) => {
+  test("切換文章時自動儲存前一篇的編輯器即時內容（topic-020）", async ({ window, testVaultPath }) => {
     // 建立第二篇文章供切換（FileWatch 自動偵測）
     const otherDir = path.join(testVaultPath, "Drafts", "Software");
     const otherPath = path.join(otherDir, "switch-target.md");
