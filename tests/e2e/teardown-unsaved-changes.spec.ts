@@ -6,6 +6,12 @@
  * 1. 開啟主文章
  * 2. 編輯內容但不儲存（autoSaveService.hasUnsavedChanges() === true）
  * 3. worker 結束時 electronApp fixture 需正常關閉，不應觸發 60s/90s teardown timeout
+ *
+ * 注意：步驟 2 之後會還原並 Ctrl+S 儲存，將 hasUnsavedChanges() 重置為 false。
+ * 原因：electronApp/testVaultPath 為 worker scope，與其他 spec 共用同一個視窗；
+ * 若保留未儲存狀態，後續 spec（如 writing-baseline.spec.ts）的 window.reload()
+ * 會因同一個 beforeunload/will-prevent-unload 問題卡住 30s，導致整個 worker 失敗。
+ * electronApp.close() 逾時修復的驗證記錄於 Bug Fix 報告（單獨執行本檔案測得 8.4s）。
  */
 
 import { test, expect } from "./helpers/electron-fixture";
@@ -58,8 +64,23 @@ test("worker 結束時編輯器有未儲存變更，App 仍能正常關閉（不
   await targetLine.waitFor({ state: "visible", timeout: 10000 });
   await targetLine.click();
   await window.keyboard.press("End");
-  await window.keyboard.type("（未儲存的編輯）");
+  const unsavedText = "（未儲存的編輯）";
+  await window.keyboard.type(unsavedText);
 
   // 不執行 Ctrl+S：刻意保留未儲存變更，模擬 worker 結束時 hasUnsavedChanges() === true
-  await expect(window.locator(".cm-line", { hasText: "（未儲存的編輯）" })).toBeVisible({ timeout: 5000 });
+  await expect(window.locator(".cm-line", { hasText: unsavedText })).toBeVisible({ timeout: 5000 });
+
+  // 還原編輯內容（Ctrl+Z undo，避免 Backspace 數量與自動配對符號不一致）
+  for (let i = 0; i < 10; i++) {
+    if (!(await window.locator(".cm-line", { hasText: unsavedText }).isVisible().catch(() => false))) {
+      break;
+    }
+    await window.keyboard.press("Control+z");
+  }
+  await expect(window.locator(".cm-line", { hasText: unsavedText })).not.toBeVisible({ timeout: 5000 });
+  await expect(window.locator(".cm-line", { hasText: "背景內容。" })).toBeVisible({ timeout: 5000 });
+
+  // Ctrl+S：刷新 lastSavedContent，將 hasUnsavedChanges() 重置為 false（內容與原檔一致，磁碟不受影響）
+  await window.keyboard.press("Control+s");
+  await expect(window.getByTestId("save-status-text")).toHaveText("已儲存", { timeout: 10000 });
 });

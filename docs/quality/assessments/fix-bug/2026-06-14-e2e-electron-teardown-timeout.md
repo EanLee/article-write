@@ -105,3 +105,46 @@ worker 最後一個測試結束（編輯器內容已修改但未 Ctrl+S）
 ## 相關 Commit
 
 - fix(test): 修正 E2E electronApp worker teardown 偶發逾時（unsaved changes 阻擋視窗關閉）
+- fix(test): 修正 teardown-unsaved-changes.spec.ts 污染同 worker 後續 spec 的 reload
+
+## 追加修復 (2026-06-14)
+
+### 問題
+
+PR 推送後 CI「E2E 測試」失敗：`writing-baseline.spec.ts` 第一個測試的 `window.reload()` 逾時 30s（`page.reload: Timeout 30000ms exceeded`），導致該 worker 後續測試被跳過，並再次觸發「Worker teardown timeout of 90000ms exceeded」。
+
+### 原因分析
+
+`electronApp` / `testVaultPath` 為 worker scope，CI 以單一 worker 依序執行所有 spec 檔案，**共用同一個 `electronApp` 視窗**。
+
+```
+teardown-unsaved-changes.spec.ts 結束時，編輯器仍有未儲存變更（hasUnsavedChanges() === true，刻意保留以重現原問題）
+  → 同一 worker 接著執行 writing-baseline.spec.ts
+  → beforeEach 第一次執行時呼叫 window.reload()
+  → reload 觸發 renderer 的 'beforeunload' → handleBeforeUnload() → hasUnsavedChanges() === true → e.preventDefault()
+  → 主程序無 'will-prevent-unload' 監聽器（與原問題根因相同）→ reload 永遠不會完成
+  → page.reload() 30s timeout → 該測試失敗 → serial 模式中斷，worker 結束
+  → worker teardown 時 electronApp 仍處於「reload 卡住」的中間狀態，close() 又逾時 90s
+```
+
+本地以 `npx playwright test tests/e2e/teardown-unsaved-changes.spec.ts tests/e2e/writing-baseline.spec.ts --workers=1` 100% 重現。
+
+### 修正方式
+
+[tests/e2e/teardown-unsaved-changes.spec.ts](../../../../tests/e2e/teardown-unsaved-changes.spec.ts)：在斷言 `hasUnsavedChanges() === true`（未儲存文字可見）之後，補上還原步驟：
+
+1. 連續按 `Ctrl+Z` 復原輸入內容（避免用 Backspace 計數，CodeMirror 自動配對符號會導致數量不一致）
+2. 按 `Ctrl+S` 儲存（內容與原檔一致，磁碟不受影響），確認狀態顯示「已儲存」
+
+`hasUnsavedChanges()` 重置為 `false` 後，後續 spec 的 `window.reload()` 不再被 `beforeunload` 阻擋。
+
+### 為何有效
+
+本測試的「重現步驟」（開啟文章 → 編輯不儲存 → 斷言 `hasUnsavedChanges() === true`）已涵蓋原問題的觸發條件並驗證過修復（單獨執行本檔案測得 8.4s，詳見上方「驗證」）；測試結束前還原並儲存，僅避免污染**共用同一 worker** 的其他 spec，不影響修復本身的驗證效力。
+
+### 驗證
+
+- `npx playwright test tests/e2e/teardown-unsaved-changes.spec.ts tests/e2e/writing-baseline.spec.ts --workers=1`：8 passed，9.6s
+- `npx playwright test --workers=1`（全 E2E 套件）：21 passed | 1 skipped，16.4s
+- `npx playwright test tests/e2e/teardown-unsaved-changes.spec.ts --workers=1`：1 passed，3.3s
+- `pnpm run test`：45 files / 628 passed | 1 skipped，無回歸
