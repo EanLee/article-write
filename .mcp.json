@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "docs": {
+      "command": "npx",
+      "args": ["mcp-docs-service", "--docs-dir", "./docs"],
+      "description": "doc-viewer 本地文件 MCP server（mcp-docs-service，已驗證支援讀寫——見 TDR-2026-001）"
+    }
+  }
+}
