@@ -4,7 +4,7 @@ domain: quality
 type: assessment
 status: approved
 owner: tech-team
-updated: 2026-06-13
+updated: 2026-06-14
 source_of_truth: false
 ---
 
@@ -291,3 +291,67 @@ function handleGlobalKeydown(e: KeyboardEvent) {
 ## 相關 Commit
 
 見本分支 `fix/save-single-source-of-truth` 後續 commit（依 Fix #1-5 與測試/文件分別提交，採 Conventional Commits + SRP）。
+
+---
+
+## 追加修復 (2026-06-14)
+
+> 分支：`fix/articlelisttree-reactivity`
+
+### 問題描述
+
+測試 6（「切換文章時自動儲存前一篇的編輯器即時內容」）在 full-suite 中逾時，被標記 `test.fixme`，並建立 [topic-021 PENDING](../../../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md)，懷疑為 `useArticleFilter.filteredArticles` → `ArticleListTree` 的 `filteredArticles`/`seriesGroups` computed 鏈在 full-suite 下發生 reactivity 斷裂，新偵測文章不會出現在 `ArticleListTree`。
+
+### 原因分析（呼叫鏈，重新驗證後修正）
+
+依 T-020 技術會議（2026-06-14）決議，在 reactivity 鏈各層加入分層 debug log，重新執行 full-suite 並比對 `renderer-console.log`：
+
+```
+reloadArticleFromDisk push new article, articles.length= 2
+  → useArticleFilter.filteredArticles recompute, articles.length= 2
+  → ArticleListTree.filteredArticles recompute, result.length= 2
+  → ArticleListTree.seriesGroups recompute, result=[{"name":"_standalone","count":2}]
+```
+
+整條 computed 鏈在 ~10ms 內正確、即時更新——**reactivity 鏈本身沒有問題**，`seriesGroups` 已正確產出新文章所在的群組。
+
+進一步排查 `otherRow.waitFor({ state: "visible" })` 逾時的真正原因，發現與本報告 **Fix #5（Ctrl+B 編輯器粗體誤觸發側邊欄收合）為同一根因**：
+
+```
+測試 1 按下 Ctrl+B
+  → CodeMirror keymap Mod-b 回傳 true → event.preventDefault()
+  → 事件冒泡至 App.vue 的 handleGlobalKeydown
+  → [be570b4 修復前] 未檢查 e.defaultPrevented → toggleSidebar() → sidebarCollapsed=true
+  → 整個側邊欄（含 ArticleListTree）持續收合至測試 6 執行
+  → ArticleListTree 內 seriesGroups 資料正確，但 DOM 被收合隱藏
+  → otherRow.waitFor({ state: "visible" }) 逾時 ← 表面現象，被誤判為 reactivity 斷裂
+```
+
+`be570b4`（Fix #5）已於 `2f9cac2`（標記測試 6 `test.fixme` 的 commit）之後 10 分鐘合併進 `develop`，但本報告先前「Fix #5 驗證」段落（第 280 行）記錄測試 6 仍逾時，是因為**該次驗證未在套用 Fix #5 後重新 `pnpm run build`**——E2E 跑的是舊版 `dist/`，仍含未修復的 `App.vue`。因此「測試 6 與 Fix #4/#5 無關」為當時環境未重建造成的誤判。
+
+### 修正方式
+
+本次**未變更任何 production code**（Fix #5 已存在於 `develop`）。重新 `pnpm run build` 後，移除測試 6 的 `.fixme` 與過時註解：
+
+[writing-baseline.spec.ts:153](../../../../tests/e2e/writing-baseline.spec.ts#L153)：
+
+```diff
+- // 根因待查（topic-021 PENDING）：focus mode 衝突已修復後，
+- // 切換目標文章在 full-suite 執行時仍不會出現在 ArticleListTree，單跑此測試可通過
+- test.fixme("切換文章時自動儲存前一篇的編輯器即時內容（topic-020）", async ({ window, testVaultPath }) => {
++ test("切換文章時自動儲存前一篇的編輯器即時內容（topic-020）", async ({ window, testVaultPath }) => {
+```
+
+**為何有效**：Fix #5 已修正 `App.vue` 全域 `Ctrl+B` 監聽器，使其在 `e.defaultPrevented` 為真時跳過 `toggleSidebar()`，側邊欄不再因測試 1 的 Ctrl+B 被誤收合，`ArticleListTree` 全程可見，測試 6 的 `otherRow` 可正常等到並點擊。
+
+**替代方案**：曾考慮在 `ArticleListTree`/`useArticleFilter` 加入額外的 watch/nextTick 強制刷新作為防禦性修補，但 debug log 已證實 reactivity 鏈無問題，加入該邏輯只會掩蓋真因且違反「不接受表面描述」原則，故不採用。
+
+### 驗證
+
+- `pnpm run test`：45 個測試檔，628 passed | 1 skipped，0 failures
+- `pnpm run build` + `npx playwright test tests/e2e/writing-baseline.spec.ts`（重複執行 2 次，排除 flaky）：皆 **7 passed**（含測試 6，約 500ms），exit code 0
+
+### 待辦
+
+- [topic-021 PENDING](../../../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md) 與 [T-020 技術會議記錄](../../../engineering/discussions/T-020-articlelisttree-reactivity-investigation.md)（位於 `docs/topic-020-action-items-sync` 分支）需同步標記為已解決；topic-020 Action Items #1/#3 視為完成、#5/#7 解除阻塞。
+- 另發現 E2E worker teardown 偶發 60-90s 逾時（`Fixture "electronApp" timeout ... during teardown`），與本問題無關，已記錄供後續處理。
