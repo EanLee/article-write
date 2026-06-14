@@ -74,5 +74,6 @@ source_of_truth: false
 | T-017 | doc-viewer docs-governance 文件分類落差分析與改進建議 | 2026-06-13 | conventions | ✅ 完成（待回報 doc-viewer） |
 | T-018 | 文件治理：戰略面與工程技術面分類規劃 | 2026-06-13 | conventions | ✅ 完成 |
 | T-019 | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | 2026-06-13 | conventions | ✅ 完成 |
+| T-020 | ArticleListTree Reactivity 根因調查（topic-021） | 2026-06-14 | engineering | 🔄 進行中（已排除 4 個假設，待分層 debug log） |
 | UX-001 | 表單設計規範 | 2026-02-15 | product | ✅ 完成 |
 | RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | delivery | ✅ 完成 |

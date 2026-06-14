@@ -43,18 +43,24 @@ source_of_truth: false
 | 020 | 儲存機制整體設計（儲存競態，合併 019） | 2026-06-13 | engineering | ✅ 已決策 | 全體一致 | [topic-020-2026-06-13-save-race-data-overwrite](../engineering/discussions/topic-020-2026-06-13-save-race-data-overwrite/) |
 | 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | engineering | ⚠️ 待排程 | - | [topic-021-2026-06-13-articlelisttree-reactivity](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/) |
 | 022 | 進度回顧（原編號 topic-012，已重新編號） | 2026-02-28 | delivery | ✅ 已決策 | 全體一致 | [topic-022-2026-02-28-progress-review](../delivery/discussions/topic-022-2026-02-28-progress-review/) |
+| 023 | App 在有未儲存變更時關閉視窗會無聲卡住 | 2026-06-14 | engineering | ⚠️ 待排程 | - | [topic-023-2026-06-14-quit-with-unsaved-changes](../engineering/discussions/topic-023-2026-06-14-quit-with-unsaved-changes/) |
 
 ---
 
 ## 📊 統計資訊
 
-**總討論數**: 22
+**總討論數**: 23
 **已決策**: 21
-**待排程**: 1
+**待排程**: 2
 
 ---
 
 ## ⚠️ 待排程議題
+
+> #023 App 在有未儲存變更時關閉視窗，會無聲卡住（無提示、無法關閉）。
+> 修復 [E2E electronApp teardown 逾時](../quality/assessments/fix-bug/2026-06-14-e2e-electron-teardown-timeout.md) 時發現，
+> 需 PM 決策退出流程 UX（直接捨棄 / 提示儲存 / 自動儲存）。
+> 詳見 [topic-023 PENDING.md](../engineering/discussions/topic-023-2026-06-14-quit-with-unsaved-changes/PENDING.md)
 
 > #021 ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章（reactivity 根因未定位）。
 > topic-020 E2E 驗收時發現，已將 `tests/e2e/writing-baseline.spec.ts` 第 6 個測試標記 `test.fixme`。
