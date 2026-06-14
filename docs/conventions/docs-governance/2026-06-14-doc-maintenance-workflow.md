@@ -1,5 +1,5 @@
 ---
-title: \"文件維護與調整工作流 (Doc Maintenance Workflow)\"
+title: "文件維護與調整工作流 (Doc Maintenance Workflow)"
 domain: conventions
 type: guideline
 status: approved

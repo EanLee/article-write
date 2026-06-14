@@ -1,5 +1,5 @@
 ---
-title: \"文件分類定義原則 (Docs Classification Logic)\"
+title: "文件分類定義原則 (Docs Classification Logic)"
 domain: conventions
 type: guideline
 status: approved
