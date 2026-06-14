@@ -26,9 +26,12 @@ export class FileWatchService {
   private unsubscribeElectron: (() => void) | null = null;
   private cleanupInterval: NodeJS.Timeout | null = null;
 
-  // 去抖機制：記錄最近處理過的檔案事件
-  private recentEvents = new Map<string, { event: string; timestamp: number }>();
-  private readonly DEBOUNCE_MS = 1000; // 1 秒內的重複事件會被忽略
+  // own-write 忽略清單：路徑 -> 忽略到期時間（任何事件類型皆忽略，避免自己寫入觸發重新載入）
+  private ignoredPaths = new Map<string, number>();
+
+  // 去抖機制：依「路徑+事件類型」分別記錄最近處理時間，避免不同事件類型互相覆蓋去抖判斷
+  private recentEvents = new Map<string, number>();
+  private readonly DEBOUNCE_MS = 1000; // 1 秒內相同類型的重複事件會被忽略
 
   constructor() {
     // 每 10 秒清理一次過期事件（定期清理而非每次清理）
@@ -101,6 +104,7 @@ export class FileWatchService {
     this.isWatching = false;
     this.watchedPath = null;
     this.recentEvents.clear();
+    this.ignoredPaths.clear();
 
     logger.debug("FileWatchService: Stopped watching");
   }
@@ -119,17 +123,15 @@ export class FileWatchService {
 
   /**
    * 忽略特定檔案的變化（用於避免自己儲存觸發的事件）
+   * 忽略期間內，無論事件類型（add/change/unlink）皆視為 own-write，一律忽略。
    */
   ignoreNextChange(filePath: string, durationMs: number = 3000): void {
     const normalized = normalizePath(filePath);
 
-    this.recentEvents.set(normalized, {
-      event: "ignore",
-      timestamp: Date.now(),
-    });
+    this.ignoredPaths.set(normalized, Date.now() + durationMs);
 
     setTimeout(() => {
-      this.recentEvents.delete(normalized);
+      this.ignoredPaths.delete(normalized);
     }, durationMs);
 
     logger.debug(`FileWatchService: Will ignore changes to ${filePath} for ${durationMs}ms`);
@@ -141,10 +143,18 @@ export class FileWatchService {
   private handleFileChange(event: string, path: string): void {
     const normalized = normalizePath(path);
 
-    // 去抖檢查
-    const recent = this.recentEvents.get(normalized);
-    if (recent) {
-      const timeSinceLastEvent = Date.now() - recent.timestamp;
+    // own-write 忽略檢查（任何事件類型）
+    const ignoredUntil = this.ignoredPaths.get(normalized);
+    if (ignoredUntil && Date.now() < ignoredUntil) {
+      logger.debug(`FileWatchService: Ignored own-write ${event} for ${normalized}`);
+      return;
+    }
+
+    // 去抖檢查：僅對相同路徑＋相同事件類型的重複觸發去抖
+    const debounceKey = `${normalized}::${event}`;
+    const lastTimestamp = this.recentEvents.get(debounceKey);
+    if (lastTimestamp !== undefined) {
+      const timeSinceLastEvent = Date.now() - lastTimestamp;
 
       if (timeSinceLastEvent < this.DEBOUNCE_MS) {
         logger.debug(`FileWatchService: Debounced ${event} for ${normalized} (${timeSinceLastEvent}ms ago)`);
@@ -153,10 +163,7 @@ export class FileWatchService {
     }
 
     // 記錄此事件
-    this.recentEvents.set(normalized, {
-      event,
-      timestamp: Date.now(),
-    });
+    this.recentEvents.set(debounceKey, Date.now());
 
     // 通知所有訂閱者
     const fileEvent: FileChangeEvent = {
@@ -180,15 +187,22 @@ export class FileWatchService {
    */
   private cleanupRecentEvents(): void {
     const now = Date.now();
-    const expiredKeys: string[] = [];
 
-    this.recentEvents.forEach((value, key) => {
-      if (now - value.timestamp > 5000) {
-        expiredKeys.push(key);
+    const expiredEventKeys: string[] = [];
+    this.recentEvents.forEach((timestamp, key) => {
+      if (now - timestamp > 5000) {
+        expiredEventKeys.push(key);
       }
     });
+    expiredEventKeys.forEach((key) => this.recentEvents.delete(key));
 
-    expiredKeys.forEach((key) => this.recentEvents.delete(key));
+    const expiredIgnoredPaths: string[] = [];
+    this.ignoredPaths.forEach((expiry, key) => {
+      if (now > expiry) {
+        expiredIgnoredPaths.push(key);
+      }
+    });
+    expiredIgnoredPaths.forEach((key) => this.ignoredPaths.delete(key));
   }
 
   /**
