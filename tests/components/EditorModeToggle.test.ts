@@ -9,7 +9,7 @@ describe("EditorModeToggle - Frontmatter 解析與組合", () => {
   })
 
   describe("Frontmatter 解析", () => {
-    it.skip("應該正確解析包含 frontmatter 的 markdown", () => {
+    it("應該正確解析包含 frontmatter 的 markdown", () => {
       const raw = `---
 title: 測試文章
 date: 2026-01-25
@@ -50,7 +50,7 @@ tags:
       expect(result.body).toBe("")
     })
 
-    it.skip("應該處理完整的 frontmatter 結構", () => {
+    it("應該處理完整的 frontmatter 結構", () => {
       const raw = `---
 title: 完整測試
 description: 這是一個測試描述
