@@ -541,4 +541,4 @@ MarkFlow 就這樣誕生了。
 
 **評估者**: Marketing Specialist Agent
 **下一步**: 建立行銷計畫時程表，開始內容產出
-**相關文件**: [產品經理評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/product-manager.md), [使用者評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/end-user.md)
+**相關文件**: [產品經理評估](./role-product-manager.md), [使用者評估](./role-end-user.md)

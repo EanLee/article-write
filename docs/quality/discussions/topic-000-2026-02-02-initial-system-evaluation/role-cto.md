@@ -356,6 +356,6 @@ interface BlogAdapter {
 **評估者**: CTO (Chief Technology Officer)
 **下一步**: 制定詳細的技術路線圖和重構計畫
 **相關文件**: 
-- [架構分析](../../../roundtable-discussions/architecture/ARCHITECTURE_COMPLETE.md)
-- [重構計畫](../../../roundtable-discussions/planning/REFACTORING_PLAN.md)
-- [SOLID 分析](../../../roundtable-discussions/architecture/SOLID_ANALYSIS.md)
+- [架構分析](../../../engineering/analysis/ARCHITECTURE_COMPLETE.md)
+- [重構計畫](../../../conventions/dev-standards/REFACTORING_PLAN.md)
+- [SOLID 分析](../../../engineering/analysis/SOLID_ANALYSIS.md)

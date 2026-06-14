@@ -410,4 +410,4 @@ source_of_truth: false
 
 **評估者**: Product Manager Agent
 **下一步**: 進行市場調研，驗證目標使用者需求
-**相關文件**: [行銷評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/marketing.md), [使用者評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/end-user.md)
+**相關文件**: [行銷評估](./role-marketing.md), [使用者評估](./role-end-user.md)

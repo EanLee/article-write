@@ -22,16 +22,16 @@ source_of_truth: false
 
 | 角色 | 評估重點 | 報告連結 | 完成度 |
 |------|---------|---------|--------|
-| 產品經理 | 產品定位、用戶需求、功能規劃、競爭力分析 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/product-manager.md) | ✅ 100% |
-| 行銷專員 | 市場定位、目標受眾、推廣策略、品牌故事 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/marketing.md) | ✅ 100% |
-| 一般使用者 | 使用體驗、學習曲線、實際應用場景、痛點 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/end-user.md) | ✅ 100% |
-| 維運人員 | 部署、監控、維護、擴展性、穩定性 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/operations.md) | ✅ 100% |
-| 技術長 (CTO) | 技術架構、技術債、技術選型、長期發展 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/cto.md) | ✅ 100% |
-| 綜合分析 | 整合所有角色的評估結果和行動建議 | [報告](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/COMPREHENSIVE_ANALYSIS.md) | ✅ 100% |
-| 🎪 圓桌會議 | 跨角色互動討論、共識形成、行動決策 | [會議記錄](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/ROUNDTABLE_MEETING.md) | ✅ 100% |
-| 🎭 角色卡 | 五個角色的詳細背景、性格、決策風格 | [角色卡](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/CHARACTER_CARDS.md) | ✅ 100% |
-| 📜 會議規則 | 圓桌會議運作規則、記錄格式、討論流程 | [運作規則](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/ROUNDTABLE_RULES.md) | ✅ 100% |
-| 💬 討論記錄 | 所有議題的討論和決策記錄 | [討論索引](../../../roundtable-discussions/roundtable-discussions/README.md) | 🔄 持續更新 |
+| 產品經理 | 產品定位、用戶需求、功能規劃、競爭力分析 | [報告](./role-product-manager.md) | ✅ 100% |
+| 行銷專員 | 市場定位、目標受眾、推廣策略、品牌故事 | [報告](./role-marketing.md) | ✅ 100% |
+| 一般使用者 | 使用體驗、學習曲線、實際應用場景、痛點 | [報告](./role-end-user.md) | ✅ 100% |
+| 維運人員 | 部署、監控、維護、擴展性、穩定性 | [報告](./role-operations.md) | ✅ 100% |
+| 技術長 (CTO) | 技術架構、技術債、技術選型、長期發展 | [報告](./role-cto.md) | ✅ 100% |
+| 綜合分析 | 整合所有角色的評估結果和行動建議 | [報告](./decision.md) | ✅ 100% |
+| 🎪 圓桌會議 | 跨角色互動討論、共識形成、行動決策 | [會議記錄](./discussion.md) | ✅ 100% |
+| 🎭 角色卡 | 五個角色的詳細背景、性格、決策風格 | [角色卡](../../conventions/governance/character-cards/INDEX.md) | ✅ 100% |
+| 📜 會議規則 | 圓桌會議運作規則、記錄格式、討論流程 | [運作規則](../../conventions/governance/roundtable-rules.md) | ✅ 100% |
+| 💬 討論記錄 | 所有議題的討論和決策記錄 | [討論索引](../../conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md) | 🔄 持續更新 |
 
 ---
 
@@ -87,7 +87,7 @@ source_of_truth: false
 3. 品牌識別度問題被嚴重低估
 4. 跨角色共識能快速形成可執行的行動計畫
 
-**行動計畫**: 詳見 [圓桌會議記錄](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/ROUNDTABLE_MEETING.md)
+**行動計畫**: 詳見 [圓桌會議記錄](./discussion.md)
 
 ---
 
@@ -109,12 +109,12 @@ source_of_truth: false
 
 想要針對產品提出問題或議題？
 
-1. 閱讀 [圓桌會議運作規則](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/ROUNDTABLE_RULES.md)
+1. 閱讀 [圓桌會議運作規則](../../conventions/governance/roundtable-rules.md)
 2. 直接向 AI 助手提出問題，例如：
    - "我想討論是否應該實作深色模式"
    - "關於 AI 功能，我有一些想法..."
 3. 五個角色會從各自的專業角度回應
-4. 討論會自動記錄到 [討論記錄](../roundtable-discussions/) 目錄
+4. 討論會自動記錄到 [討論記錄索引](../../conventions/ROUNDTABLE-DISCUSSIONS-INDEX.md) 對應的 topic 目錄
 5. 形成共識後會產生決策文件
 
 ### 適用對象
@@ -130,35 +130,7 @@ source_of_truth: false
 
 ## 📈 後續行動
 
-### 立即行動項目（本月）
-
-基於產品經理評估的建議：
-
-1. [ ] 完成發布功能開發
-2. [ ] 招募 Alpha 測試者
-3. [ ] 建立產品路線圖
-4. [ ] 撰寫產品故事
-
-### 中期規劃（3-6 個月）
-
-*待綜合分析後確定*
-
----
-
-## 📝 文件維護
-
-### 更新頻率
-
-- 每季度重新評估一次
-- 重大功能發布後更新相關章節
-- 市場環境變化時更新競品分析
-
-### 版本歷史
-
-- **v1.0** (2026-02-02): 初始評估，完成產品經理視角
-- **v2.0** (2026-02-02): 完成所有五個角色的評估
-- **v3.0** (2026-02-02): 完成綜合分析報告
-- **v4.0** (2026-02-02): 新增圓桌會議記錄，模擬跨角色互動討論
+完整的優先級共識與行動計畫已整合至 [綜合分析報告](./decision.md)「優先級共識」與「戰略建議整合」章節，本文件不重複維護。
 
 ---
 

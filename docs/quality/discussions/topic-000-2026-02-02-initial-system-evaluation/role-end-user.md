@@ -610,4 +610,4 @@ Tooltip 提示：
 **評估者**: End User (Content Creator)
 **使用經驗**: 3 年 Obsidian 使用者，技術部落客
 **下一步**: 等待發布功能完成，再次評估
-**相關文件**: [產品經理評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/product-manager.md), [維運評估](../../../roundtable-discussions/topic-000-2026-02-02-initial-system-evaluation/operations.md)
+**相關文件**: [產品經理評估](./role-product-manager.md), [維運評估](./role-operations.md)

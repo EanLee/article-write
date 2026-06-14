@@ -67,6 +67,8 @@ source_of_truth: false
 2. **P1**: AI 功能建立差異化
 3. **P2**: 擴大目標受眾
 
+> 📄 完整報告：[role-product-manager.md](./role-product-manager.md)
+
 ---
 
 ### Marketing (Lisa) 的發現
@@ -85,6 +87,8 @@ source_of_truth: false
 3. 完成核心功能後才能開始推廣
 
 **Lisa 補充**: 我想強調，品牌問題被嚴重低估了！如果我們晚點再改名，成本會非常高。
+
+> 📄 完整報告：[role-marketing.md](./role-marketing.md)
 
 ---
 
@@ -108,6 +112,8 @@ source_of_truth: false
 2. 首次使用引導
 3. AI 功能（自動摘要、SEO）
 
+> 📄 完整報告：[role-end-user.md](./role-end-user.md)
+
 ---
 
 ### Ops (Sam) 的發現
@@ -128,6 +134,8 @@ source_of_truth: false
 1. 建立 Sentry 錯誤追蹤
 2. 實作自動更新
 3. 建立 CI/CD Pipeline
+
+> 📄 完整報告：[role-operations.md](./role-operations.md)
 
 ---
 
@@ -150,6 +158,8 @@ source_of_truth: false
 3. 完成核心功能後再優化架構
 
 **Taylor 補充**: 我想強調，我們陷入了「過早優化」的陷阱。應該「功能優先，架構其次」。
+
+> 📄 完整報告：[role-cto.md](./role-cto.md)
 
 ---
 
