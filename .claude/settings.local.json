@@ -79,7 +79,20 @@
       "Bash(git stash:*)",
       "mcp__plugin_serena_serena__write_memory",
       "Bash(git push:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "mcp__plugin_serena_serena__edit_memory",
+      "mcp__plugin_context-mode_context-mode__ctx_search",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Bash(mkdir -p docs/engineering/playbooks)",
+      "Bash(mv docs/engineering/REFACTOR_CHECKLIST.md docs/conventions/dev-standards/)",
+      "Bash(mv docs/engineering/REFACTORING_PLAN.md docs/conventions/dev-standards/)",
+      "Bash(mv docs/quality/assessments/E2E_TESTING_GUIDE.md docs/engineering/playbooks/)",
+      "Bash(mv docs/conventions/docs-governance/docs-classification-logic.md docs/conventions/docs-governance/2026-06-14-docs-classification-logic.md)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "Bash(rtk npm *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "docs"
+  ]
 }
