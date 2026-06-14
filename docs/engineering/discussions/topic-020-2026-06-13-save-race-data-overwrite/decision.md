@@ -4,7 +4,7 @@ domain: engineering
 type: rpd
 status: approved
 owner: roundtable-discussions
-updated: 2026-06-13
+updated: 2026-06-14
 source_of_truth: true
 ---
 
@@ -39,22 +39,27 @@ source_of_truth: true
 
 ## 驗收標準（Alex 提出，全體同意）
 
-- [ ] 三種觸發路徑寫入磁碟前，內容與編輯器當前內容一致——各自有 E2E 覆蓋
-- [ ] frontmatter 欄位（date、draft 等）儲存後完整保留
-- [ ] UI 顯示「已儲存」時，磁碟內容與畫面 100% 一致
-- [ ] 既有 `tests/e2e/writing-baseline.spec.ts` 的 `test.fixme` 解除並通過
+- [x] 三種觸發路徑寫入磁碟前，內容與編輯器當前內容一致——各自有 E2E 覆蓋
+- [x] frontmatter 欄位（date、draft 等）儲存後完整保留
+- [x] UI 顯示「已儲存」時，磁碟內容與畫面 100% 一致
+- [x] 既有 `tests/e2e/writing-baseline.spec.ts` 的 `test.fixme` 解除並通過
 
 ## ✅ Action Items
 
 | # | 行動項目 | 負責人 | 優先級 | 完成條件 | 狀態 |
 |---|---------|-------|-------|---------|------|
-| 1 | 過渡防護：寫入前 mtime/hash 比對＋衝突彈窗（含 E2E） | Sam | P0 | 半天內上線，衝突時彈窗詢問、不覆寫 | ⏳ 待開始 |
-| 2 | 儲存來源單一化實作（A 方案，含切換時儲存路徑） | Taylor／技術團隊 | P0 | 三路徑統一取編輯器即時內容，unit + E2E 通過，1.5~2 天 | ⏳ 待開始 |
-| 3 | frontmatter 序列化欄位保留修復 | Taylor／技術團隊 | P0 | date/draft 等欄位儲存後不遺失，同分支 | ⏳ 待開始 |
-| 4 | 寫入後驗證＋Sentry 事件 | Sam | P1 | 不一致時可在 Sentry 看到事件 | ⏳ 待開始 |
-| 5 | 解除 test.fixme 並補三路徑 E2E | 技術團隊 | P1 | 驗收標準四項全過 | ⏳ 待開始 |
+| 1 | 過渡防護：寫入前 mtime/hash 比對＋衝突彈窗（含 E2E） | Sam | P0 | 半天內上線，衝突時彈窗詢問、不覆寫 | 🔄 進行中：`BackupService.detectConflict()` 已實作 mtime 比對，衝突時以 `notify.warning` 提示「重新載入」；尚缺 hash 比對與正式彈窗（目前為 toast） |
+| 2 | 儲存來源單一化實作（A 方案，含切換時儲存路徑） | Taylor／技術團隊 | P0 | 三路徑統一取編輯器即時內容，unit + E2E 通過，1.5~2 天 | ✅ 完成（`84ac097 fix(store): 編輯器內容即時同步 store，統一儲存來源（topic-020 方案 A）`） |
+| 3 | frontmatter 序列化欄位保留修復 | Taylor／技術團隊 | P0 | date/draft 等欄位儲存後不遺失，同分支 | ✅ 完成（`1712aab fix(service): frontmatter 欄位完整保留與 own-write 衝突豁免`） |
+| 4 | 寫入後驗證＋Sentry 事件 | Sam | P1 | 不一致時可在 Sentry 看到事件 | ⏳ 待開始：尚無 Sentry 整合 |
+| 5 | 解除 test.fixme 並補三路徑 E2E | 技術團隊 | P1 | 驗收標準四項全過 | ✅ 完成：`writing-baseline.spec.ts` 測試 1-7 全數通過。測試 6 根因（[topic-021](../topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md)）確認為 Fix #5 側邊欄收合誤觸發（非 reactivity 問題），已於 [PR #40](https://github.com/EanLee/article-write/pull/40) 移除 `.fixme` |
 | 6 | 已知問題清單揭露文案（安心語氣版） | Lisa＋Jordan | P2 | 措辭定稿並發布，今日內 | ⏳ 待開始 |
-| 7 | 第三天驗收，決定是否順延 Launch | Alex | P0 | 驗收標準四項全過或宣布順延 | ⏳ 待開始 |
+| 7 | 第三天驗收，決定是否順延 Launch | Alex | P0 | 驗收標準四項全過或宣布順延 | 🔄 進行中：#5 已解除阻塞（驗收標準四項全過），可進行驗收判定 |
+
+> **狀態同步說明（2026-06-14）**：#2、#3、#5 已完成並合併（或待合併）`develop`，
+> 詳見 [topic-020 E2E 驗收期間修復報告](../../../quality/assessments/fix-bug/2026-06-13-topic-020-e2e-acceptance-fixes.md)。
+> 該分支同時發現並修復 4 個額外的快捷鍵衝突問題（Fix #1/#4/#5）。
+> [topic-021](../topic-021-2026-06-13-articlelisttree-reactivity/PENDING.md) 根因已確認並解決（同 Fix #5），#5/#7 解除阻塞。
 
 ## 關聯文件
 
