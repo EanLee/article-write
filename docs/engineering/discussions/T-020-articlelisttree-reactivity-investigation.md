@@ -145,10 +145,10 @@ function loadSettings() {
 
 | # | 行動項目 | 負責人 | 優先級 | 完成條件 | 狀態 |
 |---|---------|-------|-------|---------|------|
-| 1 | 在 `useArticleFilter.ts`/`ArticleListTree.vue` 三層 computed 加分層 debug log，跑 full-suite 並比對 `renderer-console.log` 找出斷裂層 | Wei | P1 | `test-results/renderer-console.log` 顯示三層輸出，且能明確指出哪一層在 full-suite 下未從 1→2（或 group 數量不對） | ⏳ 待開始 |
-| 2 | 檢查並修復 `FileWatchService.recentEvents` 去抖 key 未納入 `event` type 的問題 | Lin | P2 | `recentEvents` key 包含 `event` type，相關 unit test 通過 | ⏳ 待開始 |
-| 3 | 根據 #1 找到的斷裂層，提出並實作修復、解除 test 6 `test.fixme` | 技術團隊（待 #1 結果指派） | P0 | `writing-baseline.spec.ts` 測試 6 通過，`pnpm run test` 0 failures | ⏳ 待開始 |
-| 4 | 新文章加入時自動展開群組＋高亮提示的互動規格 | Alex | P3 | 規格文件交付 Wei，於 #3 修復同分支或下個 Sprint 實作 | ⏳ 待開始 |
+| 1 | 在 `useArticleFilter.ts`/`ArticleListTree.vue` 三層 computed 加分層 debug log，跑 full-suite 並比對 `renderer-console.log` 找出斷裂層 | Wei | P1 | `test-results/renderer-console.log` 顯示三層輸出，且能明確指出哪一層在 full-suite 下未從 1→2（或 group 數量不對） | ✅ 完成（三層輸出皆正確，~10ms 內更新，computed 鏈本身無斷裂） |
+| 2 | 檢查並修復 `FileWatchService.recentEvents` 去抖 key 未納入 `event` type 的問題 | Lin | P2 | `recentEvents` key 包含 `event` type，相關 unit test 通過 | ⏳ 待開始（移至 Backlog，與本次根因無關） |
+| 3 | 根據 #1 找到的斷裂層，提出並實作修復、解除 test 6 `test.fixme` | 技術團隊（待 #1 結果指派） | P0 | `writing-baseline.spec.ts` 測試 6 通過，`pnpm run test` 0 failures | ✅ 完成 — 根因實為 Fix #5（Ctrl+B 側邊欄收合誤觸發，commit `be570b4`）與 reactivity 無關，已移除 `.fixme`，[PR #40](https://github.com/EanLee/article-write/pull/40) |
+| 4 | 新文章加入時自動展開群組＋高亮提示的互動規格 | Alex | P3 | 規格文件交付 Wei，於 #3 修復同分支或下個 Sprint 實作 | ⏳ 待開始（topic-021 已解決，無阻塞，移至 Backlog 評估是否仍需要） |
 
 ## 相關文件
 
