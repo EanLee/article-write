@@ -199,6 +199,27 @@ describe("FileWatchService", () => {
       vi.useRealTimers();
     });
 
+    it("should ignore any event type during the ignore window (T-020 Action Item #2)", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
+
+      mockOnFileChange.mockImplementation((handler) => {
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
+
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
+
+      service.ignoreNextChange("/test/vault/file.md", 100);
+
+      // 忽略期間內，unlink/add 等其他事件類型也應一併忽略（own-write 期間的所有事件）
+      fileChangeHandler({ event: "unlink", path: "/test/vault/file.md" });
+      fileChangeHandler({ event: "add", path: "/test/vault/file.md" });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
     it("should normalize path before ignoring", async () => {
       const callback = vi.fn();
       let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
@@ -247,6 +268,26 @@ describe("FileWatchService", () => {
       expect(callback).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();
+    });
+
+    it("should not debounce a different event type for the same path (T-020 Action Item #2)", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
+
+      mockOnFileChange.mockImplementation((handler) => {
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
+
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
+
+      // change 之後緊接著 unlink（同一路徑），不應被去抖機制吞掉
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
+      fileChangeHandler({ event: "unlink", path: "/test/vault/file.md" });
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenNthCalledWith(2, { event: "unlink", path: "/test/vault/file.md" });
     });
   });
 
