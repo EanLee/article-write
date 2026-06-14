@@ -1,15 +1,11 @@
 ---
-doc_type: GUIDELINE
-doc_id: GUIDELINE-2026-06-13-commit-conventions
 title: "Commit 規範與 Git Hooks"
 domain: conventions
+type: guideline
 status: draft
-bounded_context: engineering-conventions
-version: 1
-created_at: 2026-06-13
-last_reviewed: ~
-source: 整併自 DEVELOPMENT.md「Commit 規範／Git Hooks 與自動檢查」（2025-01-24）與 .claude/CLAUDE.md（2026-06-13）
-ai_generated: true
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
 ---
 
 # Commit 規範與 Git Hooks
@@ -65,7 +61,7 @@ ai_generated: true
 1. **使用繁體中文（zh-TW）**
 2. **Atomic Commits**：每個 commit 只做一件事
 3. **SRP（Single Responsibility Principle）**：單一職責
-4. **清楚描述**：讓人一眼看懂做了什麼
+4. **清楚描述**：讓人一眼看懂做了什麼，易於理解與回溯
 5. **不署名**：不加 co-author 等署名資訊
 
 ### 範例
@@ -107,12 +103,13 @@ git commit -m "refactor(editor): 重構編輯器"
 
 提交前確認：
 
-- [ ] 使用 Conventional Commits 格式
-- [ ] Type 和 Scope 正確
-- [ ] 使用繁體中文描述
-- [ ] Subject 清楚簡潔（50 字以內）
-- [ ] Body 詳細說明變更內容（如需要）
-- [ ] 遵循原子性原則
+- 使用 Conventional Commits 格式
+- Type 和 Scope 正確
+- 使用繁體中文描述
+- 沒有包含不相關的變更
+- Subject 清楚簡潔（50 字以內）
+- Body 詳細說明變更內容（如需要）
+- 遵循原子性原則
 
 ## Git Hooks 與自動檢查
 

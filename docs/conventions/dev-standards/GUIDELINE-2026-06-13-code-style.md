@@ -1,15 +1,11 @@
 ---
-doc_type: GUIDELINE
-doc_id: GUIDELINE-2026-06-13-code-style
 title: "程式碼風格與型別規範"
 domain: conventions
+type: guideline
 status: draft
-bounded_context: engineering-conventions
-version: 1
-created_at: 2026-06-13
-last_reviewed: ~
-source: 整併自 DEVELOPMENT.md「程式碼規範」（2025-01-24）與 typescript-enum-conventions skill（2026-06-13）
-ai_generated: true
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
 ---
 
 # 程式碼風格與型別規範

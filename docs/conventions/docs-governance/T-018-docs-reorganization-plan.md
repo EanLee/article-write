@@ -1,15 +1,11 @@
 ---
-doc_type: PLAN
-doc_id: T-018-docs-reorganization-plan
 title: "文件治理：戰略面與工程技術面分類規劃"
 domain: conventions
+type: plan
 status: approved
-bounded_context: docs-governance
-version: 1
-created_at: 2026-06-13
-last_reviewed: 2026-06-13
-source: 延續 T-017 落差分析，回應「現有 docs 混亂、戰略面與工程技術面混雜」之盤點需求
-ai_generated: true
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
 related_docs:
   - docs/conventions/docs-governance/T-017-doc-viewer-docs-governance-gap-analysis.md
   - docs/conventions/docs-governance/T-019-docs-governance-migration-report.md

@@ -1,15 +1,11 @@
 ---
-doc_type: GUIDELINE
-doc_id: GUIDELINE-2026-06-13-git-branching
 title: "Git Flow 與分支管理規範"
 domain: conventions
+type: guideline
 status: draft
-bounded_context: engineering-conventions
-version: 1
-created_at: 2026-06-13
-last_reviewed: ~
-source: 整併自 DEVELOPMENT.md「版本控制／分支管理／開發流程」（2025-01-24）與 .claude/CLAUDE.md、bugfix-workflow skill（2026-06-13）
-ai_generated: true
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: true
 ---
 
 # Git Flow 與分支管理規範

@@ -59,7 +59,7 @@ title: "Bug: 某問題描述"
 
 **暫緩移轉的文件**（留在 backlog）：
 - 純歷史紀錄、短期內不會再碰的文件
-- 不確定分類的文件（先留 `doc_type: UNKNOWN`，避免強行分錯）
+- 不確定分類的文件（先留 `type: note`，避免強行分錯）
 
 ---
 
@@ -69,26 +69,23 @@ title: "Bug: 某問題描述"
 
 ```yaml
 ---
-doc_type: <依 docs-governance 表格判斷>
-doc_id: <doc_type>-<YYYY-MM-DD>-<kebab-slug>
 title: <文件標題，值含冒號加雙引號>
+domain: <依 docs-governance 表格判斷>
+type: <依 docs-governance 表格判斷>
 status: draft
-bounded_context: <所屬領域脈絡>
-version: 1
-created_at: <文件原始建立日期，若不確定填套用 doc-viewer 的日期>
-last_reviewed: ~
-source: 既有文件（移轉自 <原始來源>）
-ai_generated: false
+owner: <person/team，不確定填 tech-team>
+updated: <文件原始建立或最後修改日期，若不確定填套用 doc-viewer 的日期>
+source_of_truth: true | false
 ---
 ```
 
-**判斷 `doc_type` 的捷徑：**
-- 決策 / 為什麼做某件事 → ADR 或 TDR
-- 事件 / 出了什麼問題 → IRR
-- 怎麼做某件事 → RUNBOOK 或 GUIDELINE
-- 需求 / 功能說明 → BRS 或 SBE
-- 術語定義 → ULR
-- 不確定 → 先填 `doc_type: NOTE`，之後再重新分類
+**判斷 `type` 的捷徑：**
+- 決策 / 為什麼做某件事 → `adr` 或 `tdr`
+- 事件 / 出了什麼問題 → `irr`
+- 怎麼做某件事 → `runbook` 或 `guideline`
+- 需求 / 功能說明 → `brs` 或 `sbe`
+- 術語定義 → `ulr`
+- 不確定 → 先填 `type: note`，之後再重新分類
 
 ---
 
@@ -97,8 +94,8 @@ ai_generated: false
 文件數量多時，可請 AI agent 執行批次掃描：
 
 ```
-請列出 docs/ 下所有缺少 doc_type 欄位的 .md 檔案，
-並依目錄結構推測每份文件最可能的 doc_type，以表格呈現（不要直接修改）。
+請列出 docs/ 下所有缺少 domain/type 欄位的 .md 檔案，
+並依目錄結構推測每份文件最可能的 domain/type，以表格呈現（不要直接修改）。
 ```
 
 確認 AI 的判斷後，再逐批授權修改，避免批次錯誤難以復原。
@@ -120,5 +117,5 @@ npm run docs:dev            # 目視確認 nav/sidebar 標題正確、連結不 
 ## 注意事項
 
 - **`generate-nav.mjs` 不依賴 frontmatter**：沒有 frontmatter 的文件仍會出現在 nav，標題改用檔名；移轉後重跑 `docs:dev` 標題才會更新。
-- **不要為了「補完整」而亂猜 `doc_type`**：填 `NOTE` 或 `UNKNOWN` 比填錯分類好——錯誤分類比沒分類更難事後修正。
-- **`status` 一律從 `draft` 開始**：既有文件即使已「完成」，套上 doc-viewer 框架後應重新審核才能標為 `verified`。
+- **不要為了「補完整」而亂猜 `domain`/`type`**：填 `type: note` 比填錯分類好——錯誤分類比沒分類更難事後修正。
+- **`status` 一律從 `draft` 開始**：既有文件即使已「完成」，套上 doc-viewer 框架後應重新審核才能標為 `approved`。

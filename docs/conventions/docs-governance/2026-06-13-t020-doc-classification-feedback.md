@@ -4,7 +4,7 @@ domain: conventions
 type: feedback
 status: draft
 owner: Ean
-updated: 2026-06-13
+updated: 2026-06-14
 source_of_truth: true
 ---
 
@@ -12,6 +12,7 @@ source_of_truth: true
 
 **提出者**: Ean  
 **提出日期**: 2026-06-13  
+**最後更新**: 2026-06-14（補充 Frontmatter Schema 整併決策，待回報 doc-viewer 專案）  
 **相關任務**: T-020（文件治理 Phase 6 實體搬移）
 
 ---
@@ -117,6 +118,51 @@ conventions 的文件裡**：
 遇到複合文件時，先問「這個區塊的讀者意圖與變動頻率，跟其他區塊一樣嗎？」不一樣就該拆；
 但同時要注意——**「誰參與決策」與「如何決策」往往是同一份治理規範的兩面，
 不要被表面的「名單 vs 規則」形式差異誤導而拆到不同 domain。**
+
+---
+
+## 2026-06-14 補充：Frontmatter Schema 整併決策（待回報 doc-viewer 專案）
+
+**背景**：本文件提出時（2026-06-13）已採用 `title/domain/type/status/owner/updated/source_of_truth` schema，
+但 `docs-governance` skill 與 `docs/.vitepress/doc-types.config.mjs` 仍維持 T-017/T-018 規劃的
+`doc_type/doc_id/bounded_context/version/created_at/last_reviewed/source/ai_generated` 舊 schema，
+形成三套並存且互相矛盾的分類規則。
+
+**資料佐證**（對 `docs/**/*.md` 245 份文件 grep）：
+- `domain:` 已用於 244/245 份文件（7 個實際值：quality/engineering/delivery/product/conventions/reference/operations，**無 `archive`**）
+- `doc_type:` 僅 4/245 份文件使用，且這 4 份同時也有 `domain:`（過渡期遺留）
+- `status:` 實際分布以 `approved`(223)/`draft`(14)/`archived`(4) 為主，`pending-review`/`verified`/`rejected`/`reviewing` 等舊 5 階段值幾乎未被使用
+- `type:` 已是 18 種自由文字值的開放詞彙（`assessment`/`rpd`/`spec`/`guide`/`plan` 等），並非封閉 3 類列舉
+
+**決策**：以 `docs-classification-logic.md` 的 schema 為準，整併三套規則為一套：
+`title/domain/type/status/owner/updated/source_of_truth`，`status` 簡化為 `draft → approved → archived` 三階段，
+`type` 維持開放詞彙。已同步修改：
+- `.claude/skills/docs-governance/SKILL.md`（Step 1/2/6/7/8）
+- `.claude/skills/doc-migration/SKILL.md`（Step 4）
+- `docs/.vitepress/doc-types.config.mjs`（`domains` 移除 `archive`、`statusMap` 改 3 階段、`extend` 改為 type 開放詞彙建議）
+- `docs/conventions/dev-standards/GUIDELINE-2026-06-13-{code-style,commit-conventions,git-branching}.md` 與
+  `docs/conventions/docs-governance/T-018-docs-reorganization-plan.md` 的 frontmatter 改用新 schema
+- `docs/conventions/docs-governance/2026-06-14-docs-classification-logic.md` 補上 `status` 列舉定義與 `type` 開放詞彙說明
+
+**待回報 doc-viewer 專案**：`doc-types.config.mjs` 的 `extend` 擴充機制（`{label, dir, required}`）
+從未被任何 build/lint 消費（檔頭註解已自述「doc-viewer 尚未實作消費端」），目前僅作為 skill/人類審閱的
+「分類規格文件」。若 doc-viewer 未來要實作消費端，建議：
+- 以本文件確認的 `domain`（7 值，目錄即 domain）/`type`（開放詞彙）/`status`（3 階段）為 schema 基準，
+  不要恢復 `doc_type`/`bounded_context` 等 14 類封閉欄位
+- `extend` 機制若保留，應重新定義為「`type` 開放詞彙的補充說明清單」，而非 `doc_type → 目錄` 映射
+  （目錄已由 `domain` 決定，不需要每個 type 各自指定 `dir`）
+
+**待回報 doc-viewer 專案（更高優先）**：`.doc-viewer/scripts/docs-lint.mjs` 的 `--schema` 模式
+（`npm run docs:lint:schema`）目前仍硬編碼舊 schema：
+- `REQUIRED_FIELDS = ['doc_type', 'doc_id', 'title', 'status', 'bounded_context', 'version', 'created_at']`
+- `KNOWN_DOC_TYPES`（14 類封閉列舉，搭配 `doc_type` 值驗證）
+
+執行 `docs:lint:schema` 會對全專案 244/245 份已採用新 schema 的文件持續發出
+「缺少必填欄位 doc_type/doc_id/bounded_context/version/created_at」WARN（不阻斷，但訊息與實際規範矛盾）。
+此腳本是 schema 的**唯一自動化檢查實作**，本次整併僅更新文件與 skill，尚未同步此腳本——
+為避免「文件說一套、lint 工具檢查另一套」的不一致，建議後續任務將 `REQUIRED_FIELDS` 改為
+`['title', 'domain', 'type', 'status', 'owner', 'updated', 'source_of_truth']`，並移除/重新設計
+`KNOWN_DOC_TYPES` 封閉列舉驗證（`type` 為開放詞彙）。
 
 ---
 
