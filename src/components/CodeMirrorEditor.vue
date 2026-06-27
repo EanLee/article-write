@@ -128,6 +128,7 @@ const emit = defineEmits<{
   "toggle-word-wrap": []
   "scroll": []
   "outline-change": [headings: OutlineHeading[]]
+  "drop-image": [file: File, pos: number]
 }>()
 
 // ─── Refs ────────────────────────────────────────────────────────────────────
@@ -337,10 +338,20 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
     }
   }),
 
-  // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）
+  // 鍵盤事件與拖放圖片事件
   // 注意：scroll 事件改在 onMounted 直接掛到 scrollDOM（此處的 domEventHandlers 無法捕捉 scrollDOM 捲動）
   EditorView.domEventHandlers({
     keydown: (event) => { emit("keydown", event) },
+    drop(event, view) {
+      const imageFiles = Array.from(event.dataTransfer?.files ?? []).filter(
+        (f) => f.type.startsWith("image/")
+      )
+      if (!imageFiles.length) { return false }
+      event.preventDefault()
+      const pos = view.posAtCoords({ x: event.clientX, y: event.clientY }) ?? view.state.doc.length
+      imageFiles.forEach((file) => emit("drop-image", file, pos))
+      return true
+    },
   }),
 
   // 自動換行（預設開啟）
@@ -496,6 +507,21 @@ function scrollToQuery(query: string) {
 }
 
 /**
+ * 在文件指定位置插入文字，游標移至插入內容末尾
+ * @param pos 插入位置（文件字元偏移）
+ * @param text 要插入的文字
+ */
+function insertAtPosition(pos: number, text: string) {
+  const view = editorView.value
+  if (!view) { return }
+  view.dispatch({
+    changes: { from: pos, insert: text },
+    selection: { anchor: pos + text.length },
+  })
+  view.focus()
+}
+
+/**
  * 選取指定字元範圍，並將選取起點捲動至視窗置中（CM6 原生實作）
  * 取代原先 textarea.setSelectionRange + 手動計算 scrollTop 的做法
  * @param from 選取起始位置（文件字元偏移）
@@ -518,6 +544,7 @@ defineExpose({
   scrollToLine,
   scrollToQuery,
   selectRange,
+  insertAtPosition,
 })
 </script>
 

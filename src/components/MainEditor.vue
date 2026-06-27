@@ -21,7 +21,7 @@
                     :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
                     @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
                     @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll"
-                    @outline-change="handleOutlineChange" />
+                    @outline-change="handleOutlineChange" @drop-image="handleDropImage" />
             </template>
 
             <!-- Raw 模式 -->
@@ -503,6 +503,21 @@ function updatePreview() {
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
     articleStore.updateArticle(updatedArticle);
+}
+
+/**
+ * 處理 CM6 拖放圖片事件：上傳圖片後在拖放位置插入 Obsidian 圖片語法
+ * @param file 拖放的圖片 File 物件
+ * @param pos 拖放時在文件中的字元偏移位置
+ */
+async function handleDropImage(file: File, pos: number) {
+    try {
+        const fileName = await imageService.uploadImageFile(file)
+        const markdownRef = imageService.generateImageReference(fileName)
+        editorPaneRef.value?.insertAtPosition(pos, `\n${markdownRef}\n`)
+    } catch (error) {
+        logger.error("[Editor] 拖放圖片上傳失敗:", error)
+    }
 }
 
 /**
