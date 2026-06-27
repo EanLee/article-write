@@ -67,7 +67,7 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, re
 import { EditorState, type Extension, type TransactionSpec } from "@codemirror/state"
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
-import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
+import { defaultKeymap, history, historyKeymap, indentWithTab, deleteLine, copyLineDown } from "@codemirror/commands"
 import {
   closeBrackets,
   closeBracketsKeymap,
@@ -262,6 +262,30 @@ const formattingKeymap = keymap.of([
   { key: "Mod-6", run: makeFormatCommand(s => toggleHeadingSpec(6, s)) },
 ])
 
+// ─── 編輯快捷鍵 ──────────────────────────────────────────────────────────────
+
+/** Ctrl+G：彈出行號輸入框，捲動至指定行並移動游標 */
+function jumpToLineCommand(view: EditorView): boolean {
+  const input = window.prompt("跳至行號：")
+  if (!input) { return false }
+  const lineNum = parseInt(input, 10)
+  if (isNaN(lineNum) || lineNum < 1) { return false }
+  const target = Math.min(lineNum, view.state.doc.lines)
+  const line = view.state.doc.line(target)
+  view.dispatch({
+    selection: { anchor: line.from },
+    effects: EditorView.scrollIntoView(line.from, { y: "center", yMargin: 80 }),
+  })
+  view.focus()
+  return true
+}
+
+const editingKeymap = keymap.of([
+  { key: "Mod-g", run: jumpToLineCommand },    // 跳至指定行
+  { key: "Mod-d", run: deleteLine },            // 刪除當前行
+  { key: "Mod-Shift-d", run: copyLineDown },    // 複製當前行至下一行
+])
+
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
 // 解析標題供大綱面板使用（初次掛載與內容變更時都需呼叫）
@@ -309,6 +333,9 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
 
   // Obsidian 自動完成（如果有 getSuggestions）
   ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
+
+  // 編輯快捷鍵：Ctrl+G 跳行、Ctrl+D 刪行、Ctrl+Shift+D 複製行
+  editingKeymap,
 
   // 格式化快捷鍵（必須在 defaultKeymap 之前，避免被預設行為攔截）
   formattingKeymap,
