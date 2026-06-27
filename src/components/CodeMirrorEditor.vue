@@ -338,9 +338,9 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
   }),
 
   // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）
+  // 注意：scroll 事件改在 onMounted 直接掛到 scrollDOM（此處的 domEventHandlers 無法捕捉 scrollDOM 捲動）
   EditorView.domEventHandlers({
     keydown: (event) => { emit("keydown", event) },
-    scroll: () => { emit("scroll") },
   }),
 
   // 自動換行（預設開啟）
@@ -379,6 +379,10 @@ function setSuggestionsProvider(fn: (text: string, pos: number) => SuggestionIte
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
+// domEventHandlers 掛在 .cm-editor（外層），但 scroll 事件發生在 .cm-scroller（內層）且不冒泡
+// 因此需直接對 scrollDOM 掛監聽器，才能正確捕捉 CM6 的捲動事件
+let _scrollListener: (() => void) | null = null
+
 onMounted(() => {
   if (!containerRef.value) { return }
 
@@ -392,11 +396,18 @@ onMounted(() => {
     parent: containerRef.value,
   })
 
+  _scrollListener = () => emit("scroll")
+  editorView.value.scrollDOM.addEventListener("scroll", _scrollListener)
+
   // 初次掛載即解析大綱（updateListener 只在 docChanged 時觸發，不含初始載入）
   emitOutline(state.doc)
 })
 
 onUnmounted(() => {
+  if (_scrollListener) {
+    editorView.value?.scrollDOM.removeEventListener("scroll", _scrollListener)
+    _scrollListener = null
+  }
   editorView.value?.destroy()
 })
 

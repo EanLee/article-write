@@ -137,13 +137,17 @@ defineExpose({ outlineHeadings, handleScrollToOutlineLine })
 // Get preview container ref from PreviewPane component
 const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
 
+// CM6 的可捲動 DOM 元素（.cm-scroller）；scrollTop/scrollHeight 操作需使用此元素
+// editorRef wrapper 沒有 scrollTop，不可直接傳給 useSyncScroll
+const editorScrollRef = computed(() => editorPaneRef.value?.editorView?.scrollDOM ?? undefined);
+
 // 同步滾動功能
 const {
     syncEnabled,
     onEditorScroll,
     onPreviewScroll,
     setSync
-} = useSyncScroll(editorRef, previewRef);
+} = useSyncScroll(editorScrollRef, previewRef);
 
 // 使用 Composables
 const {
