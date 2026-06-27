@@ -501,34 +501,19 @@ function handleFrontmatterUpdate(updatedArticle: Article) {
     articleStore.updateArticle(updatedArticle);
 }
 
-// 搜尋高亮處理
+/**
+ * 處理 SearchReplace 元件發出的 highlight 事件：
+ * 在 CM6 編輯器中選取目前匹配範圍，並捲動至選取位置置中
+ * @param matches 全部匹配的位置陣列
+ * @param currentIndex 目前要高亮的匹配索引
+ */
 function handleSearchHighlight(
     matches: Array<{ start: number; end: number }>,
     currentIndex: number
 ) {
-    if (matches.length === 0 || !editorRef.value) { return; }
-
+    if (matches.length === 0) { return; }
     const match = matches[currentIndex];
-
-    // 選取匹配的文字
-    editorRef.value.setSelectionRange(match.start, match.end);
-    editorRef.value.focus();
-
-    // 滾動到可見區域
-    scrollToSelection();
-}
-
-function scrollToSelection() {
-    if (!editorRef.value) { return; }
-
-    const textarea = editorRef.value;
-    const selectionStart = textarea.selectionStart;
-    const textBeforeSelection = textarea.value.substring(0, selectionStart);
-    const lines = textBeforeSelection.split("\n");
-    const lineHeight = 24; // 根據實際行高調整
-    const scrollTop = (lines.length - 1) * lineHeight;
-
-    textarea.scrollTop = scrollTop - textarea.clientHeight / 2;
+    editorPaneRef.value?.selectRange(match.start, match.end);
 }
 
 // 鍵盤事件處理（整合 composables）

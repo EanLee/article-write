@@ -484,12 +484,29 @@ function scrollToQuery(query: string) {
   view.focus()
 }
 
+/**
+ * 選取指定字元範圍，並將選取起點捲動至視窗置中（CM6 原生實作）
+ * 取代原先 textarea.setSelectionRange + 手動計算 scrollTop 的做法
+ * @param from 選取起始位置（文件字元偏移）
+ * @param to 選取結束位置（文件字元偏移）
+ */
+function selectRange(from: number, to: number) {
+  const view = editorView.value
+  if (!view) { return }
+  view.dispatch({
+    selection: { anchor: from, head: to },
+    effects: EditorView.scrollIntoView(from, { y: "center", yMargin: 80 }),
+  })
+  view.focus()
+}
+
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
   scrollToLine,
   scrollToQuery,
+  selectRange,
 })
 </script>
 
