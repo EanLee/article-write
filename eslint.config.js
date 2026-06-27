@@ -102,6 +102,14 @@ export default [
       "no-console": "off",
     },
   },
+  // SearchPanel 使用 highlightKeyword()，已對輸入做 HTML escape，v-html 安全
+  // PreviewPane 使用 sanitizedContent（Markdown→HTML 後經 DOMPurify 清理），v-html 安全
+  {
+    files: ["src/components/SearchPanel.vue", "src/components/PreviewPane.vue"],
+    rules: {
+      "vue/no-v-html": "off",
+    },
+  },
   {
     ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts", ".github/**", ".doc-viewer/**", "docs/.vitepress/**"],
   },

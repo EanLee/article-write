@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch, nextTick, ref } from "vue"
+import { Search } from "lucide-vue-next"
 import { useSearchStore } from "@/stores/search"
 import { useArticleStore } from "@/stores/article"
 import { highlightKeyword } from "@/utils/dom"
@@ -18,8 +19,13 @@ watch(() => searchStore.isOpen, async (open) => {
   }
 })
 
-// debounce 搜尋
+/** debounce timer，避免每次按鍵都觸發搜尋 */
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 處理搜尋輸入，debounce 200ms 後執行搜尋
+ * @param e 輸入事件
+ */
 function onInput(e: Event) {
   const val = (e.target as HTMLInputElement).value
   searchStore.query = val
@@ -27,6 +33,10 @@ function onInput(e: Event) {
   debounceTimer = setTimeout(() => searchStore.search(val), 200)
 }
 
+/**
+ * 處理鍵盤導航：↑↓ 選擇結果、Enter 開啟、Esc 關閉
+ * @param e 鍵盤事件
+ */
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "ArrowDown") {
     e.preventDefault()
@@ -41,18 +51,25 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
+/**
+ * 開啟目前選中的搜尋結果
+ */
 function openSelected() {
   const result = searchStore.results[searchStore.selectedIndex]
   if (result) { openResult(result) }
 }
 
+/**
+ * 開啟指定搜尋結果對應的文章，並請求編輯器捲動至關鍵字位置
+ * @param result 搜尋結果
+ */
 function openResult(result: SearchResult) {
   const article = articleStore.articles.find((a) => a.filePath === result.filePath)
   if (article) {
     articleStore.setCurrentArticle(article)
   }
+  searchStore.requestScrollToQuery(searchStore.query)
   searchStore.close()
-  // TODO(topic-014): scrollToMatch stub — CM6 scroll-to API 確認後實作
 }
 </script>
 
@@ -63,10 +80,7 @@ function openResult(result: SearchResult) {
       <div class="bg-base-100 border border-base-300 rounded-xl shadow-2xl w-full max-w-2xl mx-4">
         <!-- 搜尋輸入 -->
         <div class="flex items-center px-4 py-3 border-b border-base-300">
-          <svg class="w-5 h-5 text-base-content/50 mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search :size="20" class="text-base-content/50 mr-3 shrink-0" />
           <input ref="inputRef" type="text" :value="searchStore.query" placeholder="搜尋文章內容..."
             class="flex-1 bg-transparent outline-none text-base-content text-base" @input="onInput"
             @keydown="onKeydown" />

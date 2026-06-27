@@ -451,6 +451,10 @@ const editorRef = computed(() => {
   }
 })
 
+/**
+ * 捲動至指定行號（0-indexed）
+ * @param lineNumber 0-indexed 行號
+ */
 function scrollToLine(lineNumber: number) {
   const view = editorView.value
   if (!view) { return }
@@ -463,11 +467,29 @@ function scrollToLine(lineNumber: number) {
   view.focus()
 }
 
+/**
+ * 在 CM6 文件中搜尋關鍵字（大小寫不敏感），捲動至第一個匹配行置中顯示
+ * @param query 要搜尋的關鍵字
+ */
+function scrollToQuery(query: string) {
+  const view = editorView.value
+  if (!view || !query.trim()) { return }
+  const content = view.state.doc.toString()
+  const pos = content.toLowerCase().indexOf(query.trim().toLowerCase())
+  if (pos === -1) { return }
+  const line = view.state.doc.lineAt(pos)
+  view.dispatch({
+    effects: EditorView.scrollIntoView(line.from, { y: "center", yMargin: 80 }),
+  })
+  view.focus()
+}
+
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
   scrollToLine,
+  scrollToQuery,
 })
 </script>
 

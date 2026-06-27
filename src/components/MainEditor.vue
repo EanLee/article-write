@@ -53,6 +53,7 @@
 import { ref, computed, watch, onUnmounted, onMounted, nextTick } from "vue";
 import { useArticleStore } from "@/stores/article";
 import { useConfigStore } from "@/stores/config";
+import { useSearchStore } from "@/stores/search";
 import { debounce } from "lodash-es";
 import EditorHeader from "./EditorHeader.vue";
 import CodeMirrorEditor from "./CodeMirrorEditor.vue";
@@ -76,6 +77,7 @@ import type { OutlineHeading } from "./CodeMirrorEditor.vue"
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
+const searchStore = useSearchStore();
 
 // 使用服務單例
 const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, imageService } = useServices();
@@ -112,9 +114,23 @@ function handleOutlineChange(headings: OutlineHeading[]) {
   emit("outline-change", headings)
 }
 
+/**
+ * 捲動編輯器至大綱指定行
+ * @param line 0-indexed 行號
+ */
 function handleScrollToOutlineLine(line: number) {
   editorPaneRef.value?.scrollToLine(line)
 }
+
+/**
+ * 監聽全域搜尋的待捲動查詢：文章切換後等 Vue 更新完成，再捲動至關鍵字位置並清除狀態
+ */
+watch(() => searchStore.pendingScrollQuery, async (query) => {
+  if (!query) { return }
+  await nextTick()
+  editorPaneRef.value?.scrollToQuery(query)
+  searchStore.requestScrollToQuery(null)
+})
 
 defineExpose({ outlineHeadings, handleScrollToOutlineLine })
 

@@ -216,4 +216,51 @@ describe("Search Store", () => {
       expect(store.selectedIndex).toBe(0);
     });
   });
+
+  // ── requestScrollToQuery() ────────────────────────────────────────────────
+
+  describe("requestScrollToQuery()", () => {
+    // 案例：store 初始化後 pendingScrollQuery 應為 null
+    // 情境：確保初始狀態不會意外觸發編輯器捲動
+    it("初始狀態 pendingScrollQuery 應為 null", () => {
+      const store = useSearchStore();
+      expect(store.pendingScrollQuery).toBeNull();
+    });
+
+    // 案例：傳入關鍵字時 pendingScrollQuery 應被設定
+    // 情境：SearchPanel openResult() 呼叫後，MainEditor 的 watcher 應能讀到待捲動查詢
+    it("requestScrollToQuery 應設定 pendingScrollQuery", () => {
+      const store = useSearchStore();
+      store.requestScrollToQuery("Vue 3");
+      expect(store.pendingScrollQuery).toBe("Vue 3");
+    });
+
+    // 案例：傳入 null 時應清除 pendingScrollQuery
+    // 情境：編輯器捲動完成後呼叫 requestScrollToQuery(null) 清除狀態，避免重複捲動
+    it("傳入 null 應清除 pendingScrollQuery", () => {
+      const store = useSearchStore();
+      store.requestScrollToQuery("Vue 3");
+      store.requestScrollToQuery(null);
+      expect(store.pendingScrollQuery).toBeNull();
+    });
+
+    // 案例：close() 後 pendingScrollQuery 不被清除
+    // 情境：SearchPanel 先呼叫 requestScrollToQuery 再呼叫 close()；
+    //       若 close() 清除查詢，MainEditor watcher 將永遠收不到捲動請求
+    it("close() 不應清除 pendingScrollQuery", () => {
+      const store = useSearchStore();
+      store.requestScrollToQuery("測試關鍵字");
+      store.close();
+      expect(store.pendingScrollQuery).toBe("測試關鍵字");
+    });
+
+    // 案例：open() 應重置 pendingScrollQuery
+    // 情境：開啟新一輪搜尋時，上次遺留的 pendingScrollQuery 應被清除，避免舊查詢污染
+    it("open() 應重置 pendingScrollQuery 為 null", () => {
+      const store = useSearchStore();
+      store.requestScrollToQuery("舊查詢");
+      store.open();
+      expect(store.pendingScrollQuery).toBeNull();
+    });
+  });
 });
