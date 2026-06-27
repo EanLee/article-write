@@ -181,6 +181,66 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
   }
 }
 
+// ─── Slash Commands CompletionSource ──────────────────────────────────────────
+
+/**
+ * 建立斜線命令 CompletionSource：輸入 / 觸發命令選單
+ * 選擇後以 view.dispatch 替換 /command 文字並插入 Markdown 語法
+ */
+function createSlashCommandSource() {
+  return (ctx: CompletionContext) => {
+    const match = ctx.matchBefore(/\/\w*/)
+    if (!match) { return null }
+
+    const today = new Date().toLocaleDateString("zh-TW", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+    })
+
+    const commands: Completion[] = [
+      {
+        label: "/h1", detail: "一級標題",
+        apply(view, _c, from, to) {
+          view.dispatch({ changes: { from, to, insert: "# " }, selection: { anchor: from + 2 } })
+        },
+      },
+      {
+        label: "/h2", detail: "二級標題",
+        apply(view, _c, from, to) {
+          view.dispatch({ changes: { from, to, insert: "## " }, selection: { anchor: from + 3 } })
+        },
+      },
+      {
+        label: "/h3", detail: "三級標題",
+        apply(view, _c, from, to) {
+          view.dispatch({ changes: { from, to, insert: "### " }, selection: { anchor: from + 4 } })
+        },
+      },
+      {
+        label: "/code", detail: "程式碼區塊",
+        apply(view, _c, from, to) {
+          const insert = "```\n\n```"
+          view.dispatch({ changes: { from, to, insert }, selection: { anchor: from + 4 } })
+        },
+      },
+      {
+        label: "/table", detail: "表格",
+        apply(view, _c, from, to) {
+          const insert = "| 欄位 1 | 欄位 2 |\n| --- | --- |\n| 內容 | 內容 |"
+          view.dispatch({ changes: { from, to, insert }, selection: { anchor: from } })
+        },
+      },
+      {
+        label: "/date", detail: today,
+        apply(view, _c, from, to) {
+          view.dispatch({ changes: { from, to, insert: today }, selection: { anchor: from + today.length } })
+        },
+      },
+    ]
+
+    return { from: match.from, options: commands, validFor: /^\/\w*$/ }
+  }
+}
+
 // ─── 選取後符號包裹 Extension ─────────────────────────────────────────────────
 
 /**
@@ -331,8 +391,13 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
   // 自訂：** 雙星號補全
   doubleStarExtension,
 
-  // Obsidian 自動完成（如果有 getSuggestions）
-  ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
+  // 自動完成：斜線命令永遠啟用，Obsidian wikilink/tag 在有 getSuggestions 時加入
+  autocompletion({
+    override: [
+      createSlashCommandSource(),
+      ...(getSuggestions ? [createObsidianCompletionSource(getSuggestions)] : []),
+    ],
+  }),
 
   // 編輯快捷鍵：Ctrl+G 跳行、Ctrl+D 刪行、Ctrl+Shift+D 複製行
   editingKeymap,
