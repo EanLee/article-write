@@ -129,6 +129,8 @@ const emit = defineEmits<{
   "scroll": []
   "outline-change": [headings: OutlineHeading[]]
   "drop-image": [file: File, pos: number]
+  "paste-image": [file: File]
+  "paste-url": [url: string]
 }>()
 
 // ─── Refs ────────────────────────────────────────────────────────────────────
@@ -342,6 +344,30 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
   // 注意：scroll 事件改在 onMounted 直接掛到 scrollDOM（此處的 domEventHandlers 無法捕捉 scrollDOM 捲動）
   EditorView.domEventHandlers({
     keydown: (event) => { emit("keydown", event) },
+    paste(event) {
+      const items = Array.from(event.clipboardData?.items ?? [])
+
+      // 剪貼簿圖片優先（直接截圖或複製圖片）
+      const imageItem = items.find((i) => i.type.startsWith("image/"))
+      if (imageItem) {
+        const file = imageItem.getAsFile()
+        if (file) {
+          event.preventDefault()
+          emit("paste-image", file)
+          return true
+        }
+      }
+
+      // 純 URL → 轉為 Markdown 連結
+      const text = event.clipboardData?.getData("text/plain")?.trim() ?? ""
+      if (text && /^https?:\/\/\S+$/.test(text)) {
+        event.preventDefault()
+        emit("paste-url", text)
+        return true
+      }
+
+      return false
+    },
     drop(event, view) {
       const imageFiles = Array.from(event.dataTransfer?.files ?? []).filter(
         (f) => f.type.startsWith("image/")

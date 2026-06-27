@@ -21,7 +21,8 @@
                     :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
                     @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
                     @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll"
-                    @outline-change="handleOutlineChange" @drop-image="handleDropImage" />
+                    @outline-change="handleOutlineChange" @drop-image="handleDropImage"
+                    @paste-image="handlePasteImage" @paste-url="handlePasteUrl" />
             </template>
 
             <!-- Raw 模式 -->
@@ -518,6 +519,35 @@ async function handleDropImage(file: File, pos: number) {
     } catch (error) {
         logger.error("[Editor] 拖放圖片上傳失敗:", error)
     }
+}
+
+/**
+ * 處理 CM6 貼上剪貼簿圖片事件：上傳後在游標位置插入 Obsidian 圖片語法
+ * @param file 剪貼簿中的圖片 File 物件
+ */
+async function handlePasteImage(file: File) {
+    try {
+        const fileName = await imageService.uploadImageFile(file)
+        const markdownRef = imageService.generateImageReference(fileName)
+        const view = editorPaneRef.value?.editorView
+        if (!view) { return }
+        const pos = view.state.selection.main.head
+        editorPaneRef.value?.insertAtPosition(pos, `\n${markdownRef}\n`)
+    } catch (error) {
+        logger.error("[Editor] 貼上圖片上傳失敗:", error)
+    }
+}
+
+/**
+ * 處理 CM6 貼上純 URL 事件：在游標位置插入 Markdown 連結語法
+ * @param url 貼上的純文字 URL
+ */
+function handlePasteUrl(url: string) {
+    const view = editorPaneRef.value?.editorView
+    if (!view) { return }
+    const pos = view.state.selection.main.head
+    const markdownLink = `[${url}](${url})`
+    editorPaneRef.value?.insertAtPosition(pos, markdownLink)
 }
 
 /**
