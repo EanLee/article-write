@@ -165,6 +165,7 @@ function getFileName(filePath: string) {
   vertical-align: top;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table td:first-child {
   color: oklch(var(--bc) / 0.7);
 }

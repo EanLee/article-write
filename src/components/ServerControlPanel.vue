@@ -303,10 +303,12 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .server-control-panel {
   border-top: 1px solid oklch(var(--b3));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .log-container {
   background: oklch(var(--b3));
 }
@@ -328,11 +330,13 @@ onUnmounted(() => {
   background: transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .log-container::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 3px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .log-container::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

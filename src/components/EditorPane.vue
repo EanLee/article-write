@@ -350,6 +350,7 @@ defineExpose({
 }
 
 /* Line Numbers Column */
+/* noinspection CssUnresolvedCustomProperty */
 .line-numbers-column {
   flex-shrink: 0;
   width: 50px;
@@ -360,6 +361,7 @@ defineExpose({
   padding: 16px 0;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .line-number {
   height: 1.6em; /* Match textarea line-height */
   line-height: 1.6;
@@ -372,11 +374,13 @@ defineExpose({
   transition: all 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .line-number:hover {
   background-color: oklch(var(--bc) / 0.05);
   color: oklch(var(--bc) / 0.7);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .line-number.current-line {
   background-color: oklch(var(--p) / 0.1);
   color: oklch(var(--p));
@@ -391,6 +395,7 @@ defineExpose({
   flex-direction: column;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .editor-textarea {
   flex: 1;
   width: 100%; /* 確保填滿父容器寬度，覆蓋 textarea 預設 cols=20 */
@@ -467,11 +472,13 @@ defineExpose({
   background: transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .editor-content-wrapper::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 4px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .editor-content-wrapper::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

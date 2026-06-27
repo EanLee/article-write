@@ -374,11 +374,13 @@ function formatDate(date: Date | string): string {
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .article-management {
   background: oklch(var(--b1));
 }
 
 /* 統計列 */
+/* noinspection CssUnresolvedCustomProperty */
 .stats-bar {
   display: flex;
   align-items: center;
@@ -388,6 +390,7 @@ function formatDate(date: Date | string): string {
   border-bottom: 1px solid oklch(var(--bc) / 0.1);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-item {
   display: flex;
   align-items: center;
@@ -400,20 +403,24 @@ function formatDate(date: Date | string): string {
   font-weight: 500;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
   color: oklch(var(--bc));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-draft {
   color: oklch(var(--in));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-published {
   color: oklch(var(--su));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-divider {
   width: 1px;
   height: 1.5rem;
@@ -421,6 +428,7 @@ function formatDate(date: Date | string): string {
 }
 
 /* 篩選列 */
+/* noinspection CssUnresolvedCustomProperty */
 .filter-bar {
   display: flex;
   justify-content: space-between;
@@ -438,6 +446,7 @@ function formatDate(date: Date | string): string {
   flex: 1;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .filter-label {
   display: flex;
   align-items: center;
@@ -453,6 +462,7 @@ function formatDate(date: Date | string): string {
   min-width: 240px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .search-icon {
   position: absolute;
   left: 0.75rem;
@@ -466,12 +476,14 @@ function formatDate(date: Date | string): string {
   padding-left: 2.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .result-count {
   font-size: 0.875rem;
   color: oklch(var(--bc) / 0.6);
   white-space: nowrap;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .result-count strong {
   color: oklch(var(--bc));
   font-weight: 700;
@@ -488,6 +500,7 @@ function formatDate(date: Date | string): string {
   width: 100%;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table th {
   background: oklch(var(--b2));
   font-weight: 600;
@@ -507,6 +520,7 @@ function formatDate(date: Date | string): string {
   transition: background 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table tbody tr:hover {
   background: oklch(var(--b2) / 0.5);
 }
@@ -521,11 +535,13 @@ function formatDate(date: Date | string): string {
   text-align: center;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-icon {
   color: oklch(var(--bc) / 0.2);
   margin-bottom: 1rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -533,12 +549,14 @@ function formatDate(date: Date | string): string {
   margin-bottom: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-subtitle {
   font-size: 0.875rem;
   color: oklch(var(--bc) / 0.5);
 }
 
 /* 分頁列 */
+/* noinspection CssUnresolvedCustomProperty */
 .pagination-bar {
   display: flex;
   justify-content: space-between;
@@ -554,15 +572,18 @@ function formatDate(date: Date | string): string {
   height: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-track {
   background: oklch(var(--b2));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

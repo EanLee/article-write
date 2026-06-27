@@ -200,6 +200,7 @@ function handleApplySEO() {
   z-index: 10;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .resize-handle:hover {
   background: oklch(var(--p) / 0.3);
 }

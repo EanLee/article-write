@@ -330,11 +330,13 @@ onMounted(() => {
   background: transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 3px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

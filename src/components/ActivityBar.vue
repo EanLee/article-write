@@ -60,6 +60,7 @@ function handleClick(id: ViewMode) {
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .activity-bar {
   width: 48px;
   background: oklch(var(--b2));
@@ -77,6 +78,7 @@ function handleClick(id: ViewMode) {
   flex: 1;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-bottom {
   display: flex;
   flex-direction: column;
@@ -84,6 +86,7 @@ function handleClick(id: ViewMode) {
   border-top: 1px solid oklch(var(--bc) / 0.1);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item {
   width: 48px;
   height: 48px;
@@ -98,15 +101,18 @@ function handleClick(id: ViewMode) {
   transition: all 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item:hover {
   color: oklch(var(--bc));
   background: oklch(var(--bc) / 0.05);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item.active {
   color: oklch(var(--p));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item.active::before {
   content: '';
   position: absolute;

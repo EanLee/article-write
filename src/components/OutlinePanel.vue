@@ -59,10 +59,12 @@ defineEmits<{
   min-width: 0;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .outline-item:hover {
   background: oklch(var(--bc) / 0.07);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .outline-level {
   font-size: 9px;
   font-weight: 700;
@@ -80,6 +82,7 @@ defineEmits<{
 .outline-h5 .outline-level { opacity: 0.4; }
 .outline-h6 .outline-level { opacity: 0.3; }
 
+/* noinspection CssUnresolvedCustomProperty */
 .outline-text {
   font-size: 0.75rem;
   color: oklch(var(--bc) / 0.8);
@@ -88,6 +91,7 @@ defineEmits<{
   text-overflow: ellipsis;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .outline-h1 .outline-text {
   font-weight: 600;
   color: oklch(var(--bc));

@@ -184,11 +184,13 @@ const statusText = computed(() => {
   border-bottom: 1px solid transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .header-collapsed:hover {
   border-bottom-color: oklch(var(--bc) / 0.1);
 }
 
 /* 迷你狀態條 */
+/* noinspection CssUnresolvedCustomProperty */
 .mini-status-bar {
   height: 24px;
   display: flex;

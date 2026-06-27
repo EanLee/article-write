@@ -205,10 +205,12 @@ onUnmounted(() => {
   justify-content: center;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .resize-handle:hover .resize-indicator {
   background: oklch(var(--p) / 0.5);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .resize-indicator {
   width: 2px;
   height: 40px;
@@ -226,11 +228,13 @@ onUnmounted(() => {
   background: transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-content::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-content::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

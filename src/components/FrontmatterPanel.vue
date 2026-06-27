@@ -209,20 +209,24 @@ function formatDate(date: Date | string): string {
   height: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-track {
   background: oklch(var(--b2));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }
 
 /* 表格樣式優化 */
+/* noinspection CssUnresolvedCustomProperty */
 .table th {
   background: oklch(var(--b2));
   font-weight: 600;
@@ -235,6 +239,7 @@ function formatDate(date: Date | string): string {
   vertical-align: middle;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table tbody tr:hover {
   background: oklch(var(--b2) / 0.5);
 }

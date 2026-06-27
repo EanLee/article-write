@@ -128,6 +128,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-view {
   background: oklch(var(--b1));
   border-right: 1px solid oklch(var(--bc) / 0.1);
@@ -145,6 +146,7 @@ onUnmounted(() => {
   border-right: none;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-header {
   border-bottom: 1px solid oklch(var(--bc) / 0.1);
   background: oklch(var(--b2) / 0.5);
@@ -156,6 +158,7 @@ onUnmounted(() => {
   gap: 2px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn {
   flex: 1;
   display: flex;
@@ -173,11 +176,13 @@ onUnmounted(() => {
   transition: all 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn:hover:not(:disabled) {
   background: oklch(var(--bc) / 0.05);
   color: oklch(var(--bc) / 0.8);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn.active {
   background: oklch(var(--b1));
   color: oklch(var(--p));
@@ -206,6 +211,7 @@ onUnmounted(() => {
   transition: background 0.2s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .resize-handle:hover {
   background: oklch(var(--p) / 0.3);
 }

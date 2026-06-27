@@ -109,6 +109,7 @@ function handleContextMenu(_e: MouseEvent) {
   min-height: 24px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .article-tree-item:focus-within {
   outline: 1px solid oklch(var(--p));
   outline-offset: -1px;
