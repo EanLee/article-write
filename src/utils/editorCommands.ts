@@ -114,7 +114,7 @@ export function insertFootnoteSpec(state: EditorState): TransactionSpec {
   const sel = state.selection.main
 
   // Find highest existing footnote number
-  const existing = [...text.matchAll(/\[\^(\d+)\]/g)].map(m => parseInt(m[1], 10))
+  const existing = [...text.matchAll(/\[\^(\d+)]/g)].map(m => parseInt(m[1], 10))
   const nextNum = existing.length > 0 ? Math.max(...existing) + 1 : 1
 
   const inlineRef = `[^${nextNum}]`

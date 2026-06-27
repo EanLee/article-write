@@ -273,7 +273,7 @@ export class ObsidianSyntaxService {
    */
   private validateWikiLinks(line: string, lineIndex: number): SyntaxError[] {
     const errors: SyntaxError[] = []
-    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g
+    const wikiLinkRegex = /\[\[([^\]]+)]]/g
     let match
 
     while ((match = wikiLinkRegex.exec(line)) !== null) {
@@ -307,7 +307,7 @@ export class ObsidianSyntaxService {
    */
   private validateImageReferences(line: string, lineIndex: number): SyntaxError[] {
     const errors: SyntaxError[] = []
-    const imageRegex = /!\[\[([^\]]+)\]\]/g
+    const imageRegex = /!\[\[([^\]]+)]]/g
     let match
 
     while ((match = imageRegex.exec(line)) !== null) {

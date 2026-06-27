@@ -150,8 +150,8 @@ const wordCount = computed(() => {
   const cleanText = props.content
     .replace(/```[\s\S]*?```/g, "") // 移除程式碼區塊
     .replace(/`[^`]+`/g, "") // 移除行內程式碼
-    .replace(/!\[.*?\]\(.*?\)/g, "") // 移除圖片
-    .replace(/\[.*?\]\(.*?\)/g, "") // 移除連結
+    .replace(/!\[.*?]\(.*?\)/g, "") // 移除圖片
+    .replace(/\[.*?]\(.*?\)/g, "") // 移除連結
     .replace(/#{1,6}\s/g, "") // 移除標題符號
     .replace(/[*_~`]/g, "") // 移除格式符號
     .trim()

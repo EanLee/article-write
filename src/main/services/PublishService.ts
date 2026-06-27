@@ -323,7 +323,7 @@ export class PublishService {
    */
   private convertWikiLinks(content: string): string {
     // 匹配 [[link|alias]] 或 [[link]]
-    return content.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, link, alias) => {
+    return content.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?]]/g, (_, link, alias) => {
       const displayText = alias || link;
       const url = link.trim();
       return `[${displayText}](${url})`;
@@ -336,7 +336,7 @@ export class PublishService {
    * ![[image.png|width]] → ![image.png](./images/image.png)
    */
   private convertObsidianImages(content: string): string {
-    return content.replace(/!\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, (_, imageName) => {
+    return content.replace(/!\[\[([^\]|]+)(?:\|[^\]]+)?]]/g, (_, imageName) => {
       const cleanImageName = imageName.trim();
       return `![${cleanImageName}](./images/${cleanImageName})`;
     });
@@ -392,7 +392,7 @@ export class PublishService {
     const processedContent = content;
 
     // 提取所有圖片引用
-    const imageRegex = /!\[([^\]]*)\]\(\.\/images\/([^)]+)\)/g;
+    const imageRegex = /!\[([^\]]*)]\(\.\/images\/([^)]+)\)/g;
     const images = [...content.matchAll(imageRegex)];
 
     if (images.length === 0) {

@@ -1,7 +1,7 @@
 <template>
   <div v-if="modelValue" class="modal modal-open">
     <div class="modal-box w-11/12 max-w-2xl max-h-[90vh] flex flex-col">
-      <h3 class="font-bold text-lg mb-4 flex-shrink-0">編輯前置資料</h3>
+      <h3 class="font-bold text-lg mb-4 shrink-0">編輯前置資料</h3>
 
       <form v-if="localArticle" @submit.prevent="handleSave" class="space-y-3 overflow-y-auto flex-1 pr-1">
         <!-- 標題 -->
@@ -161,7 +161,7 @@
         </div>
       </form>
 
-      <div class="modal-action flex-shrink-0 mt-4">
+      <div class="modal-action shrink-0 mt-4">
         <button class="btn" @click="handleClose">取消</button>
         <button class="btn btn-primary" @click="handleSave">儲存</button>
       </div>

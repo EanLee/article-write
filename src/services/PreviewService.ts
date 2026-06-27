@@ -123,7 +123,7 @@ export class PreviewService {
     processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="obsidian-tag">#$1</span>');
 
     // 處理 Obsidian 圖片語法 ![[image.png]] (必須在 wiki 連結之前處理)
-    processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
+    processed = processed.replace(/!\[\[([^\]]+)]]/g, (_, imageName) => {
       if (this.isImageFile(imageName)) {
         const imagePath = this.resolveImagePath(imageName);
         return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" />`;
@@ -137,13 +137,13 @@ export class PreviewService {
     });
 
     // 處理 Obsidian 任務清單增強語法
-    processed = processed.replace(/- \[([x\s])\] (.+)/g, (_, checked, text) => {
+    processed = processed.replace(/- \[([x\s])] (.+)/g, (_, checked, text) => {
       const isChecked = checked.toLowerCase() === "x";
       return `- <input type="checkbox" ${isChecked ? "checked" : ""} disabled class="obsidian-task"> ${text}`;
     });
 
     // 處理 Obsidian 引用塊增強
-    processed = processed.replace(/^> \[!(\w+)\](.*)$/gm, (_, type, content) => {
+    processed = processed.replace(/^> \[!(\w+)](.*)$/gm, (_, type, content) => {
       const calloutClass = `obsidian-callout obsidian-callout-${type.toLowerCase()}`;
       return `> <div class="${calloutClass}"><strong>${type.toUpperCase()}</strong>${content}</div>`;
     });
@@ -158,7 +158,7 @@ export class PreviewService {
    * @returns {string} 處理後的內容
    */
   private processWikiLinks(content: string, articles: Article[]): string {
-    return content.replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g, (_, link, __, alias) => {
+    return content.replace(/\[\[([^\]|]+)(\|([^\]]+))?]]/g, (_, link, __, alias) => {
       const displayText = alias || link;
       const article = articles.find((a) => a.title === link || a.slug === link);
 
@@ -177,7 +177,7 @@ export class PreviewService {
    * @returns {string} 處理後的內容
    */
   private processImageReferences(content: string, basePath: string): string {
-    return content.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
+    return content.replace(/!\[\[([^\]]+)]]/g, (_, imageName) => {
       const imagePath = this.resolveImagePath(imageName, basePath);
       return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" loading="lazy" />`;
     });
@@ -191,7 +191,7 @@ export class PreviewService {
    * @returns {string} 路徑轉換後的 Markdown 內容
    */
   private convertMarkdownImagePaths(content: string, articleDir: string): string {
-    return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+    return content.replace(/!\[([^\]]*)]\(([^)]+)\)/g, (match, alt, src) => {
       const trimmedSrc = src.trim();
       // 已是 URL（http/https/data/file/local-file），不處理
       if (/^(https?|data|file|local-file):/.test(trimmedSrc)) {
@@ -419,10 +419,10 @@ export class PreviewService {
     const plainText = content
       .replace(/```[\s\S]*?```/g, "") // 移除程式碼區塊
       .replace(/`[^`]+`/g, "") // 移除行內程式碼
-      .replace(/!\[\[([^\]]+)\]\]/g, "") // 移除 Obsidian 圖片
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // 移除標準圖片
-      .replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g, "") // 移除 Obsidian 連結
-      .replace(/\[[^\]]*\]\([^)]*\)/g, "") // 移除標準連結
+      .replace(/!\[\[([^\]]+)]]/g, "") // 移除 Obsidian 圖片
+      .replace(/!\[[^\]]*]\([^)]*\)/g, "") // 移除標準圖片
+      .replace(/\[\[([^\]|]+)(\|([^\]]+))?]]/g, "") // 移除 Obsidian 連結
+      .replace(/\[[^\]]*]\([^)]*\)/g, "") // 移除標準連結
       .replace(/[#*_~`]/g, "") // 移除 Markdown 標記
       .replace(/\s+/g, " ") // 標準化空白
       .trim();
@@ -432,13 +432,13 @@ export class PreviewService {
     const readingTime = Math.ceil(wordCount / 200); // 假設每分鐘閱讀 200 字
 
     // 計算圖片數量 (Obsidian 和標準格式)
-    const obsidianImages = (content.match(/!\[\[([^\]]+)\]\]/g) || []).length;
-    const standardImages = (content.match(/!\[[^\]]*\]\([^)]*\)/g) || []).length;
+    const obsidianImages = (content.match(/!\[\[([^\]]+)]]/g) || []).length;
+    const standardImages = (content.match(/!\[[^\]]*]\([^)]*\)/g) || []).length;
     const imageCount = obsidianImages + standardImages;
 
     // 計算連結數量 (Obsidian 和標準格式)
-    const obsidianLinks = (content.match(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g) || []).length;
-    const standardLinks = (content.match(/\[[^\]]*\]\([^)]*\)/g) || []).length;
+    const obsidianLinks = (content.match(/\[\[([^\]|]+)(\|([^\]]+))?]]/g) || []).length;
+    const standardLinks = (content.match(/\[[^\]]*]\([^)]*\)/g) || []).length;
     const linkCount = obsidianLinks + standardLinks;
 
     return {
@@ -467,9 +467,9 @@ export class PreviewService {
     const invalidLinks: string[] = [];
 
     // 檢查圖片引用
-    const imageMatches = content.match(/!\[\[([^\]]+)\]\]/g) || [];
+    const imageMatches = content.match(/!\[\[([^\]]+)]]/g) || [];
     imageMatches.forEach((match) => {
-      const imageName = match.match(/!\[\[([^\]]+)\]\]/)![1];
+      const imageName = match.match(/!\[\[([^\]]+)]]/)![1];
       if (this.isImageFile(imageName)) {
         validImages.push(imageName);
       } else {
@@ -478,9 +478,9 @@ export class PreviewService {
     });
 
     // 檢查 Wiki 連結
-    const linkMatches = content.match(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g) || [];
+    const linkMatches = content.match(/\[\[([^\]|]+)(\|([^\]]+))?]]/g) || [];
     linkMatches.forEach((match) => {
-      const linkMatch = match.match(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/)!;
+      const linkMatch = match.match(/\[\[([^\]|]+)(\|([^\]]+))?]]/)!;
       const linkName = linkMatch[1];
       const article = this.articles.find((a) => a.title === linkName || a.slug === linkName);
 

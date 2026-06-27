@@ -171,18 +171,18 @@ export class SearchService {
     const content = body
       .replace(/```[\s\S]*?```/g, "") // code block
       .replace(/`[^`]+`/g, "") // inline code
-      .replace(/!\[.*?\]\(.*?\)/g, "") // images
-      .replace(/\[([^\]]+)\]\(.*?\)/g, "$1") // links
+      .replace(/!\[.*?]\(.*?\)/g, "") // images
+      .replace(/\[([^\]]+)]\(.*?\)/g, "$1") // links
       .replace(/#{1,6}\s/g, "") // headings
       .replace(/[*_~]+/g, "") // bold/italic
-      .replace(/\[\[([^\]]+)\]\]/g, "$1") // wikilinks
+      .replace(/\[\[([^\]]+)]]/g, "$1") // wikilinks
       .trim();
 
     return { title, updatedAt, category, status, tags, content };
   }
 
   private extractWikilinks(raw: string): string[] {
-    const matches = raw.matchAll(/\[\[([^\]|#]+?)(?:[|#][^\]]*?)?\]\]/g);
+    const matches = raw.matchAll(/\[\[([^\]|#]+?)(?:[|#][^\]]*?)?]]/g);
     return [...matches].map((m) => m[1].trim());
   }
 

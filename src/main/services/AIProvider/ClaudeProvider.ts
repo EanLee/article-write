@@ -26,7 +26,7 @@ export class ClaudeProvider implements IAIProvider {
       }
 
       const text = content.text.trim();
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const jsonMatch = text.match(/\{[\s\S]*}/);
       if (!jsonMatch) {
         throw new AIError(AIErrorCode.ApiError, "無法解析 JSON 回應");
       }

@@ -297,14 +297,14 @@ export class ConverterService {
   private convertWikiLinks(content: string): string {
     // 轉換 [[link|alias]] 格式（不包含錨點的）
     // 使用負向後查找 (?<!!) 排除 Obsidian 圖片語法 ![[]]
-    content = content.replace(/(?<!!)\[\[([^#\]|]+)\|([^\]]+)\]\]/g, (_, link, alias) => {
+    content = content.replace(/(?<!!)\[\[([^#\]|]+)\|([^\]]+)]]/g, (_, link, alias) => {
       const slug = this.markdownService.generateSlugFromTitle(link.trim());
       return `[${alias.trim()}](../${slug}/)`;
     });
 
     // 轉換 [[link]] 格式（不包含錨點的）
     // 使用負向後查找 (?<!!) 排除 Obsidian 圖片語法 ![[]]
-    content = content.replace(/(?<!!)\[\[([^#\]]+)\]\]/g, (_, link) => {
+    content = content.replace(/(?<!!)\[\[([^#\]]+)]]/g, (_, link) => {
       const trimmedLink = link.trim();
       const slug = this.markdownService.generateSlugFromTitle(trimmedLink);
       return `[${trimmedLink}](../${slug}/)`;
@@ -328,7 +328,7 @@ export class ConverterService {
    * @returns {string} 轉換後的內容
    */
   private convertObsidianImages(content: string): string {
-    return content.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
+    return content.replace(/!\[\[([^\]]+)]]/g, (_, imageName) => {
       return `![${imageName}](./images/${imageName})`;
     });
   }
@@ -349,10 +349,10 @@ export class ConverterService {
    */
   private rewriteImagePaths(content: string): string {
     // 轉換相對路徑格式的圖片引用
-    content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/images\/([^)]+)\)/g, "![$1](./images/$2)");
+    content = content.replace(/!\[([^\]]*)]\(\.\.\/\.\.\/images\/([^)]+)\)/g, "![$1](./images/$2)");
 
     // 轉換絕對路徑格式的圖片引用
-    content = content.replace(/!\[([^\]]*)\]\([^)]*\/images\/([^)]+)\)/g, "![$1](./images/$2)");
+    content = content.replace(/!\[([^\]]*)]\([^)]*\/images\/([^)]+)\)/g, "![$1](./images/$2)");
 
     return content;
   }
@@ -375,14 +375,14 @@ export class ConverterService {
    */
   private convertInternalLinks(content: string): string {
     // 處理帶有錨點和別名的內部連結 [[file#section|alias]] (先處理這個，避免被下面的規則匹配)
-    content = content.replace(/\[\[([^#\]|]+)#([^|\]]+)\|([^\]]+)\]\]/g, (_, file, section, alias) => {
+    content = content.replace(/\[\[([^#\]|]+)#([^|\]]+)\|([^\]]+)]]/g, (_, file, section, alias) => {
       const slug = this.markdownService.generateSlugFromTitle(file.trim());
       const anchor = section.trim().toLowerCase().replace(/\s+/g, "-");
       return `[${alias.trim()}](../${slug}/#${anchor})`;
     });
 
     // 處理帶有錨點的內部連結 [[file#section]]
-    content = content.replace(/\[\[([^#\]]+)#([^\]]+)\]\]/g, (_, file, section) => {
+    content = content.replace(/\[\[([^#\]]+)#([^\]]+)]]/g, (_, file, section) => {
       const slug = this.markdownService.generateSlugFromTitle(file.trim());
       const anchor = section.trim().toLowerCase().replace(/\s+/g, "-");
       return `[${file.trim()}#${section.trim()}](../${slug}/#${anchor})`;

@@ -91,15 +91,18 @@ function handleAction(notification: Notification) {
   pointer-events: auto;
 }
 
-/* Transition animations */
+/* Transition animations（以下三個類別由 Vue <transition-group name="toast"> 動態掛載）*/
+/* noinspection CssUnusedSymbol */
 .toast-enter-active {
   animation: toast-in 0.3s ease-out;
 }
 
+/* noinspection CssUnusedSymbol */
 .toast-leave-active {
   animation: toast-out 0.3s ease-in;
 }
 
+/* noinspection CssUnusedSymbol */
 .toast-move {
   transition: transform 0.3s ease;
 }

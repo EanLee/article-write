@@ -51,7 +51,7 @@ export class MarkdownService {
     this.md.use(markdownItToc, {
       includeLevel: [1, 2, 3, 4],
       containerClass: "table-of-contents",
-      markerPattern: /^\[\[toc\]\]/im,
+      markerPattern: /^\[\[toc]]/im,
     });
 
     // 配置任務清單
@@ -445,9 +445,9 @@ export class MarkdownService {
    */
   extractImageReferences(content: string): string[] {
     // 使用 matchAll 優化正則匹配（更簡潔高效）
-    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)].map((m) => m[1]);
+    const standardImages = [...content.matchAll(/!\[.*?]\(([^)]+)\)/g)].map((m) => m[1]);
 
-    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
+    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)]]/g)].map((m) => m[1]);
 
     // 合併並去重
     return [...new Set([...standardImages, ...obsidianImages])];
@@ -460,7 +460,7 @@ export class MarkdownService {
    */
   extractWikiLinks(content: string): Array<{ link: string; alias?: string }> {
     // 使用 matchAll 優化正則匹配
-    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g)].map((match) => ({
+    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?]]/g)].map((match) => ({
       link: match[1],
       alias: match[3],
     }));
@@ -655,11 +655,11 @@ export class MarkdownService {
       const strippedLine = line.replace(/`[^`]*`/g, "");
 
       // 移除 Markdown 連結 URL 部分 [text](url)，避免 URL 內的 == 或 [[ 觸發誤判
-      const strippedForWiki = strippedLine.replace(/\[[^\]]*\]\([^)]*\)/g, "");
+      const strippedForWiki = strippedLine.replace(/\[[^\]]*]\([^)]*\)/g, "");
 
       // 檢查未閉合的 Wiki 連結（排除 Markdown 連結 [text](url) 格式）
       const openWikiLinks = (strippedForWiki.match(/\[\[/g) || []).length;
-      const closeWikiLinks = (strippedForWiki.match(/\]\]/g) || []).length;
+      const closeWikiLinks = (strippedForWiki.match(/]]/g) || []).length;
       if (openWikiLinks !== closeWikiLinks) {
         errors.push({
           line: lineNumber,

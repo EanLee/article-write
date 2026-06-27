@@ -2,7 +2,7 @@
   <div v-if="modelValue" class="modal modal-open" data-testid="settings-modal">
     <div class="modal-box w-11/12 max-w-5xl h-[82vh] max-h-[90vh] flex flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-6 flex-shrink-0">
+      <div class="flex items-center justify-between mb-6 shrink-0">
         <div>
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Tabs -->
-      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200 flex-shrink-0">
+      <div role="tablist" class="tabs tabs-boxed mb-6 bg-base-200 shrink-0">
         <a role="tab" class="tab" :class="{ 'tab-active': activeTab === 'basic' }" @click="activeTab = 'basic'">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
@@ -71,7 +71,7 @@
       </div>
 
       <!-- Footer Actions -->
-      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300 flex-shrink-0">
+      <div class="flex justify-between items-center mt-6 pt-4 border-t border-base-300 shrink-0">
         <div class="flex items-center gap-2">
           <button class="btn btn-ghost" @click="resetToDefaults">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"

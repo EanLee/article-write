@@ -21,7 +21,7 @@ export class OpenAIProvider implements IAIProvider {
       });
 
       const text = (response.choices[0]?.message?.content ?? "").trim();
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const jsonMatch = text.match(/\{[\s\S]*}/);
       if (!jsonMatch) {
         throw new AIError(AIErrorCode.ApiError, "無法解析 JSON 回應");
       }
