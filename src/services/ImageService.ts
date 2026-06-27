@@ -125,7 +125,7 @@ export class ImageService {
    */
   isImageUsed(imageName: string): boolean {
     return this.articles.some((article) => {
-      const imageRegex = /!\[\[([^\]]+)\]\]/g;
+      const imageRegex = /!\[\[([^\]]+)]]/g;
       let match;
       while ((match = imageRegex.exec(article.content)) !== null) {
         if (match[1] === imageName) {
@@ -147,7 +147,7 @@ export class ImageService {
 
     lines.forEach((line, index) => {
       // Obsidian 格式圖片: ![[image.png]]
-      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
+      const obsidianImageRegex = /!\[\[([^\]]+)]]/g;
       let match;
 
       while ((match = obsidianImageRegex.exec(line)) !== null) {
@@ -163,7 +163,7 @@ export class ImageService {
       }
 
       // 標準 Markdown 格式圖片: ![alt](path)
-      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
+      const standardImageRegex = /!\[.*?]\(([^)]+)\)/g;
       while ((match = standardImageRegex.exec(line)) !== null) {
         const imagePath = match[1];
         // 提取檔名（如果是相對路徑）
@@ -357,14 +357,14 @@ export class ImageService {
       const line = lines[lineIndex];
 
       // Obsidian 格式: ![[image.png]] — imageName 為 vault 內名稱，查找 imagesPath 目錄
-      const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
+      const obsidianImageRegex = /!\[\[([^\]]+)]]/g;
       let match;
       while ((match = obsidianImageRegex.exec(line)) !== null) {
         refs.push({ imageName: match[1], lineIndex, colIndex: match.index, type: "obsidian" });
       }
 
       // 標準 Markdown 格式: ![alt](path) — path 為相對或絕對路徑
-      const standardImageRegex = /!\[.*?\]\(([^)]+)\)/g;
+      const standardImageRegex = /!\[.*?]\(([^)]+)\)/g;
       while ((match = standardImageRegex.exec(line)) !== null) {
         const imagePath = match[1];
         // 跳過外部 URL（http/https/data URI）

@@ -127,6 +127,7 @@ defineExpose({
 </script>
 
 <style scoped>
+/* noinspection CssUnusedSymbol -- 所有 :deep() 選擇器均用於 Markdown 渲染器動態注入的 HTML 元素，IDE 靜態分析無法偵測到 */
 /* Syntax highlighting for code blocks */
 .markdown-preview :deep(pre) {
   background-color: #f2f2f2;
@@ -149,7 +150,8 @@ defineExpose({
   padding: 0;
 }
 
-/* Enhanced Obsidian-style elements */
+/* Enhanced Obsidian-style elements（以下 :deep() 選擇器均用於渲染器動態注入的 HTML）*/
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink) {
   color: #3b82f6;
   text-decoration: underline;
@@ -158,6 +160,7 @@ defineExpose({
   transition: all 0.2s ease;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink:hover) {
   text-decoration-style: solid;
   background-color: rgba(59, 130, 246, 0.1);
@@ -165,16 +168,19 @@ defineExpose({
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink-valid) {
   color: #059669;
   border-bottom: 1px solid #059669;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink-invalid) {
   color: #dc2626;
   border-bottom: 1px dashed #dc2626;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-image) {
   max-width: 100%;
   height: auto;
@@ -183,11 +189,13 @@ defineExpose({
   transition: transform 0.2s ease;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-image:hover) {
   transform: scale(1.02);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-tag) {
   display: inline-block;
   background-color: rgba(59, 130, 246, 0.1);
@@ -200,6 +208,7 @@ defineExpose({
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-highlight) {
   background-color: rgba(251, 191, 36, 0.3);
   padding: 0.125rem 0.25rem;
@@ -208,6 +217,7 @@ defineExpose({
 }
 
 /* Obsidian embed blocks */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed) {
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
@@ -216,6 +226,7 @@ defineExpose({
   background-color: #f9fafb;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed-header) {
   background-color: #f3f4f6;
   padding: 0.5rem 0.75rem;
@@ -224,6 +235,7 @@ defineExpose({
   border-bottom: 1px solid #e5e7eb;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed-content) {
   padding: 0.75rem;
   font-style: italic;
@@ -231,6 +243,7 @@ defineExpose({
 }
 
 /* Obsidian callouts */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout) {
   border-left: 4px solid #3b82f6;
   background-color: rgba(59, 130, 246, 0.05);
@@ -239,38 +252,45 @@ defineExpose({
   border-radius: 0 0.5rem 0.5rem 0;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-note) {
   border-left-color: #3b82f6;
   background-color: rgba(59, 130, 246, 0.05);
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-warning) {
   border-left-color: #f59e0b;
   background-color: rgba(245, 158, 11, 0.05);
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-error) {
   border-left-color: #dc2626;
   background-color: rgba(220, 38, 38, 0.05);
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-success) {
   border-left-color: #059669;
   background-color: rgba(5, 150, 105, 0.05);
 }
 
 /* Enhanced task lists */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-task) {
   margin-right: 0.5rem;
   transform: scale(1.1);
 }
 
 /* Code block enhancements */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-block-wrapper) {
   position: relative;
   margin: 1rem 0;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-block-header) {
   background-color: #374151;
   padding: 0.5rem;
@@ -279,6 +299,7 @@ defineExpose({
   justify-content: flex-end;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-copy-btn) {
   background-color: #4b5563;
   color: white;
@@ -290,11 +311,13 @@ defineExpose({
   transition: background-color 0.2s;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-copy-btn:hover) {
   background-color: #6b7280;
 }
 
 /* Table enhancements */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.table-wrapper) {
   overflow-x: auto;
   margin: 1rem 0;
@@ -308,16 +331,19 @@ defineExpose({
 }
 
 /* External links */
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.external-link) {
   color: #059669;
   text-decoration: none;
 }
 
+/* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.external-link:hover) {
   text-decoration: underline;
 }
 
 /* Task lists */
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.task-list-item) {
   list-style: none;
 }
@@ -327,6 +353,7 @@ defineExpose({
 }
 
 /* Table of contents */
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.table-of-contents) {
   background-color: #fff;
   border: 1px solid #e5e7eb;
@@ -353,12 +380,14 @@ defineExpose({
 }
 
 /* Footnotes */
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.footnote-ref) {
   color: #3b82f6;
   font-size: 0.75rem;
   vertical-align: super;
 }
 
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.footnotes) {
   border-top: 1px solid #e5e7eb;
   margin-top: 2rem;
@@ -375,6 +404,7 @@ defineExpose({
   position: relative;
 }
 
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.header-anchor) {
   position: absolute;
   left: -1.5rem;
@@ -382,6 +412,7 @@ defineExpose({
   transition: opacity 0.2s;
 }
 
+/* noinspection CssUnusedSymbol */
 .markdown-preview :deep(h1:hover .header-anchor),
 .markdown-preview :deep(h2:hover .header-anchor),
 .markdown-preview :deep(h3:hover .header-anchor),

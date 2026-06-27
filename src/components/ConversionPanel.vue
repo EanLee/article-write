@@ -40,54 +40,57 @@
 
     <!-- 轉換設定 -->
     <div class="collapse collapse-arrow bg-base-200 mb-6">
-      <input type="checkbox" />
+      <input type="checkbox" aria-label="展開轉換設定選項" />
       <div class="collapse-title text-xl font-medium">
         轉換設定選項
       </div>
       <div class="collapse-content">
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-source-dir">
             <span class="label-text">來源目錄 (Obsidian Vault)</span>
             <span class="label-text-alt" :class="config.sourceDir ? 'text-success' : 'text-error'">
               {{ config.sourceDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.sourceDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-source-dir"
+            type="text"
+            v-model="config.sourceDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/obsidian-vault"
             readonly
           />
         </div>
 
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-target-dir">
             <span class="label-text">目標目錄 (Astro Blog)</span>
             <span class="label-text-alt" :class="config.targetDir ? 'text-success' : 'text-error'">
               {{ config.targetDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.targetDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-target-dir"
+            type="text"
+            v-model="config.targetDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/astro-blog"
             readonly
           />
         </div>
 
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-image-dir">
             <span class="label-text">圖片來源目錄</span>
             <span class="label-text-alt" :class="config.imageSourceDir ? 'text-success' : 'text-error'">
               {{ config.imageSourceDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.imageSourceDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-image-dir"
+            type="text"
+            v-model="config.imageSourceDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/obsidian-vault/images"
             readonly
           />
@@ -230,7 +233,7 @@
 
       <!-- 錯誤詳情 -->
       <div v-if="conversionResult.errors.length > 0" class="collapse collapse-arrow bg-error/10 border border-error/20 mt-4">
-        <input type="checkbox" />
+        <input type="checkbox" aria-label="展開錯誤詳情" />
         <div class="collapse-title text-lg font-medium text-error">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -250,7 +253,7 @@
 
       <!-- 警告詳情 -->
       <div v-if="conversionResult.warnings.length > 0" class="collapse collapse-arrow bg-warning/10 border border-warning/20 mt-4">
-        <input type="checkbox" />
+        <input type="checkbox" aria-label="展開警告詳情" />
         <div class="collapse-title text-lg font-medium text-warning">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -303,9 +306,9 @@ const conversionStartTime = ref<number>(0)
 
 // 轉換設定
 const config = computed<ConversionConfig>(() => ({
-  sourceDir: configStore.paths.obsidianVault,
-  targetDir: configStore.paths.targetDir,
-  imageSourceDir: configStore.paths.imagesDir,
+  sourceDir: configStore.config.paths.articlesDir,
+  targetDir: configStore.config.paths.targetDir,
+  imageSourceDir: configStore.config.paths.imagesDir,
   preserveStructure: true
 }))
 
@@ -357,10 +360,8 @@ const startConversion = async () => {
   // 驗證批次轉換前置條件
   const validation = await converterService.validateBatchConversionPrerequisites(config.value)
   if (!validation.valid) {
-    notificationService.error(
-      "轉換前置條件檢查失敗",
-      `請檢查以下問題：\n${validation.issues.map(i => `• ${i}`).join("\n")}`
-    )
+    const issueList = validation.issues.map(i => `• ${i}`).join("\n")
+    notificationService.error("轉換前置條件檢查失敗", `請檢查以下問題：\n${issueList}`)
     return
   }
 
@@ -386,12 +387,10 @@ const startConversion = async () => {
     )
 
     // 添加完成時間
-    const resultWithTime = {
+    conversionResult.value = {
       ...result,
       completedAt: new Date()
     }
-
-    conversionResult.value = resultWithTime
 
     // 顯示成功通知
     if (result.success) {
@@ -488,12 +487,10 @@ const convertCategory = async (category: string) => {
     )
 
     // 添加完成時間
-    const resultWithTime = {
+    conversionResult.value = {
       ...result,
       completedAt: new Date()
     }
-
-    conversionResult.value = resultWithTime
 
     // 顯示成功通知
     if (result.success) {

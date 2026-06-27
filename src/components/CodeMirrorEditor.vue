@@ -671,11 +671,13 @@ defineExpose({
   height: 100%;
 }
 
+/* noinspection CssUnusedSymbol */
 .cm-editor-wrapper :deep(.cm-editor) {
   height: 100%;
 }
 
-/* 自動完成下拉選單樣式（配合 DaisyUI）*/
+/* 自動完成下拉選單樣式（配合 DaisyUI；--b1/--bc/--p/--pc/--s/--a 為 DaisyUI 主題變數，執行期注入）*/
+/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete) {
   background: oklch(var(--b1));
   border: 1px solid oklch(var(--bc) / 0.2);
@@ -683,6 +685,7 @@ defineExpose({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete ul li) {
   padding: 0.375rem 0.75rem;
   font-family: 'JetBrains Mono', monospace;
@@ -690,15 +693,21 @@ defineExpose({
   color: oklch(var(--bc));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete ul li[aria-selected]) {
   background: oklch(var(--p));
   color: oklch(var(--pc));
 }
 
-/* Markdown 語法高亮（配合 DaisyUI 主題）*/
-.cm-editor-wrapper :deep(.ͼb) { color: oklch(var(--p)); font-weight: 600; } /* heading */
-.cm-editor-wrapper :deep(.ͼc) { color: oklch(var(--s)); }                   /* code */
-.cm-editor-wrapper :deep(.ͼd) { color: oklch(var(--a)); }                   /* link */
-.cm-editor-wrapper :deep(.ͼe) { font-style: italic; }                       /* emphasis */
-.cm-editor-wrapper :deep(.ͼf) { font-weight: bold; }                        /* strong */
+/* Markdown 語法高亮（.ͼb~f 為 CM6 執行期動態生成的 token 類別）*/
+/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
+.cm-editor-wrapper :deep(.ͼb) { color: oklch(var(--p)); font-weight: 600; }
+/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
+.cm-editor-wrapper :deep(.ͼc) { color: oklch(var(--s)); }
+/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
+.cm-editor-wrapper :deep(.ͼd) { color: oklch(var(--a)); }
+/* noinspection CssUnusedSymbol */
+.cm-editor-wrapper :deep(.ͼe) { font-style: italic; }
+/* noinspection CssUnusedSymbol */
+.cm-editor-wrapper :deep(.ͼf) { font-weight: bold; }
 </style>
