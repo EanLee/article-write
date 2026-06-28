@@ -79,7 +79,7 @@ export function useSearchReplace(
    * 轉義正則表達式特殊字元
    */
   function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    return str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
   }
 
   return {

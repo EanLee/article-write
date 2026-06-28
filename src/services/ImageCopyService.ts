@@ -186,7 +186,7 @@ export class ImageCopyService {
   // ── 私有工具方法 ──────────────────────────────────────────────────────────
 
   private escapeRegExp(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   }
 
   private joinPath(...paths: string[]): string {

@@ -201,11 +201,11 @@ function findMatches() {
     }
   } else {
     // 轉義特殊字元
-    pattern = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    
+    pattern = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+
     // 全字匹配
     if (wholeWord.value) {
-      pattern = `\\b${pattern}\\b`
+      pattern = String.raw`\b${pattern}\b`
     }
     
     const flags = caseSensitive.value ? "g" : "gi"
