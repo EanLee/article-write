@@ -1,6 +1,6 @@
 /**
  * 服務單例管理
- * 
+ *
  * 提供應用中共用的服務實例，避免重複創建
  */
 
@@ -15,49 +15,26 @@ let obsidianSyntaxServiceInstance: ObsidianSyntaxService | null = null
 let previewServiceInstance: PreviewService | null = null
 let imageServiceInstance: ImageService | null = null
 
-/**
- * 取得 MarkdownService 單例
- */
 export function useMarkdownService(): MarkdownService {
-  if (!markdownServiceInstance) {
-    markdownServiceInstance = new MarkdownService()
-  }
+  markdownServiceInstance ??= new MarkdownService()
   return markdownServiceInstance
 }
 
-/**
- * 取得 ObsidianSyntaxService 單例
- */
 export function useObsidianSyntaxService(): ObsidianSyntaxService {
-  if (!obsidianSyntaxServiceInstance) {
-    obsidianSyntaxServiceInstance = new ObsidianSyntaxService()
-  }
+  obsidianSyntaxServiceInstance ??= new ObsidianSyntaxService()
   return obsidianSyntaxServiceInstance
 }
 
-/**
- * 取得 PreviewService 單例
- */
 export function usePreviewService(): PreviewService {
-  if (!previewServiceInstance) {
-    previewServiceInstance = new PreviewService()
-  }
+  previewServiceInstance ??= new PreviewService()
   return previewServiceInstance
 }
 
-/**
- * 取得 ImageService 單例
- */
 export function useImageService(): ImageService {
-  if (!imageServiceInstance) {
-    imageServiceInstance = new ImageService()
-  }
+  imageServiceInstance ??= new ImageService()
   return imageServiceInstance
 }
 
-/**
- * 取得所有服務（便捷方法）
- */
 export function useServices() {
   return {
     markdownService: useMarkdownService(),
@@ -67,9 +44,6 @@ export function useServices() {
   }
 }
 
-/**
- * 重設所有服務實例（主要用於測試）
- */
 export function resetServices(): void {
   markdownServiceInstance = null
   obsidianSyntaxServiceInstance = null
