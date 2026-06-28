@@ -192,7 +192,7 @@ export class PreviewService {
 
     // 構建相對路徑
     if (base) {
-      return `${base}/${imageName}`
+      return `local-file://${base}/${imageName}`
     }
 
     // 預設使用相對路徑

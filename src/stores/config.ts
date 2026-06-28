@@ -34,7 +34,7 @@ export const useConfigStore = defineStore("config", () => {
   const config = ref<AppConfig>({
     paths: {
       articlesDir: "",
-      targetBlog: "",
+      targetDir: "",
       imagesDir: ""
     },
     editorConfig: {
@@ -88,7 +88,7 @@ export const useConfigStore = defineStore("config", () => {
       }
 
       // Create a plain object copy to avoid cloning issues
-      const plainConfig = structuredClone(newConfig)
+      const plainConfig = JSON.parse(JSON.stringify(newConfig))
       await globalThis.electronAPI.setConfig(plainConfig)
       config.value = newConfig
       // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定

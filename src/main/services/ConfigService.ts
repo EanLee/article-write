@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs"
 import { join } from "node:path"
-import { app } from "electron"
+import { app, safeStorage } from "electron"
 
 interface PathValidationResult {
   valid: boolean
@@ -12,7 +12,7 @@ type EditorTheme = "light" | "dark"
 interface AppConfig {
   paths: {
     articlesDir: string
-    targetBlog: string
+    targetDir: string
     imagesDir: string
   }
   editorConfig: {
@@ -24,6 +24,7 @@ interface AppConfig {
 
 export class ConfigService {
   private readonly configPath: string
+  private readonly apiKeys: Map<string, Buffer> = new Map()
 
   constructor() {
     const userDataPath = app.getPath("userData")
@@ -97,11 +98,32 @@ export class ConfigService {
     }
   }
 
+  setApiKey(provider: string, key: string): void {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error("系統加密功能不可用")
+    }
+    this.apiKeys.set(provider, safeStorage.encryptString(key))
+  }
+
+  getApiKey(provider: string): string | null {
+    const encrypted = this.apiKeys.get(provider)
+    if (!encrypted) {return null}
+    try {
+      return safeStorage.decryptString(encrypted)
+    } catch {
+      return null
+    }
+  }
+
+  hasApiKey(provider: string): boolean {
+    return this.apiKeys.has(provider) && this.getApiKey(provider) !== null
+  }
+
   private getDefaultConfig(): AppConfig {
     return {
       paths: {
         articlesDir: "",
-        targetBlog: "",
+        targetDir: "",
         imagesDir: ""
       },
       editorConfig: {

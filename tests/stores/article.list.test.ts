@@ -31,6 +31,7 @@ global.window = {
     onFileChange: vi.fn(() => vi.fn()),
   },
 } as unknown as Window & typeof globalThis;
+(global as unknown as Record<string, unknown>).electronAPI = window.electronAPI;
 
 // ---------- 工廠函式 ----------
 

@@ -29,6 +29,7 @@ global.window = {
     onFileChange: vi.fn(),
   },
 } as unknown as Window & typeof globalThis;
+(global as unknown as Record<string, unknown>).electronAPI = window.electronAPI;
 // Typed mock accessor: env.d.ts types window.electronAPI as the real API; at test time these are vi.fn() mocks
 const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
