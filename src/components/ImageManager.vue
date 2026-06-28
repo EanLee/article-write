@@ -64,20 +64,20 @@
       <h4 class="text-sm font-semibold mb-3 text-base-content/70">目前文章中的圖片</h4>
       <div class="grid grid-cols-2 gap-2">
         <div
-          v-for="image in currentArticleImages"
-          :key="image.name"
+          v-for="img in currentArticleImages"
+          :key="img.name"
           class="card bg-base-100 shadow-sm border"
-          :class="{ 'border-error': !image.exists }"
+          :class="{ 'border-error': !img.exists }"
         >
           <div class="card-body p-3">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium truncate" :title="image.name">{{ image.name }}</span>
+              <span class="text-xs font-medium truncate" :title="img.name">{{ img.name }}</span>
               <div class="flex gap-1">
                 <div 
                   class="badge badge-xs"
-                  :class="image.exists ? 'badge-success' : 'badge-error'"
+                  :class="img.exists ? 'badge-success' : 'badge-error'"
                 >
-                  {{ image.exists ? '存在' : '缺失' }}
+                  {{ img.exists ? '存在' : '缺失' }}
                 </div>
               </div>
             </div>
@@ -85,11 +85,11 @@
             <!-- Image Preview -->
             <div class="aspect-video bg-base-200 rounded overflow-hidden mb-2">
               <img
-                v-if="image.exists && image.preview"
-                :src="image.preview"
-                :alt="`檔案：${image.name}`"
+                v-if="img.exists && img.preview"
+                :src="img.preview"
+                :alt="`檔案：${img.name}`"
                 class="w-full h-full object-cover"
-                @error="handleImageError(image)"
+                @error="handleImageError(img)"
               />
               <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,16 +101,16 @@
             <!-- Actions -->
             <div class="flex gap-1">
               <button
-                v-if="!image.exists"
+                v-if="!img.exists"
                 class="btn btn-xs btn-error flex-1"
-                @click="removeImageReference(image.name)"
+                @click="removeImageReference(img.name)"
               >
                 移除引用
               </button>
               <button
                 v-else
                 class="btn btn-xs btn-outline flex-1"
-                @click="copyImagePath(image.name)"
+                @click="copyImagePath(img.name)"
               >
                 複製路徑
               </button>
@@ -144,20 +144,20 @@
       
       <div v-else class="grid grid-cols-2 gap-3">
         <div
-          v-for="image in filteredImages"
-          :key="image.name"
+          v-for="img in filteredImages"
+          :key="img.name"
           class="card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-          @click="selectImage(image)"
+          @click="selectImage(img)"
         >
           <div class="card-body p-3">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium truncate" :title="image.name">{{ image.name }}</span>
+              <span class="text-xs font-medium truncate" :title="img.name">{{ img.name }}</span>
               <div class="flex gap-1">
                 <div 
                   class="badge badge-xs"
-                  :class="image.isUsed ? 'badge-info' : 'badge-ghost'"
+                  :class="img.isUsed ? 'badge-info' : 'badge-ghost'"
                 >
-                  {{ image.isUsed ? '已使用' : '未使用' }}
+                  {{ img.isUsed ? '已使用' : '未使用' }}
                 </div>
               </div>
             </div>
@@ -165,11 +165,11 @@
             <!-- Image Preview -->
             <div class="aspect-video bg-base-200 rounded overflow-hidden mb-2">
               <img
-                v-if="image.preview"
-                :src="image.preview"
-                :alt="`檔案：${image.name}`"
+                v-if="img.preview"
+                :src="img.preview"
+                :alt="`檔案：${img.name}`"
                 class="w-full h-full object-cover"
-                @error="handleImageError(image)"
+                @error="handleImageError(img)"
               />
               <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,22 +180,22 @@
             
             <!-- Image Info -->
             <div class="text-xs text-base-content/70 mb-2">
-              <div>{{ formatFileSize(image.size) }}</div>
-              <div>{{ formatDate(image.lastModified) }}</div>
+              <div>{{ formatFileSize(img.size) }}</div>
+              <div>{{ formatDate(img.lastModified) }}</div>
             </div>
             
             <!-- Actions -->
             <div class="flex gap-1">
               <button
                 class="btn btn-xs btn-primary flex-1"
-                @click.stop="insertImageReference(image.name)"
+                @click.stop="insertImageReference(img.name)"
               >
                 插入
               </button>
               <button
-                v-if="!image.isUsed"
+                v-if="!img.isUsed"
                 class="btn btn-xs btn-error"
-                @click.stop="deleteUnusedImage(image.name)"
+                @click.stop="deleteUnusedImage(img.name)"
               >
                 刪除
               </button>
@@ -244,18 +244,18 @@
         <!-- Image Grid -->
         <div class="grid grid-cols-4 gap-3 max-h-96 overflow-y-auto">
           <div
-            v-for="image in allImages"
-            :key="image.name"
+            v-for="img in allImages"
+            :key="img.name"
             class="card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-            :class="{ 'ring-2 ring-primary': selectedImageForBrowser === image.name }"
-            @click="selectedImageForBrowser = image.name"
+            :class="{ 'ring-2 ring-primary': selectedImageForBrowser === img.name }"
+            @click="selectedImageForBrowser = img.name"
           >
             <div class="card-body p-2">
               <div class="aspect-square bg-base-200 rounded overflow-hidden mb-1">
                 <img
-                  v-if="image.preview"
-                  :src="image.preview"
-                  :alt="`檔案：${image.name}`"
+                  v-if="img.preview"
+                  :src="img.preview"
+                  :alt="`檔案：${img.name}`"
                   class="w-full h-full object-cover"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
@@ -264,7 +264,7 @@
                   </svg>
                 </div>
               </div>
-              <div class="text-xs truncate" :title="image.name">{{ image.name }}</div>
+              <div class="text-xs truncate" :title="img.name">{{ img.name }}</div>
             </div>
           </div>
         </div>
@@ -350,7 +350,7 @@ const currentArticleImages = computed(() => {
   
   // Remove duplicates (same image referenced multiple times)
   const uniqueImages = images.filter((image, index, self) => 
-    index === self.findIndex(img => img.name === image.name)
+    index === self.findIndex(i => i.name === image.name)
   )
   
   return uniqueImages
@@ -393,7 +393,7 @@ function filterImages() {
   // Apply search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(image => 
+    filtered = filtered.filter(image =>
       image.name.toLowerCase().includes(query)
     )
   }
@@ -416,8 +416,8 @@ function filterImages() {
   filteredImages.value = filtered
 }
 
-function selectImage(image: ImageInfo) {
-  selectedImageForBrowser.value = image.name
+function selectImage(img: ImageInfo) {
+  selectedImageForBrowser.value = img.name
 }
 
 function insertImageReference(imageName: string) {
@@ -525,8 +525,8 @@ function copyImagePath(imageName: string) {
   })
 }
 
-function handleImageError(image: ImageInfo | CurrentArticleImage) {
-  image.preview = undefined
+function handleImageError(img: ImageInfo | CurrentArticleImage) {
+  img.preview = undefined
 }
 
 function refreshImages() {

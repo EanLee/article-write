@@ -65,6 +65,7 @@ import { useSearchReplace } from "@/composables/useSearchReplace";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useSyncScroll } from "@/composables/useSyncScroll";
 import { getArticleService } from "@/services/ArticleService";
+import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
 
 const articleStore = useArticleStore();
@@ -202,8 +203,7 @@ const {
 
 // 其他狀態
 const imageFiles = ref<string[]>([])
-// 直接從 store 取得 allTags，不在組件中重複計算
-const allTags = computed(() => articleStore.allTags)
+
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -270,7 +270,7 @@ function scheduleAutoSave() {
 
     autoSaveTimer.value = setTimeout(() => {
         saveArticle();
-    }, 2000); // Auto-save after 2 seconds of inactivity
+    }, 2000) as unknown as number; // Auto-save after 2 seconds of inactivity
 }
 
 async function saveArticle() {
@@ -304,7 +304,7 @@ async function saveArticle() {
 
         if (result.success) {
             // 更新 store 中的資料（透過 store 的 action）
-            await articleStore.updateArticle(updatedArticle);
+            articleStore.updateArticleInMemory(updatedArticle);
         } else if (result.conflict) {
             logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
@@ -481,7 +481,7 @@ function updatePreview() {
 }
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
-    articleStore.updateArticle(updatedArticle);
+    articleStore.updateArticleInMemory(updatedArticle);
 }
 
 // 搜尋高亮處理
@@ -504,7 +504,7 @@ function handleSearchHighlight(
 function scrollToSelection() {
     if (!editorRef.value) { return; }
 
-    const textarea = editorRef.value;
+    const textarea = editorRef.value as HTMLTextAreaElement;
     const selectionStart = textarea.selectionStart;
     const textBeforeSelection = textarea.value.substring(0, selectionStart);
     const lines = textBeforeSelection.split("\n");
@@ -543,16 +543,6 @@ async function initializeObsidianSupport() {
     try {
         // 更新 ObsidianSyntaxService 的文章清單
         obsidianSyntax.updateArticles(articleStore.articles);
-
-        // Update tags from articles
-        const tagSet = new Set<string>();
-        articleStore.articles.forEach((article: Article) => {
-            // 防禦性檢查：確保 tags 存在且為陣列
-            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
-                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
-            }
-        });
-        allTags.value = Array.from(tagSet);
 
         // Update image files using Electron API
         const vaultPath = configStore.config.paths.obsidianVault;

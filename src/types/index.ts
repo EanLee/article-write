@@ -137,6 +137,7 @@ export interface AppConfigPaths {
   articlesDir: string;
   targetDir: string;
   imagesDir: string;
+  obsidianVault?: string;
 }
 
 /** 編輯器設定（AppConfig 的子型別） */
