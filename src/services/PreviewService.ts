@@ -107,10 +107,10 @@ export class PreviewService {
     let processed = content
 
     // 處理 Obsidian 高亮語法 ==text== 轉換為 <mark>text</mark>
-    processed = processed.replace(/==(.*?)==/g, '<mark class="obsidian-highlight">$1</mark>')
+    processed = processed.replace(/==([^=\n]*)==/g, '<mark class="obsidian-highlight">$1</mark>')
 
     // 處理 Obsidian 註釋 %%comment%% （在預覽中隱藏）
-    processed = processed.replace(/%%.*?%%/gs, "")
+    processed = processed.replace(/%%[^%]*%%/g, "")
 
     // 處理 Obsidian 標籤 #tag (支援中文和英文)
     processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="obsidian-tag">#$1</span>')
@@ -130,13 +130,13 @@ export class PreviewService {
     })
 
     // 處理 Obsidian 任務清單增強語法
-    processed = processed.replace(/- \[([x\s])\] (.+)/g, (_, checked, text) => {
+    processed = processed.replace(/- \[([x\s])\] ([^\n]+)/g, (_, checked, text) => {
       const isChecked = checked.toLowerCase() === "x"
       return `- <input type="checkbox" ${isChecked ? "checked" : ""} disabled class="obsidian-task"> ${text}`
     })
 
     // 處理 Obsidian 引用塊增強
-    processed = processed.replace(/^> \[!(\w+)\](.*)$/gm, (_, type, content) => {
+    processed = processed.replace(/^> \[!(\w+)\]([^\n]*)$/gm, (_, type, content) => {
       const calloutClass = `obsidian-callout obsidian-callout-${type.toLowerCase()}`
       return `> <div class="${calloutClass}"><strong>${type.toUpperCase()}</strong>${content}</div>`
     })
@@ -239,7 +239,7 @@ export class PreviewService {
     processed = processed.replaceAll("</a>", "</a>")
 
     // 為標題添加錨點連結
-    processed = processed.replace(/<h([1-6])([^>]*)>(.*?)<\/h[1-6]>/g, (_, level, attrs, content) => {
+    processed = processed.replace(/<h([1-6])([^>]*)>([^<]*)<\/h[1-6]>/g, (_, level, attrs, content) => {
       const id = this.generateHeaderId(content)
       return `<h${level}${attrs} id="${id}">
         <a href="#${id}" class="header-anchor" aria-hidden="true">#</a>

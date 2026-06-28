@@ -116,17 +116,17 @@ export class SearchService {
       const fm = fmMatch[1];
       body = fmMatch[2] ?? "";
 
-      const titleMatch = /^title:\s*(.+)$/m.exec(fm);
+      const titleMatch = /^title:\s*([^\n]+)$/m.exec(fm);
       if (titleMatch) {
         title = titleMatch[1].trim().replace(/^["']|["']$/g, "");
       }
 
-      const dateMatch = /^date:\s*(.+)$/m.exec(fm);
+      const dateMatch = /^date:\s*([^\n]+)$/m.exec(fm);
       if (dateMatch) {
         updatedAt = new Date(dateMatch[1].trim()).toISOString();
       }
 
-      const catMatch = /^categories?:\s*(.+)$/m.exec(fm);
+      const catMatch = /^categories?:\s*([^\n]+)$/m.exec(fm);
       if (catMatch) {
         category = catMatch[1].trim();
       }
@@ -138,7 +138,7 @@ export class SearchService {
 
       // 解析 tags / keywords：支援 YAML 陣列（inline 或多行）與逗號分隔字串
       // 使用 [^\S\n]* 避免跨行匹配，確保只匹配同一行的內容
-      const tagsMatch = /^(?:tags|keywords):[^\S\n]*(.+)$/m.exec(fm);
+      const tagsMatch = /^(?:tags|keywords):[^\S\n]*([^\n]+)$/m.exec(fm);
       if (tagsMatch) {
         const raw = tagsMatch[1].trim();
         if (raw.startsWith("[")) {
@@ -160,9 +160,9 @@ export class SearchService {
         // tags:
         //   - tag1
         //   - tag2
-        const multilineMatch = /^(?:tags|keywords):\s*\n((?:\s+-\s+.+\n?)+)/m.exec(fm);
+        const multilineMatch = /^(?:tags|keywords):\s*\n((?:\s+-\s+[^\n]+\n?)+)/m.exec(fm);
         if (multilineMatch) {
-          tags = [...multilineMatch[1].matchAll(/^\s+-\s+(.+)$/gm)].map((m) => m[1].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+          tags = [...multilineMatch[1].matchAll(/^\s+-\s+([^\n]+)$/gm)].map((m) => m[1].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
         }
       }
     }
@@ -171,8 +171,8 @@ export class SearchService {
     const content = body
       .replaceAll(/```[\s\S]*?```/g, "") // code block
       .replaceAll(/`[^`]+`/g, "") // inline code
-      .replaceAll(/!\[.*?]\(.*?\)/g, "") // images
-      .replaceAll(/\[([^\]]+)]\(.*?\)/g, "$1") // links
+      .replaceAll(/!\[[^\]]*]\([^)]*\)/g, "") // images
+      .replaceAll(/\[([^\]]+)]\([^)]*\)/g, "$1") // links
       .replaceAll(/#{1,6}\s/g, "") // headings
       .replaceAll(/[*_~]+/g, "") // bold/italic
       .replaceAll(/\[\[([^\]]+)]]/g, "$1") // wikilinks
