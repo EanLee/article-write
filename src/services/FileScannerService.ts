@@ -1,20 +1,20 @@
+import { logger } from "@/utils/logger"
 import * as chokidar from "chokidar";
 import type { Article, FileSystemItem } from "@/types";
-import { ArticleStatus } from "@/types";
+import { ArticleStatus, ArticleCategory } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { electronFileSystem } from "./ElectronFileSystem";
-import { logger } from "@/utils/logger";
 
 /**
  * 檔案掃描服務類別
  * 負責掃描 Markdown 檔案、解析文章內容，以及監控檔案系統變更
  */
 export class FileScannerService {
-  private markdownService: MarkdownService;
-  private fileSystem: IFileSystem;
-  private watchers: Map<string, chokidar.FSWatcher> = new Map();
-  private changeCallbacks: Map<string, (filePath: string, event: "add" | "change" | "unlink") => void> = new Map();
+  private readonly markdownService: MarkdownService;
+  private readonly fileSystem: IFileSystem;
+  private readonly watchers: Map<string, chokidar.FSWatcher> = new Map();
+  private readonly changeCallbacks: Map<string, (filePath: string, event: "add" | "change" | "unlink") => void> = new Map();
 
   /**
    * 建構子 - 使用依賴注入
@@ -39,7 +39,7 @@ export class FileScannerService {
 
       for (const filePath of files) {
         try {
-          const article = await this.parseMarkdownFile(filePath, status, directoryPath);
+          const article = await this.parseMarkdownFile(filePath, status);
           if (article) {
             articles.push(article);
           }
@@ -62,13 +62,13 @@ export class FileScannerService {
    * @param {'draft' | 'published'} status - 文章狀態
    * @returns {Promise<Article | null>} 解析後的文章物件，失敗時返回 null
    */
-  async parseMarkdownFile(filePath: string, status: ArticleStatus, rootDir?: string): Promise<Article | null> {
+  async parseMarkdownFile(filePath: string, status: ArticleStatus): Promise<Article | null> {
     try {
       const content = await this.fileSystem.readFile(filePath);
       const parsed = this.markdownService.parseFrontmatter(content);
 
       const fileName = this.getBasename(filePath, ".md");
-      const category = this.extractCategoryFromPath(filePath, rootDir);
+      const category = this.extractCategoryFromPath(filePath);
       const stats = await this.fileSystem.getFileStats(filePath);
 
       // Log parsing errors but continue processing
@@ -87,7 +87,7 @@ export class FileScannerService {
         frontmatter: {
           title: parsed.frontmatter.title || fileName,
           description: parsed.frontmatter.description || "",
-          date: parsed.frontmatter.date || new Date().toISOString().split("T")[0],
+          pubDate: parsed.frontmatter.pubDate || new Date().toISOString().split("T")[0],
           lastmod: parsed.frontmatter.lastmod,
           tags: parsed.frontmatter.tags || [],
           categories: parsed.frontmatter.categories || [category],
@@ -139,25 +139,21 @@ export class FileScannerService {
    * @param {string} filePath - 檔案路徑
    * @returns {'Software' | 'growth' | 'management'} 文章分類
    */
-  private extractCategoryFromPath(filePath: string, rootDir?: string): string {
-    const normalized = filePath.replace(/\\/g, "/");
+  private extractCategoryFromPath(filePath: string): ArticleCategory {
+    const normalizedPath = filePath.replaceAll("\\", "/");
 
-    if (rootDir) {
-      const root = rootDir.replace(/\\/g, "/").replace(/\/$/, "");
-      const relative = normalized.startsWith(root) ? normalized.slice(root.length + 1) : normalized;
-      // 第一個路徑片段就是分類資料夾
-      const firstSegment = relative.split("/")[0];
-      // 若第一段就是檔案（含 .md），代表文章在根目錄下，無分類
-      if (firstSegment && !firstSegment.endsWith(".md")) {
-        return firstSegment;
-      }
-      return "";
+    if (normalizedPath.includes("/Software/")) {
+      return ArticleCategory.Software;
+    }
+    if (normalizedPath.includes("/growth/")) {
+      return ArticleCategory.Growth;
+    }
+    if (normalizedPath.includes("/management/")) {
+      return ArticleCategory.Management;
     }
 
-    // 無 rootDir 時回退：取倒數第二個路徑片段
-    const parts = normalized.split("/");
-    const fileIndex = parts.length - 1;
-    return fileIndex >= 1 ? parts[fileIndex - 1] : "";
+    // Default to Software if no category found
+    return ArticleCategory.Software;
   }
 
   /**
@@ -166,12 +162,10 @@ export class FileScannerService {
    * @returns {string} 唯一識別碼
    */
   private generateIdFromPath(filePath: string): string {
-    // Use normalized file path hash as ID for consistency
-    // 正規化：統一斜線方向並轉為小寫，確保跨平台相同路徑產生相同 ID
-    const normalizedPath = filePath.replace(/\\/g, "/").toLowerCase();
-    return Buffer.from(normalizedPath)
+    // Use file path hash as ID for consistency
+    return Buffer.from(filePath)
       .toString("base64")
-      .replace(/[^a-zA-Z0-9]/g, "")
+      .replaceAll(/[^a-zA-Z0-9]/g, "")
       .substring(0, 16);
   }
 
@@ -183,9 +177,9 @@ export class FileScannerService {
   private generateSlug(title: string): string {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
+      .replaceAll(/[^a-z0-9\s-]/g, "")
+      .replaceAll(/\s+/g, "-")
+      .replaceAll(/-+/g, "-")
       .trim();
   }
 
@@ -280,7 +274,7 @@ export class FileScannerService {
    * @returns {string} 連接後的路徑
    */
   private joinPath(...paths: string[]): string {
-    return paths.join("/").replace(/\/+/g, "/").replace(/\\/g, "/");
+    return paths.join("/").replaceAll(/\/+/g, "/").replaceAll("\\", "/");
   }
 
   /**

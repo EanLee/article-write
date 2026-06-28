@@ -13,39 +13,39 @@ export class ElectronFileSystem implements IFileSystem {
    * @throws Error 如果 Electron API 不可用
    */
   private ensureElectronAPI(): void {
-    if (typeof window === "undefined" || !window.electronAPI) {
+    if (typeof window === "undefined" || !globalThis.electronAPI) {
       throw new Error("Electron API not available")
     }
   }
 
   async readFile(path: string): Promise<string> {
     this.ensureElectronAPI()
-    return await window.electronAPI.readFile(path)
+    return await globalThis.electronAPI.readFile(path)
   }
 
   async writeFile(path: string, content: string): Promise<void> {
     this.ensureElectronAPI()
-    await window.electronAPI.writeFile(path, content)
+    await globalThis.electronAPI.writeFile(path, content)
   }
 
   async deleteFile(path: string): Promise<void> {
     this.ensureElectronAPI()
-    await window.electronAPI.deleteFile(path)
+    await globalThis.electronAPI.deleteFile(path)
   }
 
   async readDirectory(path: string): Promise<string[]> {
     this.ensureElectronAPI()
-    return await window.electronAPI.readDirectory(path)
+    return await globalThis.electronAPI.readDirectory(path)
   }
 
   async createDirectory(path: string): Promise<void> {
     this.ensureElectronAPI()
-    await window.electronAPI.createDirectory(path)
+    await globalThis.electronAPI.createDirectory(path)
   }
 
   async getFileStats(path: string): Promise<FileStats | null> {
     this.ensureElectronAPI()
-    const stats = await window.electronAPI.getFileStats(path)
+    const stats = await globalThis.electronAPI.getFileStats(path)
     return stats
   }
 
