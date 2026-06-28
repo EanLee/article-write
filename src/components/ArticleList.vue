@@ -118,7 +118,7 @@ function selectArticle(article: Article) {
 
 function formatDate(date: Date | string): string {
   const dateObj = typeof date === "string" ? new Date(date) : date
-  if (!dateObj || isNaN(dateObj.getTime())) {
+  if (!dateObj || Number.isNaN(dateObj.getTime())) {
     return "無效日期"
   }
   return new Intl.DateTimeFormat("zh-TW", {
