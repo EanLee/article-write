@@ -87,7 +87,7 @@
               <img
                 v-if="image.exists && image.preview"
                 :src="image.preview"
-                :alt="image.name"
+                :alt="`檔案：${image.name}`"
                 class="w-full h-full object-cover"
                 @error="handleImageError(image)"
               />
@@ -167,7 +167,7 @@
               <img
                 v-if="image.preview"
                 :src="image.preview"
-                :alt="image.name"
+                :alt="`檔案：${image.name}`"
                 class="w-full h-full object-cover"
                 @error="handleImageError(image)"
               />
@@ -255,7 +255,7 @@
                 <img
                   v-if="image.preview"
                   :src="image.preview"
-                  :alt="image.name"
+                  :alt="`檔案：${image.name}`"
                   class="w-full h-full object-cover"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">

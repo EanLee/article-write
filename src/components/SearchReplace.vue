@@ -189,7 +189,7 @@ function handleSearch() {
 function findMatches() {
   matches.value = []
   
-  let pattern: string | RegExp = searchText.value
+  let pattern: string | RegExp
 
   // 構建搜尋模式
   if (useRegex.value) {

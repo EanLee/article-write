@@ -66,7 +66,7 @@ export function useEditorValidation(contentRef: Ref<string>) {
         line: error.line,
         column: 0,
         message: error.message,
-        type: error.type as "error" | "warning",
+        type: error.type,
         suggestion: ""
       })),
     ]

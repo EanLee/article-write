@@ -89,7 +89,7 @@ function getCategoryScope(category: string): string {
  */
 function escapeShellArg(arg: string): string {
   // 轉義雙引號和反斜線
-  return arg.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"")
+  return arg.replaceAll("\x5c", "\x5c\x5c").replaceAll("\x22", "\x5c\x22")
 }
 
 /**

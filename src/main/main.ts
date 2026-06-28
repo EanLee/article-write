@@ -129,50 +129,50 @@ function setupAutoUpdater() {
   autoUpdater.checkForUpdates();
 }
 
-app.whenReady().then(async () => {
-  // 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
-  // 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
-  protocol.handle("local-file", async (request) => {
-    try {
-      const url = new URL(request.url);
-      // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
-      const pathname = decodeURIComponent(url.pathname);
-      // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
-      return await net.fetch(`file://${pathname}`);
-    } catch {
-      return new Response("Not Found", { status: 404 });
-    }
-  });
+await app.whenReady();
 
-  createWindow();
-  setupAutoUpdater();
-
-  // 載入設定並初始化檔案路徑白名單
+// 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
+// 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
+protocol.handle("local-file", async (request) => {
   try {
-    const initialConfig = await configService.getConfig();
-    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
+    const url = new URL(request.url);
+    // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
+    const pathname = decodeURIComponent(url.pathname);
+    // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
+    return await net.fetch(`file://${pathname}`);
   } catch {
-    // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
+    return new Response("Not Found", { status: 404 });
   }
+});
 
-  // A6-02: IPC handler 登錄委派至 registerIpcHandlers.ts
-  // 避免 app.whenReady() 成為 God Function（~150 行）
-  registerIpcHandlers({
-    fileService,
-    configService,
-    processService,
-    publishService,
-    gitService,
-    searchService,
-    aiService,
-    getMainWindow: () => mainWindow ?? null,
-  });
+createWindow();
+setupAutoUpdater();
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
+// 載入設定並初始化檔案路徑白名單
+try {
+  const initialConfig = await configService.getConfig();
+  fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
+} catch {
+  // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
+}
+
+// A6-02: IPC handler 登錄委派至 registerIpcHandlers.ts
+// 避免 app.whenReady() 成為 God Function（~150 行）
+registerIpcHandlers({
+  fileService,
+  configService,
+  processService,
+  publishService,
+  gitService,
+  searchService,
+  aiService,
+  getMainWindow: () => mainWindow ?? null,
+});
+
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
 
 app.on("window-all-closed", () => {

@@ -181,7 +181,7 @@ export class ConversionValidator {
           issues.push("Unconverted Obsidian image syntax found");
         }
 
-        if (convertedContent.includes("==") && convertedContent.match(/==.*?==/)) {
+        if (convertedContent.includes("==") && /==.*?==/.exec(convertedContent)) {
           issues.push("Unconverted highlight syntax found");
         }
       }
