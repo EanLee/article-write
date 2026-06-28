@@ -588,7 +588,7 @@ export class ImageService {
    */
   private generateUniqueFileName(originalName: string): string {
     const timestamp = Date.now();
-    const randomSuffix = crypto.randomUUID().replace(/-/g, "").substring(0, 6);
+    const randomSuffix = crypto.randomUUID().replaceAll("-", "").substring(0, 6);
     const extension = originalName.substring(originalName.lastIndexOf("."));
     const baseName = originalName.substring(0, originalName.lastIndexOf("."));
 
