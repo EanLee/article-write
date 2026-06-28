@@ -214,7 +214,7 @@ export class PublishService {
       const fm = fmMatch[1]
       const get = (key: string) => {
         const m = new RegExp(String.raw`^${key}:\s*(.+)$`, "m").exec(fm)
-        return m ? m[1].trim().replace(/^[""]|[""]$/g, "") : ""
+        return m ? m[1].trim().replace(/^[""]/u, "").replace(/[""]$/u, "") : ""
       }
 
       const statusRaw = get("status") || "draft"

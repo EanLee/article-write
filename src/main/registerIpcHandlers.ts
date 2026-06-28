@@ -16,13 +16,12 @@ import { AppConfigSchema } from "./schemas/config.schema.js";
 import type { FileService } from "./services/FileService.js";
 import type { ConfigService } from "./services/ConfigService.js";
 import type { ProcessService } from "./services/ProcessService.js";
-import type { PublishService } from "./services/PublishService.js";
+import type { PublishService, PublishConfig, PublishProgressCallback } from "./services/PublishService.js";
 import type { GitService } from "./services/GitService.js";
 import type { SearchService } from "./services/SearchService.js";
 import type { AIService } from "./services/AIService.js";
 import type { BrowserWindow as BrowserWindowType } from "electron";
 import type { SearchQuery, Article } from "../types/index.js";
-import type { PublishConfig, PublishProgressCallback } from "./services/PublishService.js";
 import type { SEOGenerationInput } from "./services/AIProvider/types.js";
 
 /** 傳入主進程所有服務實例的容器介面 */
@@ -162,22 +161,24 @@ export function registerIpcHandlers(services: AppServices): void {
 
   const VALID_AI_PROVIDERS = ["claude", "gemini", "openai"] as const;
   type ValidProvider = (typeof VALID_AI_PROVIDERS)[number];
+  const isValidProvider = (p: string): p is ValidProvider =>
+    (VALID_AI_PROVIDERS as readonly string[]).includes(p);
 
   ipcMain.handle(IPC.AI_SET_API_KEY, (_, provider: string, key: string) => {
     // S6-06: runtime 白名單驗證，防止惡意 Renderer 注入任意 provider 字串
-    if (!VALID_AI_PROVIDERS.includes(provider as ValidProvider)) {
+    if (!isValidProvider(provider)) {
       return { success: false, error: `無效的 AI Provider: ${provider}` };
     }
     try {
-      configService.setApiKey(provider as ValidProvider, key);
+      configService.setApiKey(provider, key);
       return { success: true };
     } catch (e) {
       return { success: false, error: e instanceof Error ? e.message : String(e) };
     }
   });
   ipcMain.handle(IPC.AI_GET_HAS_API_KEY, (_, provider: string) => {
-    if (!VALID_AI_PROVIDERS.includes(provider as ValidProvider)) {return false;}
-    return configService.hasApiKey(provider as ValidProvider);
+    if (!isValidProvider(provider)) {return false;}
+    return configService.hasApiKey(provider);
   });
   ipcMain.handle(IPC.AI_GET_ACTIVE_PROVIDER, () => aiService.getActiveProvider());
 }
