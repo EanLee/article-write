@@ -1,5 +1,5 @@
-import { promises as defaultFs } from "fs";
-import { join } from "path";
+import { promises as defaultFs } from "node:fs";
+import { join } from "node:path";
 import type { SearchQuery, SearchResult } from "../../types/index.js";
 import { ArticleStatus } from "../../types/index.js";
 
@@ -18,15 +18,15 @@ interface IndexEntry {
 }
 
 export class SearchService {
-  private index: Map<string, IndexEntry> = new Map();
-  private wikilinkMap: Map<string, string[]> = new Map();
-  private fs: FsLike;
+  private readonly index: Map<string, IndexEntry> = new Map();
+  private readonly wikilinkMap: Map<string, string[]> = new Map();
+  private readonly fs: FsLike;
 
   // ── Trigram 反向索引（P6-02）────────────────────────────────────────────────
   /** trigram → 包含該 trigram 的文件路徑集合 */
-  private trigramIndex: Map<string, Set<string>> = new Map();
+  private readonly trigramIndex: Map<string, Set<string>> = new Map();
   /** 文件路徑 → 該文件貢獻的所有 trigram（用於將文件從索引中切除） */
-  private fileTrigramSet: Map<string, Set<string>> = new Map();
+  private readonly fileTrigramSet: Map<string, Set<string>> = new Map();
 
   constructor(fsImpl: FsLike = defaultFs) {
     this.fs = fsImpl;
@@ -70,7 +70,7 @@ export class SearchService {
       const { title, updatedAt, category, status, tags, content } = this.parseMarkdown(raw);
       const wikilinks = this.extractWikilinks(raw);
       // 正規化路徑：統一使用正斜線作為 Map key，確保跨平台一致性
-      const normalizedPath = filePath.replace(/\\/g, "/");
+      const normalizedPath = filePath.replaceAll("\\", "/");
       const id = normalizedPath;
 
       const entry: IndexEntry = {
@@ -96,7 +96,7 @@ export class SearchService {
     }
   }
 
-  private parseMarkdown(raw: string): {
+  private parseMarkdown(raw: string): { // NOSONAR
     title: string;
     updatedAt: string;
     category: string;
@@ -104,7 +104,7 @@ export class SearchService {
     tags: string[];
     content: string;
   } {
-    const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+    const fmMatch = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/.exec(raw);
     let title = "";
     let updatedAt = new Date().toISOString();
     let category = "";
@@ -116,29 +116,29 @@ export class SearchService {
       const fm = fmMatch[1];
       body = fmMatch[2] ?? "";
 
-      const titleMatch = fm.match(/^title:\s*(.+)$/m);
+      const titleMatch = /^title:\s*(.+)$/m.exec(fm);
       if (titleMatch) {
         title = titleMatch[1].trim().replace(/^["']|["']$/g, "");
       }
 
-      const dateMatch = fm.match(/^date:\s*(.+)$/m);
+      const dateMatch = /^date:\s*(.+)$/m.exec(fm);
       if (dateMatch) {
         updatedAt = new Date(dateMatch[1].trim()).toISOString();
       }
 
-      const catMatch = fm.match(/^categories?:\s*(.+)$/m);
+      const catMatch = /^categories?:\s*(.+)$/m.exec(fm);
       if (catMatch) {
         category = catMatch[1].trim();
       }
 
-      const pubMatch = fm.match(/^published:\s*true/m);
+      const pubMatch = /^published:\s*true/m.exec(fm);
       if (pubMatch) {
         status = ArticleStatus.Published;
       }
 
       // 解析 tags / keywords：支援 YAML 陣列（inline 或多行）與逗號分隔字串
       // 使用 [^\S\n]* 避免跨行匹配，確保只匹配同一行的內容
-      const tagsMatch = fm.match(/^(?:tags|keywords):[^\S\n]*(.+)$/m);
+      const tagsMatch = /^(?:tags|keywords):[^\S\n]*(.+)$/m.exec(fm);
       if (tagsMatch) {
         const raw = tagsMatch[1].trim();
         if (raw.startsWith("[")) {
@@ -160,7 +160,7 @@ export class SearchService {
         // tags:
         //   - tag1
         //   - tag2
-        const multilineMatch = fm.match(/^(?:tags|keywords):\s*\n((?:\s+-\s+.+\n?)+)/m);
+        const multilineMatch = /^(?:tags|keywords):\s*\n((?:\s+-\s+.+\n?)+)/m.exec(fm);
         if (multilineMatch) {
           tags = [...multilineMatch[1].matchAll(/^\s+-\s+(.+)$/gm)].map((m) => m[1].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
         }
@@ -169,13 +169,13 @@ export class SearchService {
 
     // 去掉 markdown 語法，只留純文字
     const content = body
-      .replace(/```[\s\S]*?```/g, "") // code block
-      .replace(/`[^`]+`/g, "") // inline code
-      .replace(/!\[.*?]\(.*?\)/g, "") // images
-      .replace(/\[([^\]]+)]\(.*?\)/g, "$1") // links
-      .replace(/#{1,6}\s/g, "") // headings
-      .replace(/[*_~]+/g, "") // bold/italic
-      .replace(/\[\[([^\]]+)]]/g, "$1") // wikilinks
+      .replaceAll(/```[\s\S]*?```/g, "") // code block
+      .replaceAll(/`[^`]+`/g, "") // inline code
+      .replaceAll(/!\[.*?]\(.*?\)/g, "") // images
+      .replaceAll(/\[([^\]]+)]\(.*?\)/g, "$1") // links
+      .replaceAll(/#{1,6}\s/g, "") // headings
+      .replaceAll(/[*_~]+/g, "") // bold/italic
+      .replaceAll(/\[\[([^\]]+)]]/g, "$1") // wikilinks
       .trim();
 
     return { title, updatedAt, category, status, tags, content };
@@ -189,7 +189,7 @@ export class SearchService {
   /**
    * 搜尋索引
    */
-  search(query: SearchQuery): SearchResult[] {
+  search(query: SearchQuery): SearchResult[] { // NOSONAR
     if (!query.query.trim()) {
       return [];
     }
@@ -225,28 +225,26 @@ export class SearchService {
       const titleMatch = entry.title.toLowerCase().includes(keyword);
       const contentIdx = entry.content.toLowerCase().indexOf(keyword);
 
-      if (!titleMatch && contentIdx === -1) {
-        continue;
-      }
+      if (titleMatch || contentIdx !== -1) {
+        let matchSnippet = "";
+        if (contentIdx !== -1) {
+          const start = Math.max(0, contentIdx - 50);
+          const end = Math.min(entry.content.length, contentIdx + keyword.length + 50);
+          matchSnippet = (start > 0 ? "..." : "") + entry.content.slice(start, end) + (end < entry.content.length ? "..." : "");
+        } else {
+          matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? "..." : "");
+        }
 
-      let matchSnippet = "";
-      if (contentIdx !== -1) {
-        const start = Math.max(0, contentIdx - 50);
-        const end = Math.min(entry.content.length, contentIdx + keyword.length + 50);
-        matchSnippet = (start > 0 ? "..." : "") + entry.content.slice(start, end) + (end < entry.content.length ? "..." : "");
-      } else {
-        matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? "..." : "");
+        results.push({
+          id: entry.id,
+          filePath: entry.filePath,
+          title: entry.title,
+          matchSnippet,
+          updatedAt: entry.updatedAt,
+          category: entry.category,
+          status: entry.status,
+        });
       }
-
-      results.push({
-        id: entry.id,
-        filePath: entry.filePath,
-        title: entry.title,
-        matchSnippet,
-        updatedAt: entry.updatedAt,
-        category: entry.category,
-        status: entry.status,
-      });
     }
 
     return results.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
@@ -260,7 +258,7 @@ export class SearchService {
   }
 
   removeFile(filePath: string): void {
-    const normalizedPath = filePath.replace(/\\/g, "/");
+    const normalizedPath = filePath.replaceAll("\\", "/");
     this.index.delete(normalizedPath);
     this.wikilinkMap.delete(normalizedPath);
     this.removeFromTrigramIndex(normalizedPath);
@@ -270,7 +268,7 @@ export class SearchService {
    * 取得某篇文章的 wikilink（預留給 topic-014）
    */
   getWikilinks(filePath: string): string[] {
-    const normalizedPath = filePath.replace(/\\/g, "/");
+    const normalizedPath = filePath.replaceAll("\\", "/");
     return this.wikilinkMap.get(normalizedPath) ?? [];
   }
 

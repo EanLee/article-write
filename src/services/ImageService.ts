@@ -53,7 +53,7 @@ export class ImageService {
    * @returns {Promise<ImageInfo[]>} 圖片資訊陣列
    */
   async loadImages(): Promise<ImageInfo[]> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       return [];
     }
 
@@ -62,18 +62,18 @@ export class ImageService {
 
       // Check if images directory exists
 
-      const stats = await window.electronAPI.getFileStats(imagesPath);
+      const stats = await globalThis.electronAPI.getFileStats(imagesPath);
       if (!stats?.isDirectory) {
         return [];
       }
 
-      const files = await window.electronAPI.readDirectory(imagesPath);
+      const files = await globalThis.electronAPI.readDirectory(imagesPath);
 
       // Filter image files
-      const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"];
+      const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]);
       const imageFiles = files.filter((file) => {
         const ext = file.toLowerCase().substring(file.lastIndexOf("."));
-        return imageExtensions.includes(ext);
+        return imageExtensions.has(ext);
       });
 
       const imageInfos: ImageInfo[] = [];
@@ -82,7 +82,7 @@ export class ImageService {
         const filePath = `${imagesPath}/${fileName}`;
 
         try {
-          const fileStats = await window.electronAPI.getFileStats(filePath);
+          const fileStats = await globalThis.electronAPI.getFileStats(filePath);
 
           const imageInfo: ImageInfo = {
             name: fileName,
@@ -188,14 +188,14 @@ export class ImageService {
    * @returns {Promise<boolean>} 檔案是否存在
    */
   async checkImageExists(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
     try {
       const filePath = `${this.getImagesPath()}/${imageName}`;
 
-      const stats = await window.electronAPI.getFileStats(filePath);
+      const stats = await globalThis.electronAPI.getFileStats(filePath);
       return stats !== null && !stats.isDirectory;
     } catch {
       return false;
@@ -387,7 +387,7 @@ export class ImageService {
 
     // 第三步：標準 Markdown — 解析完整路徑後並行查詢
     const articleDir = articleFilePath
-      ? articleFilePath.replace(/\\/g, "/").replace(/\/[^/]+$/, "")
+      ? articleFilePath.replaceAll("\\", "/").replace(/\/[^/]+$/, "")
       : "";
     const standardRefs = refs.filter((r) => r.type === "standard");
     const uniqueStandardPaths = [...new Set(standardRefs.map((r) => r.imageName))];
@@ -453,7 +453,7 @@ export class ImageService {
    * @returns {string} 解析後的絕對路徑
    */
   private resolveImagePath(imagePath: string, articleDir: string): string {
-    const normalized = imagePath.replace(/\\/g, "/");
+    const normalized = imagePath.replaceAll("\\", "/");
     // 絕對路徑：Unix（/...）或 Windows（C:/...）
     if (normalized.startsWith("/") || /^[A-Za-z]:\//.test(normalized)) {
       return normalized;
@@ -475,11 +475,11 @@ export class ImageService {
    * @returns {Promise<boolean>} 檔案是否存在
    */
   async checkImageExistsByPath(absolutePath: string): Promise<boolean> {
-    if (!absolutePath || typeof window === "undefined" || !window.electronAPI) {
+    if (!absolutePath || typeof window === "undefined" || !globalThis.electronAPI) {
       return false;
     }
     try {
-      const stats = await window.electronAPI.getFileStats(absolutePath);
+      const stats = await globalThis.electronAPI.getFileStats(absolutePath);
       return stats !== null && !stats.isDirectory;
     } catch {
       return false;
@@ -492,9 +492,9 @@ export class ImageService {
    * @returns {boolean} 是否為有效的圖片格式
    */
   private isImageFile(filename: string): boolean {
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"];
+    const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"]);
     const ext = filename.toLowerCase().substring(filename.lastIndexOf("."));
-    return imageExtensions.includes(ext);
+    return imageExtensions.has(ext);
   }
 
   /**
@@ -503,7 +503,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功刪除
    */
   async deleteUnusedImage(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
@@ -514,7 +514,7 @@ export class ImageService {
 
     try {
       const filePath = `${this.getImagesPath()}/${imageName}`;
-      await window.electronAPI.deleteFile(filePath);
+      await globalThis.electronAPI.deleteFile(filePath);
       return true;
     } catch (error) {
       logger.error("Failed to delete image:", error);
@@ -529,7 +529,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功複製
    */
   async copyImageToVault(sourcePath: string, fileName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
@@ -538,7 +538,7 @@ export class ImageService {
 
       // S6-07: 使用 importExternalFile 允許從白名單外部路徑（拖放/暫存目錄）複製
       // copyFile 會驗證兩端路徑，外部圖片 sourcePath 必然在白名單外
-      await window.electronAPI.importExternalFile(sourcePath, targetPath);
+      await globalThis.electronAPI.importExternalFile(sourcePath, targetPath);
       return true;
     } catch (error) {
       logger.error("Failed to copy image:", error);
@@ -553,7 +553,7 @@ export class ImageService {
    * @returns {Promise<string>} 上傳後的檔案名稱
    */
   async uploadImageFile(file: File, customName?: string): Promise<string> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       throw new Error("Vault path not set or Electron API not available");
     }
 
@@ -572,7 +572,7 @@ export class ImageService {
       const buffer = new Uint8Array(arrayBuffer);
 
       // Write file using Electron API
-      await window.electronAPI.writeFileBuffer(targetPath, buffer);
+      await globalThis.electronAPI.writeFileBuffer(targetPath, buffer);
 
       return fileName;
     } catch (error) {
@@ -600,7 +600,7 @@ export class ImageService {
    * @returns {Promise<string[]>} 被清理的檔案名稱陣列
    */
   async cleanupUnusedImages(): Promise<string[]> {
-    if (!this.vaultPath || typeof window === "undefined" || !window.electronAPI) {
+    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
       return [];
     }
 
@@ -611,7 +611,7 @@ export class ImageService {
 
       for (const image of unusedImages) {
         try {
-          await window.electronAPI.deleteFile(image.path);
+          await globalThis.electronAPI.deleteFile(image.path);
           cleanedFiles.push(image.name);
         } catch (error) {
           logger.warn(`Failed to delete unused image ${image.name}:`, error);
