@@ -65,6 +65,7 @@ import { useSearchReplace } from "@/composables/useSearchReplace";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useSyncScroll } from "@/composables/useSyncScroll";
 import { getArticleService } from "@/services/ArticleService";
+import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
 
 const articleStore = useArticleStore();
@@ -270,7 +271,7 @@ function scheduleAutoSave() {
 
     autoSaveTimer.value = setTimeout(() => {
         saveArticle();
-    }, 2000); // Auto-save after 2 seconds of inactivity
+    }, 2000) as unknown as number; // Auto-save after 2 seconds of inactivity
 }
 
 async function saveArticle() {
@@ -304,7 +305,7 @@ async function saveArticle() {
 
         if (result.success) {
             // 更新 store 中的資料（透過 store 的 action）
-            await articleStore.updateArticle(updatedArticle);
+            articleStore.updateArticleInMemory(updatedArticle);
         } else if (result.conflict) {
             logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
@@ -481,7 +482,7 @@ function updatePreview() {
 }
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
-    articleStore.updateArticle(updatedArticle);
+    articleStore.updateArticleInMemory(updatedArticle);
 }
 
 // 搜尋高亮處理
@@ -504,7 +505,7 @@ function handleSearchHighlight(
 function scrollToSelection() {
     if (!editorRef.value) { return; }
 
-    const textarea = editorRef.value;
+    const textarea = editorRef.value as HTMLTextAreaElement;
     const selectionStart = textarea.selectionStart;
     const textBeforeSelection = textarea.value.substring(0, selectionStart);
     const lines = textBeforeSelection.split("\n");

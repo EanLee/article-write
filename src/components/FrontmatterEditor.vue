@@ -22,8 +22,7 @@
           <label for="slug-input" class="label">
             <span class="label-text">網址代稱</span>
           </label>
-          <input
-            id="slug-input"
+          <input id="slug-input"
             v-model="localArticle.slug"
             type="text"
             placeholder="自動生成"
@@ -240,6 +239,9 @@ function generateSlug(title: string): string {
 function addTag() {
   if (newTag.value.trim() && localArticle.value) {
     const tag = newTag.value.trim()
+    if (!localArticle.value.frontmatter.tags) {
+      localArticle.value.frontmatter.tags = []
+    }
     if (!localArticle.value.frontmatter.tags.includes(tag)) {
       localArticle.value.frontmatter.tags.push(tag)
     }
@@ -249,9 +251,9 @@ function addTag() {
 
 function removeTag(tag: string) {
   if (localArticle.value) {
-    const index = localArticle.value.frontmatter.tags.indexOf(tag)
-    if (index > -1) {
-      localArticle.value.frontmatter.tags.splice(index, 1)
+    const index = localArticle.value.frontmatter.tags?.indexOf(tag)
+    if (index !== undefined && index > -1) {
+      localArticle.value.frontmatter.tags?.splice(index, 1)
     }
   }
 }
@@ -282,7 +284,7 @@ function handleSave() {
   if (!localArticle.value) {return}
 
   // Update the article title if frontmatter title changed
-  localArticle.value.title = localArticle.value.frontmatter.title
+  localArticle.value.title = localArticle.value.frontmatter.title ?? ""
 
   // Update publish date
   if (publishDate.value) {
