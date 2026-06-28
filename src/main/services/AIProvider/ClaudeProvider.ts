@@ -4,7 +4,7 @@ import { AIError, AIErrorCode } from "./types.js";
 import { buildSEOPrompt } from "./prompts.js";
 
 export class ClaudeProvider implements IAIProvider {
-  private client: Anthropic;
+  private readonly client: Anthropic;
 
   constructor(apiKey: string) {
     this.client = new Anthropic({ apiKey });

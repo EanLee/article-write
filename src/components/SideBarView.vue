@@ -111,7 +111,7 @@ function stopResize() {
 onMounted(() => {
   const savedWidth = localStorage.getItem(STORAGE_KEY)
   if (savedWidth) {
-    const parsed = parseInt(savedWidth, 10)
+    const parsed = Number.parseInt(savedWidth, 10)
     if (parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
       width.value = parsed
     }

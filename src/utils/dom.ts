@@ -9,7 +9,7 @@
  * 將字串中的 HTML 特殊字元轉為 HTML entities，防止 XSS 注入。
  */
 export function escapeHtml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
 /**

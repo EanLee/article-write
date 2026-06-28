@@ -8,7 +8,7 @@ import type { ConfigService } from "./ConfigService.js"
 export type { AIProviderName }
 
 export class AIService {
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   async generateSEO(input: SEOGenerationInput, provider?: AIProviderName): Promise<SEOGenerationResult> {
     const activeProvider = provider ?? this.resolveProvider()

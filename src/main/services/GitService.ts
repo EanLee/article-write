@@ -1,6 +1,6 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
-import { normalize, resolve, sep } from "path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { normalize, resolve, sep } from "node:path";
 import type { ConfigService } from "./ConfigService.js";
 import type { GitResult, GitCommitOptions, GitPushOptions } from "../../types/git.js";
 export type { GitResult, GitCommitOptions, GitPushOptions };

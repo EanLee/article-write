@@ -83,7 +83,7 @@ onMounted(() => {
   const savedCollapsed = localStorage.getItem(`${props.storageKey}-collapsed`)
 
   if (savedWidth) {
-    const parsedWidth = parseInt(savedWidth, 10)
+    const parsedWidth = Number.parseInt(savedWidth, 10)
     if (parsedWidth >= props.minWidth && parsedWidth <= props.maxWidth) {
       width.value = parsedWidth
     }

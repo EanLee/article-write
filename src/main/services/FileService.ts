@@ -1,11 +1,11 @@
-import { promises as fs, constants as fsConstants } from "fs";
-import { dirname, normalize, resolve, sep } from "path";
+import { promises as fs, constants as fsConstants } from "node:fs";
+import { dirname, normalize, resolve, sep } from "node:path";
 import { watch, type FSWatcher } from "chokidar";
 
 export class FileService {
   private watcher: FSWatcher | null = null;
   /** A-02: 升級為 Set，支援多個訂閱者同時監聽檔案變更 */
-  private watchCallbacks: Set<(event: string, path: string) => void> = new Set();
+  private readonly watchCallbacks: Set<(event: string, path: string) => void> = new Set();
   private allowedBasePaths: string[] = [];
 
   /**

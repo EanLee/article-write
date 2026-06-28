@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from "child_process";
+import { spawn, ChildProcess } from "node:child_process";
 import { BrowserWindow } from "electron";
 import { IPC } from "../ipc-channels.js";
 
@@ -6,7 +6,7 @@ export class ProcessService {
   private devServerProcess: ChildProcess | null = null;
   private serverUrl: string | null = null;
   private logs: string[] = [];
-  private static MAX_LOGS = 500;
+  private static readonly MAX_LOGS = 500;
 
   private sendLogToRenderer(log: string, type: "stdout" | "stderr" = "stdout") {
     this.logs.push(`[${type}] ${log}`);

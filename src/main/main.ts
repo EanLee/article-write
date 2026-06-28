@@ -1,7 +1,7 @@
 import { initSentry } from "./sentry.js";
 import { app, BrowserWindow, protocol, net } from "electron";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import pkg from "electron-updater";
 const { autoUpdater } = pkg;
 import { FileService } from "./services/FileService.js";

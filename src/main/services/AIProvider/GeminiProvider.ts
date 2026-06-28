@@ -4,7 +4,7 @@ import { AIError, AIErrorCode } from "./types.js";
 import { buildSEOPrompt } from "./prompts.js";
 
 export class GeminiProvider implements IAIProvider {
-  private client: GoogleGenAI;
+  private readonly client: GoogleGenAI;
 
   constructor(apiKey: string) {
     this.client = new GoogleGenAI({ apiKey });
