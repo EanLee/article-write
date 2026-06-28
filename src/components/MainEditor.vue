@@ -3,8 +3,8 @@
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
             :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
-            @toggle-status="toggleArticleStatus" @toggle-editor-mode="toggleEditorMode"
-            @toggle-focus-mode="toggleFocusMode" />
+            @toggle-status="toggleArticleStatus"
+            @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
 
         <!-- Search/Replace Panel -->
         <SearchReplace :visible="isSearchVisible" :content="content" @close="closeSearch" @replace="replace"
@@ -16,13 +16,13 @@
             <template v-if="editorMode === 'compose'">
                 <CodeMirrorEditor ref="editorPaneRef" v-model="content" :show-preview="showPreview"
                     :suggestions="suggestions" :show-suggestions="showSuggestions"
-                    :selected-suggestion-index="selectedSuggestionIndex" :syntax-errors="syntaxErrors"
-                    :image-validation-warnings="imageValidationWarnings" :dropdown-position="dropdownPosition"
-                    :sync-scroll="syncEnabled" @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
-                    @keydown="handleKeydown" @cursor-change="updateAutocomplete" @apply-suggestion="applySuggestion"
-                    @scroll="onEditorScroll" @toggle-sync-scroll="toggleSyncScroll"
-                    @outline-change="handleOutlineChange" @drop-image="handleDropImage"
-                    @paste-image="handlePasteImage" @paste-url="handlePasteUrl" />
+                    :selected-suggestion-index="selectedSuggestionIndex"
+                    :syntax-errors="syntaxErrors" :image-validation-warnings="imageValidationWarnings"
+                    :dropdown-position="dropdownPosition" :sync-scroll="syncEnabled"
+                    @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
+                    @keydown="handleKeydown" @cursor-change="updateAutocomplete"
+                    @apply-suggestion="applySuggestion" @scroll="onEditorScroll"
+                    @toggle-sync-scroll="toggleSyncScroll" />
             </template>
 
             <!-- Raw 模式 -->
@@ -37,15 +37,11 @@
             <!-- Preview Pane -->
             <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
                 :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
-
         </div>
 
         <!-- Frontmatter Editor Modal -->
         <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
             @update="handleFrontmatterUpdate" />
-
-        <!-- Save Conflict Dialog（topic-020 Action Item #1） -->
-        <SaveConflictDialog />
 
     </div>
 </template>
@@ -54,13 +50,11 @@
 import { ref, computed, watch, onUnmounted, onMounted, nextTick } from "vue";
 import { useArticleStore } from "@/stores/article";
 import { useConfigStore } from "@/stores/config";
-import { useSearchStore } from "@/stores/search";
 import { debounce } from "lodash-es";
 import EditorHeader from "./EditorHeader.vue";
 import CodeMirrorEditor from "./CodeMirrorEditor.vue";
 import PreviewPane from "./PreviewPane.vue";
 import FrontmatterEditor from "./FrontmatterEditor.vue";
-import SaveConflictDialog from "./SaveConflictDialog.vue";
 import SearchReplace from "./SearchReplace.vue";
 import { useServices } from "@/composables/useServices";
 import { useAutocomplete } from "@/composables/useAutocomplete";
@@ -71,14 +65,10 @@ import { useSearchReplace } from "@/composables/useSearchReplace";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useSyncScroll } from "@/composables/useSyncScroll";
 import { getArticleService } from "@/services/ArticleService";
-import { autoSaveService } from "@/services/AutoSaveService";
-import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
-import type { OutlineHeading } from "./CodeMirrorEditor.vue"
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
-const searchStore = useSearchStore();
 
 // 使用服務單例
 const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, imageService } = useServices();
@@ -91,6 +81,7 @@ const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref("");
+const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<"compose" | "raw">("compose");
 const rawContent = ref("");
 
@@ -104,43 +95,8 @@ const previewPaneRef = ref<InstanceType<typeof PreviewPane>>();
 // Get editorRef from EditorPane component
 const editorRef = computed(() => editorPaneRef.value?.editorRef);
 
-// Outline state
-const outlineHeadings = ref<OutlineHeading[]>([])
-const emit = defineEmits<{
-  "outline-change": [headings: OutlineHeading[]]
-}>()
-
-function handleOutlineChange(headings: OutlineHeading[]) {
-  outlineHeadings.value = headings
-  emit("outline-change", headings)
-}
-
-/**
- * 捲動編輯器至大綱指定行
- * @param line 0-indexed 行號
- */
-function handleScrollToOutlineLine(line: number) {
-  editorPaneRef.value?.scrollToLine(line)
-}
-
-/**
- * 監聽全域搜尋的待捲動查詢：文章切換後等 Vue 更新完成，再捲動至關鍵字位置並清除狀態
- */
-watch(() => searchStore.pendingScrollQuery, async (query) => {
-  if (!query) { return }
-  await nextTick()
-  editorPaneRef.value?.scrollToQuery(query)
-  searchStore.requestScrollToQuery(null)
-})
-
-defineExpose({ outlineHeadings, handleScrollToOutlineLine })
-
 // Get preview container ref from PreviewPane component
 const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
-
-// CM6 的可捲動 DOM 元素（.cm-scroller）；scrollTop/scrollHeight 操作需使用此元素
-// editorRef wrapper 沒有 scrollTop，不可直接傳給 useSyncScroll
-const editorScrollRef = computed(() => editorPaneRef.value?.editorView?.scrollDOM ?? undefined);
 
 // 同步滾動功能
 const {
@@ -148,7 +104,7 @@ const {
     onEditorScroll,
     onPreviewScroll,
     setSync
-} = useSyncScroll(editorScrollRef, previewRef);
+} = useSyncScroll(editorRef, previewRef);
 
 // 使用 Composables
 const {
@@ -246,6 +202,8 @@ const {
 
 // 其他狀態
 const imageFiles = ref<string[]>([])
+// 直接從 store 取得 allTags，不在組件中重複計算
+const allTags = computed(() => articleStore.allTags)
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -264,6 +222,7 @@ const previewValidation = ref({
 
 // Methods
 function handleContentChange() {
+    // ✅ 只更新 UI 相關的邏輯，不直接修改 store
     if (showPreview.value) {
         updatePreview();
     }
@@ -272,12 +231,8 @@ function handleContentChange() {
     updateAutocomplete();
     debounceValidation();
 
-    // 文章載入期間不標記為已修改（避免開啟文件即誤觸儲存）
-    if (!isLoadingArticle.value) {
-        // 即時同步編輯器內容到 store（topic-020：所有儲存路徑統一取編輯器當前內容）
-        articleStore.updateCurrentArticleContent(content.value);
-        autoSaveService.markAsModified();
-    }
+    // 排程自動儲存（會調用 service）
+    scheduleAutoSave();
 }
 
 // Watch content changes
@@ -302,6 +257,21 @@ watch(content, (newContent) => {
         }, 500);
     }
 });
+
+function scheduleAutoSave() {
+    // 文章載入期間不觸發自動儲存（避免開啟文件即誤觸儲存）
+    if (isLoadingArticle.value) {
+        return;
+    }
+
+    if (autoSaveTimer.value) {
+        clearTimeout(autoSaveTimer.value);
+    }
+
+    autoSaveTimer.value = setTimeout(() => {
+        saveArticle();
+    }, 2000); // Auto-save after 2 seconds of inactivity
+}
 
 async function saveArticle() {
     if (!articleStore.currentArticle) {
@@ -329,18 +299,27 @@ async function saveArticle() {
             );
         }
 
-        // 統一走 store 儲存路徑（topic-020）：
-        // 含 FileWatch ignoreNextChange、衝突彈窗通知、記憶體同步
-        await articleStore.saveArticle(updatedArticle);
+        // 調用 service 儲存到磁碟
+        const result = await articleService.saveArticle(updatedArticle);
+
+        if (result.success) {
+            // 更新 store 中的資料（透過 store 的 action）
+            await articleStore.updateArticle(updatedArticle);
+        } else if (result.conflict) {
+            logger.warn("[Editor] File conflict detected during auto-save");
+            // 衝突時不強制儲存
+        } else if (result.error) {
+            logger.error("[Editor] Failed to save article:", result.error);
+        }
     } catch (error) {
-        // store 已對衝突/失敗發出使用者通知，這裡僅記錄
-        logger.error("[Editor] Save error:", error);
+        // 靜默處理錯誤，自動儲存失敗不需要通知用戶
+        logger.error("[Editor] Auto-save error:", error);
     }
 }
 
 async function toggleArticleStatus() {
     const article = articleStore.currentArticle;
-    if (!article) { return; }
+    if (!article) {return;}
     try {
         await articleStore.toggleStatus(article.id);
     } catch {
@@ -378,6 +357,10 @@ function toggleEditorMode() {
         if (historyTimeout) {
             clearTimeout(historyTimeout);
             historyTimeout = null;
+        }
+        if (autoSaveTimer.value) {
+            clearTimeout(autoSaveTimer.value);
+            autoSaveTimer.value = null;
         }
 
         if (editorMode.value === "compose") {
@@ -432,9 +415,7 @@ function handleRawContentChange() {
         }
 
         // 排程自動儲存（會通過 service 更新 store）
-        if (!isLoadingArticle.value) {
-            autoSaveService.markAsModified();
-        }
+        scheduleAutoSave();
 
         if (showPreview.value) {
             updatePreview();
@@ -448,22 +429,19 @@ function handleRawContentChange() {
 function updatePreview() {
     // Use enhanced PreviewService for rendering Obsidian format content
     try {
-        const articlesDir = configStore.config.paths.articlesDir;
-        // imagesDir 為圖片儲存目錄（Obsidian wiki link ![[name]] 的查找路徑）
-        const imagesDir = configStore.config.paths.imagesDir || (articlesDir ? `${articlesDir}/images` : "");
-        const articleFilePath = articleStore.currentArticle?.filePath ?? "";
+        const vaultPath = configStore.config.paths.obsidianVault;
+        const imageBasePath = vaultPath ? `${vaultPath}/images` : "./images";
 
         // Update preview service with current context
         previewService.updateArticles(articleStore.articles);
-        previewService.setImageBasePath(imagesDir);
+        previewService.setImageBasePath(imageBasePath);
 
         // Render with full Obsidian syntax support
         renderedContent.value = previewService.renderPreview(content.value, {
             enableObsidianSyntax: true,
             enableImagePreview: true,
             enableWikiLinks: true,
-            baseImagePath: imagesDir,
-            articleFilePath,
+            baseImagePath: imageBasePath,
             articleList: articleStore.articles
         });
 
@@ -506,63 +484,34 @@ function handleFrontmatterUpdate(updatedArticle: Article) {
     articleStore.updateArticle(updatedArticle);
 }
 
-/**
- * 處理 CM6 拖放圖片事件：上傳圖片後在拖放位置插入 Obsidian 圖片語法
- * @param file 拖放的圖片 File 物件
- * @param pos 拖放時在文件中的字元偏移位置
- */
-async function handleDropImage(file: File, pos: number) {
-    try {
-        const fileName = await imageService.uploadImageFile(file)
-        const markdownRef = imageService.generateImageReference(fileName)
-        editorPaneRef.value?.insertAtPosition(pos, `\n${markdownRef}\n`)
-    } catch (error) {
-        logger.error("[Editor] 拖放圖片上傳失敗:", error)
-    }
-}
-
-/**
- * 處理 CM6 貼上剪貼簿圖片事件：上傳後在游標位置插入 Obsidian 圖片語法
- * @param file 剪貼簿中的圖片 File 物件
- */
-async function handlePasteImage(file: File) {
-    try {
-        const fileName = await imageService.uploadImageFile(file)
-        const markdownRef = imageService.generateImageReference(fileName)
-        const view = editorPaneRef.value?.editorView
-        if (!view) { return }
-        const pos = view.state.selection.main.head
-        editorPaneRef.value?.insertAtPosition(pos, `\n${markdownRef}\n`)
-    } catch (error) {
-        logger.error("[Editor] 貼上圖片上傳失敗:", error)
-    }
-}
-
-/**
- * 處理 CM6 貼上純 URL 事件：在游標位置插入 Markdown 連結語法
- * @param url 貼上的純文字 URL
- */
-function handlePasteUrl(url: string) {
-    const view = editorPaneRef.value?.editorView
-    if (!view) { return }
-    const pos = view.state.selection.main.head
-    const markdownLink = `[${url}](${url})`
-    editorPaneRef.value?.insertAtPosition(pos, markdownLink)
-}
-
-/**
- * 處理 SearchReplace 元件發出的 highlight 事件：
- * 在 CM6 編輯器中選取目前匹配範圍，並捲動至選取位置置中
- * @param matches 全部匹配的位置陣列
- * @param currentIndex 目前要高亮的匹配索引
- */
+// 搜尋高亮處理
 function handleSearchHighlight(
     matches: Array<{ start: number; end: number }>,
     currentIndex: number
 ) {
-    if (matches.length === 0) { return; }
+    if (matches.length === 0 || !editorRef.value) { return; }
+
     const match = matches[currentIndex];
-    editorPaneRef.value?.selectRange(match.start, match.end);
+
+    // 選取匹配的文字
+    editorRef.value.setSelectionRange(match.start, match.end);
+    editorRef.value.focus();
+
+    // 滾動到可見區域
+    scrollToSelection();
+}
+
+function scrollToSelection() {
+    if (!editorRef.value) { return; }
+
+    const textarea = editorRef.value;
+    const selectionStart = textarea.selectionStart;
+    const textBeforeSelection = textarea.value.substring(0, selectionStart);
+    const lines = textBeforeSelection.split("\n");
+    const lineHeight = 24; // 根據實際行高調整
+    const scrollTop = (lines.length - 1) * lineHeight;
+
+    textarea.scrollTop = scrollTop - textarea.clientHeight / 2;
 }
 
 // 鍵盤事件處理（整合 composables）
@@ -595,21 +544,31 @@ async function initializeObsidianSupport() {
         // 更新 ObsidianSyntaxService 的文章清單
         obsidianSyntax.updateArticles(articleStore.articles);
 
+        // Update tags from articles
+        const tagSet = new Set<string>();
+        articleStore.articles.forEach((article: Article) => {
+            // 防禦性檢查：確保 tags 存在且為陣列
+            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
+                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
+            }
+        });
+        allTags.value = Array.from(tagSet);
+
         // Update image files using Electron API
         const vaultPath = configStore.config.paths.obsidianVault;
-        if (vaultPath && window.electronAPI) {
+        if (vaultPath && globalThis.electronAPI) {
             // 設定 ImageService
             imageService.setVaultPath(vaultPath);
             imageService.updateArticles(articleStore.articles);
 
             const imagesPath = `${vaultPath}/images`;
             try {
-                const files = await window.electronAPI.readDirectory(imagesPath);
+                const files = await globalThis.electronAPI.readDirectory(imagesPath);
                 // Filter image files
-                const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"];
+                const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]);
                 imageFiles.value = files.filter((file) => {
                     const ext = file.toLowerCase().substring(file.lastIndexOf("."));
-                    return imageExtensions.includes(ext);
+                    return imageExtensions.has(ext);
                 });
 
                 // 更新 ObsidianSyntaxService 的圖片檔案清單
@@ -671,18 +630,18 @@ watch(
 watch(
     () => configStore.config.paths.obsidianVault,
     async (newPath) => {
-        if (newPath && window.electronAPI) {
+        if (newPath && globalThis.electronAPI) {
             // 更新 ImageService 的 vault 路徑
             imageService.setVaultPath(newPath);
 
             try {
                 const imagesPath = `${newPath}/images`;
-                const files = await window.electronAPI.readDirectory(imagesPath);
+                const files = await globalThis.electronAPI.readDirectory(imagesPath);
                 // Filter image files
-                const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"];
+                const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]);
                 imageFiles.value = files.filter((file) => {
                     const ext = file.toLowerCase().substring(file.lastIndexOf("."));
-                    return imageExtensions.includes(ext);
+                    return imageExtensions.has(ext);
                 });
 
                 // 更新 ObsidianSyntaxService 的圖片檔案清單
@@ -719,6 +678,10 @@ function handleClickOutside(event: MouseEvent) {
 
 // Cleanup
 onUnmounted(() => {
+    // 清理自動儲存定時器
+    if (autoSaveTimer.value) {
+        clearTimeout(autoSaveTimer.value);
+    }
     // 清理歷史記錄定時器
     if (historyTimeout) {
         clearTimeout(historyTimeout);

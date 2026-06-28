@@ -64,10 +64,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from "vue"
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection } from "@codemirror/view"
-import { EditorState, type Extension, type TransactionSpec } from "@codemirror/state"
+import { EditorState, type Extension } from "@codemirror/state"
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
-import { defaultKeymap, history, historyKeymap, indentWithTab, deleteLine, copyLineDown } from "@codemirror/commands"
+import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
 import {
   closeBrackets,
   closeBracketsKeymap,
@@ -76,27 +76,10 @@ import {
   type Completion,
 } from "@codemirror/autocomplete"
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
-import type { Command } from "@codemirror/view"
-import {
-  toggleInlineFormatSpec,
-  toggleHeadingSpec,
-  insertLinkSpec,
-  insertCodeBlockSpec,
-  insertFootnoteSpec,
-  insertStrikethroughSpec,
-} from "@/utils/editorCommands"
 import { autoSaveService } from "@/services/AutoSaveService"
 import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
-import type { ImageValidationWarning } from "@/types/image"
+import type { ImageValidationWarning } from "@/services/ImageService"
 import EditorStatusBar from "./EditorStatusBar.vue"
-
-// ─── OutlineHeading ───────────────────────────────────────────────────────────
-
-export interface OutlineHeading {
-  level: number   // 1–6
-  text: string
-  line: number    // 0-indexed line number in document
-}
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
@@ -127,10 +110,6 @@ const emit = defineEmits<{
   "toggle-line-numbers": []
   "toggle-word-wrap": []
   "scroll": []
-  "outline-change": [headings: OutlineHeading[]]
-  "drop-image": [file: File, pos: number]
-  "paste-image": [file: File]
-  "paste-url": [url: string]
 }>()
 
 // ─── Refs ────────────────────────────────────────────────────────────────────
@@ -161,83 +140,33 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
 
     // 只在 [[、![[、# 前綴後觸發（與 ObsidianSyntaxService 邏輯一致）
     const isTriggered =
-      /!\[\[[^\]]*?$/.test(beforeCursor) ||
-      /\[\[[^\]]*?$/.test(beforeCursor) ||
-      /#[a-zA-Z0-9\u4e00-\u9fff]*?$/.test(beforeCursor)
+      /!\[\[[^\]]*$/.test(beforeCursor) ||
+      /\[\[[^\]]*$/.test(beforeCursor) ||
+      /#[a-zA-Z0-9\u4e00-\u9fff]*$/.test(beforeCursor)
 
     if (!isTriggered && !ctx.explicit) { return null }
 
     const items = getSuggestions(text, pos)
     if (items.length === 0) { return null }
 
-    const completions: Completion[] = items.map(item => ({
-      label: item.displayText,
-      apply: item.text,
-      detail: item.description,
-      type: item.type === "wikilink" ? "keyword" : item.type === "image" ? "variable" : "type",
-    }))
-
-    return { from: pos, options: completions, validFor: /^[^\]]*$/ }
-  }
-}
-
-// ─── Slash Commands CompletionSource ──────────────────────────────────────────
-
-/**
- * 建立斜線命令 CompletionSource：輸入 / 觸發命令選單
- * 選擇後以 view.dispatch 替換 /command 文字並插入 Markdown 語法
- */
-function createSlashCommandSource() {
-  return (ctx: CompletionContext) => {
-    const match = ctx.matchBefore(/\/\w*/)
-    if (!match) { return null }
-
-    const today = new Date().toLocaleDateString("zh-TW", {
-      year: "numeric", month: "2-digit", day: "2-digit",
+    const completions: Completion[] = items.map(item => {
+      let completionType: string
+      if (item.type === "wikilink") {
+        completionType = "keyword"
+      } else if (item.type === "image") {
+        completionType = "variable"
+      } else {
+        completionType = "type"
+      }
+      return {
+        label: item.displayText,
+        apply: item.text,
+        detail: item.description,
+        type: completionType,
+      }
     })
 
-    const commands: Completion[] = [
-      {
-        label: "/h1", detail: "一級標題",
-        apply(view, _c, from, to) {
-          view.dispatch({ changes: { from, to, insert: "# " }, selection: { anchor: from + 2 } })
-        },
-      },
-      {
-        label: "/h2", detail: "二級標題",
-        apply(view, _c, from, to) {
-          view.dispatch({ changes: { from, to, insert: "## " }, selection: { anchor: from + 3 } })
-        },
-      },
-      {
-        label: "/h3", detail: "三級標題",
-        apply(view, _c, from, to) {
-          view.dispatch({ changes: { from, to, insert: "### " }, selection: { anchor: from + 4 } })
-        },
-      },
-      {
-        label: "/code", detail: "程式碼區塊",
-        apply(view, _c, from, to) {
-          const insert = "```\n\n```"
-          view.dispatch({ changes: { from, to, insert }, selection: { anchor: from + 4 } })
-        },
-      },
-      {
-        label: "/table", detail: "表格",
-        apply(view, _c, from, to) {
-          const insert = "| 欄位 1 | 欄位 2 |\n| --- | --- |\n| 內容 | 內容 |"
-          view.dispatch({ changes: { from, to, insert }, selection: { anchor: from } })
-        },
-      },
-      {
-        label: "/date", detail: today,
-        apply(view, _c, from, to) {
-          view.dispatch({ changes: { from, to, insert: today }, selection: { anchor: from + today.length } })
-        },
-      },
-    ]
-
-    return { from: match.from, options: commands, validFor: /^\/\w*$/ }
+    return { from: pos, options: completions, validFor: /^[^\]]*$/ }
   }
 }
 
@@ -296,72 +225,9 @@ const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert
   return true
 })
 
-// ─── Formatting Commands ──────────────────────────────────────────────────────
-
-function makeFormatCommand(
-  specFn: (state: EditorState) => TransactionSpec,
-): Command {
-  return (view) => {
-    view.dispatch(view.state.update(specFn(view.state)))
-    return true
-  }
-}
-
-const formattingKeymap = keymap.of([
-  { key: "Mod-b", run: makeFormatCommand(s => toggleInlineFormatSpec("**", "bold text", s)) },
-  { key: "Mod-i", run: makeFormatCommand(s => toggleInlineFormatSpec("*", "italic text", s)) },
-  { key: "Mod-k", run: makeFormatCommand(s => insertLinkSpec(s)) },
-  { key: "Mod-Shift-c", run: makeFormatCommand(s => insertCodeBlockSpec(s)) },
-  { key: "Mod-Shift-x", run: makeFormatCommand(s => insertStrikethroughSpec(s)) },
-  { key: "Mod-Shift-f", run: makeFormatCommand(s => insertFootnoteSpec(s)) },
-  { key: "Mod-1", run: makeFormatCommand(s => toggleHeadingSpec(1, s)) },
-  { key: "Mod-2", run: makeFormatCommand(s => toggleHeadingSpec(2, s)) },
-  { key: "Mod-3", run: makeFormatCommand(s => toggleHeadingSpec(3, s)) },
-  { key: "Mod-4", run: makeFormatCommand(s => toggleHeadingSpec(4, s)) },
-  { key: "Mod-5", run: makeFormatCommand(s => toggleHeadingSpec(5, s)) },
-  { key: "Mod-6", run: makeFormatCommand(s => toggleHeadingSpec(6, s)) },
-])
-
-// ─── 編輯快捷鍵 ──────────────────────────────────────────────────────────────
-
-/** Ctrl+G：彈出行號輸入框，捲動至指定行並移動游標 */
-function jumpToLineCommand(view: EditorView): boolean {
-  const input = window.prompt("跳至行號：")
-  if (!input) { return false }
-  const lineNum = parseInt(input, 10)
-  if (isNaN(lineNum) || lineNum < 1) { return false }
-  const target = Math.min(lineNum, view.state.doc.lines)
-  const line = view.state.doc.line(target)
-  view.dispatch({
-    selection: { anchor: line.from },
-    effects: EditorView.scrollIntoView(line.from, { y: "center", yMargin: 80 }),
-  })
-  view.focus()
-  return true
-}
-
-const editingKeymap = keymap.of([
-  { key: "Mod-g", run: jumpToLineCommand },    // 跳至指定行
-  { key: "Mod-d", run: deleteLine },            // 刪除當前行
-  { key: "Mod-Shift-d", run: copyLineDown },    // 複製當前行至下一行
-])
-
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
-// 解析標題供大綱面板使用（初次掛載與內容變更時都需呼叫）
-function emitOutline(doc: EditorState["doc"]) {
-  const headings: OutlineHeading[] = []
-  for (let i = 1; i <= doc.lines; i++) {
-    const line = doc.line(i)
-    const match = line.text.match(/^(#{1,6})\s+(.+)/)
-    if (match) {
-      headings.push({ level: match[1].length, text: match[2].trim(), line: i - 1 })
-    }
-  }
-  emit("outline-change", headings)
-}
-
-const buildExtensions =(getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
+const buildExtensions = (getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
   // Markdown 語法高亮
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   syntaxHighlighting(defaultHighlightStyle),
@@ -391,19 +257,8 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
   // 自訂：** 雙星號補全
   doubleStarExtension,
 
-  // 自動完成：斜線命令永遠啟用，Obsidian wikilink/tag 在有 getSuggestions 時加入
-  autocompletion({
-    override: [
-      createSlashCommandSource(),
-      ...(getSuggestions ? [createObsidianCompletionSource(getSuggestions)] : []),
-    ],
-  }),
-
-  // 編輯快捷鍵：Ctrl+G 跳行、Ctrl+D 刪行、Ctrl+Shift+D 複製行
-  editingKeymap,
-
-  // 格式化快捷鍵（必須在 defaultKeymap 之前，避免被預設行為攔截）
-  formattingKeymap,
+  // Obsidian 自動完成（如果有 getSuggestions）
+  ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
 
   // 鍵盤快捷鍵
   keymap.of([
@@ -420,7 +275,6 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
       emit("update:modelValue", update.state.doc.toString())
       autoSaveService.markAsModified()
       isInternalUpdate = false
-      emitOutline(update.state.doc)
     }
     if (update.selectionSet) {
       const sel = update.state.selection.main
@@ -432,44 +286,10 @@ const buildExtensions =(getSuggestions: ((text: string, pos: number) => Suggesti
     }
   }),
 
-  // 鍵盤事件與拖放圖片事件
-  // 注意：scroll 事件改在 onMounted 直接掛到 scrollDOM（此處的 domEventHandlers 無法捕捉 scrollDOM 捲動）
+  // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）
   EditorView.domEventHandlers({
     keydown: (event) => { emit("keydown", event) },
-    paste(event) {
-      const items = Array.from(event.clipboardData?.items ?? [])
-
-      // 剪貼簿圖片優先（直接截圖或複製圖片）
-      const imageItem = items.find((i) => i.type.startsWith("image/"))
-      if (imageItem) {
-        const file = imageItem.getAsFile()
-        if (file) {
-          event.preventDefault()
-          emit("paste-image", file)
-          return true
-        }
-      }
-
-      // 純 URL → 轉為 Markdown 連結
-      const text = event.clipboardData?.getData("text/plain")?.trim() ?? ""
-      if (text && /^https?:\/\/\S+$/.test(text)) {
-        event.preventDefault()
-        emit("paste-url", text)
-        return true
-      }
-
-      return false
-    },
-    drop(event, view) {
-      const imageFiles = Array.from(event.dataTransfer?.files ?? []).filter(
-        (f) => f.type.startsWith("image/")
-      )
-      if (!imageFiles.length) { return false }
-      event.preventDefault()
-      const pos = view.posAtCoords({ x: event.clientX, y: event.clientY }) ?? view.state.doc.length
-      imageFiles.forEach((file) => emit("drop-image", file, pos))
-      return true
-    },
+    scroll: () => { emit("scroll") },
   }),
 
   // 自動換行（預設開啟）
@@ -508,10 +328,6 @@ function setSuggestionsProvider(fn: (text: string, pos: number) => SuggestionIte
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-// domEventHandlers 掛在 .cm-editor（外層），但 scroll 事件發生在 .cm-scroller（內層）且不冒泡
-// 因此需直接對 scrollDOM 掛監聽器，才能正確捕捉 CM6 的捲動事件
-let _scrollListener: (() => void) | null = null
-
 onMounted(() => {
   if (!containerRef.value) { return }
 
@@ -524,19 +340,9 @@ onMounted(() => {
     state,
     parent: containerRef.value,
   })
-
-  _scrollListener = () => emit("scroll")
-  editorView.value.scrollDOM.addEventListener("scroll", _scrollListener)
-
-  // 初次掛載即解析大綱（updateListener 只在 docChanged 時觸發，不含初始載入）
-  emitOutline(state.doc)
 })
 
 onUnmounted(() => {
-  if (_scrollListener) {
-    editorView.value?.scrollDOM.removeEventListener("scroll", _scrollListener)
-    _scrollListener = null
-  }
   editorView.value?.destroy()
 })
 
@@ -591,78 +397,10 @@ const editorRef = computed(() => {
   }
 })
 
-/**
- * 捲動至指定行號（0-indexed）
- * @param lineNumber 0-indexed 行號
- */
-function scrollToLine(lineNumber: number) {
-  const view = editorView.value
-  if (!view) { return }
-  const targetLine = lineNumber + 1 // lineNumber is 0-indexed
-  if (targetLine < 1 || targetLine > view.state.doc.lines) { return }
-  const line = view.state.doc.line(targetLine)
-  view.dispatch({
-    effects: EditorView.scrollIntoView(line.from, { y: "start", yMargin: 50 }),
-  })
-  view.focus()
-}
-
-/**
- * 在 CM6 文件中搜尋關鍵字（大小寫不敏感），捲動至第一個匹配行置中顯示
- * @param query 要搜尋的關鍵字
- */
-function scrollToQuery(query: string) {
-  const view = editorView.value
-  if (!view || !query.trim()) { return }
-  const content = view.state.doc.toString()
-  const pos = content.toLowerCase().indexOf(query.trim().toLowerCase())
-  if (pos === -1) { return }
-  const line = view.state.doc.lineAt(pos)
-  view.dispatch({
-    effects: EditorView.scrollIntoView(line.from, { y: "center", yMargin: 80 }),
-  })
-  view.focus()
-}
-
-/**
- * 在文件指定位置插入文字，游標移至插入內容末尾
- * @param pos 插入位置（文件字元偏移）
- * @param text 要插入的文字
- */
-function insertAtPosition(pos: number, text: string) {
-  const view = editorView.value
-  if (!view) { return }
-  view.dispatch({
-    changes: { from: pos, insert: text },
-    selection: { anchor: pos + text.length },
-  })
-  view.focus()
-}
-
-/**
- * 選取指定字元範圍，並將選取起點捲動至視窗置中（CM6 原生實作）
- * 取代原先 textarea.setSelectionRange + 手動計算 scrollTop 的做法
- * @param from 選取起始位置（文件字元偏移）
- * @param to 選取結束位置（文件字元偏移）
- */
-function selectRange(from: number, to: number) {
-  const view = editorView.value
-  if (!view) { return }
-  view.dispatch({
-    selection: { anchor: from, head: to },
-    effects: EditorView.scrollIntoView(from, { y: "center", yMargin: 80 }),
-  })
-  view.focus()
-}
-
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
-  scrollToLine,
-  scrollToQuery,
-  selectRange,
-  insertAtPosition,
 })
 </script>
 
@@ -671,13 +409,11 @@ defineExpose({
   height: 100%;
 }
 
-/* noinspection CssUnusedSymbol */
 .cm-editor-wrapper :deep(.cm-editor) {
   height: 100%;
 }
 
-/* 自動完成下拉選單樣式（配合 DaisyUI；--b1/--bc/--p/--pc/--s/--a 為 DaisyUI 主題變數，執行期注入）*/
-/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
+/* 自動完成下拉選單樣式（配合 DaisyUI）*/
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete) {
   background: oklch(var(--b1));
   border: 1px solid oklch(var(--bc) / 0.2);
@@ -685,7 +421,6 @@ defineExpose({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* noinspection CssUnresolvedCustomProperty */
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete ul li) {
   padding: 0.375rem 0.75rem;
   font-family: 'JetBrains Mono', monospace;
@@ -693,21 +428,15 @@ defineExpose({
   color: oklch(var(--bc));
 }
 
-/* noinspection CssUnresolvedCustomProperty */
 .cm-editor-wrapper :deep(.cm-tooltip-autocomplete ul li[aria-selected]) {
   background: oklch(var(--p));
   color: oklch(var(--pc));
 }
 
-/* Markdown 語法高亮（.ͼb~f 為 CM6 執行期動態生成的 token 類別）*/
-/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
-.cm-editor-wrapper :deep(.ͼb) { color: oklch(var(--p)); font-weight: 600; }
-/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
-.cm-editor-wrapper :deep(.ͼc) { color: oklch(var(--s)); }
-/* noinspection CssUnusedSymbol,CssUnresolvedCustomProperty */
-.cm-editor-wrapper :deep(.ͼd) { color: oklch(var(--a)); }
-/* noinspection CssUnusedSymbol */
-.cm-editor-wrapper :deep(.ͼe) { font-style: italic; }
-/* noinspection CssUnusedSymbol */
-.cm-editor-wrapper :deep(.ͼf) { font-weight: bold; }
+/* Markdown 語法高亮（配合 DaisyUI 主題）*/
+.cm-editor-wrapper :deep(.ͼb) { color: oklch(var(--p)); font-weight: 600; } /* heading */
+.cm-editor-wrapper :deep(.ͼc) { color: oklch(var(--s)); }                   /* code */
+.cm-editor-wrapper :deep(.ͼd) { color: oklch(var(--a)); }                   /* link */
+.cm-editor-wrapper :deep(.ͼe) { font-style: italic; }                       /* emphasis */
+.cm-editor-wrapper :deep(.ͼf) { font-weight: bold; }                        /* strong */
 </style>

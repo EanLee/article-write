@@ -151,7 +151,11 @@ export const useArticleStore = defineStore("article", () => {
       const normalizedPath = normalizePath(filePath);
       const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
 
-      if (existingIndex !== -1) {
+      if (existingIndex === -1) {
+        // 新增文章
+        articles.value.push(article);
+        notify.info("新增文章", `偵測到新文章：${article.title}`);
+      } else {
         // 更新現有文章，保留原有 id（避免 UI 組件因 id 變動而重新掛載）
         articles.value[existingIndex] = { ...article, id: articles.value[existingIndex].id };
 
@@ -159,10 +163,6 @@ export const useArticleStore = defineStore("article", () => {
           currentArticle.value = article;
           notify.info("檔案已更新", "外部修改已同步");
         }
-      } else {
-        // 新增文章
-        articles.value.push(article);
-        notify.info("新增文章", `偵測到新文章：${article.title}`);
       }
     } catch (error) {
       logger.warn(`Failed to reload article ${filePath}:`, error);
@@ -221,7 +221,8 @@ export const useArticleStore = defineStore("article", () => {
         content: "",
         frontmatter: {
           title,
-          date: now.toISOString().split("T")[0],
+          pubDate: now.toISOString().split("T")[0],
+          created: now.toISOString().split("T")[0],
           tags: [],
           categories: [category],
         },

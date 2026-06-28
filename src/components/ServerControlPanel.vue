@@ -52,7 +52,7 @@
         <button
           v-if="!isRunning"
           class="btn btn-success btn-sm gap-1"
-          :disabled="loading || !hasTargetDir"
+          :disabled="loading || !hasTargetBlog"
           @click="startServer"
         >
           <Play :size="16" />
@@ -104,7 +104,7 @@
     </div>
 
     <!-- 未設定目標部落格提示 -->
-    <div v-if="!hasTargetDir && expanded" class="p-3 bg-warning/10 text-warning text-sm">
+    <div v-if="!hasTargetBlog && expanded" class="p-3 bg-warning/10 text-warning text-sm">
       <AlertTriangle :size="16" class="inline mr-1" />
       請先在設定中配置目標部落格路徑
     </div>
@@ -124,7 +124,6 @@ import {
   AlertTriangle
 } from "lucide-vue-next"
 import type { ServerLogData } from "@/types/electron"
-import { logger } from "@/utils/logger"
 
 const configStore = useConfigStore()
 
@@ -138,7 +137,7 @@ const logPanelHeight = ref(200)
 const logContainerRef = ref<HTMLElement>()
 
 // Computed
-const hasTargetDir = computed(() => !!configStore.config.paths.targetDir)
+const hasTargetBlog = computed(() => !!configStore.config.paths.targetBlog)
 
 const statusIndicatorClass = computed(() => {
   if (loading.value) {return "bg-warning animate-pulse"}
@@ -160,11 +159,11 @@ const statusText = computed(() => {
 
 // Methods
 async function startServer() {
-  if (!hasTargetDir.value || loading.value) {return}
+  if (!hasTargetBlog.value || loading.value) {return}
 
   loading.value = true
   try {
-    await window.electronAPI.startDevServer(configStore.config.paths.targetDir)
+    await globalThis.electronAPI.startDevServer(configStore.config.paths.targetBlog)
     await updateStatus()
   } catch (error) {
     logger.error("啟動伺服器失敗:", error)
@@ -183,7 +182,7 @@ async function stopServer() {
 
   loading.value = true
   try {
-    await window.electronAPI.stopDevServer()
+    await globalThis.electronAPI.stopDevServer()
     isRunning.value = false
     serverUrl.value = undefined
   } catch (error) {
@@ -195,7 +194,7 @@ async function stopServer() {
 
 async function updateStatus() {
   try {
-    const status = await window.electronAPI.getServerStatus()
+    const status = await globalThis.electronAPI.getServerStatus()
     isRunning.value = status.running
     serverUrl.value = status.url
   } catch (error) {
@@ -273,15 +272,15 @@ onMounted(async () => {
 
   const savedHeight = localStorage.getItem("server-panel-height")
   if (savedHeight !== null) {
-    logPanelHeight.value = parseInt(savedHeight, 10)
+    logPanelHeight.value = Number.parseInt(savedHeight, 10)
   }
 
   // 取得初始狀態
   await updateStatus()
 
   // 監聽日誌事件
-  if (window.electronAPI?.onServerLog) {
-    unsubscribeLog = window.electronAPI.onServerLog((data) => {
+  if (globalThis.electronAPI?.onServerLog) {
+    unsubscribeLog = globalThis.electronAPI.onServerLog((data) => {
       logs.value.push(data)
       // 限制日誌數量
       if (logs.value.length > 500) {
@@ -303,12 +302,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* noinspection CssUnresolvedCustomProperty */
 .server-control-panel {
   border-top: 1px solid oklch(var(--b3));
 }
 
-/* noinspection CssUnresolvedCustomProperty */
 .log-container {
   background: oklch(var(--b3));
 }
@@ -330,13 +327,11 @@ onUnmounted(() => {
   background: transparent;
 }
 
-/* noinspection CssUnresolvedCustomProperty */
 .log-container::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 3px;
 }
 
-/* noinspection CssUnresolvedCustomProperty */
 .log-container::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

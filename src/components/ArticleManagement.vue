@@ -43,12 +43,12 @@
     <!-- 篩選與搜尋列 -->
     <div class="filter-bar">
       <div class="filter-group">
-        <label class="filter-label">
+        <label for="filter-status" class="filter-label">
           <Filter :size="14" />
           <span>篩選</span>
         </label>
 
-        <select v-model="filters.status" class="select select-sm select-bordered">
+        <select id="filter-status" v-model="filters.status" class="select select-sm select-bordered">
           <option :value="ArticleFilterStatus.All">所有狀態</option>
           <option :value="ArticleFilterStatus.Draft">草稿</option>
           <option :value="ArticleFilterStatus.Published">已發布</option>
@@ -306,12 +306,12 @@ async function handleSyncToBlog() {
   isSyncing.value = true
   syncProgress.value = { current: 0, total: 0 }
 
-  const unsubscribe = window.electronAPI.onSyncProgress((data) => {
+  const unsubscribe = globalThis.electronAPI.onSyncProgress((data) => {
     syncProgress.value = { current: data.current, total: data.total }
   })
 
   try {
-    const result = await window.electronAPI.syncAllPublished({
+    const result = await globalThis.electronAPI.syncAllPublished({
       articlesDir: config.paths.articlesDir,
       targetBlogDir: config.paths.targetDir,
       imagesDir: config.paths.imagesDir
