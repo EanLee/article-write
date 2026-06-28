@@ -647,64 +647,45 @@ export class ConverterService {
     const issues: string[] = []
 
     try {
-      // 檢查 index.md 檔案是否存在
       const indexPath = this.joinPath(targetDir, "index.md")
       const indexExists = await this.fileExists(indexPath)
       if (!indexExists) {
         issues.push("index.md file not found")
       }
 
-      // 檢查圖片目錄和檔案
-      const imageReferences = this.markdownService.extractImageReferences(article.content)
-      if (imageReferences.length > 0) {
-        const imagesDir = this.joinPath(targetDir, "images")
-        const imagesDirExists = await this.fileExists(imagesDir)
-        
-        if (imagesDirExists) {
-          // 檢查每個引用的圖片是否存在
-          for (const imageRef of imageReferences) {
-            const imageName = this.extractImageName(imageRef)
-            if (imageName) {
-              const imagePath = this.joinPath(imagesDir, imageName)
-              const imageExists = await this.fileExists(imagePath)
-              if (!imageExists) {
-                issues.push(`Image file not found: ${imageName}`)
-              }
-            }
-          }
-        } else {
-          issues.push("images directory not found")
-        }
-      }
+      const imageRefs = this.markdownService.extractImageReferences(article.content)
+      const imageIssues = await this.validateImageFiles(targetDir, imageRefs)
+      issues.push(...imageIssues)
 
-      // 檢查轉換後的內容是否包含未轉換的 Obsidian 語法
       if (indexExists) {
         const convertedContent = await this.fileSystem.readFile(indexPath)
-        
-        // 檢查是否還有未轉換的 Wiki 連結
-        if (convertedContent.includes("[[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted wiki links found")
-        }
-
-        // 檢查是否還有未轉換的 Obsidian 圖片語法
-        if (convertedContent.includes("![[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted Obsidian image syntax found")
-        }
-
-        // 檢查是否還有未轉換的高亮語法
-        if (convertedContent.includes("==") && /==[^=\n]*==/.exec(convertedContent)) {
-          issues.push("Unconverted highlight syntax found")
-        }
+        this.checkUnconvertedSyntax(convertedContent, issues)
       }
-
     } catch (error) {
       issues.push(`Validation error: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 
-    return {
-      valid: issues.length === 0,
-      issues
+    return { valid: issues.length === 0, issues }
+  }
+
+  private async validateImageFiles(targetDir: string, imageReferences: string[]): Promise<string[]> {
+    if (imageReferences.length === 0) {return []}
+    const imagesDir = this.joinPath(targetDir, "images")
+    if (!(await this.fileExists(imagesDir))) {return ["images directory not found"]}
+    const issues: string[] = []
+    for (const imageRef of imageReferences) {
+      const imageName = this.extractImageName(imageRef)
+      if (imageName && !(await this.fileExists(this.joinPath(imagesDir, imageName)))) {
+        issues.push(`Image file not found: ${imageName}`)
+      }
     }
+    return issues
+  }
+
+  private checkUnconvertedSyntax(content: string, issues: string[]): void {
+    if (content.includes("[[") && content.includes("]]")) {issues.push("Unconverted wiki links found")}
+    if (content.includes("![[") && content.includes("]]")) {issues.push("Unconverted Obsidian image syntax found")}
+    if (content.includes("==") && /==[^=\n]*==/.exec(content)) {issues.push("Unconverted highlight syntax found")}
   }
 
   /**
