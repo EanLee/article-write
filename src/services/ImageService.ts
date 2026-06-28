@@ -53,7 +53,7 @@ export class ImageService {
    * @returns {Promise<ImageInfo[]>} 圖片資訊陣列
    */
   async loadImages(): Promise<ImageInfo[]> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return [];
     }
 
@@ -188,7 +188,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 檔案是否存在
    */
   async checkImageExists(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
@@ -475,7 +475,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 檔案是否存在
    */
   async checkImageExistsByPath(absolutePath: string): Promise<boolean> {
-    if (!absolutePath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!absolutePath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return false;
     }
     try {
@@ -503,7 +503,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功刪除
    */
   async deleteUnusedImage(imageName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
@@ -529,7 +529,7 @@ export class ImageService {
    * @returns {Promise<boolean>} 是否成功複製
    */
   async copyImageToVault(sourcePath: string, fileName: string): Promise<boolean> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return false;
     }
 
@@ -553,7 +553,7 @@ export class ImageService {
    * @returns {Promise<string>} 上傳後的檔案名稱
    */
   async uploadImageFile(file: File, customName?: string): Promise<string> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       throw new Error("Vault path not set or Electron API not available");
     }
 
@@ -600,7 +600,7 @@ export class ImageService {
    * @returns {Promise<string[]>} 被清理的檔案名稱陣列
    */
   async cleanupUnusedImages(): Promise<string[]> {
-    if (!this.vaultPath || typeof window === "undefined" || !globalThis.electronAPI) {
+    if (!this.vaultPath || typeof globalThis === "undefined" || !globalThis.electronAPI) {
       return [];
     }
 
@@ -675,7 +675,7 @@ export class ImageService {
    * @returns {string} 移除引用後的內容
    */
   removeImageReference(content: string, imageName: string): string {
-    const regex = new RegExp(`!\\[\\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\]\\]`, "g");
+    const regex = new RegExp(String.raw`!\[\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)}\]\]`, "g");
     return content.replace(regex, "");
   }
 }

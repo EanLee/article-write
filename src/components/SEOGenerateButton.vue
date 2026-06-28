@@ -45,7 +45,7 @@ const seoStore = useSeoStore()
 const hasKey = ref<boolean | null>(null)
 
 onMounted(async () => {
-  if (window.electronAPI) {
+  if (globalThis.electronAPI) {
     hasKey.value = await seoStore.hasApiKey()
   }
 })

@@ -146,10 +146,10 @@ function toggleProvider(provider: "claude" | "gemini" | "openai") {
 }
 
 async function loadStatus() {
-  if (!window.electronAPI) { return }
-  const hasClaude = await window.electronAPI.aiHasApiKey("claude")
-  const hasGemini = await window.electronAPI.aiHasApiKey("gemini")
-  const hasOpenAI = await window.electronAPI.aiHasApiKey("openai")
+  if (!globalThis.electronAPI) { return }
+  const hasClaude = await globalThis.electronAPI.aiHasApiKey("claude")
+  const hasGemini = await globalThis.electronAPI.aiHasApiKey("gemini")
+  const hasOpenAI = await globalThis.electronAPI.aiHasApiKey("openai")
   claudeKeyStatus.value = hasClaude ? "API Key 已設定" : "尚未設定"
   geminiKeyStatus.value = hasGemini ? "API Key 已設定" : "尚未設定"
   openaiKeyStatus.value = hasOpenAI ? "API Key 已設定" : "尚未設定"
@@ -160,7 +160,7 @@ async function saveApiKey(provider: "claude" | "gemini" | "openai") {
   const statusMap = { claude: claudeKeyStatus, gemini: geminiKeyStatus, openai: openaiKeyStatus }
   const key = keyMap[provider].value.trim()
   if (!key) { return }
-  const result = await window.electronAPI.aiSetApiKey(provider, key)
+  const result = await globalThis.electronAPI.aiSetApiKey(provider, key)
   if (!result.success) {
     statusMap[provider].value = "儲存失敗"
     alert(`儲存失敗: ${result.error ?? "系統加密不可用"}`)

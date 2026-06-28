@@ -12,7 +12,7 @@
  * @returns 是否在 Electron 環境中且 API 已初始化
  */
 export function isElectronAvailable(): boolean {
-  return typeof window !== "undefined" && Boolean(window.electronAPI);
+  return typeof globalThis !== "undefined" && Boolean(globalThis.electronAPI);
 }
 
 /**

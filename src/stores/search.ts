@@ -32,7 +32,7 @@ export const useSearchStore = defineStore("search", () => {
     isLoading.value = true
     try {
       const searchQuery: SearchQuery = { query: q }
-      results.value = await window.electronAPI.searchQuery(searchQuery)
+      results.value = await globalThis.electronAPI.searchQuery(searchQuery)
       selectedIndex.value = 0
     } finally {
       isLoading.value = false

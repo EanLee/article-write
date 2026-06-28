@@ -572,7 +572,7 @@ export class ConverterService {
    * @returns {string} 轉義後的字串
    */
   private escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    return string.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
   }
 
   /**

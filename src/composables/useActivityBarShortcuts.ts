@@ -43,10 +43,10 @@ export function useActivityBarShortcuts(activeView: Ref<string>) {
   }
 
   onMounted(() => {
-    window.addEventListener("keydown", handleKeydown)
+    globalThis.addEventListener("keydown", handleKeydown)
   })
 
   onUnmounted(() => {
-    window.removeEventListener("keydown", handleKeydown)
+    globalThis.removeEventListener("keydown", handleKeydown)
   })
 }

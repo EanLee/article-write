@@ -30,6 +30,6 @@ export function highlightKeyword(text: string, keyword: string): string {
   if (!keyword.trim()) {
     return escaped;
   }
-  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   return escaped.replace(new RegExp(`(${escapedKeyword})`, "gi"), '<mark class="bg-warning text-warning-content rounded px-0.5">$1</mark>');
 }
