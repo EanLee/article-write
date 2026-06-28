@@ -4,6 +4,10 @@
 
 import { ref } from "vue"
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+}
+
 export function useSearchReplace(
   getContent: () => string,
   setContent: (content: string) => void,
@@ -73,13 +77,6 @@ export function useSearchReplace(
     // 選取匹配的文字
     // 注意：這需要 textarea 元素的 reference
     // 可以在調用此函數後，由父組件處理選取邏輯
-  }
-
-  /**
-   * 轉義正則表達式特殊字元
-   */
-  function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
   }
 
   return {

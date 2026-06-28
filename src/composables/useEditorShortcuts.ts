@@ -64,13 +64,10 @@ export function useEditorShortcuts(
     // 編輯器快捷鍵
     if (event.ctrlKey || event.metaKey) {
       // 處理 Shift 組合鍵
-      if (event.shiftKey) {
-        switch (event.key) {
-          case "Z": // Ctrl+Shift+Z: 重做
-            event.preventDefault()
-            options.onRedo?.()
-            return true
-        }
+      if (event.shiftKey && event.key === "Z") {
+        event.preventDefault()
+        options.onRedo?.()
+        return true
       }
       
       // 處理一般 Ctrl 鍵
