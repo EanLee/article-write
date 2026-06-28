@@ -25,7 +25,7 @@ export class AutoSaveService {
   };
 
   // 狀態變更監聽器集合
-  private _listeners: Set<(state: SaveState) => void> = new Set();
+  private readonly _listeners: Set<(state: SaveState) => void> = new Set();
 
   /**
    * 取得當前儲存狀態（唯讀快照）
@@ -309,7 +309,7 @@ export class AutoSaveService {
   }
 
   private markAsModifiedDebounceTimer: NodeJS.Timeout | null = null;
-  private static DEBOUNCE_DELAY = 100; // 100ms debounce
+  private static readonly DEBOUNCE_DELAY = 100; // 100ms debounce
 
   /**
    * 標記內容已修改

@@ -4,7 +4,7 @@ import { AIError, AIErrorCode } from "./types.js";
 import { buildSEOPrompt } from "./prompts.js";
 
 export class OpenAIProvider implements IAIProvider {
-  private client: OpenAI;
+  private readonly client: OpenAI;
 
   constructor(apiKey: string) {
     this.client = new OpenAI({ apiKey });

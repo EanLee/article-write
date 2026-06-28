@@ -15,10 +15,10 @@ export const DEFAULT_TTL_MS = 5 * 60 * 1000
 
 export class MetadataCacheService {
   private cache: MetadataCache | null = null
-  private markdownService = new MarkdownService()
+  private readonly markdownService = new MarkdownService()
 
   private getCacheDir(articlesDir: string): string {
-    const normalized = articlesDir.replace(/\\/g, "/").replace(/\/$/, "")
+    const normalized = articlesDir.replaceAll("\\", "/").replace(/\/$/, "")
     return `${normalized}/${CACHE_DIR}`
   }
 
@@ -87,8 +87,8 @@ export class MetadataCacheService {
 
     const newCache: MetadataCache = {
       lastScanned: new Date().toISOString(),
-      categories: Array.from(categoriesSet).sort(),
-      tags: Array.from(tagsSet).sort(),
+      categories: Array.from(categoriesSet).sort((a, b) => a.localeCompare(b)),
+      tags: Array.from(tagsSet).sort((a, b) => a.localeCompare(b)),
     }
 
     await this.save(articlesDir, newCache)

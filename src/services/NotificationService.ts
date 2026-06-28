@@ -27,7 +27,7 @@ export interface Notification {
  */
 export class NotificationService {
   public readonly notifications: Ref<Notification[]> = ref([])
-  private static DEFAULT_DURATION = 5000 // 5 seconds
+  private static readonly DEFAULT_DURATION = 5000 // 5 seconds
 
   /**
    * 顯示成功通知
@@ -126,7 +126,7 @@ export class NotificationService {
    * 生成唯一 ID
    */
   private generateId(): string {
-    return Date.now().toString(36) + crypto.randomUUID().replace(/-/g, "").substring(0, 6)
+    return Date.now().toString(36) + crypto.randomUUID().replaceAll("-", "").substring(0, 6)
   }
 }
 
