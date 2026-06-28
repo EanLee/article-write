@@ -95,7 +95,10 @@
       "mcp__lorex__list_doc_types",
       "mcp__lorex__report_issue",
       "Bash(rtk vitest *)",
-      "Bash(rtk lint *)"
+      "Bash(rtk lint *)",
+      "mcp__plugin_serena_serena__get_diagnostics_for_file",
+      "Bash(rtk git *)",
+      "Bash(rtk read *)"
     ]
   },
   "enableAllProjectMcpServers": true,
