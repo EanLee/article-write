@@ -418,17 +418,17 @@ export const useArticleStore = defineStore("article", () => {
     // 1. 補上 created（建立時間）
     // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      fm.created = fm.date || new Date().toISOString().split("T")[0];
+      fm.created = fm.date || new Date().toISOString().split("T")[0]; // NOSONAR - migration from deprecated field
       dirty = true;
     }
 
     // 2. 移轉 date → pubDate
-    const legacyDate = fm.date;
+    const legacyDate = fm.date; // NOSONAR - migration from deprecated field
     if (legacyDate !== undefined) {
       if (!fm.pubDate) {
         fm.pubDate = legacyDate;
       }
-      delete fm.date;
+      delete fm.date; // NOSONAR - intentional removal of deprecated field
       dirty = true;
     }
 
