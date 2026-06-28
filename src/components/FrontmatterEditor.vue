@@ -29,9 +29,9 @@
             placeholder="自動生成"
             class="input input-bordered"
           />
-          <label class="label">
+          <div class="label">
             <span class="label-text-alt">留空將根據標題自動生成</span>
-          </label>
+          </div>
         </div>
 
         <div class="form-control">
@@ -83,9 +83,9 @@
               placeholder="例如：Vue 3 進階教學"
               class="input input-bordered"
             />
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt">將相關文章組織成系列</span>
-            </label>
+            </div>
           </div>
 
           <div class="form-control">
@@ -101,9 +101,9 @@
               class="input input-bordered"
               :disabled="!localArticle.frontmatter.series"
             />
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt">在系列中的排序</span>
-            </label>
+            </div>
           </div>
         </div>
 
