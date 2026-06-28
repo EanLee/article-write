@@ -12,7 +12,7 @@ import { logger } from "@/utils/logger";
  * - 預設最大並發數為 5（避免系統負載過高）
  */
 export class ImageCopyService {
-  private fileSystem: IFileSystem;
+  private readonly fileSystem: IFileSystem;
 
   /** 預設最大並發複製數量（P5-02） */
   private readonly defaultConcurrencyLimit = 5;
@@ -68,7 +68,7 @@ export class ImageCopyService {
    */
   updateImagePath(content: string, oldPath: string, imageName: string): string {
     const newPath = `./images/${imageName}`;
-    return content.replace(new RegExp(this.escapeRegExp(oldPath), "g"), newPath);
+    return content.replaceAll(oldPath, newPath);
   }
 
   // ── 單一圖片複製 ──────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ export class ImageCopyService {
       await this.fileSystem.createDirectory(targetDir);
 
       // 複製檔案
-      await (window.electronAPI as unknown as { copyFile: (s: string, t: string) => Promise<void> }).copyFile(sourcePath, targetPath);
+      await (globalThis as unknown as { electronAPI: { copyFile: (s: string, t: string) => Promise<void> } }).electronAPI.copyFile(sourcePath, targetPath);
 
       logger.debug(`Copied image: ${sourcePath} → ${targetPath}`);
     } catch (error) {
@@ -190,7 +190,7 @@ export class ImageCopyService {
   }
 
   private joinPath(...paths: string[]): string {
-    return paths.join("/").replace(/\/+/g, "/").replace(/\\/g, "/");
+    return paths.join("/").replace(/\/+/g, "/").replaceAll("\\", "/");
   }
 
   private getDirname(filePath: string): string {

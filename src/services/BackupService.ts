@@ -8,10 +8,10 @@ import { fnv1aHash } from "@/utils/hash";
  * 負責檔案備份、衝突偵測和復原功能
  */
 export class BackupService {
-  private backups: Map<string, ArticleBackup> = new Map();
-  private static MAX_BACKUPS_PER_FILE = 5;
-  private static BACKUP_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
-  private fileSystem: IFileSystem;
+  private readonly backups: Map<string, ArticleBackup> = new Map();
+  private static readonly MAX_BACKUPS_PER_FILE = 5;
+  private static readonly BACKUP_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly fileSystem: IFileSystem;
 
   /**
    * 建構子 - 使用依賴注入
