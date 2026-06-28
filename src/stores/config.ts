@@ -117,14 +117,6 @@ export const useConfigStore = defineStore("config", () => {
     await saveConfig(updatedConfig)
   }
 
-  function validateArticlesDir(path: string) {
-    return doValidateArticlesDir(path)
-  }
-
-  function validateAstroBlog(path: string) {
-    return doValidateAstroBlog(path)
-  }
-
   return {
     // State
     config,
@@ -136,7 +128,7 @@ export const useConfigStore = defineStore("config", () => {
     saveConfig,
     updatePaths,
     updateEditorConfig,
-    validateArticlesDir,
-    validateAstroBlog
+    validateArticlesDir: doValidateArticlesDir,
+    validateAstroBlog: doValidateAstroBlog
   }
 })

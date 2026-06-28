@@ -2,6 +2,11 @@ import { defineStore } from "pinia"
 import { ref } from "vue"
 import type { Article } from "@/types"
 
+async function hasApiKey(): Promise<boolean> {
+  const provider = await globalThis.electronAPI.aiGetActiveProvider()
+  return provider !== null
+}
+
 export const useSeoStore = defineStore("seo", () => {
   const isGenerating = ref(false)
   const error = ref<string | null>(null)
@@ -25,11 +30,6 @@ export const useSeoStore = defineStore("seo", () => {
     } finally {
       isGenerating.value = false
     }
-  }
-
-  async function hasApiKey(): Promise<boolean> {
-    const provider = await globalThis.electronAPI.aiGetActiveProvider()
-    return provider !== null
   }
 
   return { isGenerating, error, generateSEO, hasApiKey }
