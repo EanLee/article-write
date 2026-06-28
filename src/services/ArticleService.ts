@@ -229,57 +229,16 @@ export class ArticleService {
    * @returns 載入的所有文章
    */
   async loadAllArticles(vaultPath: string): Promise<Article[]> {
-    // 收集所有載入任務，稍後並行執行
     const loadTasks: Promise<Article | null>[] = [];
 
     try {
-      // 掃描所有頂層資料夾（支援新結構 vaultPath/Category/*.md
-      // 以及舊結構 vaultPath/TopDir/Category/*.md，如 Drafts/Software/*.md）
       const topEntries = await this.fileSystem.readDirectory(vaultPath);
-
       for (const topEntry of topEntries) {
         const topPath = `${vaultPath}/${topEntry}`;
         const topStats = await this.fileSystem.getFileStats(topPath);
-        if (!topStats?.isDirectory) {
-          continue;
-        }
-
-        // 先嘗試直接讀取此資料夾下的 .md 檔（新結構：vaultPath/Category/*.md）
-        const topFiles = await this.fileSystem.readDirectory(topPath);
-        const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
-
-        if (directMdFiles.length > 0) {
-          // 有 .md 檔 → 此資料夾本身是 Category 資料夾
-          for (const file of directMdFiles) {
-            const filePath = `${topPath}/${file}`;
-            const loadTask = this.loadArticle(filePath, topEntry).catch((err) => {
-              logger.warn(`Failed to load article ${filePath}:`, err);
-              return null;
-            });
-            loadTasks.push(loadTask);
-          }
-        } else {
-          // 無 .md 檔 → 可能是舊結構的中間層（如 Drafts/、Publish/），再往下掃一層
-          for (const subEntry of topFiles) {
-            const subPath = `${topPath}/${subEntry}`;
-            const subStats = await this.fileSystem.getFileStats(subPath);
-            if (!subStats?.isDirectory) {
-              continue;
-            }
-
-            const subFiles = await this.fileSystem.readDirectory(subPath);
-            const subMdFiles = subFiles.filter((f) => f.endsWith(".md"));
-
-            for (const file of subMdFiles) {
-              const filePath = `${subPath}/${file}`;
-              const loadTask = this.loadArticle(filePath, subEntry).catch((err) => {
-                logger.warn(`Failed to load article ${filePath}:`, err);
-                return null;
-              });
-              loadTasks.push(loadTask);
-            }
-          }
-        }
+        if (!topStats?.isDirectory) {continue;}
+        const tasks = await this.scanTopDirForArticles(topPath, topEntry);
+        loadTasks.push(...tasks);
       }
     } catch (err) {
       logger.warn(`Failed to scan vault ${vaultPath}:`, err);
@@ -290,6 +249,34 @@ export class ArticleService {
 
     // 過濾掉載入失敗的文章 (null 值)
     return loadedArticles.filter((article): article is Article => article !== null);
+  }
+
+  private makeLoadTask(filePath: string, category: string): Promise<Article | null> {
+    return this.loadArticle(filePath, category).catch((err) => {
+      logger.warn(`Failed to load article ${filePath}:`, err);
+      return null;
+    });
+  }
+
+  private async scanTopDirForArticles(topPath: string, topEntry: string): Promise<Promise<Article | null>[]> {
+    const topFiles = await this.fileSystem.readDirectory(topPath);
+    const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
+
+    if (directMdFiles.length > 0) {
+      return directMdFiles.map((file) => this.makeLoadTask(`${topPath}/${file}`, topEntry));
+    }
+
+    const tasks: Promise<Article | null>[] = [];
+    for (const subEntry of topFiles) {
+      const subPath = `${topPath}/${subEntry}`;
+      const subStats = await this.fileSystem.getFileStats(subPath);
+      if (!subStats?.isDirectory) {continue;}
+      const subMdFiles = (await this.fileSystem.readDirectory(subPath)).filter((f) => f.endsWith(".md"));
+      for (const file of subMdFiles) {
+        tasks.push(this.makeLoadTask(`${subPath}/${file}`, subEntry));
+      }
+    }
+    return tasks;
   }
 
   /**

@@ -346,103 +346,79 @@ export class ImageService {
    * @returns {Promise<ImageValidationWarning[]>} 圖片驗證警告陣列
    */
   async getImageValidationWarnings(content: string, articleFilePath: string = ""): Promise<ImageValidationWarning[]> {
-    const warnings: ImageValidationWarning[] = [];
-    const lines = content.split("\n");
+    const refs = this.scanImageRefs(content.split("\n"));
+    if (refs.length === 0) {return [];}
 
-    // 第一遍：僅用 regex 掃描，收集所有圖片引用（不呼叫 IPC）(P6-05)
-    type ImageRef = { imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" };
-    const refs: ImageRef[] = [];
+    const obsidianRefs = refs.filter((r) => r.type === "obsidian");
+    const uniqueObsidianNames = [...new Set(obsidianRefs.map((r) => r.imageName))];
+    const obsidianExistsMap = uniqueObsidianNames.length > 0
+      ? await this.checkMultipleImagesExist(uniqueObsidianNames)
+      : new Map<string, boolean>();
 
+    const articleDir = articleFilePath
+      ? articleFilePath.replaceAll("\\", "/").replace(/\/[^/]+$/, "")
+      : "";
+    const standardExistsMap = await this.buildStandardExistsMap(refs, articleDir);
+
+    return this.buildWarnings(refs, obsidianExistsMap, standardExistsMap);
+  }
+
+  private scanImageRefs(lines: string[]): Array<{ imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" }> {
+    const refs: Array<{ imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" }> = [];
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
-
-      // Obsidian 格式: ![[image.png]] — imageName 為 vault 內名稱，查找 imagesPath 目錄
-      const obsidianImageRegex = /!\[\[([^\]]+)]]/g;
+      const obsidianRegex = /!\[\[([^\]]+)]]/g;
       let match;
-      while ((match = obsidianImageRegex.exec(line)) !== null) {
+      while ((match = obsidianRegex.exec(line)) !== null) {
         refs.push({ imageName: match[1], lineIndex, colIndex: match.index, type: "obsidian" });
       }
-
-      // 標準 Markdown 格式: ![alt](path) — path 為相對或絕對路徑
-      const standardImageRegex = /!\[.*?]\(([^)]+)\)/g;
-      while ((match = standardImageRegex.exec(line)) !== null) {
+      const stdRegex = /!\[.*?]\(([^)]+)\)/g;
+      while ((match = stdRegex.exec(line)) !== null) {
         const imagePath = match[1];
-        // 跳過外部 URL（http/https/data URI）
         if (/^https?:\/\/|^data:/i.test(imagePath)) {continue;}
         refs.push({ imageName: imagePath, lineIndex, colIndex: match.index, type: "standard" });
       }
     }
+    return refs;
+  }
 
-    if (refs.length === 0) {
-      return warnings;
-    }
-
-    // 第二步：Obsidian wiki links — 去重後批量查詢 imagesPath 目錄（P6-05）
-    const obsidianRefs = refs.filter((r) => r.type === "obsidian");
-    const uniqueObsidianNames = [...new Set(obsidianRefs.map((r) => r.imageName))];
-    const obsidianExistsMap =
-      uniqueObsidianNames.length > 0
-        ? await this.checkMultipleImagesExist(uniqueObsidianNames)
-        : new Map<string, boolean>();
-
-    // 第三步：標準 Markdown — 解析完整路徑後並行查詢
-    const articleDir = articleFilePath
-      ? articleFilePath.replaceAll("\\", "/").replace(/\/[^/]+$/, "")
-      : "";
+  private async buildStandardExistsMap(
+    refs: Array<{ imageName: string; type: "obsidian" | "standard" }>,
+    articleDir: string,
+  ): Promise<Map<string, boolean>> {
     const standardRefs = refs.filter((r) => r.type === "standard");
-    const uniqueStandardPaths = [...new Set(standardRefs.map((r) => r.imageName))];
-    const standardExistsMap = new Map<string, boolean>(
+    const uniquePaths = [...new Set(standardRefs.map((r) => r.imageName))];
+    return new Map<string, boolean>(
       await Promise.all(
-        uniqueStandardPaths.map(async (imagePath) => {
+        uniquePaths.map(async (imagePath) => {
           const resolved = this.resolveImagePath(imagePath, articleDir);
-          // resolved 為空字串代表相對路徑但無文章路徑可解析，跳過不報假陽性
           const exists = resolved ? await this.checkImageExistsByPath(resolved) : true;
           return [imagePath, exists] as const;
         }),
       ),
     );
+  }
 
-    // 第四遍：利用查詢結果建立警告
+  private buildWarnings(
+    refs: Array<{ imageName: string; lineIndex: number; colIndex: number; type: "obsidian" | "standard" }>,
+    obsidianExistsMap: Map<string, boolean>,
+    standardExistsMap: Map<string, boolean>,
+  ): ImageValidationWarning[] {
+    const warnings: ImageValidationWarning[] = [];
     for (const { imageName, lineIndex, colIndex, type } of refs) {
+      const line = lineIndex + 1;
+      const column = colIndex + 1;
       if (type === "obsidian") {
         const exists = obsidianExistsMap.get(imageName) ?? false;
         if (!exists) {
-          warnings.push({
-            imageName,
-            line: lineIndex + 1,
-            column: colIndex + 1,
-            type: "missing-file",
-            message: `圖片檔案 "${imageName}" 不存在`,
-            suggestion: "請檢查圖片檔案是否存在於 images 資料夾中",
-            severity: "error",
-          });
+          warnings.push({ imageName, line, column, type: "missing-file", message: `圖片檔案 "${imageName}" 不存在`, suggestion: "請檢查圖片檔案是否存在於 images 資料夾中", severity: "error" });
         } else if (!this.isImageFile(imageName)) {
-          warnings.push({
-            imageName,
-            line: lineIndex + 1,
-            column: colIndex + 1,
-            type: "invalid-format",
-            message: `"${imageName}" 不是有效的圖片格式`,
-            suggestion: "支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp",
-            severity: "warning",
-          });
+          warnings.push({ imageName, line, column, type: "invalid-format", message: `"${imageName}" 不是有效的圖片格式`, suggestion: "支援的格式: .jpg, .jpeg, .png, .gif, .bmp, .svg, .webp", severity: "warning" });
         }
-      } else {
-        const exists = standardExistsMap.get(imageName) ?? false;
-        if (!exists) {
-          warnings.push({
-            imageName,
-            line: lineIndex + 1,
-            column: colIndex + 1,
-            type: "missing-file",
-            message: `圖片檔案 "${imageName}" 不存在`,
-            suggestion: "請確認圖片路徑正確",
-            severity: "error",
-          });
-        }
+      } else if (!(standardExistsMap.get(imageName) ?? false)) {
+        warnings.push({ imageName, line, column, type: "missing-file", message: `圖片檔案 "${imageName}" 不存在`, suggestion: "請確認圖片路徑正確", severity: "error" });
       }
     }
-
     return warnings;
   }
 

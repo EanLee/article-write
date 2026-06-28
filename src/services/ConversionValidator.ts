@@ -140,56 +140,46 @@ export class ConversionValidator {
     const issues: string[] = [];
 
     try {
-      // 檢查 index.md 檔案是否存在
       const indexPath = joinPathFn(targetDir, "index.md");
       const indexExists = await fileExistsFn(indexPath);
       if (!indexExists) {
         issues.push("找不到 index.md 檔案");
       }
 
-      // 檢查圖片目錄和檔案
-      if (imageReferences.length > 0) {
-        const imagesDir = joinPathFn(targetDir, "images");
-        const imagesDirExists = await fileExistsFn(imagesDir);
+      const imageIssues = await this.checkImageFiles(imageReferences, targetDir, extractImageNameFn, fileExistsFn, joinPathFn);
+      issues.push(...imageIssues);
 
-        if (imagesDirExists) {
-          // 檢查每個引用的圖片是否存在
-          for (const imageRef of imageReferences) {
-            const imageName = extractImageNameFn(imageRef);
-            if (imageName) {
-              const imagePath = joinPathFn(imagesDir, imageName);
-              const imageExists = await fileExistsFn(imagePath);
-              if (!imageExists) {
-                issues.push(`找不到圖片檔案：${imageName}`);
-              }
-            }
-          }
-        } else {
-          issues.push("找不到 images 目錄");
-        }
-      }
-
-      // 檢查轉換後的內容是否包含未轉換的 Obsidian 語法
       if (indexExists) {
-        const convertedContent = await readFileFn(indexPath);
-
-        if (convertedContent.includes("[[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted wiki links found");
-        }
-
-        if (convertedContent.includes("![[") && convertedContent.includes("]]")) {
-          issues.push("Unconverted Obsidian image syntax found");
-        }
-
-        if (convertedContent.includes("==") && /==.*?==/.exec(convertedContent)) {
-          issues.push("Unconverted highlight syntax found");
-        }
+        const content = await readFileFn(indexPath);
+        if (content.includes("[[") && content.includes("]]")) {issues.push("Unconverted wiki links found");}
+        if (content.includes("![[") && content.includes("]]")) {issues.push("Unconverted Obsidian image syntax found");}
+        if (content.includes("==") && /==.*?==/.exec(content)) {issues.push("Unconverted highlight syntax found");}
       }
     } catch (error) {
       issues.push(`Validation error: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 
     return { valid: issues.length === 0, issues };
+  }
+
+  private async checkImageFiles(
+    imageReferences: string[],
+    targetDir: string,
+    extractImageNameFn: (ref: string) => string | null,
+    fileExistsFn: (path: string) => Promise<boolean>,
+    joinPathFn: (...parts: string[]) => string,
+  ): Promise<string[]> {
+    if (imageReferences.length === 0) {return [];}
+    const imagesDir = joinPathFn(targetDir, "images");
+    if (!(await fileExistsFn(imagesDir))) {return ["找不到 images 目錄"];}
+    const issues: string[] = [];
+    for (const imageRef of imageReferences) {
+      const imageName = extractImageNameFn(imageRef);
+      if (imageName && !(await fileExistsFn(joinPathFn(imagesDir, imageName)))) {
+        issues.push(`找不到圖片檔案：${imageName}`);
+      }
+    }
+    return issues;
   }
 
   /** 驗證是否為有效的圖片副檔名 */
