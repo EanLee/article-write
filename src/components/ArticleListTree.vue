@@ -20,7 +20,7 @@
         <button tabindex="0" class="btn btn-ghost btn-xs btn-square" title="視圖選項">
           <SlidersHorizontal :size="14" />
         </button>
-        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 text-xs">
+        <ul tabindex="0" role="menu" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 text-xs">
           <li>
             <label class="label cursor-pointer justify-start gap-2 p-2">
               <input
@@ -51,6 +51,7 @@
     <!-- Tree View -->
     <div
       ref="treeContainerRef"
+      role="tree"
       class="flex-1 overflow-y-auto text-sm"
       @keydown="handleKeydown"
       tabindex="0"
