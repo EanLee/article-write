@@ -152,9 +152,7 @@ export class ConversionValidator {
         const imagesDir = joinPathFn(targetDir, "images");
         const imagesDirExists = await fileExistsFn(imagesDir);
 
-        if (!imagesDirExists) {
-          issues.push("找不到 images 目錄");
-        } else {
+        if (imagesDirExists) {
           // 檢查每個引用的圖片是否存在
           for (const imageRef of imageReferences) {
             const imageName = extractImageNameFn(imageRef);
@@ -166,6 +164,8 @@ export class ConversionValidator {
               }
             }
           }
+        } else {
+          issues.push("找不到 images 目錄");
         }
       }
 

@@ -660,9 +660,7 @@ export class ConverterService {
         const imagesDir = this.joinPath(targetDir, "images")
         const imagesDirExists = await this.fileExists(imagesDir)
         
-        if (!imagesDirExists) {
-          issues.push("images directory not found")
-        } else {
+        if (imagesDirExists) {
           // 檢查每個引用的圖片是否存在
           for (const imageRef of imageReferences) {
             const imageName = this.extractImageName(imageRef)
@@ -674,6 +672,8 @@ export class ConverterService {
               }
             }
           }
+        } else {
+          issues.push("images directory not found")
         }
       }
 
@@ -931,33 +931,33 @@ export class ConverterService {
 
     try {
       // 檢查來源目錄
-      if (!config.sourceDir) {
-        issues.push("來源目錄未設定")
-      } else {
+      if (config.sourceDir) {
         const sourceExists = await this.fileExists(config.sourceDir)
         if (!sourceExists) {
           issues.push("來源目錄不存在")
         }
+      } else {
+        issues.push("來源目錄未設定")
       }
 
       // 檢查目標目錄
-      if (!config.targetDir) {
-        issues.push("目標目錄未設定")
-      } else {
+      if (config.targetDir) {
         const targetExists = await this.fileExists(config.targetDir)
         if (!targetExists) {
           issues.push("目標目錄不存在")
         }
+      } else {
+        issues.push("目標目錄未設定")
       }
 
       // 檢查圖片目錄
-      if (!config.imageSourceDir) {
-        issues.push("圖片來源目錄未設定")
-      } else {
+      if (config.imageSourceDir) {
         const imagesExists = await this.fileExists(config.imageSourceDir)
         if (!imagesExists) {
           issues.push("圖片來源目錄不存在")
         }
+      } else {
+        issues.push("圖片來源目錄未設定")
       }
 
     } catch (error) {

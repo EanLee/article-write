@@ -226,13 +226,11 @@ export class SearchService {
       const contentIdx = entry.content.toLowerCase().indexOf(keyword);
 
       if (titleMatch || contentIdx !== -1) {
-        let matchSnippet = "";
+        let matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? "..." : "");
         if (contentIdx !== -1) {
           const start = Math.max(0, contentIdx - 50);
           const end = Math.min(entry.content.length, contentIdx + keyword.length + 50);
           matchSnippet = (start > 0 ? "..." : "") + entry.content.slice(start, end) + (end < entry.content.length ? "..." : "");
-        } else {
-          matchSnippet = entry.content.slice(0, 100) + (entry.content.length > 100 ? "..." : "");
         }
 
         results.push({
