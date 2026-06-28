@@ -28,6 +28,7 @@ global.window = {
     onFileChange: vi.fn(() => vi.fn()), // Returns unsubscribe function
   },
 } as unknown as Window & typeof globalThis;
+(global as unknown as Record<string, unknown>).electronAPI = window.electronAPI;
 // Typed mock accessor (env.d.ts types window.electronAPI as the real interface; at test time these are vi.fn() mocks)
 const api = window.electronAPI as unknown as Record<string, ReturnType<typeof vi.fn>>;
 

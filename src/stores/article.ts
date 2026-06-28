@@ -221,6 +221,7 @@ export const useArticleStore = defineStore("article", () => {
         content: "",
         frontmatter: {
           title,
+          date: now.toISOString().split("T")[0],
           pubDate: now.toISOString().split("T")[0],
           created: now.toISOString().split("T")[0],
           tags: [],

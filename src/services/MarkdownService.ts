@@ -171,7 +171,9 @@ export class MarkdownService {
 
     // Date validation（保留舊版 date 欄位解析，供向後相容；新文章應使用 pubDate）
     if (data.date) {
-      const dateStr = String(data.date);
+      const dateStr = data.date instanceof Date
+        ? data.date.toISOString().split("T")[0]
+        : String(data.date);
       if (this.isValidDateString(dateStr)) {
         frontmatter.date = dateStr; // NOSONAR: 保留 deprecated date 欄位以解析舊有 YAML
       } else {
@@ -181,7 +183,9 @@ export class MarkdownService {
 
     // Last modified validation
     if (data.lastmod) {
-      const lastmodStr = String(data.lastmod);
+      const lastmodStr = data.lastmod instanceof Date
+        ? data.lastmod.toISOString().split("T")[0]
+        : String(data.lastmod);
       if (this.isValidDateString(lastmodStr)) {
         frontmatter.lastmod = lastmodStr;
       } else {
@@ -278,42 +282,13 @@ export class MarkdownService {
    */
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
-      // Create a clean object with only defined values
       const cleanData: any = {};
 
-      if (data.title) {
-        cleanData.title = data.title;
-      }
-      if (data.description) {
-        cleanData.description = data.description;
-      }
-      if (data.date) {
-        cleanData.date = data.date;
-      }
-      if (data.lastmod) {
-        cleanData.lastmod = data.lastmod;
-      }
-      if (data.status) {
-        cleanData.status = data.status;
-      }
-      if (data.tags && data.tags.length > 0) {
-        cleanData.tags = data.tags;
-      }
-      if (data.categories && data.categories.length > 0) {
-        cleanData.categories = data.categories;
-      }
-      if (data.slug) {
-        cleanData.slug = data.slug;
-      }
-      if (data.keywords && data.keywords.length > 0) {
-        cleanData.keywords = data.keywords;
-      }
-      // 新增系列欄位支援
-      if (data.series) {
-        cleanData.series = data.series;
-      }
-      if (data.seriesOrder) {
-        cleanData.seriesOrder = data.seriesOrder;
+      for (const [key, value] of Object.entries(data)) {
+        if (value === undefined || value === null) {continue;}
+        if (Array.isArray(value) && value.length === 0) {continue;}
+        if (typeof value === "string" && value === "") {continue;}
+        cleanData[key] = value;
       }
 
       const yamlString = yaml.dump(cleanData, {

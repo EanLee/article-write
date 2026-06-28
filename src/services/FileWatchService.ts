@@ -140,9 +140,17 @@ export class FileWatchService {
    */
   private handleFileChange(event: string, path: string): void {
     const normalized = normalizePath(path);
+    const debounceKey = `${event}:${normalized}`;
 
-    // 去抖檢查
-    const recent = this.recentEvents.get(normalized);
+    // 路徑層級忽略（由 ignoreNextChange 設定）
+    const pathIgnore = this.recentEvents.get(normalized);
+    if (pathIgnore && Date.now() - pathIgnore.timestamp < this.DEBOUNCE_MS) {
+      logger.debug(`FileWatchService: Ignored ${event} for ${normalized} (ignoreNextChange active)`);
+      return;
+    }
+
+    // 去抖檢查（相同事件類型 + 路徑）
+    const recent = this.recentEvents.get(debounceKey);
     if (recent) {
       const timeSinceLastEvent = Date.now() - recent.timestamp;
 
@@ -152,8 +160,8 @@ export class FileWatchService {
       }
     }
 
-    // 記錄此事件
-    this.recentEvents.set(normalized, {
+    // 記錄此事件（以 event:path 為 key）
+    this.recentEvents.set(debounceKey, {
       event,
       timestamp: Date.now(),
     });
