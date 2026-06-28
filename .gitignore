@@ -42,3 +42,11 @@ test-results/
 
 # VitePress build cache
 docs/.vitepress/cache/
+
+# SonarQube scanner work directory (auto-generated)
+.scannerwork/
+
+# Lorex database (local index, not versioned)
+.lorex/*.sqlite
+.lorex/*.sqlite-shm
+.lorex/*.sqlite-wal
