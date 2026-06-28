@@ -16,6 +16,12 @@
 
       <!-- Frontmatter 表格 -->
       <table class="table table-sm">
+        <thead class="sr-only">
+          <tr>
+            <th>欄位</th>
+            <th>內容</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="font-semibold w-20">標題</td>
@@ -110,7 +116,7 @@ const articleStore = useArticleStore()
 const currentArticle = computed(() => articleStore.currentArticle)
 
 function openEditor() {
-  // TODO: 開啟 Frontmatter 編輯 modal
+  // 待實作：開啟 Frontmatter 編輯 modal
   // 可以 emit 事件或使用 store 管理 modal 狀態
   logger.debug("Open Frontmatter Editor")
 }

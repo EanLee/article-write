@@ -352,11 +352,12 @@
 
               <!-- Auto Save Interval -->
               <div v-if="localConfig.editorConfig.autoSave" class="form-control ml-12 mt-2">
-                <label class="label">
+                <label for="settings-auto-save-interval" class="label">
                   <span class="label-text">儲存間隔</span>
                 </label>
                 <div class="flex items-center gap-4">
                   <input
+                    id="settings-auto-save-interval"
                     v-model.number="autoSaveSeconds"
                     type="range"
                     min="10"
@@ -366,18 +367,18 @@
                   />
                   <div class="badge badge-primary badge-lg">{{ autoSaveSeconds }} 秒</div>
                 </div>
-                <label class="label">
+                <div class="label">
                   <span class="label-text-alt">建議範圍：10-300 秒</span>
-                </label>
+                </div>
               </div>
 
               <div class="divider"></div>
 
               <!-- Theme Selection -->
               <div class="form-control">
-                <label class="label">
+                <div class="label">
                   <span class="label-text font-semibold">編輯器主題</span>
-                </label>
+                </div>
                 <div class="grid grid-cols-2 gap-3 mt-2">
                   <label 
                     class="label cursor-pointer p-4 border-2 rounded-lg hover:bg-base-200 transition-colors"
@@ -519,18 +520,19 @@
                 </div>
 
                 <div class="form-control">
-                  <label class="label">
+                  <label for="settings-commit-template" class="label">
                     <span class="label-text font-semibold">Commit Message 模板</span>
                   </label>
                   <input
+                    id="settings-commit-template"
                     type="text"
                     placeholder="publish: {title}"
                     class="input input-bordered"
                     disabled
                   />
-                  <label class="label">
+                  <div class="label">
                     <span class="label-text-alt">使用 {title} 代表文章標題</span>
-                  </label>
+                  </div>
                 </div>
               </div>
             </div>

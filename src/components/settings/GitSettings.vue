@@ -93,13 +93,13 @@
           </div>
 
           <div class="form-control">
-            <label class="label">
+            <label for="commit-msg-template" class="label">
               <span class="label-text font-semibold">Commit Message 模板</span>
             </label>
-            <input type="text" placeholder="publish: {title}" class="input input-bordered" disabled />
-            <label class="label">
+            <input id="commit-msg-template" type="text" placeholder="publish: {title}" class="input input-bordered" disabled />
+            <div class="label">
               <span class="label-text-alt">使用 {title} 代表文章標題</span>
-            </label>
+            </div>
           </div>
         </div>
       </div>

@@ -66,7 +66,7 @@ defineEmits<{
 
 // Computed
 const hasUnsavedChanges = computed(() => {
-  // TODO: 從 AutoSaveService 獲取未儲存狀態
+  // 待接入 AutoSaveService 取得未儲存狀態
   return false
 })
 
@@ -99,7 +99,7 @@ function formatDate(date: Date | string): string {
 }
 
 function handleContextMenu(_e: MouseEvent) {
-  // TODO: 實作右鍵菜單
+  // 右鍵菜單待實作
   logger.debug("Right click on:", props.article.title)
 }
 </script>

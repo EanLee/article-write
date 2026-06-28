@@ -19,26 +19,26 @@
 
         <!-- Auto Save Interval -->
         <div v-if="localConfig.autoSave" class="form-control ml-12 mt-2">
-          <label class="label">
+          <label for="auto-save-interval" class="label">
             <span class="label-text">儲存間隔</span>
           </label>
           <div class="flex items-center gap-4">
-            <input v-model.number="autoSaveSeconds" type="range" min="10" max="300" step="10"
+            <input id="auto-save-interval" v-model.number="autoSaveSeconds" type="range" min="10" max="300" step="10"
               class="range range-primary range-sm flex-1" />
             <div class="badge badge-primary badge-lg">{{ autoSaveSeconds }} 秒</div>
           </div>
-          <label class="label">
+          <div class="label">
             <span class="label-text-alt">建議範圍：10-300 秒</span>
-          </label>
+          </div>
         </div>
 
         <div class="divider"></div>
 
         <!-- Theme Selection -->
         <div class="form-control">
-          <label class="label">
+          <div class="label">
             <span class="label-text font-semibold">編輯器主題</span>
-          </label>
+          </div>
           <div class="grid grid-cols-2 gap-3 mt-2">
             <label class="label cursor-pointer p-4 border-2 rounded-lg hover:bg-base-200 transition-colors"
               :class="localConfig.theme === 'light' ? 'border-primary bg-primary/5' : 'border-base-300'">
