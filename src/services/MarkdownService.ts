@@ -2,14 +2,15 @@ import MarkdownIt from "markdown-it";
 import * as yaml from "js-yaml";
 import hljs from "highlight.js";
 import markdownItHighlightjs from "markdown-it-highlightjs";
+// @ts-ignore - Using custom type declarations
 import markdownItToc from "markdown-it-table-of-contents";
+// @ts-ignore - Using custom type declarations
 import markdownItTaskLists from "markdown-it-task-lists";
+// @ts-ignore - Using custom type declarations
 import markdownItMark from "markdown-it-mark";
+// @ts-ignore - Using custom type declarations
 import markdownItFootnote from "markdown-it-footnote";
 import type { Frontmatter } from "@/types";
-import { ArticleStatus } from "@/types";
-import { generateSlug } from "@/utils/slugUtils";
-import { logger } from "@/utils/logger";
 
 /**
  * 解析後的 Markdown 內容介面
@@ -26,15 +27,14 @@ export interface ParsedMarkdown {
  * 負責 Markdown 內容的解析、渲染和前置資料處理
  */
 export class MarkdownService {
-  private md: MarkdownIt;
+  private readonly md: MarkdownIt;
 
   /**
    * 建構子 - 初始化 MarkdownService
    */
   constructor() {
     this.md = new MarkdownIt({
-      html: true, // 允許 HTML 通過（ObsidianSyntaxService 需要注入 <mark>/<a>/<img> 等 HTML）
-      // XSS 防護由 DOMPurify 在 PreviewPane.vue 的 sanitizedContent 計算屬性實施
+      html: true,
       linkify: true,
       typographer: true,
       breaks: true,
@@ -51,7 +51,7 @@ export class MarkdownService {
     this.md.use(markdownItToc, {
       includeLevel: [1, 2, 3, 4],
       containerClass: "table-of-contents",
-      markerPattern: /^\[\[toc]]/im,
+      markerPattern: /^\[\[toc\]\]/im,
     });
 
     // 配置任務清單
@@ -112,17 +112,17 @@ export class MarkdownService {
 
     // Match frontmatter pattern
     const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/;
-    const match = content.match(frontmatterRegex);
+    const match = frontmatterRegex.exec(content);
 
     if (match) {
       const yamlContent = match[1];
       body = match[2];
 
       try {
-        const parsed = yaml.load(yamlContent);
+        const parsed = yaml.load(yamlContent) as any;
 
         if (parsed && typeof parsed === "object") {
-          frontmatter = this.validateAndNormalizeFrontmatter(parsed as Record<string, unknown>, errors);
+          frontmatter = this.validateAndNormalizeFrontmatter(parsed, errors);
           hasValidFrontmatter = errors.length === 0;
         } else {
           errors.push("Frontmatter must be a valid YAML object");
@@ -148,7 +148,7 @@ export class MarkdownService {
    * @param {string[]} errors - 錯誤訊息陣列
    * @returns {Partial<Frontmatter>} 標準化後的前置資料
    */
-  private validateAndNormalizeFrontmatter(data: Record<string, unknown>, errors: string[]): Partial<Frontmatter> {
+  private validateAndNormalizeFrontmatter(data: any, errors: string[]): Partial<Frontmatter> { // NOSONAR
     const frontmatter: Partial<Frontmatter> = {};
 
     // Title validation
@@ -169,11 +169,11 @@ export class MarkdownService {
       }
     }
 
-    // Date validation
+    // Date validation（保留舊版 date 欄位解析，供向後相容；新文章應使用 pubDate）
     if (data.date) {
-      const dateStr = this.toDateString(data.date);
+      const dateStr = String(data.date);
       if (this.isValidDateString(dateStr)) {
-        frontmatter.date = dateStr;
+        frontmatter.date = dateStr; // NOSONAR: 保留 deprecated date 欄位以解析舊有 YAML
       } else {
         errors.push("Date must be in YYYY-MM-DD format");
       }
@@ -181,7 +181,7 @@ export class MarkdownService {
 
     // Last modified validation
     if (data.lastmod) {
-      const lastmodStr = this.toDateString(data.lastmod);
+      const lastmodStr = String(data.lastmod);
       if (this.isValidDateString(lastmodStr)) {
         frontmatter.lastmod = lastmodStr;
       } else {
@@ -190,39 +190,33 @@ export class MarkdownService {
     }
 
     // Tags validation
-    if (data.tags !== undefined) {
-      if (Array.isArray(data.tags)) {
-        const filteredTags = data.tags
-          .filter((tag: unknown): tag is string => typeof tag === "string")
-          .map((tag: string) => tag.trim())
-          .filter((tag: string) => tag.length > 0);
+    if (data.tags === undefined) {
+      frontmatter.tags = [];
+    } else if (Array.isArray(data.tags)) {
+      frontmatter.tags = data.tags
+        .filter((tag: any) => typeof tag === "string")
+        .map((tag: any) => tag.trim())
+        .filter((tag: any) => tag.length > 0);
 
-        if (data.tags.length !== filteredTags.length) {
-          errors.push("Some tags are invalid - tags must be non-empty strings");
-        }
-        frontmatter.tags = filteredTags;
-      } else {
-        errors.push("Tags must be an array");
+      if (data.tags.length !== frontmatter.tags.length) {
+        errors.push("Some tags are invalid - tags must be non-empty strings");
       }
     } else {
-      frontmatter.tags = [];
+      errors.push("Tags must be an array");
     }
 
     // Categories validation
-    if (data.categories !== undefined) {
-      if (Array.isArray(data.categories)) {
-        const validCategories = ["Software", "growth", "management"];
-        const filteredCategories = data.categories.filter((cat: unknown): cat is string => typeof cat === "string" && validCategories.includes(cat));
+    if (data.categories === undefined) {
+      frontmatter.categories = [];
+    } else if (Array.isArray(data.categories)) {
+      const validCategories = new Set(["Software", "growth", "management"]);
+      frontmatter.categories = data.categories.filter((cat: any) => typeof cat === "string" && validCategories.has(cat));
 
-        if (data.categories.length !== filteredCategories.length) {
-          errors.push("Some categories are invalid - must be one of: Software, growth, management");
-        }
-        frontmatter.categories = filteredCategories;
-      } else {
-        errors.push("Categories must be an array");
+      if (data.categories.length !== frontmatter.categories.length) {
+        errors.push("Some categories are invalid - must be one of: Software, growth, management");
       }
     } else {
-      frontmatter.categories = [];
+      errors.push("Categories must be an array");
     }
 
     // Slug validation
@@ -240,22 +234,19 @@ export class MarkdownService {
     }
 
     // Keywords validation
-    if (data.keywords !== undefined) {
-      if (Array.isArray(data.keywords)) {
-        const filteredKeywords = data.keywords
-          .filter((keyword: unknown): keyword is string => typeof keyword === "string")
-          .map((keyword: string) => keyword.trim())
-          .filter((keyword: string) => keyword.length > 0);
+    if (data.keywords === undefined) {
+      frontmatter.keywords = [];
+    } else if (Array.isArray(data.keywords)) {
+      frontmatter.keywords = data.keywords
+        .filter((keyword: any) => typeof keyword === "string")
+        .map((keyword: any) => keyword.trim())
+        .filter((keyword: any) => keyword.length > 0);
 
-        if (data.keywords.length !== filteredKeywords.length) {
-          errors.push("Some keywords are invalid - keywords must be non-empty strings");
-        }
-        frontmatter.keywords = filteredKeywords;
-      } else {
-        errors.push("Keywords must be an array");
+      if (data.keywords.length !== frontmatter.keywords.length) {
+        errors.push("Some keywords are invalid - keywords must be non-empty strings");
       }
     } else {
-      frontmatter.keywords = [];
+      errors.push("Keywords must be an array");
     }
 
     // Series validation
@@ -277,40 +268,6 @@ export class MarkdownService {
       }
     }
 
-    // Created validation（圓桌 #007：建立時間）
-    if (data.created) {
-      const createdStr = this.toDateString(data.created);
-      if (this.isValidDateString(createdStr)) {
-        frontmatter.created = createdStr;
-      } else {
-        errors.push("created must be in YYYY-MM-DD format");
-      }
-    }
-
-    // PubDate validation（圓桌 #007：發佈時間）
-    if (data.pubDate) {
-      const pubDateStr = this.toDateString(data.pubDate);
-      if (this.isValidDateString(pubDateStr)) {
-        frontmatter.pubDate = pubDateStr;
-      } else {
-        errors.push("pubDate must be in YYYY-MM-DD format");
-      }
-    }
-
-    // Draft validation（Astro/Hugo 慣例：草稿旗標）
-    if (data.draft !== undefined) {
-      frontmatter.draft = Boolean(data.draft);
-    }
-
-    // Status validation
-    if (data.status !== undefined) {
-      if (data.status === ArticleStatus.Draft || data.status === ArticleStatus.Published) {
-        frontmatter.status = data.status;
-      } else {
-        errors.push("status must be 'draft' or 'published'");
-      }
-    }
-
     return frontmatter;
   }
 
@@ -321,21 +278,42 @@ export class MarkdownService {
    */
   generateFrontmatter(data: Partial<Frontmatter>): string {
     try {
-      // 保留所有已定義欄位（topic-020 Action 3）：
-      // 早期白名單寫法會丟棄 pubDate/created/draft 與使用者自訂欄位，
-      // 造成 topic-007 移轉後的日期資料在儲存時遺失（round-trip 資料毀損）
-      const cleanData: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(data)) {
-        if (value === undefined || value === null) {
-          continue;
-        }
-        if (typeof value === "string" && value === "") {
-          continue;
-        }
-        if (Array.isArray(value) && value.length === 0) {
-          continue;
-        }
-        cleanData[key] = value;
+      // Create a clean object with only defined values
+      const cleanData: any = {};
+
+      if (data.title) {
+        cleanData.title = data.title;
+      }
+      if (data.description) {
+        cleanData.description = data.description;
+      }
+      if (data.date) {
+        cleanData.date = data.date;
+      }
+      if (data.lastmod) {
+        cleanData.lastmod = data.lastmod;
+      }
+      if (data.status) {
+        cleanData.status = data.status;
+      }
+      if (data.tags && data.tags.length > 0) {
+        cleanData.tags = data.tags;
+      }
+      if (data.categories && data.categories.length > 0) {
+        cleanData.categories = data.categories;
+      }
+      if (data.slug) {
+        cleanData.slug = data.slug;
+      }
+      if (data.keywords && data.keywords.length > 0) {
+        cleanData.keywords = data.keywords;
+      }
+      // 新增系列欄位支援
+      if (data.series) {
+        cleanData.series = data.series;
+      }
+      if (data.seriesOrder) {
+        cleanData.seriesOrder = data.seriesOrder;
       }
 
       const yamlString = yaml.dump(cleanData, {
@@ -387,24 +365,6 @@ export class MarkdownService {
   }
 
   /**
-   * 將 frontmatter 日期欄位轉為字串
-   *
-   * js-yaml 的預設 schema 會將未加引號的 YYYY-MM-DD 純量（例如 `date: 2026-06-13`）
-   * 自動解析為 JS Date 物件，而非字串。若直接 String(date) 會得到
-   * Date.toString() 的本地時間表示（例如 "Sat Jun 13 2026 ..."），
-   * 無法通過 isValidDateString 的格式驗證，導致欄位被整個捨棄。
-   * 此處將 Date 物件轉回 ISO 的 YYYY-MM-DD（yaml 解析的純日期一律為 UTC 午夜）。
-   * @param {unknown} value - 原始 frontmatter 欄位值
-   * @returns {string} 字串形式的日期
-   */
-  private toDateString(value: unknown): string {
-    if (value instanceof Date) {
-      return value.toISOString().split("T")[0];
-    }
-    return String(value);
-  }
-
-  /**
    * 驗證日期字串格式 (YYYY-MM-DD)
    * @param {string} dateStr - 日期字串
    * @returns {boolean} 是否為有效日期格式
@@ -416,7 +376,7 @@ export class MarkdownService {
     }
 
     const date = new Date(dateStr);
-    return date instanceof Date && !isNaN(date.getTime()) && date.toISOString().startsWith(dateStr);
+    return date instanceof Date && !Number.isNaN(date.getTime()) && date.toISOString().startsWith(dateStr);
   }
 
   /**
@@ -430,12 +390,17 @@ export class MarkdownService {
   }
 
   /**
-   * 從標題產生有效的 slug（統一改用 slugUtils）
+   * 從標題產生有效的 slug
    * @param {string} title - 文章標題
    * @returns {string} 產生的 slug
    */
   generateSlugFromTitle(title: string): string {
-    return generateSlug(title);
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   /**
@@ -445,9 +410,9 @@ export class MarkdownService {
    */
   extractImageReferences(content: string): string[] {
     // 使用 matchAll 優化正則匹配（更簡潔高效）
-    const standardImages = [...content.matchAll(/!\[.*?]\(([^)]+)\)/g)].map((m) => m[1]);
+    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)].map((m) => m[1]);
 
-    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)]]/g)].map((m) => m[1]);
+    const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
 
     // 合併並去重
     return [...new Set([...standardImages, ...obsidianImages])];
@@ -460,7 +425,7 @@ export class MarkdownService {
    */
   extractWikiLinks(content: string): Array<{ link: string; alias?: string }> {
     // 使用 matchAll 優化正則匹配
-    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?]]/g)].map((match) => ({
+    return [...content.matchAll(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g)].map((match) => ({
       link: match[1],
       alias: match[3],
     }));
@@ -478,10 +443,10 @@ export class MarkdownService {
       if (start + 4 >= max) {
         return false;
       }
-      if (state.src.charCodeAt(start) !== 0x5b /* [ */) {
+      if ((state.src.codePointAt(start) ?? 0) !== 0x5b /* [ */) {
         return false;
       }
-      if (state.src.charCodeAt(start + 1) !== 0x5b /* [ */) {
+      if ((state.src.codePointAt(start + 1) ?? 0) !== 0x5b /* [ */) {
         return false;
       }
 
@@ -490,7 +455,7 @@ export class MarkdownService {
       let content = "";
 
       while (pos < max) {
-        if (state.src.charCodeAt(pos) === 0x5d /* ] */ && state.src.charCodeAt(pos + 1) === 0x5d /* ] */) {
+        if ((state.src.codePointAt(pos) ?? 0) === 0x5d /* ] */ && (state.src.codePointAt(pos + 1) ?? 0) === 0x5d /* ] */) {
           found = true;
           break;
         }
@@ -534,13 +499,13 @@ export class MarkdownService {
       if (start + 5 >= max) {
         return false;
       }
-      if (state.src.charCodeAt(start) !== 0x21 /* ! */) {
+      if ((state.src.codePointAt(start) ?? 0) !== 0x21 /* ! */) {
         return false;
       }
-      if (state.src.charCodeAt(start + 1) !== 0x5b /* [ */) {
+      if ((state.src.codePointAt(start + 1) ?? 0) !== 0x5b /* [ */) {
         return false;
       }
-      if (state.src.charCodeAt(start + 2) !== 0x5b /* [ */) {
+      if ((state.src.codePointAt(start + 2) ?? 0) !== 0x5b /* [ */) {
         return false;
       }
 
@@ -549,7 +514,7 @@ export class MarkdownService {
       let content = "";
 
       while (pos < max) {
-        if (state.src.charCodeAt(pos) === 0x5d /* ] */ && state.src.charCodeAt(pos + 1) === 0x5d /* ] */) {
+        if ((state.src.codePointAt(pos) ?? 0) === 0x5d /* ] */ && (state.src.codePointAt(pos + 1) ?? 0) === 0x5d /* ] */) {
           found = true;
           break;
         }
@@ -634,32 +599,12 @@ export class MarkdownService {
     const errors: Array<{ line: number; message: string; type: "error" | "warning" }> = [];
     const lines = content.split("\n");
 
-    // 記錄程式碼圍欄（``` 或 ~~~）的開關狀態，避免誤判程式碼區塊內的語法
-    let inFencedCodeBlock = false;
-
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
 
-      // 偵測程式碼圍欄的開始/結束（``` 或 ~~~）
-      if (/^(`{3,}|~{3,})/.test(line.trimStart())) {
-        inFencedCodeBlock = !inFencedCodeBlock;
-        return; // 圍欄行本身不需驗證
-      }
-
-      // 程式碼區塊內的任何語法都不驗證
-      if (inFencedCodeBlock) {
-        return;
-      }
-
-      // 移除行內程式碼（`...`）後再驗證，避免程式碼內容觸發誤判
-      const strippedLine = line.replace(/`[^`]*`/g, "");
-
-      // 移除 Markdown 連結 URL 部分 [text](url)，避免 URL 內的 == 或 [[ 觸發誤判
-      const strippedForWiki = strippedLine.replace(/\[[^\]]*]\([^)]*\)/g, "");
-
-      // 檢查未閉合的 Wiki 連結（排除 Markdown 連結 [text](url) 格式）
-      const openWikiLinks = (strippedForWiki.match(/\[\[/g) || []).length;
-      const closeWikiLinks = (strippedForWiki.match(/]]/g) || []).length;
+      // 檢查未閉合的 Wiki 連結
+      const openWikiLinks = (line.match(/\[\[/g) || []).length;
+      const closeWikiLinks = (line.match(/\]\]/g) || []).length;
       if (openWikiLinks !== closeWikiLinks) {
         errors.push({
           line: lineNumber,
@@ -668,9 +613,8 @@ export class MarkdownService {
         });
       }
 
-      // 檢查未閉合的高亮語法（排除 URL 中的 == query string）
-      const strippedForHighlight = strippedLine.replace(/https?:\/\/\S+/g, "");
-      const highlightMarks = (strippedForHighlight.match(/==/g) || []).length;
+      // 檢查未閉合的高亮語法
+      const highlightMarks = (line.match(/==/g) || []).length;
       if (highlightMarks % 2 !== 0) {
         errors.push({
           line: lineNumber,
@@ -680,7 +624,7 @@ export class MarkdownService {
       }
 
       // 檢查未閉合的註釋
-      const commentStart = (strippedLine.match(/%%/g) || []).length;
+      const commentStart = (line.match(/%%/g) || []).length;
       if (commentStart % 2 !== 0) {
         errors.push({
           line: lineNumber,

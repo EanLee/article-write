@@ -35,9 +35,9 @@ export interface SaveResult {
 }
 
 export class ArticleService {
-  private fileSystem: IFileSystem;
-  private markdownService: MarkdownService;
-  private backupService: BackupService;
+  private readonly fileSystem: IFileSystem;
+  private readonly markdownService: MarkdownService;
+  private readonly backupService: BackupService;
 
   /**
    * per-file 儲存佇列（topic-020）
@@ -434,10 +434,10 @@ export class ArticleService {
     return title
       .trim() // 先 trim 前後空格
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, ""); // 移除前後的 -
+      .replaceAll(/[^a-z0-9\s-]/g, "")
+      .replaceAll(/\s+/g, "-")
+      .replaceAll(/-+/g, "-")
+      .replace(/^-+|-+$/g, ""); // 移除前後的 - (交替模式，保留 replace)
   }
 
   /**
