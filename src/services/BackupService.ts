@@ -130,7 +130,7 @@ export class BackupService {
    * 生成備份 ID
    */
   private generateBackupId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+    return Date.now().toString(36) + crypto.randomUUID().replace(/-/g, "").substring(0, 6);
   }
 
   /**
