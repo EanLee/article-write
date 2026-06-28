@@ -14,7 +14,20 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
       '**/e2e/**' // 排除 Playwright E2E 測試
-    ]
+    ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['lcov', 'text-summary'],
+      reportsDirectory: './coverage',
+      reportOnFailure: true,
+      include: ['src/**/*.{ts,vue}'],
+      exclude: [
+        'src/main/**',
+        'src/**/*.d.ts',
+        'src/**/*.spec.ts',
+        'src/**/*.test.ts',
+      ],
+    },
   },
   resolve: {
     alias: {
