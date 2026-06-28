@@ -17,7 +17,7 @@ export const useServerStore = defineStore("server", () => {
   async function startServer(projectPath: string) {
     loading.value = true
     try {
-      await window.electronAPI.startDevServer(projectPath)
+      await globalThis.electronAPI.startDevServer(projectPath)
       await updateStatus()
     } catch (error) {
       logger.error("Failed to start server:", error)
@@ -30,7 +30,7 @@ export const useServerStore = defineStore("server", () => {
   async function stopServer() {
     loading.value = true
     try {
-      await window.electronAPI.stopDevServer()
+      await globalThis.electronAPI.stopDevServer()
       status.value = {
         running: false,
         url: undefined,
@@ -46,7 +46,7 @@ export const useServerStore = defineStore("server", () => {
 
   async function updateStatus() {
     try {
-      const serverStatus = await window.electronAPI.getServerStatus()
+      const serverStatus = await globalThis.electronAPI.getServerStatus()
       status.value = {
         ...status.value,
         running: serverStatus.running,

@@ -13,7 +13,7 @@ export class ElectronFileSystem implements IFileSystem {
    * @throws Error 如果 Electron API 不可用
    */
   private ensureElectronAPI(): void {
-    if (typeof window === "undefined" || !globalThis.electronAPI) {
+    if (typeof globalThis === "undefined" || !globalThis.electronAPI) {
       throw new Error("Electron API not available")
     }
   }

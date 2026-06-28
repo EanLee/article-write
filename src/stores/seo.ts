@@ -11,8 +11,8 @@ export const useSeoStore = defineStore("seo", () => {
     error.value = null
     try {
       const contentPreview = article.content.slice(0, 300)
-      const provider = await window.electronAPI.aiGetActiveProvider()
-      const result = await window.electronAPI.aiGenerateSEO({
+      const provider = await globalThis.electronAPI.aiGetActiveProvider()
+      const result = await globalThis.electronAPI.aiGenerateSEO({
         title: article.title,
         contentPreview,
         existingSlug: article.frontmatter.slug,
@@ -28,7 +28,7 @@ export const useSeoStore = defineStore("seo", () => {
   }
 
   async function hasApiKey(): Promise<boolean> {
-    const provider = await window.electronAPI.aiGetActiveProvider()
+    const provider = await globalThis.electronAPI.aiGetActiveProvider()
     return provider !== null
   }
 

@@ -233,11 +233,11 @@ async function validatePaths() {
 
 async function selectArticlesPath() {
   try {
-    if (!window.electronAPI) {
+    if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
-    const selectedPath = await window.electronAPI.selectDirectory({
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
       title: "選擇文章資料夾",
       defaultPath: localPaths.articlesDir,
     })
@@ -254,11 +254,11 @@ async function selectArticlesPath() {
 
 async function selectBlogPath() {
   try {
-    if (!window.electronAPI) {
+    if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
-    const selectedPath = await window.electronAPI.selectDirectory({
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
       title: "選擇部落格專案資料夾",
       defaultPath: localPaths.targetDir,
     })
@@ -272,11 +272,11 @@ async function selectBlogPath() {
 
 async function selectImagesPath() {
   try {
-    if (!window.electronAPI) {
+    if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
-    const selectedPath = await window.electronAPI.selectDirectory({
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
       title: "選擇圖片資料夾",
       defaultPath: localPaths.imagesDir,
     })

@@ -52,7 +52,7 @@ export const useConfigStore = defineStore("config", () => {
     loading.value = true
     try {
       // Check if we're running in Electron environment
-      if (typeof window === "undefined" || !globalThis.electronAPI || typeof globalThis.electronAPI.getConfig !== "function") {
+      if (typeof globalThis === "undefined" || !globalThis.electronAPI || typeof globalThis.electronAPI.getConfig !== "function") {
         logger.warn("Running in browser mode - using default config")
         // Use default config for browser/development mode
         isConfigured.value = false
@@ -78,7 +78,7 @@ export const useConfigStore = defineStore("config", () => {
   async function saveConfig(newConfig: AppConfig) {
     loading.value = true
     try {
-      if (typeof window === "undefined" || !globalThis.electronAPI || typeof globalThis.electronAPI.setConfig !== "function") {
+      if (typeof globalThis === "undefined" || !globalThis.electronAPI || typeof globalThis.electronAPI.setConfig !== "function") {
         logger.warn("Running in browser mode - config not saved")
         config.value = newConfig
         // 只需要文章資料夾即可開始使用，部落格路徑可稍後設定
