@@ -692,7 +692,7 @@ export class ConverterService {
         }
 
         // 檢查是否還有未轉換的高亮語法
-        if (convertedContent.includes("==") && convertedContent.match(/==[^=\n]*==/)) {
+        if (convertedContent.includes("==") && /==[^=\n]*==/.exec(convertedContent)) {
           issues.push("Unconverted highlight syntax found")
         }
       }

@@ -21,7 +21,7 @@ export class GeminiProvider implements IAIProvider {
       });
 
       const text = (response.text ?? "").trim();
-      const jsonMatch = text.match(/\{[\s\S]*}/);
+      const jsonMatch = /\{[\s\S]*}/.exec(text);
       if (!jsonMatch) {
         throw new AIError(AIErrorCode.ApiError, "無法解析 JSON 回應");
       }

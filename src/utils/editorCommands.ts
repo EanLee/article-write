@@ -46,7 +46,7 @@ export function toggleHeadingSpec(level: number, state: EditorState): Transactio
   const line = state.doc.lineAt(state.selection.main.from)
   const text = line.text
   const marker = "#".repeat(level) + " "
-  const existing = text.match(/^(#{1,6}) /)
+  const existing = /^(#{1,6}) /.exec(text)
 
   if (existing) {
     if (existing[1].length === level) {
