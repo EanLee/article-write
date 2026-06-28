@@ -38,7 +38,6 @@ export function useActivityBarShortcuts(activeView: Ref<string>) {
     if (e.ctrlKey && e.key === "b") {
       e.preventDefault()
       activeView.value = activeView.value ? "" : "articles"
-      return
     }
   }
 

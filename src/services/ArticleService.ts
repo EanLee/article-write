@@ -142,7 +142,7 @@ export class ArticleService {
 
       // 2. 建立備份（除非跳過）
       if (!options.skipBackup) {
-        await this.backupService.createBackup(article);
+        this.backupService.createBackup(article);
       }
 
       // 3. 組合 markdown 內容
@@ -334,8 +334,8 @@ export class ArticleService {
 
     // 從 frontmatter 讀取 status，未設定預設為 Draft
     const status: ArticleStatus =
-      frontmatter.status && Object.values(ArticleStatus).includes(frontmatter.status as ArticleStatus)
-        ? (frontmatter.status as ArticleStatus)
+      frontmatter.status && Object.values(ArticleStatus).includes(frontmatter.status)
+        ? frontmatter.status
         : ArticleStatus.Draft;
 
     // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
@@ -371,7 +371,7 @@ export class ArticleService {
    */
   async deleteArticle(article: Article): Promise<void> {
     // 刪除前先備份
-    await this.backupService.createBackup(article);
+    this.backupService.createBackup(article);
 
     // 刪除檔案
     await this.fileSystem.deleteFile(article.filePath);
@@ -498,9 +498,7 @@ export class ArticleService {
 let articleServiceInstance: ArticleService | null = null;
 
 export function getArticleService(): ArticleService {
-  if (!articleServiceInstance) {
-    articleServiceInstance = new ArticleService();
-  }
+  articleServiceInstance ??= new ArticleService();
   return articleServiceInstance;
 }
 
