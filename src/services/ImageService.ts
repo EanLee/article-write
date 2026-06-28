@@ -675,7 +675,8 @@ export class ImageService {
    * @returns {string} 移除引用後的內容
    */
   removeImageReference(content: string, imageName: string): string {
-    const regex = new RegExp(String.raw`!\[\[${imageName.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)}\]\]`, "g");
+    const escapedName = imageName.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+    const regex = new RegExp(String.raw`!\[\[${escapedName}\]\]`, "g");
     return content.replace(regex, "");
   }
 }
