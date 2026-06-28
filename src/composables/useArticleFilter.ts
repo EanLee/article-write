@@ -124,7 +124,7 @@ export function useArticleFilter(articles: Ref<Article[]>) {
           article.frontmatter.tags && Array.isArray(article.frontmatter.tags) ? article.frontmatter.tags : [],
         ),
       ),
-    ].sort();
+    ].sort((a, b) => a.localeCompare(b));
   });
 
   // ── Actions ─────────────────────────────────────────────────────────────
