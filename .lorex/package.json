@@ -1,0 +1,16 @@
+{
+  "name": "lorex-tooling",
+  "private": true,
+  "description": "lorex 文件瀏覽工具鏈（自我封裝，不依賴專案根目錄的 package.json，見 AIDR-003）",
+  "scripts": {
+    "docs:lint": "node scripts/docs-lint.mjs ../docs",
+    "docs:lint:schema": "node scripts/docs-lint.mjs ../docs --schema",
+    "docs:dev": "node scripts/docs-lint.mjs ../docs && node scripts/generate-nav.mjs ../docs && vitepress dev ../docs",
+    "docs:build": "node scripts/docs-lint.mjs ../docs && node scripts/generate-nav.mjs ../docs && vitepress build ../docs",
+    "docs:preview": "vitepress preview ../docs"
+  },
+  "dependencies": {
+    "vitepress": "^1.6.4",
+    "yaml": "^2.9.0"
+  }
+}
