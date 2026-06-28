@@ -282,7 +282,7 @@ export class ConverterService {
    * @returns {string} 轉換後的內容
    */
   private convertHighlightSyntax(content: string): string {
-    return content.replace(/==(.*?)==/g, "<mark>$1</mark>")
+    return content.replace(/==([^=\n]*)==/g, "<mark>$1</mark>")
   }
 
   /**
@@ -302,7 +302,7 @@ export class ConverterService {
    * @returns {string} 轉換後的內容
    */
   private removeObsidianComments(content: string): string {
-    return content.replace(/%%.*?%%/gs, "")
+    return content.replace(/%%[^%]*%%/g, "")
   }
 
   /**
@@ -692,7 +692,7 @@ export class ConverterService {
         }
 
         // 檢查是否還有未轉換的高亮語法
-        if (convertedContent.includes("==") && convertedContent.match(/==.*?==/)) {
+        if (convertedContent.includes("==") && convertedContent.match(/==[^=\n]*==/)) {
           issues.push("Unconverted highlight syntax found")
         }
       }

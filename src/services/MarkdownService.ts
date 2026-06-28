@@ -410,7 +410,7 @@ export class MarkdownService {
    */
   extractImageReferences(content: string): string[] {
     // 使用 matchAll 優化正則匹配（更簡潔高效）
-    const standardImages = [...content.matchAll(/!\[.*?\]\(([^)]+)\)/g)].map((m) => m[1]);
+    const standardImages = [...content.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((m) => m[1]);
 
     const obsidianImages = [...content.matchAll(/!\[\[([^\]]+)\]\]/g)].map((m) => m[1]);
 
@@ -555,10 +555,10 @@ export class MarkdownService {
     let processed = content;
 
     // 處理 Obsidian 高亮語法 ==text== 轉換為 <mark>text</mark>
-    processed = processed.replace(/==(.*?)==/g, "<mark>$1</mark>");
+    processed = processed.replace(/==([^=\n]*)==/g, "<mark>$1</mark>");
 
     // 處理 Obsidian 註釋 %%comment%% （在預覽中隱藏）
-    processed = processed.replace(/%%.*?%%/g, "");
+    processed = processed.replace(/%%[^%]*%%/g, "");
 
     // 處理 Obsidian 標籤 #tag (支援中文)
     processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="tag">#$1</span>');
