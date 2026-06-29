@@ -141,7 +141,7 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import SEOGenerateButton from "./SEOGenerateButton.vue"
 
 defineProps<{

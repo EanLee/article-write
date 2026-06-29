@@ -63,7 +63,7 @@ import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { ViewMode, SidebarView } from "@/types";
-import { FileText } from "lucide-vue-next";
+import { FileText } from "@lucide/vue";
 
 import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";

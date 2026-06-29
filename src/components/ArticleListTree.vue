@@ -144,7 +144,7 @@ import {
   FolderOpen,
   FolderClosed,
   FileQuestion
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import ArticleTreeItem from "./ArticleTreeItem.vue"
 import type { Article } from "@/types"
 import { logger } from "@/utils/logger"

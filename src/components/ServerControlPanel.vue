@@ -122,7 +122,7 @@ import {
   ChevronDown,
   Trash2,
   AlertTriangle
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import type { ServerLogData } from "@/types/electron"
 
 const configStore = useConfigStore()

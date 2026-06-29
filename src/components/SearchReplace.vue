@@ -136,7 +136,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue"
-import { ChevronUp, ChevronDown, Replace, X } from "lucide-vue-next"
+import { ChevronUp, ChevronDown, Replace, X } from "@lucide/vue"
 import { logger } from "@/utils/logger"
 
 interface Props {

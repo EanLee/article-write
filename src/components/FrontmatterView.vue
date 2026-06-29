@@ -108,7 +108,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Info, Edit2 } from "lucide-vue-next"
+import { Info, Edit2 } from "@lucide/vue"
 import { useArticleStore } from "@/stores/article"
 import { logger } from "@/utils/logger"
 

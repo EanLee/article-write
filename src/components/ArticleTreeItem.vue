@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { FileText } from "lucide-vue-next"
+import { FileText } from "@lucide/vue"
 import type { Article } from "@/types"
 import { logger } from "@/utils/logger"
 
