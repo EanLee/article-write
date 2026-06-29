@@ -484,18 +484,11 @@ export class ConverterService {
    * @returns {string | null} 檔案名稱
    */
   private extractImageName(imageRef: string): string | null {
-    // 處理不同格式的圖片引用
-    let imageName: string | null = null
-    
-    if (imageRef.includes("/")) {
-      // 路徑格式：../../images/image.png
-      imageName = imageRef.split("/").pop() || null
-    } else {
-      // 直接檔案名稱：image.png
-      imageName = imageRef
-    }
+    // 路徑格式：../../images/image.png；直接檔案名稱：image.png
+    const imageName: string | null = imageRef.includes("/")
+      ? imageRef.split("/").pop() || null
+      : imageRef
 
-    // 驗證是否為有效的圖片檔案名稱
     if (imageName && this.isValidImageFile(imageName)) {
       return imageName
     }

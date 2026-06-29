@@ -553,7 +553,7 @@ export class ImageService {
       return fileName;
     } catch (error) {
       logger.error("圖片上傳失敗：", error);
-      throw new Error(`圖片上傳失敗：${(error as Error).message}`);
+      throw new Error(`圖片上傳失敗：${(error as Error).message}`, { cause: error });
     }
   }
 
