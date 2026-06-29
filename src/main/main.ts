@@ -102,6 +102,13 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  // E2E 測試模式：允許 beforeunload 導致的導航（避免 reload 被 will-prevent-unload 卡住）
+  if (isTest) {
+    mainWindow.webContents.on("will-prevent-unload", (event) => {
+      event.preventDefault();
+    });
+  }
 }
 
 function setupAutoUpdater() {
