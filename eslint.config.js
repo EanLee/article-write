@@ -111,6 +111,6 @@ export default [
     },
   },
   {
-    ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts", ".github/**", ".doc-viewer/**", ".lorex/**", ".serena/**", ".scannerwork/**", "docs/.vitepress/**"],
+    ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts", ".*/**", "docs/.vitepress/**"],
   },
 ];
