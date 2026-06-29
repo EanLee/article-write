@@ -16,7 +16,6 @@
     "skipLibCheck": true,
     "rootDir": "src/main",
     "outDir": "dist/preload",
-    "baseUrl": ".",
     "typeRoots": ["./node_modules/@types"],
     "types": ["node"]
   },
