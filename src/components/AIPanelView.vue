@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue"
-import { Sparkles, X, ChevronDown, ChevronRight } from "lucide-vue-next"
+import { Sparkles, X, ChevronDown, ChevronRight } from "@lucide/vue"
 import { useAIPanelStore } from "@/stores/aiPanel"
 import { useSeoStore } from "@/stores/seo"
 import { useArticleStore } from "@/stores/article"

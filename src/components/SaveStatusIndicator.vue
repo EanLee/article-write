@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Check, Loader2, AlertCircle, FileEdit, Save } from "lucide-vue-next"
+import { Check, Loader2, AlertCircle, FileEdit, Save } from "@lucide/vue"
 import { useArticleStore } from "@/stores/article"
 import { autoSaveService } from "@/services/AutoSaveService"
 import { logger } from "@/utils/logger"

@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue"
-import { PanelLeftClose, PanelLeftOpen } from "lucide-vue-next"
+import { PanelLeftClose, PanelLeftOpen } from "@lucide/vue"
 
 const props = withDefaults(
   defineProps<{

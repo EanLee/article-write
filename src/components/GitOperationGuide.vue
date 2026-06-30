@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { GitBranch, Copy, Info } from "lucide-vue-next"
+import { GitBranch, Copy, Info } from "@lucide/vue"
 import type { GitCommands } from "@/utils/gitCommandGenerator"
 import { formatGitCommandsForDisplay, copyToClipboard } from "@/utils/gitCommandGenerator"
 import { notificationService } from "@/services/NotificationService"

@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue"
-import { FileText, Info, List } from "lucide-vue-next"
+import { FileText, Info, List } from "@lucide/vue"
 import { SidebarView } from "@/types"
 import { useArticleStore } from "@/stores/article"
 import { useFocusMode } from "@/composables/useFocusMode"

@@ -82,14 +82,14 @@ test.describe("寫作基線：Markdown 快捷鍵與大綱面板", () => {
     await expect(window.locator(".cm-line", { hasText: "**背景內容。**" })).toBeVisible({ timeout: 5000 });
   });
 
-  test("Ctrl+B：無選取時插入佔位文字 bold text", async ({ window }) => {
+  test("Ctrl+B：無選取時插入佔位文字 粗體文字", async ({ window }) => {
     const targetLine = window.locator(".cm-line", { hasText: "分析內容。" });
     await targetLine.click();
     await window.keyboard.press("End");
 
     await window.keyboard.press("Control+b");
 
-    await expect(window.locator(".cm-line", { hasText: "**bold text**" })).toBeVisible({ timeout: 5000 });
+    await expect(window.locator(".cm-line", { hasText: "**粗體文字**" })).toBeVisible({ timeout: 5000 });
   });
 
   test("Ctrl+2：一般行加上 ## 標題前綴，再按一次移除（toggle）", async ({ window }) => {

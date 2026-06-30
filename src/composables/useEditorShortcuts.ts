@@ -18,6 +18,35 @@ export function useEditorShortcuts(
   options: EditorShortcutsOptions = {}
 ) {
   /**
+   * 切換當前行的前綴（用於標題 toggle 等行首操作）
+   * 優先使用 replaceRange 原子性操作（CodeMirror），避免 async 競態
+   */
+  function toggleLinePrefix(prefix: string) {
+    const textarea = editorRef.value as (typeof editorRef.value & { replaceRange?: (from: number, to: number, insert: string) => void }) | null
+    if (!textarea) { return }
+
+    const text = textarea.value
+    const pos = textarea.selectionStart
+    const lineStart = text.lastIndexOf("\n", pos - 1) + 1
+
+    if (text.startsWith(prefix, lineStart)) {
+      if (textarea.replaceRange) {
+        textarea.replaceRange(lineStart, lineStart + prefix.length, "")
+      } else {
+        contentRef.value = text.slice(0, lineStart) + text.slice(lineStart + prefix.length)
+        setTimeout(() => { textarea.setSelectionRange(Math.max(lineStart, pos - prefix.length), Math.max(lineStart, pos - prefix.length)) }, 0)
+      }
+    } else {
+      if (textarea.replaceRange) {
+        textarea.replaceRange(lineStart, lineStart, prefix)
+      } else {
+        contentRef.value = text.slice(0, lineStart) + prefix + text.slice(lineStart)
+        setTimeout(() => { textarea.setSelectionRange(pos + prefix.length, pos + prefix.length) }, 0)
+      }
+    }
+  }
+
+  /**
    * 插入 Markdown 語法
    */
   function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
@@ -45,6 +74,33 @@ export function useEditorShortcuts(
   }
 
   /**
+   * 插入腳註引用（Ctrl+Shift+F）
+   */
+  function insertFootnote() {
+    const textarea = editorRef.value as (typeof editorRef.value & { replaceRange?: (from: number, to: number, insert: string) => void }) | null
+    if (!textarea) { return }
+
+    const text = textarea.value
+    const pos = textarea.selectionStart
+    const existingRefs = text.match(/\[\^\d+\]/g) || []
+    const nextNum = existingRefs.length + 1
+    const ref = `[^${nextNum}]`
+    const definition = `\n\n[^${nextNum}]: 腳註內容`
+
+    if (textarea.replaceRange) {
+      // 先插入行內引用，再追加腳註定義（兩次 dispatch 均同步）
+      textarea.replaceRange(pos, pos, ref)
+      const updated = textarea.value
+      const trimEnd = updated.trimEnd().length
+      textarea.replaceRange(trimEnd, updated.length, definition)
+    } else {
+      const withRef = text.slice(0, pos) + ref + text.slice(pos)
+      contentRef.value = withRef.trimEnd() + definition
+      setTimeout(() => { textarea.setSelectionRange(pos + ref.length, pos + ref.length) }, 0)
+    }
+  }
+
+  /**
    * 插入表格
    */
   function insertTable() {
@@ -64,9 +120,14 @@ export function useEditorShortcuts(
     // 編輯器快捷鍵
     if (event.ctrlKey || event.metaKey) {
       // 處理 Shift 組合鍵
-      if (event.shiftKey && event.key === "Z") {
+      if (event.shiftKey && event.key.toLowerCase() === "z") {
         event.preventDefault()
         options.onRedo?.()
+        return true
+      }
+      if (event.shiftKey && event.key.toLowerCase() === "f") {
+        event.preventDefault()
+        insertFootnote()
         return true
       }
       
@@ -87,6 +148,10 @@ export function useEditorShortcuts(
         case "h": // Ctrl+H: 替換
           event.preventDefault()
           options.onReplace?.()
+          return true
+        case "2":
+          event.preventDefault()
+          toggleLinePrefix("## ")
           return true
         case "b":
           event.preventDefault()

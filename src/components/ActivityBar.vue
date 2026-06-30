@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import type { Component } from "vue"
-import { Edit3, LayoutDashboard, Settings, Sparkles } from "lucide-vue-next"
+import { Edit3, LayoutDashboard, Settings, Sparkles } from "@lucide/vue"
 import { ViewMode } from "@/types"
 
 interface ActivityItem {

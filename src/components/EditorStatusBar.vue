@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from "lucide-vue-next"
+import { FileText, AlignLeft, Clock, Link, Link2Off, Hash, WrapText } from "@lucide/vue"
 
 interface Props {
   content?: string

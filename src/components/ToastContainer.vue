@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { notificationService, type Notification, type NotificationType } from "@/services/NotificationService"
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-vue-next"
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from "@lucide/vue"
 
 const notifications = computed(() => notificationService.notifications.value)
 

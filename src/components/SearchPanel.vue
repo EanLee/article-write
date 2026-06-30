@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, nextTick, ref } from "vue"
-import { Search } from "lucide-vue-next"
+import { Search } from "@lucide/vue"
 import { useSearchStore } from "@/stores/search"
 import { useArticleStore } from "@/stores/article"
 import { highlightKeyword } from "@/utils/dom"

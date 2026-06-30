@@ -136,7 +136,7 @@ import {
   FileEdit,
   Maximize,
   Minimize
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import SaveStatusIndicator from "@/components/SaveStatusIndicator.vue"
 
 interface Props {

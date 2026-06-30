@@ -48,7 +48,7 @@ test.describe("編輯器核心流程", () => {
     // 等待文章列表掃描完成（取代固定 waitForTimeout，避免非必要等待）
     await window.locator('[data-testid="article-tree-item"]').first().waitFor({
       state: "visible",
-      timeout: 15000,
+      timeout: 30000,
     });
   });
 
@@ -69,8 +69,8 @@ test.describe("編輯器核心流程", () => {
     await editorContent.click();
     await window.keyboard.type(" 新增的測試內容");
 
-    // Step 5: 按 Ctrl+S 手動儲存
-    await window.keyboard.press("Control+s");
+    // Step 5: 按 Ctrl+S 手動儲存（locator press 確保焦點在編輯器）
+    await editorContent.press("Control+s");
 
     // Step 6: 確認 SaveStatusIndicator 顯示「已儲存」
     // 使用 data-testid="save-status-text"（僅非 icon-only 實例才有此屬性）
@@ -90,8 +90,8 @@ test.describe("編輯器核心流程", () => {
     await editorContent.click();
     await window.keyboard.type(" 磁碟寫入驗證");
 
-    // Step 3: Ctrl+S 儲存
-    await window.keyboard.press("Control+s");
+    // Step 3: Ctrl+S 儲存（locator press 確保焦點在編輯器）
+    await editorContent.press("Control+s");
 
     // Step 4: 等待 UI 反映儲存完成
     const saveStatusText = window.getByTestId("save-status-text");

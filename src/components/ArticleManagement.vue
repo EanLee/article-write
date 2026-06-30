@@ -190,7 +190,7 @@ import {
   FilePlus,
   Filter,
   RefreshCw
-} from "lucide-vue-next"
+} from "@lucide/vue"
 
 
 const articleStore = useArticleStore()

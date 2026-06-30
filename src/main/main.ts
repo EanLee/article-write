@@ -102,6 +102,13 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+
+  // E2E 測試模式：允許 beforeunload 導致的導航（避免 reload 被 will-prevent-unload 卡住）
+  if (isTest) {
+    mainWindow.webContents.on("will-prevent-unload", (event) => {
+      event.preventDefault();
+    });
+  }
 }
 
 function setupAutoUpdater() {
@@ -129,46 +136,7 @@ function setupAutoUpdater() {
   autoUpdater.checkForUpdates();
 }
 
-await app.whenReady();
-
-// 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
-// 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
-protocol.handle("local-file", async (request) => {
-  try {
-    const url = new URL(request.url);
-    // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
-    const pathname = decodeURIComponent(url.pathname);
-    // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
-    return await net.fetch(`file://${pathname}`);
-  } catch {
-    return new Response("Not Found", { status: 404 });
-  }
-});
-
-createWindow();
-setupAutoUpdater();
-
-// 載入設定並初始化檔案路徑白名單
-try {
-  const initialConfig = await configService.getConfig();
-  fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
-} catch {
-  // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
-}
-
-// A6-02: IPC handler 登錄委派至 registerIpcHandlers.ts
-// 避免 app.whenReady() 成為 God Function（~150 行）
-registerIpcHandlers({
-  fileService,
-  configService,
-  processService,
-  publishService,
-  gitService,
-  searchService,
-  aiService,
-  getMainWindow: () => mainWindow ?? null,
-});
-
+// 應用程式生命週期事件監聽——在 whenReady 前登錄，確保任何時機都能觸發
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
@@ -186,4 +154,46 @@ app.on("before-quit", () => {
   fileService.stopWatching();
   fileService.clearWatchListeners(); // app 完全關閉時才清除所有訂閱者
   processService.stopDevServer();
+});
+
+// Electron 42（Chromium 130）ESM 主程序中，top-level await app.whenReady() 會造成
+// 模組評估暫停 → ready 事件等待模組完成 → 死鎖。改用 .then() 回呼避免此問題。
+app.whenReady().then(async () => {
+  // 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
+  // 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
+  protocol.handle("local-file", async (request) => {
+    try {
+      const url = new URL(request.url);
+      // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
+      const pathname = decodeURIComponent(url.pathname);
+      // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
+      return await net.fetch(`file://${pathname}`);
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+  });
+
+  createWindow();
+  setupAutoUpdater();
+
+  // 載入設定並初始化檔案路徑白名單
+  try {
+    const initialConfig = await configService.getConfig();
+    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
+  } catch {
+    // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
+  }
+
+  // A6-02: IPC handler 登錄委派至 registerIpcHandlers.ts
+  // 避免 app.whenReady() 成為 God Function（~150 行）
+  registerIpcHandlers({
+    fileService,
+    configService,
+    processService,
+    publishService,
+    gitService,
+    searchService,
+    aiService,
+    getMainWindow: () => mainWindow ?? null,
+  });
 });

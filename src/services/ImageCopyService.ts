@@ -34,13 +34,9 @@ export class ImageCopyService {
    * @returns 檔案名稱，若無效則回傳 null
    */
   extractImageName(imageRef: string): string | null {
-    let imageName: string | null = null;
-
-    if (imageRef.includes("/")) {
-      imageName = imageRef.split("/").pop() || null;
-    } else {
-      imageName = imageRef;
-    }
+    const imageName: string | null = imageRef.includes("/")
+      ? imageRef.split("/").pop() || null
+      : imageRef;
 
     if (imageName && this.isValidImageFile(imageName)) {
       return imageName;
