@@ -10,6 +10,7 @@ import { logger } from "@/utils/logger";
 export class AutoSaveService {
   private saveCallback: ((article: Article) => Promise<void>) | null = null;
   private getCurrentArticleCallback: (() => Article | null) | null = null;
+  private getEditorContentCallback: (() => string) | null = null;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private autoSaveInterval: number = 30000; // 30 seconds
   private isEnabled: boolean = true;
@@ -140,6 +141,14 @@ export class AutoSaveService {
   }
 
   /**
+   * 登記編輯器即時內容回呼（由 MainEditor 在 mount/unmount 呼叫）
+   * 確保切換文章時能取得最新打字內容，而非 store 快取值
+   */
+  setEditorContentCallback(callback: (() => string) | null): void {
+    this.getEditorContentCallback = callback;
+  }
+
+  /**
    * 文章切換時的自動儲存
    * 在切換到新文章前儲存當前文章
    * @param {Article | null} previousArticle - 前一篇文章
@@ -154,18 +163,25 @@ export class AutoSaveService {
     }
 
     try {
+      // 取得編輯器即時內容（比 store 快取更新），避免遺漏切換前最後一次打字
+      const editorContent = this.getEditorContentCallback?.();
+      const articleToSave = editorContent !== undefined
+        ? { ...previousArticle, content: editorContent }
+        : previousArticle;
+
       // 檢查前一篇文章是否有變更
-      const hasChanged = this.hasContentChanged(previousArticle);
+      const hasChanged = this.hasContentChanged(articleToSave);
 
       logger.debug(`切換文章檢查: ${previousArticle.title}`, {
         hasChanged,
-        contentChanged: previousArticle.content !== this.lastSavedContent,
+        contentChanged: articleToSave.content !== this.lastSavedContent,
       });
 
       if (hasChanged) {
         logger.debug(`內容已變更，執行自動儲存: ${previousArticle.title}`);
         this.updateSaveState(SaveStatus.Saving);
-        await this.saveCallback(previousArticle);
+        await this.saveCallback(articleToSave);
+        this.updateLastSavedContent(articleToSave);
         this.updateSaveState(SaveStatus.Saved);
       } else {
         logger.debug(`內容無變更，跳過儲存: ${previousArticle.title}`);
