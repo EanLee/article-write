@@ -92,8 +92,11 @@ function toggleSidebar() {
 
 function handleGlobalKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === "b") {
-    e.preventDefault();
-    toggleSidebar();
+    // CM editor 自行處理 Ctrl+B（粗體），此時不 toggle sidebar
+    if (!(e.target as HTMLElement).closest?.(".cm-editor")) {
+      e.preventDefault();
+      toggleSidebar();
+    }
   } else if (e.ctrlKey && !e.shiftKey && e.key === "f") {
     e.preventDefault();
     searchStore.open();
