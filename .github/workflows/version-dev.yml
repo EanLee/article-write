@@ -1,0 +1,90 @@
+name: Dev Version
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: 更新開發版本號
+    runs-on: ubuntu-latest
+    # 避免 bot commit 觸發無限迴圈
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'github-actions[bot]'"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 計算開發版本號
+        id: calc
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+
+          # 以最近的 release tag 為基準（格式 vX.Y.Z）
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$LAST_TAG" ]; then
+            BASE="${LAST_TAG#v}"
+            COMMITS=$(git log --format="%s" "${LAST_TAG}..HEAD")
+          else
+            # 無 tag 時從 package.json 讀 base（去掉既有 sha 尾綴）
+            BASE=$(node -p "require('./package.json').version" | sed 's/-[a-f0-9]*$//')
+            COMMITS=$(git log --format="%s" 2>/dev/null | head -100)
+          fi
+
+          # 依 Conventional Commits 決定 bump type
+          # feat!: / BREAKING CHANGE → major
+          # feat: → minor
+          # 其他 → patch
+          BUMP=patch
+          if echo "$COMMITS" | grep -qE '^[a-z]+(\(.+\))?!:|BREAKING[ -]CHANGE'; then
+            BUMP=major
+          elif echo "$COMMITS" | grep -qE '^feat(\(.+\))?:'; then
+            BUMP=minor
+          fi
+
+          # Bump semver（去掉既有 pre-release 尾綴後計算）
+          CLEAN_BASE=$(echo "$BASE" | sed 's/-[a-f0-9]*$//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_BASE"
+          case $BUMP in
+            major) VERSION="$((MAJOR+1)).0.0-${SHA}" ;;
+            minor) VERSION="${MAJOR}.$((MINOR+1)).0-${SHA}" ;;
+            patch) VERSION="${MAJOR}.${MINOR}.$((PATCH+1))-${SHA}" ;;
+          esac
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "bump=${BUMP}" >> $GITHUB_OUTPUT
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: 更新 package.json 版號
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '${{ steps.calc.outputs.version }}';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          if git diff --staged --quiet; then
+            echo "版號未變更，跳過 commit"
+          else
+            git commit -m "chore(版本): 更新開發版本至 ${{ steps.calc.outputs.version }} [skip ci]"
+            git push
+          fi
