@@ -394,6 +394,16 @@ const editorRef = computed(() => {
     contains(node: Node | null) {
       return view.dom.contains(node)
     },
+    // 原子性範圍替換：游標位置由 CM 自動調整，避免 setTimeout 競態
+    replaceRange(from: number, to: number, insert: string) {
+      const cursorPos = view.state.selection.main.from
+      const delta = insert.length - (to - from)
+      const newCursor = cursorPos > to ? cursorPos + delta : cursorPos > from ? from + insert.length : cursorPos
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: newCursor },
+      })
+    },
   }
 })
 

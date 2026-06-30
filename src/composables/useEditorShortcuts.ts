@@ -18,6 +18,35 @@ export function useEditorShortcuts(
   options: EditorShortcutsOptions = {}
 ) {
   /**
+   * 切換當前行的前綴（用於標題 toggle 等行首操作）
+   * 優先使用 replaceRange 原子性操作（CodeMirror），避免 async 競態
+   */
+  function toggleLinePrefix(prefix: string) {
+    const textarea = editorRef.value as (typeof editorRef.value & { replaceRange?: (from: number, to: number, insert: string) => void }) | null
+    if (!textarea) { return }
+
+    const text = textarea.value
+    const pos = textarea.selectionStart
+    const lineStart = text.lastIndexOf("\n", pos - 1) + 1
+
+    if (text.startsWith(prefix, lineStart)) {
+      if (textarea.replaceRange) {
+        textarea.replaceRange(lineStart, lineStart + prefix.length, "")
+      } else {
+        contentRef.value = text.slice(0, lineStart) + text.slice(lineStart + prefix.length)
+        setTimeout(() => { textarea.setSelectionRange(Math.max(lineStart, pos - prefix.length), Math.max(lineStart, pos - prefix.length)) }, 0)
+      }
+    } else {
+      if (textarea.replaceRange) {
+        textarea.replaceRange(lineStart, lineStart, prefix)
+      } else {
+        contentRef.value = text.slice(0, lineStart) + prefix + text.slice(lineStart)
+        setTimeout(() => { textarea.setSelectionRange(pos + prefix.length, pos + prefix.length) }, 0)
+      }
+    }
+  }
+
+  /**
    * 插入 Markdown 語法
    */
   function insertMarkdownSyntax(before: string, after: string, placeholder: string) {
@@ -41,6 +70,28 @@ export function useEditorShortcuts(
     setTimeout(() => {
       textarea.setSelectionRange(newCursorStart, newCursorEnd)
       textarea.focus()
+    }, 0)
+  }
+
+  /**
+   * 插入腳註引用（Ctrl+Shift+F）
+   */
+  function insertFootnote() {
+    const textarea = editorRef.value
+    if (!textarea) { return }
+
+    const text = textarea.value
+    const pos = textarea.selectionStart
+    const existingRefs = text.match(/\[\^\d+\]/g) || []
+    const nextNum = existingRefs.length + 1
+    const ref = `[^${nextNum}]`
+
+    const withRef = text.slice(0, pos) + ref + text.slice(pos)
+    const trimmed = withRef.trimEnd()
+    contentRef.value = trimmed + `\n\n[^${nextNum}]: 腳註內容`
+
+    setTimeout(() => {
+      textarea.setSelectionRange(pos + ref.length, pos + ref.length)
     }, 0)
   }
 
@@ -69,6 +120,11 @@ export function useEditorShortcuts(
         options.onRedo?.()
         return true
       }
+      if (event.shiftKey && event.key === "F") {
+        event.preventDefault()
+        insertFootnote()
+        return true
+      }
       
       // 處理一般 Ctrl 鍵
       switch (event.key) {
@@ -87,6 +143,10 @@ export function useEditorShortcuts(
         case "h": // Ctrl+H: 替換
           event.preventDefault()
           options.onReplace?.()
+          return true
+        case "2":
+          event.preventDefault()
+          toggleLinePrefix("## ")
           return true
         case "b":
           event.preventDefault()

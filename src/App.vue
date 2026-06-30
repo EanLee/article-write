@@ -51,6 +51,9 @@
     <!-- Settings Modal -->
     <SettingsPanel v-model="showSettings" />
 
+    <!-- Global Search Panel -->
+    <SearchPanel />
+
     <!-- Toast Notifications -->
     <ToastContainer />
   </div>
@@ -61,6 +64,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
+import { useSearchStore } from "@/stores/search";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "@lucide/vue";
@@ -69,11 +73,13 @@ import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
+import SearchPanel from "@/components/SearchPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
+const searchStore = useSearchStore();
 const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
@@ -88,6 +94,9 @@ function handleGlobalKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === "b") {
     e.preventDefault();
     toggleSidebar();
+  } else if (e.ctrlKey && e.key === "f") {
+    e.preventDefault();
+    searchStore.open();
   }
 }
 
