@@ -34,35 +34,35 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { notificationService, type Notification, type NotificationType } from '@/services/NotificationService'
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-vue-next'
+import { computed } from "vue"
+import { notificationService, type Notification, type NotificationType } from "@/services/NotificationService"
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from "@lucide/vue"
 
 const notifications = computed(() => notificationService.notifications.value)
 
 function alertClass(type: NotificationType): string {
   switch (type) {
-    case 'success':
-      return 'alert-success'
-    case 'error':
-      return 'alert-error'
-    case 'warning':
-      return 'alert-warning'
-    case 'info':
+    case "success":
+      return "alert-success"
+    case "error":
+      return "alert-error"
+    case "warning":
+      return "alert-warning"
+    case "info":
     default:
-      return 'alert-info'
+      return "alert-info"
   }
 }
 
 function getIcon(type: NotificationType) {
   switch (type) {
-    case 'success':
+    case "success":
       return CheckCircle
-    case 'error':
+    case "error":
       return XCircle
-    case 'warning':
+    case "warning":
       return AlertTriangle
-    case 'info':
+    case "info":
     default:
       return Info
   }
@@ -91,15 +91,18 @@ function handleAction(notification: Notification) {
   pointer-events: auto;
 }
 
-/* Transition animations */
+/* Transition animations（以下三個類別由 Vue <transition-group name="toast"> 動態掛載）*/
+/* noinspection CssUnusedSymbol */
 .toast-enter-active {
   animation: toast-in 0.3s ease-out;
 }
 
+/* noinspection CssUnusedSymbol */
 .toast-leave-active {
   animation: toast-out 0.3s ease-in;
 }
 
+/* noinspection CssUnusedSymbol */
 .toast-move {
   transition: transform 0.3s ease;
 }

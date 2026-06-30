@@ -1,8 +1,9 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { ServerStatus } from '@/types'
+import { defineStore } from "pinia"
+import { ref } from "vue"
+import type { ServerStatus } from "@/types"
+import { logger } from "@/utils/logger"
 
-export const useServerStore = defineStore('server', () => {
+export const useServerStore = defineStore("server", () => {
   // State
   const status = ref<ServerStatus>({
     running: false,
@@ -16,10 +17,10 @@ export const useServerStore = defineStore('server', () => {
   async function startServer(projectPath: string) {
     loading.value = true
     try {
-      await window.electronAPI.startDevServer(projectPath)
+      await globalThis.electronAPI.startDevServer(projectPath)
       await updateStatus()
     } catch (error) {
-      console.error('Failed to start server:', error)
+      logger.error("Failed to start server:", error)
       throw error
     } finally {
       loading.value = false
@@ -29,14 +30,14 @@ export const useServerStore = defineStore('server', () => {
   async function stopServer() {
     loading.value = true
     try {
-      await window.electronAPI.stopDevServer()
+      await globalThis.electronAPI.stopDevServer()
       status.value = {
         running: false,
         url: undefined,
         logs: []
       }
     } catch (error) {
-      console.error('Failed to stop server:', error)
+      logger.error("Failed to stop server:", error)
       throw error
     } finally {
       loading.value = false
@@ -45,14 +46,14 @@ export const useServerStore = defineStore('server', () => {
 
   async function updateStatus() {
     try {
-      const serverStatus = await window.electronAPI.getServerStatus()
+      const serverStatus = await globalThis.electronAPI.getServerStatus()
       status.value = {
         ...status.value,
         running: serverStatus.running,
         url: serverStatus.url
       }
     } catch (error) {
-      console.error('Failed to get server status:', error)
+      logger.error("Failed to get server status:", error)
     }
   }
 

@@ -14,17 +14,44 @@
  */
 
 import type { Article, Frontmatter } from "@/types";
-import { ArticleStatus, ArticleCategory } from "@/types";
+import { ArticleStatus } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { MarkdownService } from "./MarkdownService";
 import { backupService as defaultBackupService } from "./BackupService";
 import type { BackupService } from "./BackupService";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { logger } from "@/utils/logger";
+
+export interface SaveConflictDetails {
+  currentFileContent?: string;
+  fileModifiedTime?: Date;
+}
+
+export interface SaveResult {
+  success: boolean;
+  conflict?: boolean;
+  conflictDetails?: SaveConflictDetails;
+  error?: Error;
+}
 
 export class ArticleService {
-  private fileSystem: IFileSystem;
-  private markdownService: MarkdownService;
-  private backupService: BackupService;
+  private readonly fileSystem: IFileSystem;
+  private readonly markdownService: MarkdownService;
+  private readonly backupService: BackupService;
+
+  /**
+   * per-file 儲存佇列（topic-020）
+   * 同一檔案的儲存必須序列化：衝突檢查與實際寫入之間有備份等耗時步驟，
+   * 並行儲存會交錯導致先發起的舊內容晚寫入、覆蓋後發起的新內容（TOCTOU）。
+   */
+  private readonly saveQueues: Map<string, Promise<unknown>> = new Map();
+
+  /**
+   * 各檔案目前的磁碟內容基準（topic-020 衝突偵測）
+   * 由 loadArticle 讀取時、performSave 寫入後更新；存檔前比對磁碟現況的
+   * hash 與此基準的 hash，不同即代表檔案在外部被修改過。
+   */
+  private readonly lastWrittenContent: Map<string, string> = new Map();
 
   /**
    * 建構子 - 使用依賴注入
@@ -68,22 +95,54 @@ export class ArticleService {
       skipConflictCheck?: boolean;
       skipBackup?: boolean;
     } = {},
-  ): Promise<{ success: boolean; conflict?: boolean; error?: Error }> {
+  ): Promise<SaveResult> {
+    // 同一檔案的儲存排入佇列依序執行；前一個儲存失敗不阻擋下一個
+    const previous = this.saveQueues.get(article.filePath) ?? Promise.resolve();
+    const current = previous.then(() => this.performSave(article, options));
+    const tail = current.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.saveQueues.set(article.filePath, tail);
     try {
-      // 1. 衝突檢測（除非跳過）
+      return await current;
+    } finally {
+      // 自己仍是佇列尾端時清除，避免 Map 無限增長
+      if (this.saveQueues.get(article.filePath) === tail) {
+        this.saveQueues.delete(article.filePath);
+      }
+    }
+  }
+
+  private async performSave(
+    article: Article,
+    options: {
+      skipConflictCheck?: boolean;
+      skipBackup?: boolean;
+    },
+  ): Promise<SaveResult> {
+    try {
+      // 1. 衝突檢測（除非跳過）：比對磁碟現況 hash 與基準 hash
       if (!options.skipConflictCheck) {
-        const conflictResult = await this.backupService.detectConflict(article);
+        const conflictResult = await this.backupService.detectConflict(
+          article.filePath,
+          this.lastWrittenContent.get(article.filePath),
+        );
         if (conflictResult.hasConflict) {
           return {
             success: false,
             conflict: true,
+            conflictDetails: {
+              currentFileContent: conflictResult.currentFileContent,
+              fileModifiedTime: conflictResult.fileModifiedTime,
+            },
           };
         }
       }
 
       // 2. 建立備份（除非跳過）
       if (!options.skipBackup) {
-        await this.backupService.createBackup(article);
+        this.backupService.createBackup(article);
       }
 
       // 3. 組合 markdown 內容
@@ -91,10 +150,11 @@ export class ArticleService {
 
       // 4. 寫入檔案（透過抽象介面）
       await this.fileSystem.writeFile(article.filePath, markdownContent);
+      this.lastWrittenContent.set(article.filePath, markdownContent);
 
       return { success: true };
     } catch (error) {
-      console.error("[ArticleService] Failed to save article:", error);
+      logger.error("[ArticleService] Failed to save article:", error);
       return {
         success: false,
         error: error instanceof Error ? error : new Error("Unknown error"),
@@ -169,56 +229,19 @@ export class ArticleService {
    * @returns 載入的所有文章
    */
   async loadAllArticles(vaultPath: string): Promise<Article[]> {
-    // 收集所有載入任務，稍後並行執行
     const loadTasks: Promise<Article | null>[] = [];
 
     try {
-      // 掃描所有頂層資料夾（支援新結構 vaultPath/Category/*.md
-      // 以及舊結構 vaultPath/TopDir/Category/*.md，如 Drafts/Software/*.md）
       const topEntries = await this.fileSystem.readDirectory(vaultPath);
-
       for (const topEntry of topEntries) {
         const topPath = `${vaultPath}/${topEntry}`;
         const topStats = await this.fileSystem.getFileStats(topPath);
-        if (!topStats?.isDirectory) { continue; }
-
-        // 先嘗試直接讀取此資料夾下的 .md 檔（新結構：vaultPath/Category/*.md）
-        const topFiles = await this.fileSystem.readDirectory(topPath);
-        const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
-
-        if (directMdFiles.length > 0) {
-          // 有 .md 檔 → 此資料夾本身是 Category 資料夾
-          for (const file of directMdFiles) {
-            const filePath = `${topPath}/${file}`;
-            const loadTask = this.loadArticle(filePath, topEntry as ArticleCategory).catch((err) => {
-              console.warn(`Failed to load article ${filePath}:`, err);
-              return null;
-            });
-            loadTasks.push(loadTask);
-          }
-        } else {
-          // 無 .md 檔 → 可能是舊結構的中間層（如 Drafts/、Publish/），再往下掃一層
-          for (const subEntry of topFiles) {
-            const subPath = `${topPath}/${subEntry}`;
-            const subStats = await this.fileSystem.getFileStats(subPath);
-            if (!subStats?.isDirectory) { continue; }
-
-            const subFiles = await this.fileSystem.readDirectory(subPath);
-            const subMdFiles = subFiles.filter((f) => f.endsWith(".md"));
-
-            for (const file of subMdFiles) {
-              const filePath = `${subPath}/${file}`;
-              const loadTask = this.loadArticle(filePath, subEntry as ArticleCategory).catch((err) => {
-                console.warn(`Failed to load article ${filePath}:`, err);
-                return null;
-              });
-              loadTasks.push(loadTask);
-            }
-          }
-        }
+        if (!topStats?.isDirectory) {continue;}
+        const tasks = await this.scanTopDirForArticles(topPath, topEntry);
+        loadTasks.push(...tasks);
       }
     } catch (err) {
-      console.warn(`Failed to scan vault ${vaultPath}:`, err);
+      logger.warn(`Failed to scan vault ${vaultPath}:`, err);
     }
 
     // 並行執行所有載入任務（限制並發數避免過載）
@@ -226,6 +249,34 @@ export class ArticleService {
 
     // 過濾掉載入失敗的文章 (null 值)
     return loadedArticles.filter((article): article is Article => article !== null);
+  }
+
+  private makeLoadTask(filePath: string, category: string): Promise<Article | null> {
+    return this.loadArticle(filePath, category).catch((err) => {
+      logger.warn(`Failed to load article ${filePath}:`, err);
+      return null;
+    });
+  }
+
+  private async scanTopDirForArticles(topPath: string, topEntry: string): Promise<Promise<Article | null>[]> {
+    const topFiles = await this.fileSystem.readDirectory(topPath);
+    const directMdFiles = topFiles.filter((f) => f.endsWith(".md"));
+
+    if (directMdFiles.length > 0) {
+      return directMdFiles.map((file) => this.makeLoadTask(`${topPath}/${file}`, topEntry));
+    }
+
+    const tasks: Promise<Article | null>[] = [];
+    for (const subEntry of topFiles) {
+      const subPath = `${topPath}/${subEntry}`;
+      const subStats = await this.fileSystem.getFileStats(subPath);
+      if (!subStats?.isDirectory) {continue;}
+      const subMdFiles = (await this.fileSystem.readDirectory(subPath)).filter((f) => f.endsWith(".md"));
+      for (const file of subMdFiles) {
+        tasks.push(this.makeLoadTask(`${subPath}/${file}`, subEntry));
+      }
+    }
+    return tasks;
   }
 
   /**
@@ -256,10 +307,13 @@ export class ArticleService {
    * @param categoryFolder - 分類資料夾名稱
    * @returns 載入的文章
    */
-  async loadArticle(filePath: string, categoryFolder: ArticleCategory): Promise<Article> {
+  async loadArticle(filePath: string, categoryFolder: string): Promise<Article> {
     // 讀取檔案內容
     const content = await this.fileSystem.readFile(filePath);
     const { frontmatter, content: articleContent } = this.markdownService.parseMarkdown(content);
+
+    // 記錄目前磁碟內容作為衝突偵測的基準（topic-020）
+    this.lastWrittenContent.set(filePath, content);
 
     // 取得檔案的最後修改時間
     const fileStats = await this.fileSystem.getFileStats(filePath);
@@ -267,32 +321,23 @@ export class ArticleService {
 
     // 從 frontmatter 讀取 status，未設定預設為 Draft
     const status: ArticleStatus =
-      frontmatter.status && Object.values(ArticleStatus).includes(frontmatter.status as ArticleStatus)
-        ? (frontmatter.status as ArticleStatus)
+      frontmatter.status && Object.values(ArticleStatus).includes(frontmatter.status)
+        ? frontmatter.status
         : ArticleStatus.Draft;
 
     // 決定文章分類：優先從 frontmatter.categories 取得，其次使用資料夾名稱
-    let articleCategory: ArticleCategory;
+    let articleCategory: string;
     if (frontmatter.categories && frontmatter.categories.length > 0) {
-      const firstCategory = frontmatter.categories[0];
-      if (Object.values(ArticleCategory).includes(firstCategory as ArticleCategory)) {
-        articleCategory = firstCategory as ArticleCategory;
-      } else {
-        articleCategory = (
-          Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
-        ) as ArticleCategory;
-      }
+      articleCategory = frontmatter.categories[0];
     } else {
-      articleCategory = (
-        Object.values(ArticleCategory).includes(categoryFolder as ArticleCategory) ? categoryFolder : ArticleCategory.Software
-      ) as ArticleCategory;
+      articleCategory = categoryFolder || "";
     }
 
     // 從檔案路徑取得檔案名稱（不含副檔名）
     const fileName = filePath.split("/").pop()?.replace(".md", "") || "untitled";
 
     const article: Article = {
-      id: this.generateId(),
+      id: this.generateIdFromPath(filePath),
       title: frontmatter.title || fileName,
       slug: frontmatter.slug || fileName,
       filePath,
@@ -313,7 +358,7 @@ export class ArticleService {
    */
   async deleteArticle(article: Article): Promise<void> {
     // 刪除前先備份
-    await this.backupService.createBackup(article);
+    this.backupService.createBackup(article);
 
     // 刪除檔案
     await this.fileSystem.deleteFile(article.filePath);
@@ -337,10 +382,27 @@ export class ArticleService {
   }
 
   /**
-   * 產生唯一 ID
+   * 從檔案路徑產生唯一且穩定的 ID
+   *
+   * 使用路徑的 base64 hash 而非 Date.now()+Math.random()，確保同一路徑
+   * 每次載入都產生相同 ID，避免 Vue v-for :key 失效造成全量 DOM 重建。
+   *
+   * @param filePath - 文章檔案路徑
+   * @returns 穩定的唯一識別碼（16 字元英數字）
    */
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  generateIdFromPath(filePath: string): string {
+    const normalizedPath = filePath.replaceAll("\\", "/").toLowerCase();
+    // FNV-1a hash (forward + backward traversal) — 純 JS，同步，不依賴 Node.js Buffer 或 WebCrypto
+    // 雙向遍歷確保整條路徑的熵都被納入，避免相同前綴目錄下的路徑碰撞
+    let h1 = 2166136261; // FNV-1a offset basis
+    let h2 = 2166136261;
+    for (let i = 0; i < normalizedPath.length; i++) {
+      h1 ^= normalizedPath.codePointAt(i) ?? 0;
+      h1 = Math.imul(h1, 16777619) >>> 0;
+      h2 ^= normalizedPath.codePointAt(normalizedPath.length - 1 - i) ?? 0;
+      h2 = Math.imul(h2, 16777619) >>> 0;
+    }
+    return h1.toString(16).padStart(8, "0") + h2.toString(16).padStart(8, "0");
   }
 
   /**
@@ -359,10 +421,10 @@ export class ArticleService {
     return title
       .trim() // 先 trim 前後空格
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, ""); // 移除前後的 -
+      .replaceAll(/[^a-z0-9\s-]/g, "")
+      .replaceAll(/\s+/g, "-")
+      .replaceAll(/-+/g, "-")
+      .replace(/^-+|-+$/g, ""); // 移除前後的 - (交替模式，保留 replace)
   }
 
   /**
@@ -394,15 +456,36 @@ export class ArticleService {
       errors,
     };
   }
+
+  /**
+   * 確保目錄存在（建立必要的父目錄）
+   * SOLID6-10: 讓 store 透過服務層操作目錄，而非直接呼叫 globalThis.electronAPI
+   * @param directoryPath - 目錄路徑
+   */
+  async ensureDirectory(directoryPath: string): Promise<void> {
+    await this.fileSystem.createDirectory(directoryPath);
+  }
+
+  /**
+   * 觸發後台搜尋索引重建（非阻塞式，失敗不影響主流程）
+   * SOLID6-10: 封裝 searchBuildIndex IPC 呼叫，避免 store 直接依賴 globalThis.electronAPI
+   * @param vaultPath - Vault 根路徑
+   */
+  triggerSearchIndexBuild(vaultPath: string): void {
+    if (typeof globalThis === "undefined" || !globalThis.electronAPI) {
+      return;
+    }
+    globalThis.electronAPI.searchBuildIndex?.(vaultPath)?.catch((err: unknown) => {
+      logger.error("[ArticleService] 搜尋索引建立失敗:", err);
+    });
+  }
 }
 
 // 單例模式
 let articleServiceInstance: ArticleService | null = null;
 
 export function getArticleService(): ArticleService {
-  if (!articleServiceInstance) {
-    articleServiceInstance = new ArticleService();
-  }
+  articleServiceInstance ??= new ArticleService();
   return articleServiceInstance;
 }
 

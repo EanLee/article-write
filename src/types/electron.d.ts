@@ -3,7 +3,7 @@
  */
 export interface ServerLogData {
   log: string
-  type: 'stdout' | 'stderr'
+  type: "stdout" | "stderr"
   timestamp: string
 }
 
@@ -11,7 +11,7 @@ export interface ServerLogData {
  * 檔案變更事件資料
  */
 export interface FileChangeData {
-  event: 'add' | 'change' | 'unlink'
+  event: "add" | "change" | "unlink"
   path: string
 }
 
@@ -75,4 +75,6 @@ declare global {
   interface Window {
     electronAPI: ExtendedElectronAPI
   }
+   
+  var electronAPI: ExtendedElectronAPI
 }

@@ -3,7 +3,7 @@
  * 在開發環境下輸出 debug/info 日誌，在生產環境只輸出 warn/error
  */
 
-const isDev = import.meta.env.DEV;
+const isDev = process.env.NODE_ENV !== "production";
 
 export const logger = {
   /**

@@ -1,3 +1,4 @@
+import { logger } from "@/utils/logger"
 import * as chokidar from "chokidar";
 import type { Article, FileSystemItem } from "@/types";
 import { ArticleStatus, ArticleCategory } from "@/types";
@@ -10,10 +11,10 @@ import { electronFileSystem } from "./ElectronFileSystem";
  * 負責掃描 Markdown 檔案、解析文章內容，以及監控檔案系統變更
  */
 export class FileScannerService {
-  private markdownService: MarkdownService;
-  private fileSystem: IFileSystem;
-  private watchers: Map<string, chokidar.FSWatcher> = new Map();
-  private changeCallbacks: Map<string, (filePath: string, event: "add" | "change" | "unlink") => void> = new Map();
+  private readonly markdownService: MarkdownService;
+  private readonly fileSystem: IFileSystem;
+  private readonly watchers: Map<string, chokidar.FSWatcher> = new Map();
+  private readonly changeCallbacks: Map<string, (filePath: string, event: "add" | "change" | "unlink") => void> = new Map();
 
   /**
    * 建構子 - 使用依賴注入
@@ -43,14 +44,14 @@ export class FileScannerService {
             articles.push(article);
           }
         } catch (error) {
-          console.error(`Failed to parse file ${filePath}:`, error);
+          logger.error(`Failed to parse file ${filePath}:`, error);
           // Continue processing other files even if one fails
         }
       }
 
       return articles;
     } catch (error) {
-      console.error(`Failed to scan directory ${directoryPath}:`, error);
+      logger.error(`Failed to scan directory ${directoryPath}:`, error);
       return [];
     }
   }
@@ -72,7 +73,7 @@ export class FileScannerService {
 
       // Log parsing errors but continue processing
       if (parsed.errors.length > 0) {
-        console.warn(`Frontmatter parsing errors in ${filePath}:`, parsed.errors);
+        logger.warn(`Frontmatter parsing errors in ${filePath}:`, parsed.errors);
       }
 
       const article: Article = {
@@ -86,7 +87,7 @@ export class FileScannerService {
         frontmatter: {
           title: parsed.frontmatter.title || fileName,
           description: parsed.frontmatter.description || "",
-          date: parsed.frontmatter.date || new Date().toISOString().split("T")[0],
+          pubDate: parsed.frontmatter.pubDate || new Date().toISOString().split("T")[0],
           lastmod: parsed.frontmatter.lastmod,
           tags: parsed.frontmatter.tags || [],
           categories: parsed.frontmatter.categories || [category],
@@ -98,7 +99,7 @@ export class FileScannerService {
 
       return article;
     } catch (error) {
-      console.error(`Failed to parse markdown file ${filePath}:`, error);
+      logger.error(`Failed to parse markdown file ${filePath}:`, error);
       return null;
     }
   }
@@ -127,7 +128,7 @@ export class FileScannerService {
         }
       }
     } catch (error) {
-      console.error(`Failed to read directory ${directoryPath}:`, error);
+      logger.error(`Failed to read directory ${directoryPath}:`, error);
     }
 
     return files;
@@ -139,7 +140,7 @@ export class FileScannerService {
    * @returns {'Software' | 'growth' | 'management'} 文章分類
    */
   private extractCategoryFromPath(filePath: string): ArticleCategory {
-    const normalizedPath = filePath.replace(/\\/g, "/");
+    const normalizedPath = filePath.replaceAll("\\", "/");
 
     if (normalizedPath.includes("/Software/")) {
       return ArticleCategory.Software;
@@ -164,7 +165,7 @@ export class FileScannerService {
     // Use file path hash as ID for consistency
     return Buffer.from(filePath)
       .toString("base64")
-      .replace(/[^a-zA-Z0-9]/g, "")
+      .replaceAll(/[^a-zA-Z0-9]/g, "")
       .substring(0, 16);
   }
 
@@ -176,9 +177,9 @@ export class FileScannerService {
   private generateSlug(title: string): string {
     return title
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
+      .replaceAll(/[^a-z0-9\s-]/g, "")
+      .replaceAll(/\s+/g, "-")
+      .replaceAll(/-+/g, "-")
       .trim();
   }
 
@@ -201,7 +202,7 @@ export class FileScannerService {
       .on("add", (filePath) => callback(filePath, "add"))
       .on("change", (filePath) => callback(filePath, "change"))
       .on("unlink", (filePath) => callback(filePath, "unlink"))
-      .on("error", (error) => console.error("File watcher error:", error));
+      .on("error", (error) => logger.error("File watcher error:", error));
 
     this.watchers.set(directoryPath, watcher);
     this.changeCallbacks.set(directoryPath, callback);
@@ -262,7 +263,7 @@ export class FileScannerService {
         return a.name.localeCompare(b.name);
       });
     } catch (error) {
-      console.error(`Failed to get directory structure for ${directoryPath}:`, error);
+      logger.error(`Failed to get directory structure for ${directoryPath}:`, error);
       return [];
     }
   }
@@ -273,7 +274,7 @@ export class FileScannerService {
    * @returns {string} 連接後的路徑
    */
   private joinPath(...paths: string[]): string {
-    return paths.join("/").replace(/\/+/g, "/").replace(/\\/g, "/");
+    return paths.join("/").replaceAll(/\/+/g, "/").replaceAll("\\", "/");
   }
 
   /**

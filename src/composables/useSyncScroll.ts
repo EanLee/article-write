@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref, type Ref } from "vue"
 
 /**
  * 編輯器與預覽面板同步滾動 Composable
@@ -6,8 +6,8 @@ import { ref, type Ref } from 'vue'
  * 根據編輯器的滾動位置，同步預覽面板的滾動
  */
 export function useSyncScroll(
-  editorRef: Ref<HTMLTextAreaElement | undefined>,
-  previewRef: Ref<HTMLElement | undefined>
+  editorRef: Ref<HTMLElement | null | undefined>,
+  previewRef: Ref<HTMLElement | null | undefined>
 ) {
   const syncEnabled = ref(true)
   const isScrollingFromEditor = ref(false)

@@ -1,0 +1,79 @@
+---
+title: "WriteFlow 技術團隊"
+domain: conventions
+type: guide
+status: approved
+owner: tech-team
+updated: 2026-06-13
+source_of_truth: false
+---
+
+# WriteFlow 技術團隊
+
+> **組建日期**: 2026-02-14
+> **組建原因**: 圓桌會議 #006 決策後，需要專責技術團隊推進實作
+> **負責人**: Sam（Tech Lead）
+
+---
+
+## 團隊成員
+
+| 成員 | 角色 | 專責範圍 |
+|------|------|---------|
+| Sam | Tech Lead | 架構決策、技術審查、跨模組整合 |
+| Wei | Frontend Engineer | Vue 組件、UI 互動、Renderer 層 |
+| Lin | Services Engineer | Main Process、Service 層、IPC 通訊 |
+| Alex | UI/UX Designer | 使用者體驗、視覺設計規範、元件設計系統 |
+
+---
+
+## 工作原則
+
+1. **以圓桌決策為依據**：技術實作服務於圓桌會議的產品決策，不自行擴大範圍
+2. **先討論後動手**：影響架構的改動，先在技術討論中對齊，再開始實作
+3. **文件同步**：架構文件與程式碼同步更新，不允許文件落後於程式碼
+4. **一次做對**：寧可慢一點把邊界討論清楚，不要快速實作後再回頭重構
+
+## 會議討論方式（2026-06-13 起，與圓桌規則 v3.0 一致）
+
+技術會議採**觀點驅動交互式討論**，不採固定輪次：
+
+- 任何成員提出觀點後，其他成員針對該觀點附議／建議／反對（附理由）／不回應
+- 討論沿觀點串延伸至自然收斂，能收斂的記入共識，**不需表決**
+- 無法收斂的分歧 → Sam（Tech Lead）裁決，或升級圓桌（涉及產品方向時）
+- 全程對話體即時記錄至對應 `T-XXX` 文件，含立場轉折過程
+- 詳細規則見 [roundtable-rules.md](./roundtable-rules.md)「討論進行方式」
+
+---
+
+## 目前任務來源
+
+[圓桌會議 #006 行動項目](../../engineering/discussions/topic-006-2026-02-14-publish-mechanism/decision.md)
+
+---
+
+## 討論記錄索引
+
+| 編號 | 主題 | 日期 | Domain | 狀態 |
+|------|------|------|--------|------|
+| T-001 | 發布機制重構技術規劃 | 2026-02-14 | engineering | ✅ 完成 |
+| T-002 | 技術評估：自動儲存機制（Hash vs Dirty Flag） | 2026-02-14 | engineering | ✅ 完成 |
+| T-003 | GitHub Actions CI/CD 建置 | 2026-02-15 | operations | ✅ 完成 |
+| T-004 | Changelog 自動化方案評估（release-please） | 2026-02-15 | engineering | ✅ 完成 |
+| T-005 | Metadata Cache 設計評估（分類/標籤快取） | 2026-02-15 | engineering | ✅ 完成 |
+| T-006 | Article.category 型別重構（enum → string） | 2026-02-15 | engineering | ✅ 完成 |
+| T-007 | Playwright + Electron E2E 測試環境建置方案評估 | 2026-02-15 | quality | ✅ 完成 |
+| T-008 | Auto-Update 機制實作（electron-updater） | 2026-02-16 | engineering | ✅ 完成 |
+| T-009 | 全文搜尋功能設計 | 2026-02-16 | engineering | ✅ 完成 |
+| T-010 | AI Service 技術架構設計 | 2026-02-16 | engineering | ✅ 完成 |
+| T-011 | Settings Panel UX 評估（scrollbar / AI tab 發現性） | 2026-02-17 | product | ✅ 完成 |
+| T-012 | AI Panel Phase 2/3 + 使用者自訂 Prompt 設計 | 2026-02-17 | engineering | ✅ 完成 |
+| T-013 | Sprint 3 實作優先順序與分工規劃 | 2026-02-27 | delivery | ✅ 完成 |
+| T-015 | AI Service 技術架構設計文件 | 2026-02-27 | engineering | ✅ 完成 |
+| T-016 | Phase 2 三角度分析 Token 消耗評估 | 2026-02-27 | engineering | ✅ 完成 |
+| T-017 | doc-viewer docs-governance 文件分類落差分析與改進建議 | 2026-06-13 | conventions | ✅ 完成（待回報 doc-viewer） |
+| T-018 | 文件治理：戰略面與工程技術面分類規劃 | 2026-06-13 | conventions | ✅ 完成 |
+| T-019 | 文件治理遷移報告：T-018 Phase 2-5 執行結果 | 2026-06-13 | conventions | ✅ 完成 |
+| T-020 | ArticleListTree Reactivity 根因調查（topic-021） | 2026-06-14 | engineering | 🔄 進行中（已排除 4 個假設，待分層 debug log） |
+| UX-001 | 表單設計規範 | 2026-02-15 | product | ✅ 完成 |
+| RETRO-001 | 流程回顧：一個需求變三個 Branch | 2026-02-15 | delivery | ✅ 完成 |

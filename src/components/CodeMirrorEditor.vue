@@ -62,24 +62,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from 'vue'
-import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection } from '@codemirror/view'
-import { EditorState, type Extension } from '@codemirror/state'
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
-import { languages } from '@codemirror/language-data'
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
+import { ref, watch, onMounted, onUnmounted, shallowRef, computed } from "vue"
+import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection } from "@codemirror/view"
+import { EditorState, type Extension } from "@codemirror/state"
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown"
+import { languages } from "@codemirror/language-data"
+import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands"
 import {
   closeBrackets,
   closeBracketsKeymap,
   autocompletion,
   type CompletionContext,
   type Completion,
-} from '@codemirror/autocomplete'
-import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
-import { autoSaveService } from '@/services/AutoSaveService'
-import type { SuggestionItem, SyntaxError } from '@/services/ObsidianSyntaxService'
-import type { ImageValidationWarning } from '@/services/ImageService'
-import EditorStatusBar from './EditorStatusBar.vue'
+} from "@codemirror/autocomplete"
+import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
+import { autoSaveService } from "@/services/AutoSaveService"
+import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
+import type { ImageValidationWarning } from "@/services/ImageService"
+import EditorStatusBar from "./EditorStatusBar.vue"
+
+export interface OutlineHeading {
+  level: number
+  text: string
+  line: number
+}
 
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
@@ -100,16 +106,16 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'insert-markdown': [before: string, after: string, placeholder: string]
-  'insert-table': []
-  'keydown': [event: KeyboardEvent]
-  'cursor-change': []
-  'apply-suggestion': [suggestion: SuggestionItem]
-  'toggle-sync-scroll': []
-  'toggle-line-numbers': []
-  'toggle-word-wrap': []
-  'scroll': []
+  "update:modelValue": [value: string]
+  "insert-markdown": [before: string, after: string, placeholder: string]
+  "insert-table": []
+  "keydown": [event: KeyboardEvent]
+  "cursor-change": []
+  "apply-suggestion": [suggestion: SuggestionItem]
+  "toggle-sync-scroll": []
+  "toggle-line-numbers": []
+  "toggle-word-wrap": []
+  "scroll": []
 }>()
 
 // ─── Refs ────────────────────────────────────────────────────────────────────
@@ -140,21 +146,31 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
 
     // 只在 [[、![[、# 前綴後觸發（與 ObsidianSyntaxService 邏輯一致）
     const isTriggered =
-      /!\[\[[^\]]*?$/.test(beforeCursor) ||
-      /\[\[[^\]]*?$/.test(beforeCursor) ||
-      /#[a-zA-Z0-9\u4e00-\u9fff]*?$/.test(beforeCursor)
+      /!\[\[[^\]]*$/.test(beforeCursor) ||
+      /\[\[[^\]]*$/.test(beforeCursor) ||
+      /#[a-zA-Z0-9\u4e00-\u9fff]*$/.test(beforeCursor)
 
     if (!isTriggered && !ctx.explicit) { return null }
 
     const items = getSuggestions(text, pos)
     if (items.length === 0) { return null }
 
-    const completions: Completion[] = items.map(item => ({
-      label: item.displayText,
-      apply: item.text,
-      detail: item.description,
-      type: item.type === 'wikilink' ? 'keyword' : item.type === 'image' ? 'variable' : 'type',
-    }))
+    const completions: Completion[] = items.map(item => {
+      let completionType: string
+      if (item.type === "wikilink") {
+        completionType = "keyword"
+      } else if (item.type === "image") {
+        completionType = "variable"
+      } else {
+        completionType = "type"
+      }
+      return {
+        label: item.displayText,
+        apply: item.text,
+        detail: item.description,
+        type: completionType,
+      }
+    })
 
     return { from: pos, options: completions, validFor: /^[^\]]*$/ }
   }
@@ -169,10 +185,10 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
 const wrapSelectionExtension = EditorView.domEventHandlers({
   keydown(event, view) {
     const wrapPairs: Record<string, [string, string]> = {
-      '*': ['*', '*'],
-      '_': ['_', '_'],
-      '`': ['`', '`'],
-      '~': ['~', '~'],
+      "*": ["*", "*"],
+      "_": ["_", "_"],
+      "`": ["`", "`"],
+      "~": ["~", "~"],
     }
 
     const pair = wrapPairs[event.key]
@@ -200,16 +216,16 @@ const wrapSelectionExtension = EditorView.domEventHandlers({
  * 此 Extension 偵測輸入第二個 * 時，若前一字元也是 *，則補全為 ****，游標置中
  */
 const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert) => {
-  if (insert !== '*') { return false }
+  if (insert !== "*") { return false }
   const sel = view.state.selection.main
   if (!sel.empty) { return false }
 
   const charBefore = view.state.sliceDoc(sel.from - 1, sel.from)
-  if (charBefore !== '*') { return false }
+  if (charBefore !== "*") { return false }
 
   // 前一字元是 *，補全為 ****，游標在中間（位置 from + 1，即兩個 * 之間）
   view.dispatch({
-    changes: { from: sel.from, to: sel.to, insert: '***' },
+    changes: { from: sel.from, to: sel.to, insert: "***" },
     selection: { anchor: sel.from + 1 },
   })
   return true
@@ -262,7 +278,7 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
   EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       isInternalUpdate = true
-      emit('update:modelValue', update.state.doc.toString())
+      emit("update:modelValue", update.state.doc.toString())
       autoSaveService.markAsModified()
       isInternalUpdate = false
     }
@@ -272,14 +288,14 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
       selStart.value = sel.from
       selEnd.value = sel.to
       // 發出游標變更（供父組件取得游標位置做自動完成）
-      emit('cursor-change')
+      emit("cursor-change")
     }
   }),
 
   // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）
   EditorView.domEventHandlers({
-    keydown: (event) => { emit('keydown', event) },
-    scroll: () => { emit('scroll') },
+    keydown: (event) => { emit("keydown", event) },
+    scroll: () => { emit("scroll") },
   }),
 
   // 自動換行（預設開啟）
@@ -287,20 +303,20 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
 
   // 基本樣式
   EditorView.theme({
-    '&': { height: '100%', fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace" },
-    '.cm-scroller': { overflow: 'auto', lineHeight: '1.6' },
-    '.cm-content': { padding: '1rem', fontSize: '0.875rem' },
-    '.cm-focused': { outline: 'none' },
-    '.cm-gutters': { borderRight: '1px solid oklch(var(--bc) / 0.1)', background: 'oklch(var(--b2))' },
-    '.cm-lineNumbers .cm-gutterElement': {
-      color: 'oklch(var(--bc) / 0.4)',
-      fontSize: '0.875rem',
-      padding: '0 8px',
-      minWidth: '3rem',
-      textAlign: 'right',
+    "&": { height: "100%", fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace" },
+    ".cm-scroller": { overflow: "auto", lineHeight: "1.6" },
+    ".cm-content": { padding: "1rem", fontSize: "0.875rem" },
+    ".cm-focused": { outline: "none" },
+    ".cm-gutters": { borderRight: "1px solid oklch(var(--bc) / 0.1)", background: "oklch(var(--b2))" },
+    ".cm-lineNumbers .cm-gutterElement": {
+      color: "oklch(var(--bc) / 0.4)",
+      fontSize: "0.875rem",
+      padding: "0 8px",
+      minWidth: "3rem",
+      textAlign: "right",
     },
-    '.cm-activeLine': { backgroundColor: 'oklch(var(--p) / 0.05)' },
-    '.cm-activeLineGutter': { backgroundColor: 'oklch(var(--p) / 0.1)', color: 'oklch(var(--p))' },
+    ".cm-activeLine": { backgroundColor: "oklch(var(--p) / 0.05)" },
+    ".cm-activeLineGutter": { backgroundColor: "oklch(var(--p) / 0.1)", color: "oklch(var(--p))" },
   }),
 ]
 
@@ -356,7 +372,7 @@ watch(
 
 function toggleWordWrap() {
   wordWrap.value = !wordWrap.value
-  emit('toggle-word-wrap')
+  emit("toggle-word-wrap")
 }
 
 // ─── 供 MainEditor 使用的公開介面 ─────────────────────────────────────────────
@@ -384,13 +400,31 @@ const editorRef = computed(() => {
     contains(node: Node | null) {
       return view.dom.contains(node)
     },
+    // 原子性範圍替換：游標位置由 CM 自動調整，避免 setTimeout 競態
+    replaceRange(from: number, to: number, insert: string) {
+      const cursorPos = view.state.selection.main.from
+      const delta = insert.length - (to - from)
+      const newCursor = cursorPos > to ? cursorPos + delta : cursorPos > from ? from + insert.length : cursorPos
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: newCursor },
+      })
+    },
   }
 })
+
+function scrollToLine(lineIndex: number) {
+  const view = editorView.value
+  if (!view) {return}
+  const line = view.state.doc.line(Math.min(lineIndex + 1, view.state.doc.lines))
+  view.dispatch({ effects: EditorView.scrollIntoView(line.from, { y: "start" }) })
+}
 
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
+  scrollToLine,
 })
 </script>
 

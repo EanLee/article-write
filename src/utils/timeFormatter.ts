@@ -43,7 +43,7 @@ export interface ETAResult {
 export function formatDuration(seconds: number): string {
   // 處理負數和 0
   if (seconds <= 0) {
-    return '0秒'
+    return "0秒"
   }
 
   // 四捨五入到最接近的秒
@@ -74,7 +74,7 @@ export function formatDuration(seconds: number): string {
     parts.push(`${secs}秒`)
   }
 
-  return parts.join('')
+  return parts.join("")
 }
 
 /**
@@ -107,7 +107,7 @@ export function calculateETA(params: ETAParams): ETAResult | null {
     return {
       remainingSeconds: 0,
       speed: 0,
-      formattedETA: '0秒'
+      formattedETA: "0秒"
     }
   }
 

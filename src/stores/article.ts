@@ -1,14 +1,41 @@
 import { defineStore } from "pinia";
-import { ref, computed, watch } from "vue";
-import type { Article, ArticleFilter } from "@/types";
-import { ArticleStatus, ArticleCategory, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
-import { markdownService } from "@/services/MarkdownService";
+import { ref, watch, nextTick } from "vue";
+import type { Article, SaveState } from "@/types";
+import { ArticleStatus, SaveStatus } from "@/types";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { notify } from "@/services/NotificationService";
 import { useConfigStore } from "./config";
 import { getArticleService } from "@/services/ArticleService";
 import { normalizePath } from "@/utils/path";
+import { isElectronAvailable, assertElectronAvailable } from "@/utils/electron";
 import { fileWatchService } from "@/services/FileWatchService";
+import { VaultDirs } from "@/config/vault";
+import { parseArticlePath } from "@/utils/articlePath";
+import { useFileWatching } from "@/composables/useFileWatching";
+import { useArticleFilter } from "@/composables/useArticleFilter";
+import { logger } from "@/utils/logger";
+
+/**
+ * 儲存衝突詳細資訊（topic-020 Action Item #1）
+ * 偵測到磁碟內容與基準不一致時，由 saveArticle 寫入此狀態，
+ * 交由 SaveConflictDialog 顯示並讓使用者選擇後續處理。
+ */
+export interface SaveConflict {
+  article: Article;
+  articleToSave: Article;
+  currentFileContent?: string;
+  fileModifiedTime?: Date;
+}
+
+/**
+ * 儲存衝突專用錯誤：與一般儲存失敗區分，避免重複跳出「儲存失敗」通知
+ */
+class SaveConflictError extends Error {
+  constructor() {
+    super("File conflict detected");
+    this.name = "SaveConflictError";
+  }
+}
 
 export const useArticleStore = defineStore("article", () => {
   // 使用服務單例
@@ -18,94 +45,38 @@ export const useArticleStore = defineStore("article", () => {
   // State
   const articles = ref<Article[]>([]);
   const currentArticle = ref<Article | null>(null);
-  const filter = ref<ArticleFilter>({
-    status: ArticleFilterStatus.All,
-    category: ArticleFilterCategory.All,
-    tags: [],
-    searchText: "",
-  });
+
+  // 儲存衝突狀態（topic-020 Action Item #1）：非 null 時顯示 SaveConflictDialog
+  const conflictState = ref<SaveConflict | null>(null);
+
+  // 檔案監聽 composable（在 handleFileChangeEvent 定義前用 let 聲明，函式稍後賦值）
+  // SOLID6-01: 過濾與排序關注點提取到 useArticleFilter composable
+  const articleFilter = useArticleFilter(articles);
+  const { filter, filteredArticles, draftArticles, publishedArticles, allTags, updateFilter } = articleFilter;
+
   const loading = ref(false);
 
-  // Getters
-  const filteredArticles = computed(() => {
-    // 單次遍歷，合併所有過濾條件（優化從 O(n×m) 到 O(n)）
-    const statusFilter = filter.value.status;
-    const categoryFilter = filter.value.category;
-    const tagsFilter = filter.value.tags;
-    const searchText = filter.value.searchText?.toLowerCase();
-
-    return articles.value
-      .filter((article) => {
-        // 狀態過濾 - 早期返回
-        if (statusFilter !== ArticleFilterStatus.All && article.status !== (statusFilter as ArticleStatus)) {
-          return false;
-        }
-
-        // 分類過濾 - 早期返回
-        if (categoryFilter !== ArticleFilterCategory.All && article.category !== (categoryFilter as ArticleCategory)) {
-          return false;
-        }
-
-        // 標籤過濾 - 早期返回
-        if (tagsFilter.length > 0) {
-          const hasMatchingTag =
-            article.frontmatter.tags && Array.isArray(article.frontmatter.tags) && tagsFilter.some((tag) => article.frontmatter.tags!.includes(tag));
-          if (!hasMatchingTag) {
-            return false;
-          }
-        }
-
-        // 搜尋文字過濾 - 早期返回優化
-        if (searchText) {
-          const titleMatch = article.title.toLowerCase().includes(searchText);
-          if (titleMatch) {
-            return true;
-          } // 早期返回，避免不必要的內容搜尋
-
-          const contentMatch = (article.content || "").toLowerCase().includes(searchText);
-          if (!contentMatch) {
-            return false;
-          }
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        // 按標題字母順序排序（穩定排序，不會因儲存而跳動）
-        return a.title.localeCompare(b.title, "zh-TW");
-      });
-  });
-
-  const draftArticles = computed(() => articles.value.filter((article) => article.status === "draft"));
-
-  const publishedArticles = computed(() => articles.value.filter((article) => article.status === "published"));
-
-  const allTags = computed(() => {
-    // 使用 flatMap 優化：從三次遍歷減少到一次
-    // 舊方法：forEach → forEach → Array.from = O(n×m + k)
-    // 新方法：flatMap → Set → spread = O(n×m + k) 但常數更小
-    return [
-      ...new Set(articles.value.flatMap((article) => (article.frontmatter.tags && Array.isArray(article.frontmatter.tags) ? article.frontmatter.tags : []))),
-    ].sort();
-  });
-
+  // handleFileChangeEvent 在下方定義，此處預先聲明 fileWatcher
+  // useFileWatching 需要在 handleFileChangeEvent 定義後才初始化
+  // eslint-disable-next-line prefer-const
+  let fileWatcher: ReturnType<typeof useFileWatching>;
   // Actions
   async function loadArticles() {
     loading.value = true;
     try {
       const vaultPath = configStore.config.paths.articlesDir;
       if (!vaultPath) {
-        console.warn("Obsidian vault path not configured");
+        logger.warn("Obsidian vault path not configured");
         articles.value = [];
         loading.value = false;
         return;
       }
 
-      console.log("開始載入文章，Vault 路徑:", vaultPath);
+      logger.debug("開始載入文章，Vault 路徑:", vaultPath);
 
       // Check if we're running in Electron environment
-      if (typeof window === "undefined" || !window.electronAPI) {
-        console.warn("Running in browser mode - using mock articles");
+      if (!isElectronAvailable()) {
+        logger.warn("Running in browser mode - using mock articles");
         articles.value = [];
         loading.value = false;
         return;
@@ -115,12 +86,15 @@ export const useArticleStore = defineStore("article", () => {
       const loadedArticles = await articleService.loadAllArticles(vaultPath);
       articles.value = loadedArticles;
 
-      console.log(`載入完成，共 ${loadedArticles.length} 篇文章`);
+      logger.debug(`載入完成，共 ${loadedArticles.length} 篇文章`);
+
+      // 建立搜尋索引（不影響主流程）
+      articleService.triggerSearchIndexBuild(vaultPath);
 
       // 設置檔案監聽
       await setupFileWatching(vaultPath);
     } catch (error) {
-      console.error("Failed to load articles:", error);
+      logger.error("Failed to load articles:", error);
       // Don't throw error, just log it and continue with empty articles
       articles.value = [];
     } finally {
@@ -129,21 +103,13 @@ export const useArticleStore = defineStore("article", () => {
   }
 
   /**
-   * 設置檔案監聽
+   * 設置檔案監聽（委派 useFileWatching composable 管理生命週期）
    */
   async function setupFileWatching(vaultPath: string) {
     try {
-      // 開始監聽
-      await fileWatchService.startWatching(vaultPath);
-
-      // 訂閱檔案變化事件
-      fileWatchService.subscribe((event) => {
-        handleFileChangeEvent(event);
-      });
-
-      console.log("FileWatchService: 檔案監聽已啟動");
+      await fileWatcher.start(vaultPath);
     } catch (error) {
-      console.error("Failed to setup file watching:", error);
+      logger.error("Failed to setup file watching:", error);
     }
   }
 
@@ -159,13 +125,13 @@ export const useArticleStore = defineStore("article", () => {
       return; // 不是文章檔案，忽略
     }
 
-    console.log(`檔案變化：${type} - ${filePath}`);
+    logger.debug(`檔案變化：${type} - ${filePath}`);
 
     switch (type) {
       case "add":
       case "change":
         // 重新載入該文章
-        await reloadArticleFromDisk(filePath, pathInfo.status, pathInfo.category);
+        await reloadArticleFromDisk(filePath, pathInfo.category);
         break;
 
       case "unlink":
@@ -178,14 +144,18 @@ export const useArticleStore = defineStore("article", () => {
   /**
    * 從磁碟重新載入文章
    */
-  async function reloadArticleFromDisk(filePath: string, status: ArticleStatus, category: ArticleCategory) {
+  async function reloadArticleFromDisk(filePath: string, category: string) {
     try {
-      const article = await articleService.loadArticle(filePath, status, category);
+      const article = await articleService.loadArticle(filePath, category);
 
       const normalizedPath = normalizePath(filePath);
       const existingIndex = articles.value.findIndex((a) => normalizePath(a.filePath) === normalizedPath);
 
-      if (existingIndex !== -1) {
+      if (existingIndex === -1) {
+        // 新增文章
+        articles.value.push(article);
+        notify.info("新增文章", `偵測到新文章：${article.title}`);
+      } else {
         // 更新現有文章，保留原有 id（避免 UI 組件因 id 變動而重新掛載）
         articles.value[existingIndex] = { ...article, id: articles.value[existingIndex].id };
 
@@ -193,13 +163,9 @@ export const useArticleStore = defineStore("article", () => {
           currentArticle.value = article;
           notify.info("檔案已更新", "外部修改已同步");
         }
-      } else {
-        // 新增文章
-        articles.value.push(article);
-        notify.info("新增文章", `偵測到新文章：${article.title}`);
       }
     } catch (error) {
-      console.warn(`Failed to reload article ${filePath}:`, error);
+      logger.warn(`Failed to reload article ${filePath}:`, error);
     }
   }
 
@@ -222,35 +188,12 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-  /**
-   * 解析文章路徑，取得狀態和分類
-   */
-  function parseArticlePath(filePath: string, vaultPath: string): { status: ArticleStatus; category: ArticleCategory } | null {
-    const relativePath = normalizePath(filePath).replace(normalizePath(vaultPath), "").replace(/^\//, "");
+  // 在 handleFileChangeEvent 定義後初始化 fileWatcher（避免前向引用問題）
+  fileWatcher = useFileWatching({ onFileEvent: handleFileChangeEvent });
 
-    const parts = relativePath.split("/");
-    if (parts.length < 3 || !parts[2].endsWith(".md")) {
-      return null;
-    }
-
-    const [statusFolder, category] = parts;
-    const status = statusFolder === "Publish" ? ArticleStatus.Published : ArticleStatus.Draft;
-
-    if (!["Software", "growth", "management"].includes(category)) {
-      return null;
-    }
-
-    return {
-      status,
-      category: category as ArticleCategory,
-    };
-  }
-
-  async function createArticle(title: string, category: ArticleCategory): Promise<Article> {
+  async function createArticle(title: string, category: string): Promise<Article> {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const vaultPath = configStore.config.paths.articlesDir;
       if (!vaultPath) {
@@ -261,14 +204,14 @@ export const useArticleStore = defineStore("article", () => {
       const now = new Date();
 
       // Create directory structure
-      const categoryPath = `${vaultPath}/Drafts/${category}`;
+      const categoryPath = `${vaultPath}/${VaultDirs.DRAFTS}/${category}`;
       const filePath = `${categoryPath}/${slug}.md`;
 
       // Ensure directory exists
-      await window.electronAPI.createDirectory(categoryPath);
+      await articleService.ensureDirectory(categoryPath);
 
       const article: Article = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2), // 內聯生成 ID
+        id: articleService.generateIdFromPath(filePath), // 使用與 loadArticle 一致的路徑導出 ID
         title,
         slug,
         filePath,
@@ -279,6 +222,8 @@ export const useArticleStore = defineStore("article", () => {
         frontmatter: {
           title,
           date: now.toISOString().split("T")[0],
+          pubDate: now.toISOString().split("T")[0],
+          created: now.toISOString().split("T")[0],
           tags: [],
           categories: [category],
         },
@@ -301,7 +246,7 @@ export const useArticleStore = defineStore("article", () => {
       notify.success("建立成功", `已建立「${title}」`);
       return article;
     } catch (error) {
-      console.error("Failed to create article:", error);
+      logger.error("Failed to create article:", error);
       notify.error("建立失敗", error instanceof Error ? error.message : "無法建立文章");
       throw error;
     }
@@ -313,11 +258,12 @@ export const useArticleStore = defineStore("article", () => {
    * ⚠️ 這個函數會執行實際的檔案寫入操作
    * 成功後會自動更新 store 狀態
    */
-  async function saveArticle(article: Article, options?: { preserveLastModified?: boolean }) {
+  async function saveArticle(
+    article: Article,
+    options?: { preserveLastModified?: boolean; skipConflictCheck?: boolean },
+  ) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       // 更新 lastModified timestamp（migration 存檔時不更新，避免排序跳動）
       const articleToSave = {
@@ -329,26 +275,34 @@ export const useArticleStore = defineStore("article", () => {
       fileWatchService.ignoreNextChange(articleToSave.filePath, 5000);
 
       // 使用 ArticleService 儲存（包含備份、衝突檢測、檔案寫入）
-      const result = await articleService.saveArticle(articleToSave);
+      const result = await articleService.saveArticle(articleToSave, {
+        skipConflictCheck: options?.skipConflictCheck,
+      });
 
       if (result.success) {
         // 儲存成功，只更新記憶體中的狀態，不觸發 reload
         updateArticleInMemory(articleToSave);
+        // 同步 AutoSaveService 狀態（topic-020）：
+        // Ctrl+S 等直接呼叫 saveArticle 的路徑不經過 autoSaveService.saveCurrentArticle()，
+        // 若不同步會導致 UI 持續顯示「未儲存」直到下次自動儲存輪詢
+        autoSaveService.notifySaved(articleToSave);
       } else if (result.conflict) {
-        // 檔案衝突
-        notify.warning("檔案衝突", "檔案在外部被修改，建議重新載入", {
-          action: {
-            label: "重新載入",
-            callback: () => reloadArticle(article.id),
-          },
-        });
-        throw new Error("File conflict detected");
+        // 檔案衝突：交由 SaveConflictDialog 顯示，讓使用者選擇重新載入／覆寫／取消
+        conflictState.value = {
+          article,
+          articleToSave,
+          currentFileContent: result.conflictDetails?.currentFileContent,
+          fileModifiedTime: result.conflictDetails?.fileModifiedTime,
+        };
+        throw new SaveConflictError();
       } else if (result.error) {
         throw result.error;
       }
     } catch (error) {
-      console.error("Failed to save article:", error);
-      notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
+      logger.error("Failed to save article:", error);
+      if (!(error instanceof SaveConflictError)) {
+        notify.error("儲存失敗", error instanceof Error ? error.message : "無法儲存文章");
+      }
       throw error;
     }
   }
@@ -363,7 +317,23 @@ export const useArticleStore = defineStore("article", () => {
    * 更新文章在記憶體中的狀態
    * ⚠️ 只更新 Store，不寫入檔案
    */
+  /**
+   * 同步編輯器即時內容到 currentArticle（僅記憶體，topic-020 決議）
+   *
+   * 編輯器每次內容變更時呼叫，確保所有儲存路徑（計時器自動儲存、
+   * 切換文章儲存、手動儲存）取得的都是編輯器當前內容，
+   * 消除「store 舊快照覆寫磁碟」的來源不一致問題。
+   *
+   * 不更新 lastModified（尚未寫盤），不觸發任何儲存。
+   */
+  function updateCurrentArticleContent(content: string) {
+    if (currentArticle.value && currentArticle.value.content !== content) {
+      currentArticle.value.content = content;
+    }
+  }
+
   function updateArticleInMemory(updatedArticle: Article) {
+    // updateFilter 已由 useArticleFilter composable 提供
     const index = articles.value.findIndex((a) => a.id === updatedArticle.id);
     if (index !== -1) {
       // 只更新必要的欄位，減少響應式觸發
@@ -378,13 +348,11 @@ export const useArticleStore = defineStore("article", () => {
 
   async function deleteArticle(id: string) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
-        throw new Error("Article not found");
+        throw new Error("找不到指定文章");
       }
 
       // 使用 ArticleService 刪除文章（包含備份）
@@ -401,7 +369,7 @@ export const useArticleStore = defineStore("article", () => {
 
       notify.success("刪除成功", `已刪除「${article.title}」`);
     } catch (error) {
-      console.error("Failed to delete article:", error);
+      logger.error("Failed to delete article:", error);
       notify.error("刪除失敗", error instanceof Error ? error.message : "無法刪除文章");
       throw error;
     }
@@ -409,18 +377,14 @@ export const useArticleStore = defineStore("article", () => {
 
   async function toggleStatus(id: string) {
     try {
-      if (typeof window === "undefined" || !window.electronAPI) {
-        throw new Error("Electron API not available");
-      }
+      assertElectronAvailable();
 
       const article = articles.value.find((a) => a.id === id);
       if (!article) {
-        throw new Error("Article not found");
+        throw new Error("找不到指定文章");
       }
 
-      const newStatus = article.status === ArticleStatus.Draft
-        ? ArticleStatus.Published
-        : ArticleStatus.Draft;
+      const newStatus = article.status === ArticleStatus.Draft ? ArticleStatus.Published : ArticleStatus.Draft;
 
       const updatedArticle = {
         ...article,
@@ -437,59 +401,79 @@ export const useArticleStore = defineStore("article", () => {
       const statusLabel = newStatus === ArticleStatus.Published ? "已發布" : "草稿";
       notify.success("狀態已更新", `「${article.title}」已標記為${statusLabel}`);
     } catch (error) {
-      console.error("Failed to toggle article status:", error);
+      logger.error("Failed to toggle article status:", error);
       notify.error("更新失敗", error instanceof Error ? error.message : "無法更新文章狀態");
       throw error;
     }
   }
-
 
   /**
    * 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
    * 執行順序：先處理 created（此時 date 尚未移除），再處理 date → pubDate
    */
   function migrateArticleFrontmatter(article: Article): Article {
-    const fm = { ...article.frontmatter }
-    let dirty = false
+    const fm = { ...article.frontmatter };
+    let dirty = false;
 
     // 1. 補上 created（建立時間）
     // 順序必須在 date 移轉前執行，因為要讀取 date 的值
     if (!fm.created) {
-      fm.created = (fm as any).date || new Date().toISOString().split('T')[0]
-      dirty = true
+      fm.created = fm.date || new Date().toISOString().split("T")[0]; // NOSONAR - migration from deprecated field
+      dirty = true;
     }
 
     // 2. 移轉 date → pubDate
-    const legacyDate = (fm as any).date
+    const legacyDate = fm.date; // NOSONAR - migration from deprecated field
     if (legacyDate !== undefined) {
       if (!fm.pubDate) {
-        fm.pubDate = legacyDate
+        fm.pubDate = legacyDate;
       }
-      delete (fm as any).date
-      dirty = true
+      delete fm.date; // NOSONAR - intentional removal of deprecated field
+      dirty = true;
     }
 
     // 3. 初始化必要欄位（缺少時補空值，讓使用者知道有哪些欄位可填）
-    if (fm.title === undefined) { fm.title = ''; dirty = true }
-    if (fm.description === undefined) { fm.description = ''; dirty = true }
-    if (fm.slug === undefined) { fm.slug = ''; dirty = true }
-    if (fm.keywords === undefined) { fm.keywords = []; dirty = true }
+    if (fm.title === undefined) {
+      fm.title = "";
+      dirty = true;
+    }
+    if (fm.description === undefined) {
+      fm.description = "";
+      dirty = true;
+    }
+    if (fm.slug === undefined) {
+      fm.slug = "";
+      dirty = true;
+    }
+    if (fm.keywords === undefined) {
+      fm.keywords = [];
+      dirty = true;
+    }
 
-    if (!dirty) {return article}
+    if (!dirty) {
+      return article;
+    }
 
-    const migrated = { ...article, frontmatter: fm }
-    // 非同步寫回檔案，不阻塞 UI；保留原本的 lastModified 避免排序跳動
-    saveArticle(migrated, { preserveLastModified: true }).catch((err) =>
-      console.warn('frontmatter 移轉寫回失敗:', err)
-    )
-    return migrated
+    const migrated = { ...article, frontmatter: fm };
+    // A6-03: 非同步寫回檔案，保留原本的 lastModified 避免排序跳動
+    // 失敗時通知使用者（而非靜默失敗），讓使用者知道需手動儲存
+    saveArticle(migrated, { preserveLastModified: true }).catch((err) => {
+      logger.error("[article store] frontmatter 移轉寫回失敗:", err);
+      notify.error("Frontmatter 移轉寫回失敗", "請手動儲存文章以保題資料不遺失");
+    });
+    return migrated;
   }
 
   function setCurrentArticle(article: Article | null) {
-    // 在切換文章前自動儲存前一篇文章
-    const previousArticle = currentArticle.value;
-    if (previousArticle && previousArticle !== article) {
-      autoSaveService.saveOnArticleSwitch(previousArticle);
+    // 製作前一篇文章的 shallow snapshot（非 reactive reference）
+    // 防止 Vue 響應系統在非同步 migration save 完成後覆蓋 previousArticle 的內容
+    const previousSnapshot = currentArticle.value
+      ? { ...currentArticle.value, frontmatter: { ...currentArticle.value.frontmatter } }
+      : null;
+
+    // 在切換文章前自動儲存前一篇文章（使用 filePath 比較而非 object identity）
+    if (previousSnapshot && previousSnapshot.filePath !== article?.filePath) {
+      autoSaveService.saveOnArticleSwitch(previousSnapshot);
     }
 
     // 開啟文章時自動移轉 frontmatter 時間欄位（圓桌 #007）
@@ -503,10 +487,6 @@ export const useArticleStore = defineStore("article", () => {
     autoSaveService.setCurrentArticle(article);
   }
 
-  function updateFilter(newFilter: Partial<ArticleFilter>) {
-    filter.value = { ...filter.value, ...newFilter };
-  }
-
   /**
    * Reload a specific article from file system
    */
@@ -516,35 +496,23 @@ export const useArticleStore = defineStore("article", () => {
       return;
     }
 
-    if (typeof window === "undefined" || !window.electronAPI) {
-      return;
-    }
-
     try {
-      const content = await window.electronAPI.readFile(article.filePath);
-      const { frontmatter, content: articleContent } = markdownService.parseMarkdown(content);
-      const fileStats = await window.electronAPI.getFileStats(article.filePath);
-      const lastModified = fileStats?.mtime ? new Date(fileStats.mtime) : new Date();
-
-      const reloadedArticle: Article = {
-        ...article,
-        title: frontmatter.title || article.title,
-        content: articleContent,
-        frontmatter,
-        lastModified,
-      };
+      // 使用 ArticleService 載入完整文章（包含 wordCount、slug、tags、excerpt 等欄位）
+      // 避免手動解析 frontmatter 造成欄位不一致 (A6-01)
+      const reloadedArticle = await articleService.loadArticle(article.filePath, article.category);
 
       const index = articles.value.findIndex((a) => a.id === id);
       if (index !== -1) {
-        articles.value[index] = reloadedArticle;
+        // 保留原有 id，避免 UI 組件因 id 變動而重新掛載
+        articles.value[index] = { ...reloadedArticle, id };
         if (currentArticle.value?.id === id) {
-          currentArticle.value = reloadedArticle;
+          currentArticle.value = articles.value[index];
         }
       }
 
       notify.success("重新載入成功", `已重新載入「${reloadedArticle.title}」`);
     } catch (error) {
-      console.error("Failed to reload article:", error);
+      logger.error("Failed to reload article:", error);
       notify.error("重新載入失敗", "無法重新載入文章");
     }
   }
@@ -558,7 +526,48 @@ export const useArticleStore = defineStore("article", () => {
     }
   }
 
-  // 初始化自動儲存服務
+  /**
+   * 儲存衝突 - 重新載入：捨棄編輯器變更，以磁碟上的最新內容為準（topic-020）
+   */
+  async function resolveConflictReload() {
+    if (!conflictState.value) {
+      return;
+    }
+    const { article } = conflictState.value;
+    conflictState.value = null;
+    await reloadArticle(article.id);
+  }
+
+  /**
+   * 儲存衝突 - 覆寫：以編輯器內容覆蓋磁碟上的外部修改（topic-020）
+   */
+  async function resolveConflictOverwrite() {
+    if (!conflictState.value) {
+      return;
+    }
+    const { articleToSave } = conflictState.value;
+    conflictState.value = null;
+    await saveArticle(articleToSave, { skipConflictCheck: true, preserveLastModified: true });
+  }
+
+  /**
+   * 儲存衝突 - 取消：關閉對話框，維持編輯器內容不變、不寫入磁碟（topic-020）
+   */
+  function resolveConflictCancel() {
+    conflictState.value = null;
+  }
+
+  // 初始化自動儲存服務  // 儲存狀態（橋接 AutoSaveService 純資料狀態為 Vue 響應式 ref）
+  const saveState = ref<SaveState>({
+    status: SaveStatus.Saved,
+    lastSavedAt: null,
+    error: null,
+  });
+
+  // 訂閱 AutoSaveService 狀態變更
+  autoSaveService.onSaveStateChange((state) => {
+    saveState.value = state;
+  });
   function initializeAutoSave() {
     const config = configStore.config;
     const interval = config.editorConfig.autoSaveInterval || 30000;
@@ -582,11 +591,11 @@ export const useArticleStore = defineStore("article", () => {
     },
     { deep: true },
   );
-
-  // 初始化自動儲存（延遲執行以確保 configStore 已載入）
-  setTimeout(() => {
+  // 初始化自動儲存：使用 nextTick 取代任意 setTimeout(100ms)，
+  // 確保 Vue 響應式系統完成當前 tick 後再初始化，語意明確且可測試
+  nextTick(() => {
     initializeAutoSave();
-  }, 100);
+  });
 
   return {
     // State
@@ -594,6 +603,7 @@ export const useArticleStore = defineStore("article", () => {
     currentArticle,
     filter,
     loading,
+    conflictState,
 
     // Getters
     filteredArticles,
@@ -601,10 +611,14 @@ export const useArticleStore = defineStore("article", () => {
     publishedArticles,
     allTags,
 
+    // 儲存狀態（由 AutoSaveService 驅動）
+    saveState,
+
     // Actions
     loadArticles,
     createArticle,
     saveArticle,
+    updateCurrentArticleContent,
     updateArticleInMemory,
     deleteArticle,
     toggleStatus,
@@ -613,6 +627,9 @@ export const useArticleStore = defineStore("article", () => {
     reloadArticle,
     saveCurrentArticle,
     initializeAutoSave,
+    resolveConflictReload,
+    resolveConflictOverwrite,
+    resolveConflictCancel,
     // 內部方法（供測試使用）
     reloadArticleFromDisk,
     removeArticleFromMemory,

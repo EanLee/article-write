@@ -1,113 +1,168 @@
-import { promises as fs, constants as fsConstants } from 'fs'
-import { dirname } from 'path'
-import { watch, type FSWatcher } from 'chokidar'
+import { promises as fs, constants as fsConstants } from "node:fs";
+import { dirname, normalize, resolve, sep } from "node:path";
+import { watch, type FSWatcher } from "chokidar";
 
 export class FileService {
-  private watcher: FSWatcher | null = null
-  private watchCallback: ((event: string, path: string) => void) | null = null
+  private watcher: FSWatcher | null = null;
+  /** A-02: 升級為 Set，支援多個訂閱者同時監聽檔案變更 */
+  private readonly watchCallbacks: Set<(event: string, path: string) => void> = new Set();
+  private allowedBasePaths: string[] = [];
+
+  /**
+   * 設定允許存取的根目錄白名單（由 main.ts 在取得 config 後呼叫）
+   * 之後所有檔案操作都必須在這些目錄之下
+   */
+  setAllowedPaths(paths: string[]): void {
+    this.allowedBasePaths = paths.filter(Boolean).map((p) => normalize(resolve(p)));
+  }
+
+  /**
+   * 驗證路徑是否在許可的白名單範圍內
+   * 白名單未初始化（空陣列）時一律拒絕，fail-close (S6-03)
+   * @throws Error 若路徑在白名單外或白名單尚未初始化
+   */
+  private validatePath(filePath: string): void {
+    if (this.allowedBasePaths.length === 0) {
+      throw new Error("拒絕存取：檔案白名單尚未初始化，請先設定 vault 路徑");
+    }
+    const normalized = normalize(resolve(filePath));
+    const allowed = this.allowedBasePaths.some((base) => normalized === base || normalized.startsWith(base + sep));
+    if (!allowed) {
+      throw new Error(`拒絕存取：路徑超出允許範圍：${filePath}`);
+    }
+  }
 
   async readFile(filePath: string): Promise<string> {
+    this.validatePath(filePath);
     try {
-      return await fs.readFile(filePath, 'utf-8')
-    } catch {
-      throw new Error(`Failed to read file: ${filePath}`)
+      return await fs.readFile(filePath, "utf-8");
+    } catch (err) {
+      throw new Error(`讀取檔案失敗：${filePath}`, { cause: err });
     }
   }
 
   async writeFile(filePath: string, content: string): Promise<void> {
+    this.validatePath(filePath);
     try {
       // Ensure directory exists
-      await fs.mkdir(dirname(filePath), { recursive: true })
-      await fs.writeFile(filePath, content, 'utf-8')
+      await fs.mkdir(dirname(filePath), { recursive: true });
+      await fs.writeFile(filePath, content, "utf-8");
     } catch (err) {
-      throw new Error(`Failed to write file: ${filePath}`, { cause: err })
+      throw new Error(`寫入檔案失敗：${filePath}`, { cause: err });
     }
   }
 
   async deleteFile(filePath: string): Promise<void> {
+    this.validatePath(filePath);
     try {
-      await fs.unlink(filePath)
-    } catch {
-      throw new Error(`Failed to delete file: ${filePath}`)
+      await fs.unlink(filePath);
+    } catch (err) {
+      throw new Error(`刪除檔案失敗：${filePath}`, { cause: err });
     }
   }
 
   async readDirectory(dirPath: string): Promise<string[]> {
+    this.validatePath(dirPath);
     try {
-      return await fs.readdir(dirPath)
-    } catch {
-      throw new Error(`Failed to read directory: ${dirPath}`)
+      return await fs.readdir(dirPath);
+    } catch (err) {
+      throw new Error(`讀取目錄失敗：${dirPath}`, { cause: err });
     }
   }
 
   async createDirectory(dirPath: string): Promise<void> {
+    this.validatePath(dirPath);
     try {
-      await fs.mkdir(dirPath, { recursive: true })
-    } catch {
-      throw new Error(`Failed to create directory: ${dirPath}`)
+      await fs.mkdir(dirPath, { recursive: true });
+    } catch (err) {
+      throw new Error(`建立目錄失敗：${dirPath}`, { cause: err });
     }
   }
 
   async exists(path: string): Promise<boolean> {
+    this.validatePath(path); // S4-02: 防止路徑枚舉（攻擊者探測白名單外路徑是否存在）
     try {
-      await fs.access(path)
-      return true
+      await fs.access(path);
+      return true;
     } catch {
-      return false
+      return false;
     }
   }
 
   /**
    * 檢查路徑是否存在且可寫入
    * 用於發布前置驗證，回傳結構化結果而非拋出例外
+   *
+   * ⚠️ 注意：所有接受 filePath/dirPath 參數的公開方法都必須呼叫 this.validatePath()
+   *    包含：readFile, writeFile, deleteFile, copyFile, readDirectory,
+   *           createDirectory, getFileStats, exists, checkWritable
    */
   async checkWritable(dirPath: string): Promise<{ exists: boolean; writable: boolean }> {
+    this.validatePath(dirPath); // S4-02: 防止路徑枚舉（攻擊者探測白名單外目錄的可寫狀態）
     try {
-      await fs.access(dirPath, fsConstants.F_OK)
+      await fs.access(dirPath, fsConstants.F_OK);
     } catch {
-      return { exists: false, writable: false }
+      return { exists: false, writable: false };
     }
     try {
-      await fs.access(dirPath, fsConstants.W_OK)
-      return { exists: true, writable: true }
+      await fs.access(dirPath, fsConstants.W_OK);
+      return { exists: true, writable: true };
     } catch {
-      return { exists: true, writable: false }
+      return { exists: true, writable: false };
     }
   }
 
-  async getFileStats(filePath: string): Promise<{ isDirectory: boolean; mtime: string } | null> {
+  async getFileStats(filePath: string): Promise<{ isDirectory: boolean; mtime: number } | null> {
+    this.validatePath(filePath);
     try {
-      const stats = await fs.stat(filePath)
+      const stats = await fs.stat(filePath);
       return {
         isDirectory: stats.isDirectory(),
-        mtime: stats.mtime.toISOString()
-      }
+        mtime: stats.mtime.getTime(), // 回傳毫秒時間戳，與 IFileSystem.FileStats.mtime: number 一致
+      };
     } catch {
-      return null
+      return null;
     }
   }
 
   async copyFile(sourcePath: string, targetPath: string): Promise<void> {
+    this.validatePath(sourcePath);
+    this.validatePath(targetPath);
     try {
       // Ensure target directory exists
-      await fs.mkdir(dirname(targetPath), { recursive: true })
-      await fs.copyFile(sourcePath, targetPath)
+      await fs.mkdir(dirname(targetPath), { recursive: true });
+      await fs.copyFile(sourcePath, targetPath);
     } catch (err) {
-      throw new Error(`Failed to copy file from ${sourcePath} to ${targetPath}`, { cause: err })
+      throw new Error(`複製檔案失敗：${sourcePath} → ${targetPath}`, { cause: err });
+    }
+  }
+
+  /**
+   * S6-07: 從白名單外部路徑匯入檔案到白名單內的目標路徑。
+   * 僅驗證 targetPath（destination）確保寫入位置在白名單內；
+   * sourcePath 允許為外部路徑（例如拖放匯入的圖片、系統暫存目錄）。
+   * 注意：此方法不得用於一般檔案複製，僅供「外部匯入」場景使用。
+   */
+  async importExternalFile(sourcePath: string, targetPath: string): Promise<void> {
+    this.validatePath(targetPath); // 只保護寫入目的地
+    try {
+      await fs.mkdir(dirname(targetPath), { recursive: true });
+      await fs.copyFile(sourcePath, targetPath);
+    } catch (err) {
+      throw new Error(`匯入外部檔案失敗：${sourcePath} → ${targetPath}`, { cause: err });
     }
   }
 
   /**
    * 開始監聽指定目錄的檔案變更
+   * 若已有不同監聽路徑的監聽器，先停止
    */
-  startWatching(
-    watchPath: string,
-    callback: (event: string, path: string) => void
-  ): void {
-    // 如果已有監聽器，先停止
-    this.stopWatching()
+  startWatching(watchPath: string, callback: (event: string, path: string) => void): void {
+    // 驗證監聽路徑在白名單範圍內，防止監聴任意目錄 (S6-04)
+    this.validatePath(watchPath);
+    this.stopWatching();
 
-    this.watchCallback = callback
+    this.watchCallbacks.add(callback);
     this.watcher = watch(watchPath, {
       ignored: /(^|[/\\])\../, // 忽略隱藏檔案
       persistent: true,
@@ -115,31 +170,58 @@ export class FileService {
       depth: 3, // 監聽深度：vault/status/category/file.md
       awaitWriteFinish: {
         stabilityThreshold: 300,
-        pollInterval: 100
-      }
-    })
+        pollInterval: 100,
+      },
+    });
 
     this.watcher
-      .on('add', (path) => this.watchCallback?.('add', path))
-      .on('change', (path) => this.watchCallback?.('change', path))
-      .on('unlink', (path) => this.watchCallback?.('unlink', path))
+      .on("add", (path) => this.notifyAll("add", path))
+      .on("change", (path) => this.notifyAll("change", path))
+      .on("unlink", (path) => this.notifyAll("unlink", path));
   }
 
   /**
-   * 停止檔案監聽
+   * 動態新增檔案變更訂閱者（支持多個獨立功能監聽同一路徑）
+   * @returns 訂閱清除函式
+   */
+  addWatchListener(callback: (event: string, path: string) => void): () => void {
+    this.watchCallbacks.add(callback);
+    return () => {
+      this.watchCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * 停止檔案監聽。
+   * ⚠️ 刻意不清除 watchCallbacks：
+   *   addWatchListener() 訂閱者在 watcher 重啟後應繼續有效（符合 SRP）。
+   *   若需清除所有訂閱者，請呼叫 clearWatchListeners()。
    */
   stopWatching(): void {
     if (this.watcher) {
-      this.watcher.close()
-      this.watcher = null
-      this.watchCallback = null
+      this.watcher.close();
+      this.watcher = null;
     }
+  }
+
+  /**
+   * 清除所有訂閱者（測試環境或完全關閉時使用）
+   */
+  clearWatchListeners(): void {
+    this.watchCallbacks.clear();
   }
 
   /**
    * 檢查是否正在監聽
    */
   isWatching(): boolean {
-    return this.watcher !== null
+    return this.watcher !== null;
+  }
+
+  /** 通知所有訂閱者（內部使用）*/
+  private notifyAll(event: string, path: string): void {
+    for (const cb of this.watchCallbacks) {
+      cb(event, path);
+    }
   }
 }

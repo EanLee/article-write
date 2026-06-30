@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelValue" class="modal modal-open">
+  <div v-if="modelValue" class="modal modal-open" data-testid="settings-modal">
     <div class="modal-box w-11/12 max-w-5xl max-h-[90vh]">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
@@ -7,7 +7,7 @@
           <h3 class="text-2xl font-bold">部落格設定</h3>
           <p class="text-sm text-base-content/60 mt-1">配置您的部落格寫作與發布環境</p>
         </div>
-        <button class="btn btn-sm btn-circle btn-ghost" @click="handleClose">
+        <button class="btn btn-sm btn-circle btn-ghost" data-testid="settings-close-button" @click="handleClose">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -49,8 +49,19 @@
           </svg>
           編輯器
         </a>
-        <a 
-          role="tab" 
+        <a
+          role="tab"
+          class="tab"
+          :class="{ 'tab-active': activeTab === 'ai' }"
+          @click="activeTab = 'ai'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          AI 設定
+        </a>
+        <a
+          role="tab"
           class="tab relative"
           :class="{ 'tab-active': activeTab === 'git' }"
           @click="activeTab = 'git'"
@@ -352,11 +363,12 @@
 
               <!-- Auto Save Interval -->
               <div v-if="localConfig.editorConfig.autoSave" class="form-control ml-12 mt-2">
-                <label class="label">
+                <label for="settings-auto-save-interval" class="label">
                   <span class="label-text">儲存間隔</span>
                 </label>
                 <div class="flex items-center gap-4">
                   <input
+                    id="settings-auto-save-interval"
                     v-model.number="autoSaveSeconds"
                     type="range"
                     min="10"
@@ -366,18 +378,18 @@
                   />
                   <div class="badge badge-primary badge-lg">{{ autoSaveSeconds }} 秒</div>
                 </div>
-                <label class="label">
+                <div class="label">
                   <span class="label-text-alt">建議範圍：10-300 秒</span>
-                </label>
+                </div>
               </div>
 
               <div class="divider"></div>
 
               <!-- Theme Selection -->
               <div class="form-control">
-                <label class="label">
+                <div class="label">
                   <span class="label-text font-semibold">編輯器主題</span>
-                </label>
+                </div>
                 <div class="grid grid-cols-2 gap-3 mt-2">
                   <label 
                     class="label cursor-pointer p-4 border-2 rounded-lg hover:bg-base-200 transition-colors"
@@ -428,6 +440,43 @@
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Settings Tab -->
+        <div v-show="activeTab === 'ai'" class="space-y-4">
+          <div class="card bg-base-200 shadow-sm">
+            <div class="card-body p-4">
+              <h4 class="font-semibold text-lg mb-4">AI Provider 設定</h4>
+              <p class="text-sm text-base-content/60 mb-4">設定 AI API Key 以啟用 SEO 自動生成等 AI 功能。</p>
+
+              <template v-for="provider in aiProviders" :key="provider.id">
+                <div class="flex items-center justify-between py-3 border-b border-base-300 last:border-0">
+                  <div>
+                    <span class="font-medium">{{ provider.name }}</span>
+                    <span v-if="aiProviderStatus[provider.id]" class="badge badge-success badge-xs ml-2">已設定</span>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline"
+                    @click="toggleAiProvider(provider.id)"
+                  >
+                    {{ aiProviderStatus[provider.id] ? '重新設定' : '設定' }}
+                  </button>
+                </div>
+                <div v-if="expandedAiProvider === provider.id" class="py-3 space-y-2">
+                  <input
+                    type="password"
+                    v-model="aiKeyInput"
+                    class="input input-bordered input-sm w-full"
+                    :placeholder="`輸入 ${provider.name} API Key`"
+                  />
+                  <div class="flex gap-2 justify-end">
+                    <button class="btn btn-ghost btn-sm" @click="expandedAiProvider = null">取消</button>
+                    <button class="btn btn-primary btn-sm" @click="saveAiApiKey(provider.id)">儲存</button>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -519,18 +568,19 @@
                 </div>
 
                 <div class="form-control">
-                  <label class="label">
+                  <label for="settings-commit-template" class="label">
                     <span class="label-text font-semibold">Commit Message 模板</span>
                   </label>
                   <input
+                    id="settings-commit-template"
                     type="text"
                     placeholder="publish: {title}"
                     class="input input-bordered"
                     disabled
                   />
-                  <label class="label">
+                  <div class="label">
                     <span class="label-text-alt">使用 {title} 代表文章標題</span>
-                  </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -565,17 +615,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useConfigStore } from '@/stores/config'
-import { useArticleStore } from '@/stores/article'
-import type { AppConfig } from '@/types'
+import { ref, computed, watch } from "vue"
+import { useConfigStore } from "@/stores/config"
+import { useArticleStore } from "@/stores/article"
+import type { AppConfig } from "@/types"
 
 interface Props {
   modelValue: boolean
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: boolean): void
+  (e: "update:modelValue", value: boolean): void
 }
 
 const props = defineProps<Props>()
@@ -583,17 +633,50 @@ const emit = defineEmits<Emits>()
 
 const configStore = useConfigStore()
 const articleStore = useArticleStore()
-const activeTab = ref('basic')
+const activeTab = ref("basic")
+
+// ── AI 設定 ────────────────────────────────────────────────────────────────
+const aiProviders = [
+  { id: "claude", name: "Claude (Anthropic)" },
+  { id: "gemini", name: "Gemini (Google)" },
+  { id: "openai", name: "OpenAI" },
+] as const
+
+const expandedAiProvider = ref<string | null>(null)
+const aiKeyInput = ref("")
+const aiProviderStatus = ref<Record<string, boolean>>({ claude: false, gemini: false, openai: false })
+
+async function initAiStatus() {
+  try {
+    const active = await globalThis.electronAPI.aiGetActiveProvider()
+    if (active) { aiProviderStatus.value[active] = true }
+  } catch { /* ignore */ }
+}
+
+function toggleAiProvider(provider: string) {
+  expandedAiProvider.value = expandedAiProvider.value === provider ? null : provider
+  aiKeyInput.value = ""
+}
+
+async function saveAiApiKey(provider: string) {
+  if (!aiKeyInput.value.trim()) { return }
+  try {
+    await globalThis.electronAPI.aiSetApiKey(provider, aiKeyInput.value.trim())
+    aiProviderStatus.value[provider] = true
+    expandedAiProvider.value = null
+    aiKeyInput.value = ""
+  } catch { /* ignore */ }
+}
 const localConfig = ref<AppConfig>({
   paths: {
-    articlesDir: '',
-    targetBlog: '',
-    imagesDir: ''
+    articlesDir: "",
+    targetBlog: "",
+    imagesDir: ""
   },
   editorConfig: {
     autoSave: true,
     autoSaveInterval: 30000,
-    theme: 'light'
+    theme: "light"
   }
 })
 
@@ -606,8 +689,8 @@ const autoSaveSeconds = computed({
 })
 
 // Validation
-const articlesValidation = ref({ valid: false, message: '請選擇路徑' })
-const blogValidation = ref<{ valid: boolean; warning?: boolean; message: string }>({ valid: false, message: '請選擇路徑' })
+const articlesValidation = ref({ valid: false, message: "請選擇路徑" })
+const blogValidation = ref<{ valid: boolean; warning?: boolean; message: string }>({ valid: false, message: "請選擇路徑" })
 
 const canSave = computed(() => {
   // 只需要文章資料夾即可儲存，部落格路徑為選填
@@ -617,13 +700,13 @@ const canSave = computed(() => {
 // Methods
 async function selectArticlesPath() {
   try {
-    if (!window.electronAPI) {
-      console.warn('瀏覽器模式下無法選擇資料夾')
+    if (!globalThis.electronAPI) {
+      logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
 
-    const selectedPath = await window.electronAPI.selectDirectory({
-      title: '選擇文章資料夾',
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
+      title: "選擇文章資料夾",
       defaultPath: localConfig.value.paths.articlesDir
     })
 
@@ -631,23 +714,23 @@ async function selectArticlesPath() {
       localConfig.value.paths.articlesDir = selectedPath
       // Auto-set images directory if not already set
       if (!localConfig.value.paths.imagesDir) {
-        localConfig.value.paths.imagesDir = selectedPath + '/images'
+        localConfig.value.paths.imagesDir = selectedPath + "/images"
       }
     }
   } catch (error) {
-    console.error('選擇資料夾失敗:', error)
+    logger.error("選擇資料夾失敗:", error)
   }
 }
 
 async function selectBlogPath() {
   try {
-    if (!window.electronAPI) {
-      console.warn('瀏覽器模式下無法選擇資料夾')
+    if (!globalThis.electronAPI) {
+      logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
 
-    const selectedPath = await window.electronAPI.selectDirectory({
-      title: '選擇部落格專案資料夾',
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
+      title: "選擇部落格專案資料夾",
       defaultPath: localConfig.value.paths.targetBlog
     })
 
@@ -655,19 +738,19 @@ async function selectBlogPath() {
       localConfig.value.paths.targetBlog = selectedPath
     }
   } catch (error) {
-    console.error('選擇資料夾失敗:', error)
+    logger.error("選擇資料夾失敗:", error)
   }
 }
 
 async function selectImagesPath() {
   try {
-    if (!window.electronAPI) {
-      console.warn('瀏覽器模式下無法選擇資料夾')
+    if (!globalThis.electronAPI) {
+      logger.warn("瀏覽器模式下無法選擇資料夾")
       return
     }
 
-    const selectedPath = await window.electronAPI.selectDirectory({
-      title: '選擇圖片資料夾',
+    const selectedPath = await globalThis.electronAPI.selectDirectory({
+      title: "選擇圖片資料夾",
       defaultPath: localConfig.value.paths.imagesDir
     })
 
@@ -675,7 +758,7 @@ async function selectImagesPath() {
       localConfig.value.paths.imagesDir = selectedPath
     }
   } catch (error) {
-    console.error('選擇資料夾失敗:', error)
+    logger.error("選擇資料夾失敗:", error)
   }
 }
 
@@ -686,10 +769,10 @@ async function validatePaths() {
       const result = await configStore.validateArticlesDir(localConfig.value.paths.articlesDir)
       articlesValidation.value = result
     } catch {
-      articlesValidation.value = { valid: false, message: '驗證失敗' }
+      articlesValidation.value = { valid: false, message: "驗證失敗" }
     }
   } else {
-    articlesValidation.value = { valid: false, message: '請選擇路徑' }
+    articlesValidation.value = { valid: false, message: "請選擇路徑" }
   }
 
   // Validate Blog Directory
@@ -698,10 +781,10 @@ async function validatePaths() {
       const result = await configStore.validateAstroBlog(localConfig.value.paths.targetBlog)
       blogValidation.value = result
     } catch {
-      blogValidation.value = { valid: false, message: '驗證失敗' }
+      blogValidation.value = { valid: false, message: "驗證失敗" }
     }
   } else {
-    blogValidation.value = { valid: false, message: '請選擇路徑' }
+    blogValidation.value = { valid: false, message: "請選擇路徑" }
   }
 }
 
@@ -714,30 +797,30 @@ async function handleSave() {
       await articleStore.loadArticles()
     }
     
-    emit('update:modelValue', false)
+    emit("update:modelValue", false)
   } catch (error) {
-    console.error('儲存設定失敗', error)
+    logger.error("儲存設定失敗", error)
   }
 }
 
 function resetToDefaults() {
   localConfig.value = {
     paths: {
-      articlesDir: '',
-      targetBlog: '',
-      imagesDir: ''
+      articlesDir: "",
+      targetBlog: "",
+      imagesDir: ""
     },
     editorConfig: {
       autoSave: true,
       autoSaveInterval: 30000,
-      theme: 'light'
+      theme: "light"
     }
   }
   validatePaths()
 }
 
 function handleClose() {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false)
 }
 
 // Watch for path changes to trigger validation
@@ -756,6 +839,7 @@ watch(
       // Load current config when dialog opens
       localConfig.value = JSON.parse(JSON.stringify(configStore.config))
       await validatePaths()
+      await initAiStatus()
     }
   }
 )

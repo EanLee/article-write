@@ -1,6 +1,5 @@
 import type { Article, SaveState, Frontmatter } from "@/types";
 import { SaveStatus } from "@/types";
-import { ref, type Ref } from "vue";
 import { isEqual } from "lodash-es";
 import { logger } from "@/utils/logger";
 
@@ -11,6 +10,7 @@ import { logger } from "@/utils/logger";
 export class AutoSaveService {
   private saveCallback: ((article: Article) => Promise<void>) | null = null;
   private getCurrentArticleCallback: (() => Article | null) | null = null;
+  private getEditorContentCallback: (() => string) | null = null;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private autoSaveInterval: number = 30000; // 30 seconds
   private isEnabled: boolean = true;
@@ -18,12 +18,37 @@ export class AutoSaveService {
   private lastSavedFrontmatter: Partial<Frontmatter> = {};
   private initialized: boolean = false; // 初始化標誌
 
-  // 儲存狀態（響應式）
-  public readonly saveState: Ref<SaveState> = ref({
+  // 儲存狀態（純資料，無 Vue 相依）
+  private _saveState: SaveState = {
     status: SaveStatus.Saved,
     lastSavedAt: null,
     error: null,
-  });
+  };
+
+  // 狀態變更監聽器集合
+  private readonly _listeners: Set<(state: SaveState) => void> = new Set();
+
+  /**
+   * 取得當前儲存狀態（唯讀快照）
+   */
+  get saveState(): Readonly<SaveState> {
+    return this._saveState;
+  }
+
+  /**
+   * 訂閱儲存狀態變更事件
+   * @param callback 狀態變更時呼叫的回調函式
+   * @returns 取消訂閱的函式
+   */
+  onSaveStateChange(callback: (state: SaveState) => void): () => void {
+    this._listeners.add(callback);
+    return () => this._listeners.delete(callback);
+  }
+
+  /** 通知所有監聽器 */
+  private _notifyListeners(): void {
+    this._listeners.forEach((cb) => cb(this._saveState));
+  }
 
   /**
    * 初始化自動儲存服務
@@ -47,7 +72,7 @@ export class AutoSaveService {
    */
   startAutoSave(): void {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot start auto-save before initialization");
+      logger.warn("AutoSaveService: Cannot start auto-save before initialization");
       return;
     }
     if (!this.isEnabled || !this.saveCallback || !this.getCurrentArticleCallback) {
@@ -62,7 +87,7 @@ export class AutoSaveService {
       this.performAutoSave();
     }, this.autoSaveInterval);
 
-    console.log(`自動儲存已啟動，間隔: ${this.autoSaveInterval / 1000} 秒`);
+    logger.info(`自動儲存已啟動，間隔: ${this.autoSaveInterval / 1000} 秒`);
   }
 
   /**
@@ -91,7 +116,7 @@ export class AutoSaveService {
     }
 
     // Dirty flag 快速路徑：狀態為 Saved 時直接跳過字串比較
-    if (this.saveState.value.status === SaveStatus.Saved) {
+    if (this._saveState.status === SaveStatus.Saved) {
       return;
     }
 
@@ -102,17 +127,25 @@ export class AutoSaveService {
       return;
     }
 
-    console.log(`自動儲存文章: ${currentArticle.title}`);
+    logger.debug(`自動儲存文章: ${currentArticle.title}`);
     this.updateSaveState(SaveStatus.Saving);
     try {
       await this.saveCallback(currentArticle);
       this.updateLastSavedContent(currentArticle);
       this.updateSaveState(SaveStatus.Saved);
     } catch (error) {
-      console.error("自動儲存失敗:", error);
+      logger.error("自動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
       // 不重新拋出錯誤，讓自動儲存繼續運行
     }
+  }
+
+  /**
+   * 登記編輯器即時內容回呼（由 MainEditor 在 mount/unmount 呼叫）
+   * 確保切換文章時能取得最新打字內容，而非 store 快取值
+   */
+  setEditorContentCallback(callback: (() => string) | null): void {
+    this.getEditorContentCallback = callback;
   }
 
   /**
@@ -122,7 +155,7 @@ export class AutoSaveService {
    */
   async saveOnArticleSwitch(previousArticle: Article | null): Promise<void> {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot save on article switch before initialization");
+      logger.warn("AutoSaveService: Cannot save on article switch before initialization");
       return;
     }
     if (!this.saveCallback || !previousArticle) {
@@ -130,31 +163,31 @@ export class AutoSaveService {
     }
 
     try {
-      // 檢查前一篇文章是否有變更
-      const hasChanged = this.hasContentChanged(previousArticle);
-      const currentContent = previousArticle.content;
-      const currentFrontmatter = JSON.stringify(previousArticle.frontmatter);
+      // 取得編輯器即時內容（比 store 快取更新），避免遺漏切換前最後一次打字
+      const editorContent = this.getEditorContentCallback?.();
+      const articleToSave = editorContent !== undefined
+        ? { ...previousArticle, content: editorContent }
+        : previousArticle;
 
-      console.group(`🔍 切換文章檢查: ${previousArticle.title}`);
-      console.log("hasChanged:", hasChanged);
-      console.log("currentContent length:", currentContent?.length);
-      console.log("lastSavedContent length:", this.lastSavedContent?.length);
-      console.log("content相等?:", currentContent === this.lastSavedContent);
-      console.log("currentFrontmatter:", currentFrontmatter);
-      console.log("lastSavedFrontmatter:", this.lastSavedFrontmatter);
-      console.log("frontmatter相等?:", currentFrontmatter === this.lastSavedFrontmatter);
-      console.groupEnd();
+      // 檢查前一篇文章是否有變更
+      const hasChanged = this.hasContentChanged(articleToSave);
+
+      logger.debug(`切換文章檢查: ${previousArticle.title}`, {
+        hasChanged,
+        contentChanged: articleToSave.content !== this.lastSavedContent,
+      });
 
       if (hasChanged) {
-        console.log(`✅ 內容已變更，執行自動儲存: ${previousArticle.title}`);
+        logger.debug(`內容已變更，執行自動儲存: ${previousArticle.title}`);
         this.updateSaveState(SaveStatus.Saving);
-        await this.saveCallback(previousArticle);
+        await this.saveCallback(articleToSave);
+        this.updateLastSavedContent(articleToSave);
         this.updateSaveState(SaveStatus.Saved);
       } else {
-        console.log(`⏭️  內容無變更，跳過儲存: ${previousArticle.title}`);
+        logger.debug(`內容無變更，跳過儲存: ${previousArticle.title}`);
       }
     } catch (error) {
-      console.error("切換文章時自動儲存失敗:", error);
+      logger.error("切換文章時自動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
     }
   }
@@ -164,7 +197,7 @@ export class AutoSaveService {
    */
   async saveCurrentArticle(): Promise<void> {
     if (!this.initialized) {
-      console.warn("AutoSaveService: Cannot save before initialization");
+      logger.warn("AutoSaveService: Cannot save before initialization");
       return;
     }
     if (!this.saveCallback || !this.getCurrentArticleCallback) {
@@ -175,13 +208,13 @@ export class AutoSaveService {
     try {
       const currentArticle = this.getCurrentArticleCallback();
       if (currentArticle) {
-        console.log(`手動儲存文章: ${currentArticle.title}`);
+        logger.debug(`手動儲存文章: ${currentArticle.title}`);
         await this.saveCallback(currentArticle);
         this.updateLastSavedContent(currentArticle);
         this.updateSaveState(SaveStatus.Saved);
       }
     } catch (error) {
-      console.error("手動儲存失敗:", error);
+      logger.error("手動儲存失敗:", error);
       this.updateSaveState(SaveStatus.Error, error instanceof Error ? error.message : "儲存失敗");
       throw error;
     }
@@ -207,6 +240,17 @@ export class AutoSaveService {
   }
 
   /**
+   * 通知已透過統一儲存路徑（articleStore.saveArticle）成功寫入磁碟（topic-020）
+   * 同步 lastSavedContent/lastSavedFrontmatter 並將狀態設為已儲存，
+   * 確保 Ctrl+S 等不經由 saveCurrentArticle() 的路徑，UI 狀態仍能正確反映「已儲存」
+   * @param {Article} article - 已成功儲存的文章
+   */
+  notifySaved(article: Article): void {
+    this.updateLastSavedContent(article);
+    this.updateSaveState(SaveStatus.Saved);
+  }
+
+  /**
    * 設定新文章時重置儲存狀態
    * @param {Article | null} article - 新的當前文章
    */
@@ -225,6 +269,10 @@ export class AutoSaveService {
    */
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
+
+    if (!this.initialized) {
+      return;
+    }
 
     if (enabled) {
       this.startAutoSave();
@@ -268,15 +316,16 @@ export class AutoSaveService {
    * @param {string | null} error - 錯誤訊息（僅當狀態為 error 時）
    */
   private updateSaveState(status: SaveStatus, error: string | null = null): void {
-    this.saveState.value = {
+    this._saveState = {
       status,
-      lastSavedAt: status === SaveStatus.Saved ? new Date() : this.saveState.value.lastSavedAt,
+      lastSavedAt: status === SaveStatus.Saved ? new Date() : this._saveState.lastSavedAt,
       error: status === SaveStatus.Error ? error : null,
     };
+    this._notifyListeners();
   }
 
   private markAsModifiedDebounceTimer: NodeJS.Timeout | null = null;
-  private static DEBOUNCE_DELAY = 100; // 100ms debounce
+  private static readonly DEBOUNCE_DELAY = 100; // 100ms debounce
 
   /**
    * 標記內容已修改
@@ -291,12 +340,13 @@ export class AutoSaveService {
 
     // 設定新的防抖計時器
     this.markAsModifiedDebounceTimer = setTimeout(() => {
-      if (this.saveState.value.status === SaveStatus.Saved) {
-        this.saveState.value = {
-          ...this.saveState.value,
+      if (this._saveState.status === SaveStatus.Saved) {
+        this._saveState = {
+          ...this._saveState,
           status: SaveStatus.Modified,
           error: null,
         };
+        this._notifyListeners();
       }
       this.markAsModifiedDebounceTimer = null;
     }, AutoSaveService.DEBOUNCE_DELAY);
@@ -326,12 +376,13 @@ export class AutoSaveService {
     this.saveCallback = null;
     this.getCurrentArticleCallback = null;
     this.lastSavedContent = "";
-    this.lastSavedFrontmatter = "";
-    this.saveState.value = {
+    this.lastSavedFrontmatter = {}; // 正確的空 Partial<Frontmatter>
+    this._saveState = {
       status: SaveStatus.Saved,
       lastSavedAt: null,
       error: null,
     };
+    this._listeners.clear();
   }
 }
 

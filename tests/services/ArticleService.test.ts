@@ -74,8 +74,11 @@ vi.mock("@/services/BackupService", () => {
 describe("ArticleService with MockFileSystem", () => {
   let service: ArticleService;
   let mockFileSystem: MockFileSystem;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockParseMarkdown: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockCombineContent: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockDetectConflict: any;
 
   beforeEach(async () => {
@@ -86,8 +89,11 @@ describe("ArticleService with MockFileSystem", () => {
     const markdownMod = await import("@/services/MarkdownService");
     const backupMod = await import("@/services/BackupService");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockParseMarkdown = (markdownMod as any).markdownService.parseMarkdown;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockCombineContent = (markdownMod as any).markdownService.combineContent;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockDetectConflict = (backupMod as any).backupService.detectConflict;
 
     // 重置 mock
@@ -129,6 +135,26 @@ Test content`;
       const filePath = "/vault/Drafts/Software/non-existent.md";
 
       await expect(service.loadArticle(filePath, ArticleCategory.Software)).rejects.toThrow("File not found");
+    });
+
+    it("載入後應記錄磁碟內容作為衝突偵測基準（topic-020）", async () => {
+      const filePath = "/vault/Drafts/Software/test-article.md";
+      const fileContent = `---
+title: Test Article
+date: 2026-01-26
+tags: [test]
+categories: [Software]
+---
+
+Test content`;
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+      await mockFileSystem.writeFile(filePath, fileContent);
+
+      const article = await service.loadArticle(filePath, ArticleCategory.Software);
+      await service.saveArticle(article);
+
+      expect(mockDetectConflict).toHaveBeenCalledWith(filePath, fileContent);
     });
   });
 
@@ -203,7 +229,7 @@ Test content`;
       // 驗證
       expect(result.success).toBe(true);
       expect(mockCombineContent).toHaveBeenCalled();
-      expect(mockDetectConflict).toHaveBeenCalledWith(article);
+      expect(mockDetectConflict).toHaveBeenCalledWith(article.filePath, undefined);
 
       // 驗證檔案已寫入
       const exists = await mockFileSystem.exists(article.filePath);
@@ -211,7 +237,12 @@ Test content`;
     });
 
     it("應該處理衝突情況", async () => {
-      mockDetectConflict.mockResolvedValueOnce({ hasConflict: true });
+      const fileModifiedTime = new Date("2026-01-27T00:00:00Z");
+      mockDetectConflict.mockResolvedValueOnce({
+        hasConflict: true,
+        currentFileContent: "外部程式改過的內容",
+        fileModifiedTime,
+      });
 
       const article: Article = {
         id: "test-id",
@@ -234,6 +265,8 @@ Test content`;
 
       expect(result.success).toBe(false);
       expect(result.conflict).toBe(true);
+      expect(result.conflictDetails?.currentFileContent).toBe("外部程式改過的內容");
+      expect(result.conflictDetails?.fileModifiedTime).toBe(fileModifiedTime);
     });
 
     it("應該支援跳過衝突檢查和備份", async () => {
@@ -263,6 +296,119 @@ Test content`;
 
       expect(result.success).toBe(true);
       expect(mockDetectConflict).not.toHaveBeenCalled();
+    });
+
+    it("並行儲存同一檔案時必須序列化，後發起的內容為最終結果（topic-020）", async () => {
+      const makeArticle = (content: string): Article => ({
+        id: "test-id",
+        title: "Test",
+        slug: "test",
+        filePath: "/vault/Drafts/Software/test.md",
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content,
+        frontmatter: {
+          title: "Test",
+          date: "2026-01-26",
+          tags: [],
+          categories: ["Software"],
+        },
+      });
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+
+      // 模擬第一個儲存（舊內容）的備份步驟很慢——重現 frontmatter 移轉回寫的延遲
+      const backupMod = await import("@/services/BackupService");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockCreateBackup = (backupMod as any).backupService.createBackup;
+      mockCreateBackup.mockImplementationOnce(
+        () => new Promise<void>((resolve) => setTimeout(resolve, 50)),
+      );
+
+      // 第一個儲存先發起（舊內容、備份慢），第二個儲存隨後發起（新內容、無延遲）
+      const firstSave = service.saveArticle(makeArticle("OLD content"));
+      const secondSave = service.saveArticle(makeArticle("NEW content"));
+      await Promise.all([firstSave, secondSave]);
+
+      // 序列化保證：後發起的儲存內容必須是磁碟最終狀態（不被先發起的慢寫入覆蓋）
+      const finalContent = await mockFileSystem.readFile("/vault/Drafts/Software/test.md");
+      expect(finalContent).toContain("NEW content");
+      expect(finalContent).not.toContain("OLD content");
+    });
+
+    it("儲存成功後，下次衝突偵測會以剛寫入的內容作為基準（topic-020 hash 比對基準）", async () => {
+      const makeArticle = (content: string): Article => ({
+        id: "test-id",
+        title: "Test",
+        slug: "test",
+        filePath: "/vault/Drafts/Software/test.md",
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content,
+        frontmatter: { title: "Test", date: "2026-01-26", tags: [], categories: ["Software"] },
+      });
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+
+      // 第一筆儲存成功，service 記錄自己寫入的內容作為下次衝突偵測的基準
+      const first = await service.saveArticle(makeArticle("FIRST content"));
+      expect(first.success).toBe(true);
+      const writtenByUs = await mockFileSystem.readFile("/vault/Drafts/Software/test.md");
+
+      await service.saveArticle(makeArticle("SECOND content"));
+      expect(mockDetectConflict).toHaveBeenLastCalledWith("/vault/Drafts/Software/test.md", writtenByUs);
+    });
+
+    it("磁碟內容與自己上次寫入不同時維持衝突判定（真外部修改）", async () => {
+      const makeArticle = (content: string): Article => ({
+        id: "test-id",
+        title: "Test",
+        slug: "test",
+        filePath: "/vault/Drafts/Software/test.md",
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content,
+        frontmatter: { title: "Test", date: "2026-01-26", tags: [], categories: ["Software"] },
+      });
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+      await service.saveArticle(makeArticle("FIRST content"));
+
+      mockDetectConflict.mockResolvedValueOnce({
+        hasConflict: true,
+        currentFileContent: "外部程式改過的內容",
+      });
+      const result = await service.saveArticle(makeArticle("SECOND content"));
+      expect(result.success).toBe(false);
+      expect(result.conflict).toBe(true);
+    });
+
+    it("不同檔案的儲存不互相阻塞", async () => {
+      const makeArticle = (filePath: string, content: string): Article => ({
+        id: filePath,
+        title: "Test",
+        slug: "test",
+        filePath,
+        status: ArticleStatus.Draft,
+        category: ArticleCategory.Software,
+        lastModified: new Date(),
+        content,
+        frontmatter: { title: "Test", date: "2026-01-26", tags: [], categories: ["Software"] },
+      });
+
+      await mockFileSystem.createDirectory("/vault/Drafts/Software");
+
+      const results = await Promise.all([
+        service.saveArticle(makeArticle("/vault/Drafts/Software/a.md", "content A")),
+        service.saveArticle(makeArticle("/vault/Drafts/Software/b.md", "content B")),
+      ]);
+
+      expect(results.every((r) => r.success)).toBe(true);
+      expect(await mockFileSystem.readFile("/vault/Drafts/Software/a.md")).toContain("content A");
+      expect(await mockFileSystem.readFile("/vault/Drafts/Software/b.md")).toContain("content B");
     });
   });
 

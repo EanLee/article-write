@@ -1,15 +1,19 @@
 /**
  * 編輯器驗證功能 Composable
  */
-import { ref, type Ref } from 'vue'
-import type { SyntaxError } from '@/services/ObsidianSyntaxService'
-import type { ImageValidationWarning } from '@/services/ImageService'
-import { useObsidianSyntaxService, useMarkdownService, useImageService } from './useServices'
+import { ref, type Ref } from "vue"
+import type { SyntaxError } from "@/services/ObsidianSyntaxService"
+import type { ImageValidationWarning } from "@/types/image"
+import { useObsidianSyntaxService, useMarkdownService, useImageService } from "./useServices"
+import { useConfigStore } from "@/stores/config"
+import { useArticleStore } from "@/stores/article"
 
 export function useEditorValidation(contentRef: Ref<string>) {
   const obsidianSyntax = useObsidianSyntaxService()
   const markdownService = useMarkdownService()
   const imageService = useImageService()
+  const configStore = useConfigStore()
+  const articleStore = useArticleStore()
 
   // 驗證狀態
   const syntaxErrors = ref<SyntaxError[]>([])
@@ -35,36 +39,36 @@ export function useEditorValidation(contentRef: Ref<string>) {
    * 執行語法驗證
    */
   async function validateSyntax() {
+    // 同步 vault 路徑，確保 Obsidian wiki link 驗證能正確查詢
+    const vaultPath = configStore.config.paths.articlesDir
+    if (vaultPath) {
+      imageService.setVaultPath(vaultPath)
+    }
+
     // Obsidian 語法驗證
     const obsidianErrors = obsidianSyntax.validateSyntax(contentRef.value)
-    
+
     // Markdown 語法驗證
     const markdownErrors = markdownService.validateMarkdownSyntax(contentRef.value)
 
-    // 圖片驗證
-    const imageWarnings = await imageService.getImageValidationWarnings(contentRef.value)
+    // 圖片驗證（只在有 vault 路徑時執行，避免假陽性）
+    // 傳入文章路徑，讓 ImageService 能正確解析相對路徑圖片
+    const articleFilePath = articleStore.currentArticle?.filePath ?? ""
+    const imageWarnings = vaultPath
+      ? await imageService.getImageValidationWarnings(contentRef.value, articleFilePath)
+      : []
     imageValidationWarnings.value = imageWarnings
 
-    // 將圖片警告轉換為語法錯誤格式
-    const imageErrors: SyntaxError[] = imageWarnings.map(warning => ({
-      line: warning.line,
-      column: warning.column,
-      message: warning.message,
-      type: warning.severity,
-      suggestion: warning.suggestion
-    }))
-
-    // 合併所有驗證結果
+    // 合併語法驗證結果（不包含圖片警告，圖片警告已由 imageValidationWarnings 獨立顯示）
     syntaxErrors.value = [
       ...obsidianErrors,
       ...markdownErrors.map((error) => ({
         line: error.line,
         column: 0,
         message: error.message,
-        type: error.type as 'error' | 'warning',
-        suggestion: ''
+        type: error.type,
+        suggestion: ""
       })),
-      ...imageErrors
     ]
   }
 

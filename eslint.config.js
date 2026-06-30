@@ -1,96 +1,116 @@
-import js from '@eslint/js'
-import typescript from '@typescript-eslint/eslint-plugin'
-import typescriptParser from '@typescript-eslint/parser'
-import vue from 'eslint-plugin-vue'
-import vueParser from 'vue-eslint-parser'
+import js from "@eslint/js";
+import typescript from "@typescript-eslint/eslint-plugin";
+import typescriptParser from "@typescript-eslint/parser";
+import vue from "eslint-plugin-vue";
+import vueParser from "vue-eslint-parser";
 
 export default [
   js.configs.recommended,
   {
-    files: ['**/*.{js,ts,vue}'],
+    files: ["**/*.{js,ts,vue}"],
     languageOptions: {
       parser: vueParser,
       parserOptions: {
         parser: typescriptParser,
         ecmaVersion: 2022,
-        sourceType: 'module',
-        extraFileExtensions: ['.vue']
+        sourceType: "module",
+        extraFileExtensions: [".vue"],
       },
       globals: {
         // Node.js 全域變數
-        process: 'readonly',
-        Buffer: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        global: 'readonly',
-        
+        process: "readonly",
+        Buffer: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        global: "readonly",
+
         // 瀏覽器全域變數
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+
         // Node.js 類型
-        NodeJS: 'readonly'
-      }
+        NodeJS: "readonly",
+      },
     },
     plugins: {
-      '@typescript-eslint': typescript,
-      vue
+      "@typescript-eslint": typescript,
+      vue,
     },
     rules: {
       // TypeScript 規則
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
-      }],
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+
       // Vue 規則 - 放寬一些格式要求
-      'vue/multi-word-component-names': 'off',
-      'vue/no-unused-vars': 'error',
-      'vue/max-attributes-per-line': 'off',
-      'vue/singleline-html-element-content-newline': 'off',
-      'vue/html-self-closing': 'off',
-      'vue/attributes-order': 'off',
-      'vue/no-v-html': 'off',
-      
+      "vue/multi-word-component-names": "off",
+      "vue/no-unused-vars": "error",
+      "vue/max-attributes-per-line": "off",
+      "vue/singleline-html-element-content-newline": "off",
+      "vue/html-self-closing": "off",
+      "vue/attributes-order": "off",
+      "vue/no-v-html": "warn", // XSS 風険：真正需要時請確認已過 DOMPurify 清理
+
       // 一般規則
-      'no-console': 'off', // 開發時允許 console
-      'no-debugger': 'error',
-      'no-unused-vars': 'off', // 使用 TypeScript 版本
-      'no-undef': 'off', // TypeScript 處理這個
-      'eqeqeq': 'error',
-      'curly': ['error', 'all'],
-      'no-var': 'error',
-      'prefer-const': 'error',
-      'no-useless-escape': 'error',
-      'no-case-declarations': 'error'
-    }
+      quotes: ["error", "double", { avoidEscape: true }], // 統一使用雙引號，允許內含單引號時使用單引號避免 escape
+      "no-console": "error", // 禁止所有 console.* 呼叫，請改用 logger.ts / mainLogger.ts
+      "no-debugger": "error",
+      "no-unused-vars": "off", // 使用 TypeScript 版本
+      "no-undef": "off", // TypeScript 處理這個
+      eqeqeq: "error",
+      curly: ["error", "all"],
+      "no-var": "error",
+      "prefer-const": "error",
+      "no-useless-escape": "error",
+      "no-case-declarations": "error",
+    },
   },
 
   {
-    files: ['src/main/**/*.ts'],
+    files: ["src/main/**/*.ts"],
     languageOptions: {
       globals: {
         // 主程序特定的全域變數
-        __dirname: 'readonly',
-        process: 'readonly'
-      }
-    }
+        __dirname: "readonly",
+        process: "readonly",
+      },
+    },
+  },
+  // logger 實作檔案本身允許 console（它們是 console 的封裝層）
+  {
+    files: ["src/utils/logger.ts", "src/main/mainLogger.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  // 測試檔案：允許 console（測試輸出用途）
+  {
+    files: ["tests/**/*.{ts,js}"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  // SearchPanel 使用 highlightKeyword()，已對輸入做 HTML escape，v-html 安全
+  // PreviewPane 使用 sanitizedContent（Markdown→HTML 後經 DOMPurify 清理），v-html 安全
+  {
+    files: ["src/components/SearchPanel.vue", "src/components/PreviewPane.vue"],
+    rules: {
+      "vue/no-v-html": "off",
+    },
   },
   {
-    ignores: [
-      'node_modules/**',
-      'dist/**',
-      '*.config.js',
-      'vite.config.ts',
-      'vitest.config.ts'
-    ]
-  }
-]
+    ignores: ["node_modules/**", "dist/**", "*.config.js", "vite.config.ts", "vitest.config.ts", ".*/**", "docs/.vitepress/**"],
+  },
+];

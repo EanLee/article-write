@@ -4,12 +4,15 @@
     class="frontmatter-panel bg-base-100 border-b border-base-300"
   >
     <!-- 折疊/展開控制列 -->
-    <div class="panel-header flex items-center justify-between px-4 py-2 bg-base-200 cursor-pointer hover:bg-base-300" @click="toggleExpanded">
+    <div class="panel-header flex items-center justify-between px-4 py-2 bg-base-200 cursor-pointer hover:bg-base-300" @click.stop="toggleExpanded">
       <div class="flex items-center gap-2">
         <component :is="expanded ? ChevronDown : ChevronRight" :size="16" />
         <span class="font-semibold text-sm">Frontmatter</span>
       </div>
-      <span class="text-xs text-base-content/60">{{ expanded ? '點擊收合' : '點擊展開' }}</span>
+      <div class="flex items-center gap-2" @click.stop>
+        <SEOGenerateButton :article="article" @seo-generated="onSeoGenerated" @open-settings="emit('open-settings')" />
+        <span class="text-xs text-base-content/60">{{ expanded ? '點擊收合' : '點擊展開' }}</span>
+      </div>
     </div>
 
     <!-- 表格內容 -->
@@ -125,8 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { Article } from '@/types'
+import { ref, onMounted } from "vue"
+import type { Article } from "@/types"
 import {
   FileText,
   AlignLeft,
@@ -138,37 +141,47 @@ import {
   FolderOpen,
   ChevronDown,
   ChevronRight
-} from 'lucide-vue-next'
+} from "@lucide/vue"
+import SEOGenerateButton from "./SEOGenerateButton.vue"
 
 defineProps<{
   visible: boolean
   article: Article | null
 }>()
 
+const emit = defineEmits<{
+  (e: "seo-generated", result: { slug: string; metaDescription: string; keywords: string[] }): void
+  (e: "open-settings"): void
+}>()
+
+function onSeoGenerated(result: { slug: string; metaDescription: string; keywords: string[] }) {
+  emit("seo-generated", result)
+}
+
 const expanded = ref(true)
 
 // 從 localStorage 載入展開狀態
 onMounted(() => {
-  const savedExpanded = localStorage.getItem('frontmatter-panel-expanded')
+  const savedExpanded = localStorage.getItem("frontmatter-panel-expanded")
   if (savedExpanded !== null) {
-    expanded.value = savedExpanded === 'true'
+    expanded.value = savedExpanded === "true"
   }
 })
 
 function toggleExpanded() {
   expanded.value = !expanded.value
-  localStorage.setItem('frontmatter-panel-expanded', expanded.value.toString())
+  localStorage.setItem("frontmatter-panel-expanded", expanded.value.toString())
 }
 
 function formatDate(date: Date | string): string {
-  if (!date) {return '-'}
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+  if (!date) {return "-"}
+  const d = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
   }).format(d)
 }
 
@@ -196,20 +209,24 @@ function formatDate(date: Date | string): string {
   height: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-track {
   background: oklch(var(--b2));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .frontmatter-panel::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }
 
 /* 表格樣式優化 */
+/* noinspection CssUnresolvedCustomProperty */
 .table th {
   background: oklch(var(--b2));
   font-weight: 600;
@@ -222,6 +239,7 @@ function formatDate(date: Date | string): string {
   vertical-align: middle;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table tbody tr:hover {
   background: oklch(var(--b2) / 0.5);
 }

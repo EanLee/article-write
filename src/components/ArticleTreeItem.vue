@@ -1,14 +1,10 @@
 <template>
-  <div
-    class="article-tree-item flex items-center gap-1 px-2 py-1 cursor-pointer select-none transition-colors"
-    :class="{
+  <div class="article-tree-item flex items-center gap-1 px-2 py-1 cursor-pointer select-none transition-colors"
+    data-testid="article-tree-item" :class="{
       'bg-primary/10 text-primary font-medium': isCurrent,
       'hover:bg-base-200': !isCurrent
-    }"
-    :style="{ paddingLeft: `${indentLevel * 12 + 8}px` }"
-    @click="$emit('select', article)"
-    @contextmenu.prevent="handleContextMenu"
-  >
+    }" :style="{ paddingLeft: `${indentLevel * 12 + 8}px` }" @click="$emit('select', article)"
+    @contextmenu.prevent="handleContextMenu">
     <!-- 狀態圖示 -->
     <span v-if="showStatusIcons" class="shrink-0 w-4 text-center" :title="statusTooltip">
       <span v-if="isCurrent" class="text-primary">●</span>
@@ -30,31 +26,25 @@
     </span>
 
     <!-- 狀態徽章（緊湊模式） -->
-    <span
-      v-if="!showStatusIcons"
-      class="shrink-0 text-xs"
-      :class="{
-        'text-success': article.status === 'published',
-        'text-info': article.status === 'draft'
-      }"
-    >
+    <span v-if="!showStatusIcons" class="shrink-0 text-xs" :class="{
+      'text-success': article.status === 'published',
+      'text-info': article.status === 'draft'
+    }">
       {{ article.status === 'published' ? '✓' : '' }}
     </span>
 
     <!-- 日期（Hover 顯示） -->
-    <span
-      v-if="showDate"
-      class="shrink-0 text-xs text-base-content/40 hidden group-hover:inline"
-    >
+    <span v-if="showDate" class="shrink-0 text-xs text-base-content/40 hidden group-hover:inline">
       {{ formatDate(article.lastModified) }}
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { FileText } from 'lucide-vue-next'
-import type { Article } from '@/types'
+import { computed } from "vue"
+import { FileText } from "@lucide/vue"
+import type { Article } from "@/types"
+import { logger } from "@/utils/logger"
 
 interface Props {
   article: Article
@@ -76,41 +66,41 @@ defineEmits<{
 
 // Computed
 const hasUnsavedChanges = computed(() => {
-  // TODO: 從 AutoSaveService 獲取未儲存狀態
+  // 待接入 AutoSaveService 取得未儲存狀態
   return false
 })
 
 const statusTooltip = computed(() => {
-  if (props.isCurrent) {return '當前編輯'}
-  if (hasUnsavedChanges.value) {return '有未儲存的變更'}
-  if (props.article.status === 'published') {return '已發布'}
-  return '草稿'
+  if (props.isCurrent) { return "當前編輯" }
+  if (hasUnsavedChanges.value) { return "有未儲存的變更" }
+  if (props.article.status === "published") { return "已發布" }
+  return "草稿"
 })
 
 // Methods
 function formatDate(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  if (!dateObj || isNaN(dateObj.getTime())) {
-    return ''
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  if (!dateObj || Number.isNaN(dateObj.getTime())) {
+    return ""
   }
 
   const now = new Date()
   const diffMs = now.getTime() - dateObj.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) {return '今天'}
-  if (diffDays === 1) {return '昨天'}
-  if (diffDays < 7) {return `${diffDays}天前`}
+  if (diffDays === 0) { return "今天" }
+  if (diffDays === 1) { return "昨天" }
+  if (diffDays < 7) { return `${diffDays}天前` }
 
-  return new Intl.DateTimeFormat('zh-TW', {
-    month: 'short',
-    day: 'numeric'
+  return new Intl.DateTimeFormat("zh-TW", {
+    month: "short",
+    day: "numeric"
   }).format(dateObj)
 }
 
 function handleContextMenu(_e: MouseEvent) {
-  // TODO: 實作右鍵菜單
-  console.log('Right click on:', props.article.title)
+  // 右鍵菜單待實作
+  logger.debug("Right click on:", props.article.title)
 }
 </script>
 
@@ -119,6 +109,7 @@ function handleContextMenu(_e: MouseEvent) {
   min-height: 24px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .article-tree-item:focus-within {
   outline: 1px solid oklch(var(--p));
   outline-offset: -1px;

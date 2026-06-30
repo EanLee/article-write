@@ -28,12 +28,8 @@
 
       <div class="flex-1"></div>
 
-      <button
-        class="btn btn-outline btn-sm gap-2"
-        :class="{ 'loading': isSyncing }"
-        :disabled="isSyncing"
-        @click="handleSyncToBlog"
-      >
+      <button class="btn btn-outline btn-sm gap-2" :class="{ 'loading': isSyncing }" :disabled="isSyncing"
+        @click="handleSyncToBlog">
         <RefreshCw v-if="!isSyncing" :size="16" />
         {{ isSyncing ? `同步中 ${syncProgress.current}/${syncProgress.total}` : '同步到 Blog' }}
       </button>
@@ -47,12 +43,12 @@
     <!-- 篩選與搜尋列 -->
     <div class="filter-bar">
       <div class="filter-group">
-        <label class="filter-label">
+        <label for="filter-status" class="filter-label">
           <Filter :size="14" />
           <span>篩選</span>
         </label>
 
-        <select v-model="filters.status" class="select select-sm select-bordered">
+        <select id="filter-status" v-model="filters.status" class="select select-sm select-bordered">
           <option :value="ArticleFilterStatus.All">所有狀態</option>
           <option :value="ArticleFilterStatus.Draft">草稿</option>
           <option :value="ArticleFilterStatus.Published">已發布</option>
@@ -60,9 +56,7 @@
 
         <select v-model="filters.category" class="select select-sm select-bordered">
           <option :value="ArticleFilterCategory.All">所有分類</option>
-          <option :value="ArticleFilterCategory.Software">Software</option>
-          <option :value="ArticleFilterCategory.Growth">Growth</option>
-          <option :value="ArticleFilterCategory.Management">Management</option>
+          <option v-for="cat in articleStore.allCategories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
 
         <div class="search-box">
@@ -177,12 +171,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { useArticleStore } from '@/stores/article'
-import { useConfigStore } from '@/stores/config'
-import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from '@/types'
-import type { Article } from '@/types'
-import { notificationService } from '@/services/NotificationService'
+import { ref, computed, watch, nextTick } from "vue"
+import { useArticleStore } from "@/stores/article"
+import { useConfigStore } from "@/stores/config"
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types"
+import type { Article } from "@/types"
+import { notificationService } from "@/services/NotificationService"
 
 import {
   FileText,
@@ -196,14 +190,14 @@ import {
   FilePlus,
   Filter,
   RefreshCw
-} from 'lucide-vue-next'
+} from "@lucide/vue"
 
 
 const articleStore = useArticleStore()
 const configStore = useConfigStore()
 
 const emit = defineEmits<{
-  'edit-article': []
+  "edit-article": []
 }>()
 
 const isSyncing = ref(false)
@@ -227,7 +221,7 @@ const filters = computed({
 const hasActiveFilters = computed(() => {
   return filters.value.status !== ArticleFilterStatus.All ||
     filters.value.category !== ArticleFilterCategory.All ||
-    filters.value.searchText !== ''
+    filters.value.searchText !== ""
 })
 
 // 直接使用 store 的 filteredArticles，避免重複過濾
@@ -267,7 +261,7 @@ function resetFilters() {
     status: ArticleFilterStatus.All,
     category: ArticleFilterCategory.All,
     tags: [],
-    searchText: ''
+    searchText: ""
   })
 }
 
@@ -284,7 +278,7 @@ function handleEditArticle(article: Article) {
   }
 
   articleStore.setCurrentArticle(article)
-  emit('edit-article')
+  emit("edit-article")
 
   // 使用 nextTick 確保 DOM 更新後恢復滾動位置
   nextTick(() => {
@@ -304,22 +298,22 @@ function handleDeleteArticle(article: Article) {
 // 同步所有已發布文章到 Blog
 async function handleSyncToBlog() {
   const config = configStore.config
-  if (!config.paths.articlesDir || !config.paths.targetBlog) {
-    notificationService.error('請先在設定中配置文章目錄和部落格路徑')
+  if (!config.paths.articlesDir || !config.paths.targetDir) {
+    notificationService.error("請先在設定中配置文章目錄和部落格路徑")
     return
   }
 
   isSyncing.value = true
   syncProgress.value = { current: 0, total: 0 }
 
-  const unsubscribe = window.electronAPI.onSyncProgress((data) => {
+  const unsubscribe = globalThis.electronAPI.onSyncProgress((data) => {
     syncProgress.value = { current: data.current, total: data.total }
   })
 
   try {
-    const result = await window.electronAPI.syncAllPublished({
+    const result = await globalThis.electronAPI.syncAllPublished({
       articlesDir: config.paths.articlesDir,
-      targetBlogDir: config.paths.targetBlog,
+      targetBlogDir: config.paths.targetDir,
       imagesDir: config.paths.imagesDir
     })
 
@@ -334,7 +328,7 @@ async function handleSyncToBlog() {
       result.warnings.forEach(w => notificationService.warning(w))
     }
   } catch (error) {
-    const msg = error instanceof Error ? error.message : '未知錯誤'
+    const msg = error instanceof Error ? error.message : "未知錯誤"
     notificationService.error(`同步失敗：${msg}`)
   } finally {
     isSyncing.value = false
@@ -351,11 +345,11 @@ async function handleCreateArticle() {
   }
 
   // 創建新文章（需要提供標題和分類，這裡使用預設值）
-  const newArticle = await articleStore.createArticle('未命名文章', 'Software' as any)
+  const newArticle = await articleStore.createArticle("未命名文章", "Software")
 
   // 設為當前文章
   articleStore.setCurrentArticle(newArticle)
-  emit('edit-article')
+  emit("edit-article")
 
   // 恢復滾動位置
   nextTick(() => {
@@ -367,24 +361,26 @@ async function handleCreateArticle() {
 
 // 格式化日期
 function formatDate(date: Date | string): string {
-  if (!date) { return '-' }
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+  if (!date) { return "-" }
+  const d = typeof date === "string" ? new Date(date) : date
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
   }).format(d)
 }
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .article-management {
   background: oklch(var(--b1));
 }
 
 /* 統計列 */
+/* noinspection CssUnresolvedCustomProperty */
 .stats-bar {
   display: flex;
   align-items: center;
@@ -394,6 +390,7 @@ function formatDate(date: Date | string): string {
   border-bottom: 1px solid oklch(var(--bc) / 0.1);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-item {
   display: flex;
   align-items: center;
@@ -406,20 +403,24 @@ function formatDate(date: Date | string): string {
   font-weight: 500;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
   color: oklch(var(--bc));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-draft {
   color: oklch(var(--in));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-published {
   color: oklch(var(--su));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .stat-divider {
   width: 1px;
   height: 1.5rem;
@@ -427,6 +428,7 @@ function formatDate(date: Date | string): string {
 }
 
 /* 篩選列 */
+/* noinspection CssUnresolvedCustomProperty */
 .filter-bar {
   display: flex;
   justify-content: space-between;
@@ -444,6 +446,7 @@ function formatDate(date: Date | string): string {
   flex: 1;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .filter-label {
   display: flex;
   align-items: center;
@@ -459,6 +462,7 @@ function formatDate(date: Date | string): string {
   min-width: 240px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .search-icon {
   position: absolute;
   left: 0.75rem;
@@ -472,12 +476,14 @@ function formatDate(date: Date | string): string {
   padding-left: 2.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .result-count {
   font-size: 0.875rem;
   color: oklch(var(--bc) / 0.6);
   white-space: nowrap;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .result-count strong {
   color: oklch(var(--bc));
   font-weight: 700;
@@ -494,6 +500,7 @@ function formatDate(date: Date | string): string {
   width: 100%;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table th {
   background: oklch(var(--b2));
   font-weight: 600;
@@ -513,6 +520,7 @@ function formatDate(date: Date | string): string {
   transition: background 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table tbody tr:hover {
   background: oklch(var(--b2) / 0.5);
 }
@@ -527,11 +535,13 @@ function formatDate(date: Date | string): string {
   text-align: center;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-icon {
   color: oklch(var(--bc) / 0.2);
   margin-bottom: 1rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -539,12 +549,14 @@ function formatDate(date: Date | string): string {
   margin-bottom: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .empty-subtitle {
   font-size: 0.875rem;
   color: oklch(var(--bc) / 0.5);
 }
 
 /* 分頁列 */
+/* noinspection CssUnresolvedCustomProperty */
 .pagination-bar {
   display: flex;
   justify-content: space-between;
@@ -560,15 +572,18 @@ function formatDate(date: Date | string): string {
   height: 0.5rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-track {
   background: oklch(var(--b2));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 0.25rem;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table-container::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

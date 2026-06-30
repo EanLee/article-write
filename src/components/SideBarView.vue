@@ -25,6 +25,15 @@
             <Info :size="14" />
             <span>文章資訊</span>
           </button>
+          <button
+            class="tab-btn"
+            :class="{ active: modelValue === SidebarView.Outline }"
+            :disabled="!hasCurrentArticle"
+            @click="$emit('update:modelValue', SidebarView.Outline)"
+          >
+            <List :size="14" />
+            <span>大綱</span>
+          </button>
         </div>
       </div>
 
@@ -32,6 +41,11 @@
       <div class="sidebar-content">
         <ArticleListTree v-if="modelValue === SidebarView.Articles" />
         <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+        <OutlinePanel
+          v-else-if="modelValue === SidebarView.Outline"
+          :headings="props.outlineHeadings"
+          @scroll-to-line="$emit('scroll-to-outline-line', $event)"
+        />
       </div>
 
       <!-- Resize Handle -->
@@ -41,15 +55,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { FileText, Info } from 'lucide-vue-next'
-import { SidebarView } from '@/types'
-import { useArticleStore } from '@/stores/article'
-import { useFocusMode } from '@/composables/useFocusMode'
-import ArticleListTree from './ArticleListTree.vue'
-import FrontmatterView from './FrontmatterView.vue'
+import { ref, computed, onMounted, onUnmounted } from "vue"
+import { FileText, Info, List } from "@lucide/vue"
+import { SidebarView } from "@/types"
+import { useArticleStore } from "@/stores/article"
+import { useFocusMode } from "@/composables/useFocusMode"
+import ArticleListTree from "./ArticleListTree.vue"
+import FrontmatterView from "./FrontmatterView.vue"
+import OutlinePanel from "./OutlinePanel.vue"
+import type { OutlineHeading } from "@/components/CodeMirrorEditor.vue"
 
-defineProps<{ isCollapsed: boolean }>()
+const props = defineProps<{
+  isCollapsed: boolean
+  outlineHeadings: OutlineHeading[]
+}>()
+
+defineEmits<{
+  "scroll-to-outline-line": [line: number]
+}>()
 
 const articleStore = useArticleStore()
 const { focusMode } = useFocusMode()
@@ -58,7 +81,7 @@ const modelValue = defineModel<SidebarView>({ default: SidebarView.Articles })
 const MIN_WIDTH = 200
 const MAX_WIDTH = 600
 const DEFAULT_WIDTH = 280
-const STORAGE_KEY = 'sidebar-view-width'
+const STORAGE_KEY = "sidebar-view-width"
 
 const width = ref(DEFAULT_WIDTH)
 const isResizing = ref(false)
@@ -88,23 +111,24 @@ function stopResize() {
 onMounted(() => {
   const savedWidth = localStorage.getItem(STORAGE_KEY)
   if (savedWidth) {
-    const parsed = parseInt(savedWidth, 10)
+    const parsed = Number.parseInt(savedWidth, 10)
     if (parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
       width.value = parsed
     }
   }
 
-  document.addEventListener('mousemove', handleMouseMove)
-  document.addEventListener('mouseup', stopResize)
+  document.addEventListener("mousemove", handleMouseMove)
+  document.addEventListener("mouseup", stopResize)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', handleMouseMove)
-  document.removeEventListener('mouseup', stopResize)
+  document.removeEventListener("mousemove", handleMouseMove)
+  document.removeEventListener("mouseup", stopResize)
 })
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-view {
   background: oklch(var(--b1));
   border-right: 1px solid oklch(var(--bc) / 0.1);
@@ -122,6 +146,7 @@ onUnmounted(() => {
   border-right: none;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .sidebar-header {
   border-bottom: 1px solid oklch(var(--bc) / 0.1);
   background: oklch(var(--b2) / 0.5);
@@ -133,6 +158,7 @@ onUnmounted(() => {
   gap: 2px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn {
   flex: 1;
   display: flex;
@@ -150,11 +176,13 @@ onUnmounted(() => {
   transition: all 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn:hover:not(:disabled) {
   background: oklch(var(--bc) / 0.05);
   color: oklch(var(--bc) / 0.8);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .tab-btn.active {
   background: oklch(var(--b1));
   color: oklch(var(--p));
@@ -183,6 +211,7 @@ onUnmounted(() => {
   transition: background 0.2s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .resize-handle:hover {
   background: oklch(var(--p) / 0.3);
 }

@@ -1,24 +1,58 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FileService } from './services/FileService.js'
-import { ConfigService } from './services/ConfigService.js'
-import { ProcessService } from './services/ProcessService.js'
-import { PublishService } from './services/PublishService.js'
-import { GitService } from './services/GitService.js'
+import { initSentry } from "./sentry.js";
+import { app, BrowserWindow, protocol, net } from "electron";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import pkg from "electron-updater";
+const { autoUpdater } = pkg;
+import { FileService } from "./services/FileService.js";
+import { ConfigService } from "./services/ConfigService.js";
+import { ProcessService } from "./services/ProcessService.js";
+import { PublishService } from "./services/PublishService.js";
+import { GitService } from "./services/GitService.js";
+import { SearchService } from "./services/SearchService.js";
+import { AIService } from "./services/AIService.js";
+import { IPC } from "./ipc-channels.js";
+import { logger } from "./mainLogger.js";
+import { registerIpcHandlers } from "./registerIpcHandlers.js";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const isDev = !app.isPackaged
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const isTest = process.env.NODE_ENV === "test";
+const isDev = !app.isPackaged && !isTest;
+// 只有開發模式從 Vite dev server 載入；測試模式從 dist/renderer/index.html 載入
+const loadFromDevServer = isDev;
 
-let mainWindow: BrowserWindow
+// 盡早初始化 Sentry，確保能捕捉啟動階段的錯誤
+initSentry();
+
+// 停用 Autofill 功能以消除 DevTools protocol 警告
+app.commandLine.appendSwitch("disable-features", "AutofillServerCommunication");
+
+// 必須在 app.whenReady() 前宣告自訂 scheme（Electron 限制）
+// local-file:// 用於在 renderer 中安全載入 vault 內的本地圖片
+// 若 renderer 從 http://localhost:3002（開發模式）載入，瀏覽器同源政策會封鎖 file:// 請求
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "local-file",
+    privileges: {
+      standard: true,
+      secure: true,
+      corsEnabled: true,
+      supportFetchAPI: true,
+    },
+  },
+]);
+
+let mainWindow: BrowserWindow;
 
 // 模組級別服務實例，確保整個應用生命週期使用同一實例
-const fileService = new FileService()
-const configService = new ConfigService()
-const processService = new ProcessService()
-const publishService = new PublishService(fileService)
-const gitService = new GitService()
+const fileService = new FileService();
+const configService = new ConfigService();
+const processService = new ProcessService();
+const publishService = new PublishService(fileService);
+const gitService = new GitService(configService); // S7-01: 注入 ConfigService 以啟用 repoPath 白名單驗證
+const searchService = new SearchService();
+const aiService = new AIService(configService);
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -27,132 +61,139 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: join(__dirname, 'preload.js')
-    }
-  })
+      // sandbox: false 允許 preload 使用 ESM import 語法（NodeNext 模組系統）
+      // 安全性由 contextIsolation: true 保障
+      sandbox: false,
+      preload: join(__dirname, "../preload/preload.js"),
+    },
+  });
 
   // 設定 Content Security Policy
   mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [
-          isDev
+        "Content-Security-Policy": [
+          loadFromDevServer
             ? // 開發模式：允許 Vite 開發伺服器和熱更新
               "default-src 'self'; " +
               "script-src 'self' 'unsafe-inline' http://localhost:3002; " +
               "style-src 'self' 'unsafe-inline' http://localhost:3002; " +
-              "img-src 'self' data: http://localhost:3002; " +
+              "img-src 'self' data: file: local-file: http://localhost:3002; " +
               "connect-src 'self' ws://localhost:3002 http://localhost:3002; " +
               "font-src 'self' data:;"
             : // 生產模式：更嚴格的策略
               "default-src 'self'; " +
               "script-src 'self'; " +
               "style-src 'self' 'unsafe-inline'; " +
-              "img-src 'self' data:; " +
+              "img-src 'self' data: file: local-file:; " +
               "connect-src 'self'; " +
-              "font-src 'self' data:;"
-        ]
-      }
-    })
-  })
+              "font-src 'self' data:;",
+        ],
+      },
+    });
+  });
 
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:3002')
-    mainWindow.webContents.openDevTools()
+  if (loadFromDevServer) {
+    mainWindow.loadURL("http://localhost:3002");
+    if (isDev) {
+      mainWindow.webContents.openDevTools();
+    }
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+  }
+
+  // E2E 測試模式：允許 beforeunload 導致的導航（避免 reload 被 will-prevent-unload 卡住）
+  if (isTest) {
+    mainWindow.webContents.on("will-prevent-unload", (event) => {
+      event.preventDefault();
+    });
   }
 }
 
-app.whenReady().then(() => {
-  createWindow()
-  
-  // Register IPC handlers
-  ipcMain.handle('read-file', (_, path: string) => fileService.readFile(path))
-  ipcMain.handle('write-file', (_, path: string, content: string) => fileService.writeFile(path, content))
-  ipcMain.handle('delete-file', (_, path: string) => fileService.deleteFile(path))
-  ipcMain.handle('copy-file', (_, sourcePath: string, targetPath: string) => fileService.copyFile(sourcePath, targetPath))
-  ipcMain.handle('read-directory', (_, path: string) => fileService.readDirectory(path))
-  ipcMain.handle('create-directory', (_, path: string) => fileService.createDirectory(path))
-  ipcMain.handle('get-file-stats', (_, path: string) => fileService.getFileStats(path))
-  
-  ipcMain.handle('get-config', () => configService.getConfig())
-  ipcMain.handle('set-config', (_, config: any) => configService.setConfig(config))
-  ipcMain.handle('validate-articles-dir', (_, path: string) => configService.validateArticlesDir(path))
-  ipcMain.handle('validate-astro-blog', (_, path: string) => configService.validateAstroBlog(path))
+function setupAutoUpdater() {
+  // 開發/測試模式不執行更新檢查
+  if (isDev || isTest) {
+    return;
+  }
 
-  // Publish Service
-  ipcMain.handle('publish-article', async (_, article: any, config: any, onProgress?: any) => {
-    return await publishService.publishArticle(article, config, onProgress)
-  })
+  autoUpdater.autoDownload = false; // QUAL6-03: 改為使用者確認後才下載，防止供應鏈攻擊
+  autoUpdater.autoInstallOnAppQuit = true;
 
-  ipcMain.handle('sync-all-published', async (event, config: any) => {
-    return await publishService.syncAllPublished(config, (current, total, title) => {
-      event.sender.send('sync-progress', { current, total, title })
-    })
-  })
+  autoUpdater.on("update-available", (info: { version: string }) => {
+    mainWindow?.webContents.send(IPC.EVENT_UPDATE_AVAILABLE, { version: info.version });
+  });
 
-  // Git Service
-  ipcMain.handle('git-status', (_, repoPath: string) => gitService.getStatus(repoPath))
-  ipcMain.handle('git-add', (_, repoPath: string, paths?: string[]) => gitService.add(repoPath, paths))
-  ipcMain.handle('git-commit', (_, repoPath: string, options: { message: string; addAll?: boolean }) =>
-    gitService.commit(repoPath, options)
-  )
-  ipcMain.handle('git-push', (_, repoPath: string, options?: { remote?: string; branch?: string }) =>
-    gitService.push(repoPath, options)
-  )
-  ipcMain.handle('git-add-commit-push', (_, repoPath: string, commitMessage: string) =>
-    gitService.addCommitPush(repoPath, commitMessage)
-  )
-  ipcMain.handle('git-log', (_, repoPath: string, count?: number) => gitService.getLog(repoPath, count))
+  autoUpdater.on("update-downloaded", (info: { version: string }) => {
+    mainWindow?.webContents.send(IPC.EVENT_UPDATE_DOWNLOADED, { version: info.version });
+  });
 
-  ipcMain.handle('start-dev-server', (_, projectPath: string) => processService.startDevServer(projectPath))
-  ipcMain.handle('stop-dev-server', () => processService.stopDevServer())
-  ipcMain.handle('get-server-status', () => processService.getServerStatus())
-  
-  // 檔案監聽
-  ipcMain.handle('start-file-watching', (_, watchPath: string) => {
-    fileService.startWatching(watchPath, (event, filePath) => {
-      // 只監聽 .md 檔案
-      if (filePath.endsWith('.md')) {
-        mainWindow?.webContents.send('file-change', { event, path: filePath })
-      }
-    })
-    return true
-  })
-  ipcMain.handle('stop-file-watching', () => {
-    fileService.stopWatching()
-    return true
-  })
-  ipcMain.handle('is-file-watching', () => fileService.isWatching())
-  
-  // Directory selection
-  ipcMain.handle('select-directory', async (_, options?: { title?: string, defaultPath?: string }) => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-      title: options?.title || '選擇資料夾',
-      defaultPath: options?.defaultPath
-    })
-    
-    if (result.canceled) {
-      return null
-    }
-    
-    return result.filePaths[0]
-  })
+  autoUpdater.on("error", (err: Error) => {
+    // 更新失敗不影響 App，僅 log
+    logger.error("[AutoUpdater] error:", err.message);
+  });
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {createWindow()}
-  })
-})
+  autoUpdater.checkForUpdates();
+}
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {app.quit()}
-})
+// 應用程式生命週期事件監聽——在 whenReady 前登錄，確保任何時機都能觸發
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
 
-app.on('before-quit', () => {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("before-quit", () => {
   // 清理運行中的進程和檔案監聽
-  fileService.stopWatching()
-  processService.stopDevServer()
-})
+  fileService.stopWatching();
+  fileService.clearWatchListeners(); // app 完全關閉時才清除所有訂閱者
+  processService.stopDevServer();
+});
+
+// Electron 42（Chromium 130）ESM 主程序中，top-level await app.whenReady() 會造成
+// 模組評估暫停 → ready 事件等待模組完成 → 死鎖。改用 .then() 回呼避免此問題。
+app.whenReady().then(async () => {
+  // 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
+  // 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
+  protocol.handle("local-file", async (request) => {
+    try {
+      const url = new URL(request.url);
+      // pathname 在 Windows 上為 /C:/path/...，需移除開頭的 /
+      const pathname = decodeURIComponent(url.pathname);
+      // 使用 file:// + pathname（pathname 已含開頭的 /，適用 Unix；Windows 路徑前有多餘 /）
+      return await net.fetch(`file://${pathname}`);
+    } catch {
+      return new Response("Not Found", { status: 404 });
+    }
+  });
+
+  createWindow();
+  setupAutoUpdater();
+
+  // 載入設定並初始化檔案路徑白名單
+  try {
+    const initialConfig = await configService.getConfig();
+    fileService.setAllowedPaths([initialConfig?.paths?.articlesDir, initialConfig?.paths?.targetDir, initialConfig?.paths?.imagesDir]);
+  } catch {
+    // 設定尚未建立；白名單為空陣列，所有檔案操作將被 fail-close 拒絕直到使用者完成路徑設定
+  }
+
+  // A6-02: IPC handler 登錄委派至 registerIpcHandlers.ts
+  // 避免 app.whenReady() 成為 God Function（~150 行）
+  registerIpcHandlers({
+    fileService,
+    configService,
+    processService,
+    publishService,
+    gitService,
+    searchService,
+    aiService,
+    getMainWindow: () => mainWindow ?? null,
+  });
+});

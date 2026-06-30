@@ -5,10 +5,11 @@
       
       <form v-if="localArticle" @submit.prevent="handleSave" class="space-y-4">
         <div class="form-control">
-          <label class="label">
+          <label for="title-input" class="label">
             <span class="label-text">標題 *</span>
           </label>
           <input
+            id="title-input"
             v-model="localArticle.frontmatter.title"
             type="text"
             placeholder="文章標題"
@@ -18,25 +19,26 @@
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="slug-input" class="label">
             <span class="label-text">網址代稱</span>
           </label>
-          <input
+          <input id="slug-input"
             v-model="localArticle.slug"
             type="text"
             placeholder="自動生成"
             class="input input-bordered"
           />
-          <label class="label">
+          <div class="label">
             <span class="label-text-alt">留空將根據標題自動生成</span>
-          </label>
+          </div>
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="description-input" class="label">
             <span class="label-text">描述</span>
           </label>
           <textarea
+            id="description-input"
             v-model="localArticle.frontmatter.description"
             class="textarea textarea-bordered"
             rows="3"
@@ -45,10 +47,11 @@
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="date-input" class="label">
             <span class="label-text">發布日期</span>
           </label>
           <input
+            id="date-input"
             v-model="publishDate"
             type="date"
             class="input input-bordered"
@@ -56,10 +59,10 @@
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="category-input" class="label">
             <span class="label-text">分類</span>
           </label>
-          <select v-model="localArticle.category" class="select select-bordered">
+          <select id="category-input" v-model="localArticle.category" class="select select-bordered">
             <option value="">選擇分類</option>
             <option value="Software">Software</option>
             <option value="growth">Growth</option>
@@ -69,25 +72,27 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
-            <label class="label">
+            <label for="series-input" class="label">
               <span class="label-text">系列名稱</span>
             </label>
             <input
+              id="series-input"
               v-model="localArticle.frontmatter.series"
               type="text"
               placeholder="例如：Vue 3 進階教學"
               class="input input-bordered"
             />
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt">將相關文章組織成系列</span>
-            </label>
+            </div>
           </div>
 
           <div class="form-control">
-            <label class="label">
+            <label for="series-order-input" class="label">
               <span class="label-text">系列順序</span>
             </label>
             <input
+              id="series-order-input"
               v-model.number="localArticle.frontmatter.seriesOrder"
               type="number"
               min="1"
@@ -95,14 +100,14 @@
               class="input input-bordered"
               :disabled="!localArticle.frontmatter.series"
             />
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt">在系列中的排序</span>
-            </label>
+            </div>
           </div>
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="tags-input" class="label">
             <span class="label-text">標籤</span>
           </label>
           <div class="flex flex-wrap gap-2 mb-2">
@@ -123,6 +128,7 @@
           </div>
           <div class="join">
             <input
+              id="tags-input"
               v-model="newTag"
               type="text"
               placeholder="輸入標籤"
@@ -140,7 +146,7 @@
         </div>
 
         <div class="form-control">
-          <label class="label">
+          <label for="keywords-input" class="label">
             <span class="label-text">關鍵字</span>
           </label>
           <div class="flex flex-wrap gap-2 mb-2">
@@ -161,6 +167,7 @@
           </div>
           <div class="join">
             <input
+              id="keywords-input"
               v-model="newKeyword"
               type="text"
               placeholder="輸入 SEO 關鍵字"
@@ -187,9 +194,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { Article } from '@/types'
-import { autoSaveService } from '@/services/AutoSaveService'
+import { ref, watch } from "vue"
+import type { Article } from "@/types"
+import { autoSaveService } from "@/services/AutoSaveService"
 
 interface Props {
   modelValue: boolean
@@ -197,17 +204,17 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'update', article: Article): void
+  (e: "update:modelValue", value: boolean): void
+  (e: "update", article: Article): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const localArticle = ref<Article | null>(null)
-const publishDate = ref('')
-const newTag = ref('')
-const newKeyword = ref('')
+const publishDate = ref("")
+const newTag = ref("")
+const newKeyword = ref("")
 
 // Methods
 function updateSlug() {
@@ -223,27 +230,30 @@ function updateSlug() {
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, '') // Allow Chinese characters
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
+    .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, "") // Allow Chinese characters
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
     .trim()
 }
 
 function addTag() {
   if (newTag.value.trim() && localArticle.value) {
     const tag = newTag.value.trim()
+    if (!localArticle.value.frontmatter.tags) {
+      localArticle.value.frontmatter.tags = []
+    }
     if (!localArticle.value.frontmatter.tags.includes(tag)) {
       localArticle.value.frontmatter.tags.push(tag)
     }
-    newTag.value = ''
+    newTag.value = ""
   }
 }
 
 function removeTag(tag: string) {
   if (localArticle.value) {
-    const index = localArticle.value.frontmatter.tags.indexOf(tag)
-    if (index > -1) {
-      localArticle.value.frontmatter.tags.splice(index, 1)
+    const index = localArticle.value.frontmatter.tags?.indexOf(tag)
+    if (index !== undefined && index > -1) {
+      localArticle.value.frontmatter.tags?.splice(index, 1)
     }
   }
 }
@@ -257,7 +267,7 @@ function addKeyword() {
     if (!localArticle.value.frontmatter.keywords.includes(keyword)) {
       localArticle.value.frontmatter.keywords.push(keyword)
     }
-    newKeyword.value = ''
+    newKeyword.value = ""
   }
 }
 
@@ -274,7 +284,7 @@ function handleSave() {
   if (!localArticle.value) {return}
 
   // Update the article title if frontmatter title changed
-  localArticle.value.title = localArticle.value.frontmatter.title
+  localArticle.value.title = localArticle.value.frontmatter.title ?? ""
 
   // Update publish date
   if (publishDate.value) {
@@ -285,18 +295,18 @@ function handleSave() {
   localArticle.value.frontmatter.categories = [localArticle.value.category]
 
   // Update lastmod
-  localArticle.value.frontmatter.lastmod = new Date().toISOString().split('T')[0]
+  localArticle.value.frontmatter.lastmod = new Date().toISOString().split("T")[0]
   localArticle.value.lastModified = new Date()
 
   // 標記內容已修改
   autoSaveService.markAsModified()
 
-  emit('update', localArticle.value)
-  emit('update:modelValue', false)
+  emit("update", localArticle.value)
+  emit("update:modelValue", false)
 }
 
 function handleClose() {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false)
 }
 
 // Watch for article changes
@@ -305,8 +315,8 @@ watch(
   (newArticle) => {
     if (newArticle) {
       // Create a deep copy to avoid mutating the original
-      localArticle.value = JSON.parse(JSON.stringify(newArticle))
-      publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split('T')[0]
+      localArticle.value = structuredClone(newArticle)
+      publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split("T")[0]
       
       // Ensure keywords array exists
       if (!localArticle.value!.frontmatter.keywords) {
@@ -323,8 +333,8 @@ watch(
   (isOpen) => {
     if (isOpen && props.article) {
       // Reset local article when dialog opens
-      localArticle.value = JSON.parse(JSON.stringify(props.article))
-      publishDate.value = props.article.frontmatter.date || new Date().toISOString().split('T')[0]
+      localArticle.value = structuredClone(props.article)
+      publishDate.value = props.article.frontmatter.date || new Date().toISOString().split("T")[0]
     }
   }
 )

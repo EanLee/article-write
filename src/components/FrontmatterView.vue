@@ -16,6 +16,12 @@
 
       <!-- Frontmatter 表格 -->
       <table class="table table-sm">
+        <thead class="sr-only">
+          <tr>
+            <th>欄位</th>
+            <th>內容</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
             <td class="font-semibold w-20">標題</td>
@@ -101,32 +107,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Info, Edit2 } from 'lucide-vue-next'
-import { useArticleStore } from '@/stores/article'
+import { computed } from "vue"
+import { Info, Edit2 } from "@lucide/vue"
+import { useArticleStore } from "@/stores/article"
+import { logger } from "@/utils/logger"
 
 const articleStore = useArticleStore()
 const currentArticle = computed(() => articleStore.currentArticle)
 
 function openEditor() {
-  // TODO: 開啟 Frontmatter 編輯 modal
+  // 待實作：開啟 Frontmatter 編輯 modal
   // 可以 emit 事件或使用 store 管理 modal 狀態
-  console.log('Open Frontmatter Editor')
+  logger.debug("Open Frontmatter Editor")
 }
 
 function formatDate(dateString: string) {
-  if (!dateString) {return ''}
-  return new Date(dateString).toLocaleDateString('zh-TW')
+  if (!dateString) {return ""}
+  return new Date(dateString).toLocaleDateString("zh-TW")
 }
 
 function formatDateTime(date: Date) {
-  if (!date) {return ''}
-  return new Date(date).toLocaleString('zh-TW')
+  if (!date) {return ""}
+  return new Date(date).toLocaleString("zh-TW")
 }
 
 function getFileName(filePath: string) {
-  if (!filePath) {return ''}
-  return filePath.split(/[/\\]/).pop() || ''
+  if (!filePath) {return ""}
+  return filePath.split(/[/\\]/).pop() || ""
 }
 </script>
 
@@ -164,6 +171,7 @@ function getFileName(filePath: string) {
   vertical-align: top;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .table td:first-child {
   color: oklch(var(--bc) / 0.7);
 }

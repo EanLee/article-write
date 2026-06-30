@@ -51,6 +51,7 @@
     <!-- Tree View -->
     <div
       ref="treeContainerRef"
+      role="tree"
       class="flex-1 overflow-y-auto text-sm"
       @keydown="handleKeydown"
       tabindex="0"
@@ -134,8 +135,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import { useArticleStore } from '@/stores/article'
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue"
+import { useArticleStore } from "@/stores/article"
 import {
   Search,
   SlidersHorizontal,
@@ -143,9 +144,10 @@ import {
   FolderOpen,
   FolderClosed,
   FileQuestion
-} from 'lucide-vue-next'
-import ArticleTreeItem from './ArticleTreeItem.vue'
-import type { Article } from '@/types'
+} from "@lucide/vue"
+import ArticleTreeItem from "./ArticleTreeItem.vue"
+import type { Article } from "@/types"
+import { logger } from "@/utils/logger"
 
 const articleStore = useArticleStore()
 
@@ -154,7 +156,7 @@ const searchInputRef = ref<HTMLInputElement>()
 const treeContainerRef = ref<HTMLElement>()
 
 // State
-const searchText = ref('')
+const searchText = ref("")
 const groupBySeries = ref(true)
 const showStatusIcons = ref(true)
 const collapsedGroups = ref(new Set<string>())
@@ -186,7 +188,7 @@ const seriesGroups = computed(() => {
   const groups = new Map<string, Article[]>()
 
   filteredArticles.value.forEach(article => {
-    const seriesName = article.frontmatter.series || '_standalone'
+    const seriesName = article.frontmatter.series || "_standalone"
     if (!groups.has(seriesName)) {
       groups.set(seriesName, [])
     }
@@ -198,7 +200,7 @@ const seriesGroups = computed(() => {
 
   // 先添加有系列的
   Array.from(groups.entries())
-    .filter(([name]) => name !== '_standalone')
+    .filter(([name]) => name !== "_standalone")
     .sort(([a], [b]) => a.localeCompare(b))
     .forEach(([name, articles]) => {
       // 按 seriesOrder 排序（使用副本避免修改原陣列）
@@ -216,14 +218,14 @@ const seriesGroups = computed(() => {
     })
 
   // 最後添加獨立文章
-  if (groups.has('_standalone')) {
+  if (groups.has("_standalone")) {
     // 使用副本避免修改原陣列
-    const standaloneArticles = groups.get('_standalone')!
+    const standaloneArticles = groups.get("_standalone")!
     result.push({
-      name: '_standalone',
-      displayName: '📄 獨立文章',
+      name: "_standalone",
+      displayName: "📄 獨立文章",
       articles: [...standaloneArticles].sort((a, b) =>
-        a.title.localeCompare(b.title, 'zh-TW')
+        a.title.localeCompare(b.title, "zh-TW")
       )
     })
   }
@@ -240,10 +242,10 @@ function handleSearch() {
 }
 
 function handleSearchKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    searchText.value = ''
+  if (e.key === "Escape") {
+    searchText.value = ""
     searchInputRef.value?.blur()
-  } else if (e.key === 'Enter') {
+  } else if (e.key === "Enter") {
     // Enter 聚焦到第一個結果
     nextTick(() => {
       treeContainerRef.value?.focus()
@@ -275,7 +277,7 @@ function selectArticle(article: Article) {
 
 function handleKeydown(e: KeyboardEvent) {
   // 全域快捷鍵處理
-  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+  if ((e.ctrlKey || e.metaKey) && e.key === "f") {
     e.preventDefault()
     searchInputRef.value?.focus()
   }
@@ -283,7 +285,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 // 儲存/載入設定
 function loadSettings() {
-  const saved = localStorage.getItem('article-list-settings')
+  const saved = localStorage.getItem("article-list-settings")
   if (saved) {
     try {
       const settings = JSON.parse(saved)
@@ -293,7 +295,7 @@ function loadSettings() {
         collapsedGroups.value = new Set(settings.collapsedGroups)
       }
     } catch (e) {
-      console.error('Failed to load article list settings:', e)
+      logger.error("Failed to load article list settings:", e)
     }
   }
 }
@@ -304,7 +306,7 @@ function saveSettings() {
     showStatusIcons: showStatusIcons.value,
     collapsedGroups: Array.from(collapsedGroups.value)
   }
-  localStorage.setItem('article-list-settings', JSON.stringify(settings))
+  localStorage.setItem("article-list-settings", JSON.stringify(settings))
 }
 
 onMounted(() => {
@@ -329,11 +331,13 @@ onMounted(() => {
   background: transparent;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background: oklch(var(--bc) / 0.2);
   border-radius: 3px;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: oklch(var(--bc) / 0.3);
 }

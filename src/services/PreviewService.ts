@@ -1,5 +1,6 @@
-import { MarkdownService } from './MarkdownService'
-import type { Article } from '@/types'
+import { logger } from "@/utils/logger"
+import { MarkdownService } from "./MarkdownService"
+import type { Article } from "@/types"
 
 /**
  * 預覽渲染選項介面
@@ -17,9 +18,9 @@ export interface PreviewOptions {
  * 負責渲染 Obsidian 格式內容並顯示轉換後的外觀
  */
 export class PreviewService {
-  private markdownService: MarkdownService
+  private readonly markdownService: MarkdownService
   private articles: Article[] = []
-  private imageBasePath: string = ''
+  private imageBasePath: string = ""
 
   /**
    * 建構子 - 初始化預覽服務
@@ -50,14 +51,16 @@ export class PreviewService {
    * @param {PreviewOptions} options - 預覽選項
    * @returns {string} 渲染後的 HTML
    */
-  renderPreview(content: string, options: PreviewOptions = {
+  private static readonly DEFAULT_PREVIEW_OPTIONS: PreviewOptions = {
     enableObsidianSyntax: true,
     enableImagePreview: true,
-    enableWikiLinks: true
-  }): string {
+    enableWikiLinks: true,
+  }
+
+  renderPreview(content: string, options: PreviewOptions = PreviewService.DEFAULT_PREVIEW_OPTIONS): string {
     // Handle null or undefined content
-    if (!content || typeof content !== 'string') {
-      return ''
+    if (!content || typeof content !== "string") {
+      return ""
     }
 
     try {
@@ -83,9 +86,9 @@ export class PreviewService {
       return this.postProcessHtml(html)
     } catch (error) {
       // Log error for debugging but don't use console in production
-      if (typeof window !== 'undefined' && (window as unknown).__DEV__) {
+      if (typeof globalThis !== "undefined" && (globalThis as unknown as Record<string, unknown>).__DEV__) {
          
-        console.error('Preview rendering error:', error)
+        logger.error("Preview rendering error:", error)
       }
       return this.renderErrorFallback(content, error)
     }
@@ -97,17 +100,17 @@ export class PreviewService {
    * @returns {string} 處理後的內容
    */
   private preprocessObsidianSyntax(content: string): string {
-    if (!content || typeof content !== 'string') {
-      return ''
+    if (!content || typeof content !== "string") {
+      return ""
     }
 
     let processed = content
 
     // 處理 Obsidian 高亮語法 ==text== 轉換為 <mark>text</mark>
-    processed = processed.replace(/==(.*?)==/g, '<mark class="obsidian-highlight">$1</mark>')
+    processed = processed.replace(/==([^=\n]*)==/g, '<mark class="obsidian-highlight">$1</mark>')
 
     // 處理 Obsidian 註釋 %%comment%% （在預覽中隱藏）
-    processed = processed.replace(/%%.*?%%/gs, '')
+    processed = processed.replace(/%%[^%]*%%/g, "")
 
     // 處理 Obsidian 標籤 #tag (支援中文和英文)
     processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="obsidian-tag">#$1</span>')
@@ -127,13 +130,13 @@ export class PreviewService {
     })
 
     // 處理 Obsidian 任務清單增強語法
-    processed = processed.replace(/- \[([x\s])\] (.+)/g, (_, checked, text) => {
-      const isChecked = checked.toLowerCase() === 'x'
-      return `- <input type="checkbox" ${isChecked ? 'checked' : ''} disabled class="obsidian-task"> ${text}`
+    processed = processed.replace(/- \[([x\s])\] ([^\n]+)/g, (_, checked, text) => {
+      const isChecked = checked.toLowerCase() === "x"
+      return `- <input type="checkbox" ${isChecked ? "checked" : ""} disabled class="obsidian-task"> ${text}`
     })
 
     // 處理 Obsidian 引用塊增強
-    processed = processed.replace(/^> \[!(\w+)\](.*)$/gm, (_, type, content) => {
+    processed = processed.replace(/^> \[!(\w+)\]([^\n]*)$/gm, (_, type, content) => {
       const calloutClass = `obsidian-callout obsidian-callout-${type.toLowerCase()}`
       return `> <div class="${calloutClass}"><strong>${type.toUpperCase()}</strong>${content}</div>`
     })
@@ -183,13 +186,13 @@ export class PreviewService {
     const base = basePath || this.imageBasePath
     
     // 如果已經是完整路徑，直接返回
-    if (imageName.startsWith('http') || imageName.startsWith('/') || imageName.startsWith('./')) {
+    if (imageName.startsWith("http") || imageName.startsWith("/") || imageName.startsWith("./")) {
       return imageName
     }
 
     // 構建相對路徑
     if (base) {
-      return `${base}/${imageName}`
+      return `local-file://${base}/${imageName}`
     }
 
     // 預設使用相對路徑
@@ -202,8 +205,8 @@ export class PreviewService {
    * @returns {boolean} 是否為圖片檔案
    */
   private isImageFile(filename: string): boolean {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp', '.avif']
-    const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'))
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".avif"]
+    const ext = filename.toLowerCase().substring(filename.lastIndexOf("."))
     return imageExtensions.includes(ext)
   }
 
@@ -228,15 +231,15 @@ export class PreviewService {
     })
 
     // 為表格添加響應式包裝
-    processed = processed.replace(/<table>/g, '<div class="table-wrapper"><table>')
-    processed = processed.replace(/<\/table>/g, '</table></div>')
+    processed = processed.replaceAll("<table>", '<div class="table-wrapper"><table>')
+    processed = processed.replaceAll("</table>", "</table></div>")
 
     // 為外部連結添加圖示
     processed = processed.replace(/<a href="(https?:\/\/[^"]+)"([^>]*)>/g, '<a href="$1"$2 class="external-link" target="_blank" rel="noopener noreferrer">🔗 ')
-    processed = processed.replace(/<\/a>/g, '</a>')
+    processed = processed.replaceAll("</a>", "</a>")
 
     // 為標題添加錨點連結
-    processed = processed.replace(/<h([1-6])([^>]*)>(.*?)<\/h[1-6]>/g, (_, level, attrs, content) => {
+    processed = processed.replace(/<h([1-6])([^>]*)>([^<]*)<\/h[1-6]>/g, (_, level, attrs, content) => {
       const id = this.generateHeaderId(content)
       return `<h${level}${attrs} id="${id}">
         <a href="#${id}" class="header-anchor" aria-hidden="true">#</a>
@@ -255,11 +258,11 @@ export class PreviewService {
   private generateHeaderId(text: string): string {
     return text
       .toLowerCase()
-      .replace(/<[^>]*>/g, '') // 移除 HTML 標籤
-      .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, '') // 保留字母、數字、中文和空格
-      .replace(/\s+/g, '-') // 空格轉換為連字號
-      .replace(/-+/g, '-') // 多個連字號合併為一個
-      .replace(/^-+|-+$/g, '') // 移除開頭和結尾的連字號
+      .replace(/<[^>]*>/g, "") // 移除 HTML 標籤
+      .replace(/[^a-z0-9\u4e00-\u9fff\s-]/g, "") // 保留字母、數字、中文和空格
+      .replace(/\s+/g, "-") // 空格轉換為連字號
+      .replace(/-+/g, "-") // 多個連字號合併為一個
+      .replace(/^-+|-+$/g, "") // 移除開頭和結尾的連字號
   }
 
   /**
@@ -269,7 +272,7 @@ export class PreviewService {
    * @returns {string} 錯誤回退 HTML
    */
   private renderErrorFallback(originalContent: string, error: unknown): string {
-    const errorMessage = error instanceof Error ? error.message : '未知錯誤'
+    const errorMessage = error instanceof Error ? error.message : "未知錯誤"
     
     return `
       <div class="preview-error">
@@ -296,16 +299,16 @@ export class PreviewService {
    * @returns {string} 轉義後的文字
    */
   private escapeHtml(text: string): string {
-    if (!text || typeof text !== 'string') {
-      return ''
+    if (!text || typeof text !== "string") {
+      return ""
     }
     
     const map: { [key: string]: string } = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
     }
     return text.replace(/[&<>"']/g, (m) => map[m])
   }
@@ -322,7 +325,7 @@ export class PreviewService {
     imageCount: number
     linkCount: number
   } {
-    if (!content || typeof content !== 'string') {
+    if (!content || typeof content !== "string") {
       return {
         wordCount: 0,
         characterCount: 0,
@@ -334,14 +337,14 @@ export class PreviewService {
 
     // 移除 Markdown 語法計算純文字
     const plainText = content
-      .replace(/```[\s\S]*?```/g, '') // 移除程式碼區塊
-      .replace(/`[^`]+`/g, '') // 移除行內程式碼
-      .replace(/!\[\[([^\]]+)\]\]/g, '') // 移除 Obsidian 圖片
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // 移除標準圖片
-      .replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g, '') // 移除 Obsidian 連結
-      .replace(/\[[^\]]*\]\([^)]*\)/g, '') // 移除標準連結
-      .replace(/[#*_~`]/g, '') // 移除 Markdown 標記
-      .replace(/\s+/g, ' ') // 標準化空白
+      .replace(/```[\s\S]*?```/g, "") // 移除程式碼區塊
+      .replace(/`[^`]+`/g, "") // 移除行內程式碼
+      .replace(/!\[\[([^\]]+)\]\]/g, "") // 移除 Obsidian 圖片
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // 移除標準圖片
+      .replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g, "") // 移除 Obsidian 連結
+      .replace(/\[[^\]]*\]\([^)]*\)/g, "") // 移除標準連結
+      .replace(/[#*_~`]/g, "") // 移除 Markdown 標記
+      .replace(/\s+/g, " ") // 標準化空白
       .trim()
 
     const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length
@@ -386,7 +389,7 @@ export class PreviewService {
     // 檢查圖片引用
     const imageMatches = content.match(/!\[\[([^\]]+)\]\]/g) || []
     imageMatches.forEach(match => {
-      const imageName = match.match(/!\[\[([^\]]+)\]\]/)![1]
+      const imageName = /!\[\[([^\]]+)\]\]/.exec(match)![1]
       if (this.isImageFile(imageName)) {
         validImages.push(imageName)
       } else {
@@ -397,7 +400,7 @@ export class PreviewService {
     // 檢查 Wiki 連結
     const linkMatches = content.match(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g) || []
     linkMatches.forEach(match => {
-      const linkMatch = match.match(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/)!
+      const linkMatch = /\[\[([^\]|]+)(\|([^\]]+))?\]\]/.exec(match)!
       const linkName = linkMatch[1]
       const article = this.articles.find(a => a.title === linkName || a.slug === linkName)
       

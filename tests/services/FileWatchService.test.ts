@@ -2,275 +2,317 @@
  * FileWatchService 單元測試
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { FileWatchService } from '@/services/FileWatchService'
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { FileWatchService } from "@/services/FileWatchService";
 
 // Mock 全域 electronAPI
-const mockOnFileChange = vi.fn()
-const mockStartFileWatching = vi.fn()
-const mockStopFileWatching = vi.fn()
+const mockOnFileChange = vi.fn();
+const mockStartFileWatching = vi.fn();
+const mockStopFileWatching = vi.fn();
 
 global.window = {
   electronAPI: {
     startFileWatching: mockStartFileWatching,
     stopFileWatching: mockStopFileWatching,
-    onFileChange: mockOnFileChange
-  }
-} as any
+    onFileChange: mockOnFileChange,
+  },
+} as unknown as Window & typeof globalThis;
+(global as unknown as Record<string, unknown>).electronAPI = window.electronAPI;
 
-describe('FileWatchService', () => {
-  let service: FileWatchService
+describe("FileWatchService", () => {
+  let service: FileWatchService;
 
   beforeEach(() => {
-    service = new FileWatchService()
-    vi.clearAllMocks()
-    mockStartFileWatching.mockResolvedValue(undefined)
-    mockStopFileWatching.mockResolvedValue(undefined)
-  })
+    service = new FileWatchService();
+    vi.clearAllMocks();
+    mockStartFileWatching.mockResolvedValue(undefined);
+    mockStopFileWatching.mockResolvedValue(undefined);
+  });
 
   afterEach(async () => {
-    await service.stopWatching()
-  })
+    await service.stopWatching();
+  });
 
-  describe('startWatching', () => {
-    it('should start watching a directory', async () => {
-      const path = '/test/vault'
+  describe("startWatching", () => {
+    it("should start watching a directory", async () => {
+      const path = "/test/vault";
 
-      await service.startWatching(path)
+      await service.startWatching(path);
 
-      expect(mockStartFileWatching).toHaveBeenCalledWith(path)
-      expect(mockOnFileChange).toHaveBeenCalled()
+      expect(mockStartFileWatching).toHaveBeenCalledWith(path);
+      expect(mockOnFileChange).toHaveBeenCalled();
 
-      const status = service.getStatus()
-      expect(status.isWatching).toBe(true)
-      expect(status.watchedPath).toBe(path)
-    })
+      const status = service.getStatus();
+      expect(status.isWatching).toBe(true);
+      expect(status.watchedPath).toBe(path);
+    });
 
-    it('should not start watching if already watching the same path', async () => {
-      const path = '/test/vault'
+    it("should not start watching if already watching the same path", async () => {
+      const path = "/test/vault";
 
-      await service.startWatching(path)
-      mockStartFileWatching.mockClear()
+      await service.startWatching(path);
+      mockStartFileWatching.mockClear();
 
-      await service.startWatching(path)
+      await service.startWatching(path);
 
-      expect(mockStartFileWatching).not.toHaveBeenCalled()
-    })
+      expect(mockStartFileWatching).not.toHaveBeenCalled();
+    });
 
-    it('should stop previous watch before starting new one', async () => {
-      await service.startWatching('/test/vault1')
-      mockStartFileWatching.mockClear()
+    it("should stop previous watch before starting new one", async () => {
+      await service.startWatching("/test/vault1");
+      mockStartFileWatching.mockClear();
 
-      await service.startWatching('/test/vault2')
+      await service.startWatching("/test/vault2");
 
-      expect(mockStopFileWatching).toHaveBeenCalled()
-      expect(mockStartFileWatching).toHaveBeenCalledWith('/test/vault2')
-    })
-  })
+      expect(mockStopFileWatching).toHaveBeenCalled();
+      expect(mockStartFileWatching).toHaveBeenCalledWith("/test/vault2");
+    });
+  });
 
-  describe('stopWatching', () => {
-    it('should stop watching', async () => {
-      await service.startWatching('/test/vault')
+  describe("stopWatching", () => {
+    it("should stop watching", async () => {
+      await service.startWatching("/test/vault");
 
-      await service.stopWatching()
+      await service.stopWatching();
 
-      expect(mockStopFileWatching).toHaveBeenCalled()
+      expect(mockStopFileWatching).toHaveBeenCalled();
 
-      const status = service.getStatus()
-      expect(status.isWatching).toBe(false)
-      expect(status.watchedPath).toBe(null)
-    })
+      const status = service.getStatus();
+      expect(status.isWatching).toBe(false);
+      expect(status.watchedPath).toBe(null);
+    });
 
-    it('should do nothing if not watching', async () => {
-      await service.stopWatching()
+    it("should do nothing if not watching", async () => {
+      await service.stopWatching();
 
-      expect(mockStopFileWatching).not.toHaveBeenCalled()
-    })
-  })
+      expect(mockStopFileWatching).not.toHaveBeenCalled();
+    });
+  });
 
-  describe('subscribe', () => {
-    it('should call callback when file changes', async () => {
-      const callback = vi.fn()
-      let fileChangeHandler: any
+  describe("subscribe", () => {
+    it("should call callback when file changes", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
       // 模擬檔案變化
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
 
       expect(callback).toHaveBeenCalledWith({
-        event: 'change',
-        path: '/test/vault/file.md'
-      })
-    })
+        event: "change",
+        path: "/test/vault/file.md",
+      });
+    });
 
-    it('should allow multiple subscribers', async () => {
-      const callback1 = vi.fn()
-      const callback2 = vi.fn()
-      let fileChangeHandler: any
-
-      mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
-
-      await service.startWatching('/test/vault')
-      service.subscribe(callback1)
-      service.subscribe(callback2)
-
-      fileChangeHandler({ event: 'add', path: '/test/vault/new.md' })
-
-      expect(callback1).toHaveBeenCalled()
-      expect(callback2).toHaveBeenCalled()
-    })
-
-    it('should return unsubscribe function', async () => {
-      const callback = vi.fn()
-      let fileChangeHandler: any
+    it("should allow multiple subscribers", async () => {
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      const unsubscribe = service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback1);
+      service.subscribe(callback2);
+
+      fileChangeHandler({ event: "add", path: "/test/vault/new.md" });
+
+      expect(callback1).toHaveBeenCalled();
+      expect(callback2).toHaveBeenCalled();
+    });
+
+    it("should return unsubscribe function", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
+
+      mockOnFileChange.mockImplementation((handler) => {
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
+
+      await service.startWatching("/test/vault");
+      const unsubscribe = service.subscribe(callback);
 
       // 取消訂閱
-      unsubscribe()
+      unsubscribe();
 
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
 
-      expect(callback).not.toHaveBeenCalled()
-    })
-  })
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
 
-  describe('ignoreNextChange', () => {
-    it('should ignore file changes for specified duration', async () => {
-      const callback = vi.fn()
-      let fileChangeHandler: any
+  describe("ignoreNextChange", () => {
+    it("should ignore file changes for specified duration", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
       // 忽略此檔案的變化
-      service.ignoreNextChange('/test/vault/file.md', 100)
+      service.ignoreNextChange("/test/vault/file.md", 100);
 
       // 立即觸發變化（應該被忽略）
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
 
-      expect(callback).not.toHaveBeenCalled()
-    })
+      expect(callback).not.toHaveBeenCalled();
+    });
 
-    it('should allow changes after ignore duration expires', async () => {
-      vi.useFakeTimers()
+    it("should allow changes after ignore duration expires", async () => {
+      vi.useFakeTimers();
 
-      const callback = vi.fn()
-      let fileChangeHandler: any
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
-      service.ignoreNextChange('/test/vault/file.md', 100)
+      service.ignoreNextChange("/test/vault/file.md", 100);
 
       // 100ms 後
-      vi.advanceTimersByTime(101)
+      vi.advanceTimersByTime(101);
 
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
 
-      expect(callback).toHaveBeenCalled()
+      expect(callback).toHaveBeenCalled();
 
-      vi.useRealTimers()
-    })
+      vi.useRealTimers();
+    });
 
-    it('should normalize path before ignoring', async () => {
-      const callback = vi.fn()
-      let fileChangeHandler: any
+    it("should ignore any event type during the ignore window (T-020 Action Item #2)", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
+
+      service.ignoreNextChange("/test/vault/file.md", 100);
+
+      // 忽略期間內，unlink/add 等其他事件類型也應一併忽略（own-write 期間的所有事件）
+      fileChangeHandler({ event: "unlink", path: "/test/vault/file.md" });
+      fileChangeHandler({ event: "add", path: "/test/vault/file.md" });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should normalize path before ignoring", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
+
+      mockOnFileChange.mockImplementation((handler) => {
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
+
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
       // 使用反斜線路徑
-      service.ignoreNextChange('C:\\test\\vault\\file.md', 100)
+      service.ignoreNextChange("C:\\test\\vault\\file.md", 100);
 
       // 使用正斜線路徑觸發（應該被忽略）
-      fileChangeHandler({ event: 'change', path: 'C:/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "C:/test/vault/file.md" });
 
-      expect(callback).not.toHaveBeenCalled()
-    })
-  })
+      expect(callback).not.toHaveBeenCalled();
+    });
+  });
 
-  describe('debounce', () => {
-    it('should debounce rapid file changes', async () => {
-      vi.useFakeTimers()
+  describe("debounce", () => {
+    it("should debounce rapid file changes", async () => {
+      vi.useFakeTimers();
 
-      const callback = vi.fn()
-      let fileChangeHandler: any
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
       // 快速連續觸發 3 次
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
-      vi.advanceTimersByTime(500) // 500ms
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
-      vi.advanceTimersByTime(500) // 1000ms
-      fileChangeHandler({ event: 'change', path: '/test/vault/file.md' })
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
+      vi.advanceTimersByTime(500); // 500ms
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
+      vi.advanceTimersByTime(500); // 1000ms
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
 
       // 只應該觸發 2 次（第一次 + 1000ms 後的）
-      expect(callback).toHaveBeenCalledTimes(2)
+      expect(callback).toHaveBeenCalledTimes(2);
 
-      vi.useRealTimers()
-    })
-  })
+      vi.useRealTimers();
+    });
 
-  describe('path normalization', () => {
-    it('should normalize paths in file change events', async () => {
-      const callback = vi.fn()
-      let fileChangeHandler: any
+    it("should not debounce a different event type for the same path (T-020 Action Item #2)", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
 
       mockOnFileChange.mockImplementation((handler) => {
-        fileChangeHandler = handler
-        return vi.fn()
-      })
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
 
-      await service.startWatching('/test/vault')
-      service.subscribe(callback)
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
+
+      // change 之後緊接著 unlink（同一路徑），不應被去抖機制吞掉
+      fileChangeHandler({ event: "change", path: "/test/vault/file.md" });
+      fileChangeHandler({ event: "unlink", path: "/test/vault/file.md" });
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenNthCalledWith(2, { event: "unlink", path: "/test/vault/file.md" });
+    });
+  });
+
+  describe("path normalization", () => {
+    it("should normalize paths in file change events", async () => {
+      const callback = vi.fn();
+      let fileChangeHandler: (event: { event: string; path: string }) => void = () => {};
+
+      mockOnFileChange.mockImplementation((handler) => {
+        fileChangeHandler = handler;
+        return vi.fn();
+      });
+
+      await service.startWatching("/test/vault");
+      service.subscribe(callback);
 
       // Electron 可能返回反斜線路徑
-      fileChangeHandler({ event: 'change', path: 'C:\\test\\vault\\file.md' })
+      fileChangeHandler({ event: "change", path: "C:\\test\\vault\\file.md" });
 
       // 回調應該收到正斜線路徑
       expect(callback).toHaveBeenCalledWith({
-        event: 'change',
-        path: 'C:/test/vault/file.md'
-      })
-    })
-  })
-})
+        event: "change",
+        path: "C:/test/vault/file.md",
+      });
+    });
+  });
+});

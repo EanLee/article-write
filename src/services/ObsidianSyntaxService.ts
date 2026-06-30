@@ -1,4 +1,5 @@
-import type { Article } from '@/types'
+import type { Article } from "@/types"
+import { ArticleStatus } from "@/types"
 
 /**
  * Obsidian 語法建議介面
@@ -6,7 +7,7 @@ import type { Article } from '@/types'
 export interface SuggestionItem {
   text: string
   displayText: string
-  type: 'wikilink' | 'image' | 'tag'
+  type: "wikilink" | "image" | "tag"
   description?: string
 }
 
@@ -17,7 +18,7 @@ export interface SyntaxError {
   line: number
   column: number
   message: string
-  type: 'warning' | 'error'
+  type: "warning" | "error"
   suggestion?: string
 }
 
@@ -38,7 +39,7 @@ export interface AutocompleteContext {
 export class ObsidianSyntaxService {
   private articles: Article[] = []
   private imageFiles: string[] = []
-  private tags: Set<string> = new Set()
+  private readonly tags: Set<string> = new Set()
 
   /**
    * 更新文章清單，用於 Wiki 連結自動完成
@@ -65,26 +66,26 @@ export class ObsidianSyntaxService {
    */
   calculateDropdownPosition(textarea: HTMLTextAreaElement, cursorPosition: number): { top: number; left: number } {
     // 建立臨時元素來測量文字尺寸
-    const tempDiv = document.createElement('div')
-    tempDiv.style.position = 'absolute'
-    tempDiv.style.visibility = 'hidden'
-    tempDiv.style.whiteSpace = 'pre-wrap'
-    tempDiv.style.font = window.getComputedStyle(textarea).font
-    tempDiv.style.padding = window.getComputedStyle(textarea).padding
-    tempDiv.style.border = window.getComputedStyle(textarea).border
-    tempDiv.style.width = textarea.clientWidth + 'px'
-    
+    const tempDiv = document.createElement("div")
+    tempDiv.style.position = "absolute"
+    tempDiv.style.visibility = "hidden"
+    tempDiv.style.whiteSpace = "pre-wrap"
+    tempDiv.style.font = globalThis.getComputedStyle(textarea).font
+    tempDiv.style.padding = globalThis.getComputedStyle(textarea).padding
+    tempDiv.style.border = globalThis.getComputedStyle(textarea).border
+    tempDiv.style.width = textarea.clientWidth + "px"
+
     const textBeforeCursor = textarea.value.substring(0, cursorPosition)
     tempDiv.textContent = textBeforeCursor
-    
+
     document.body.appendChild(tempDiv)
-    
+
     const textRect = tempDiv.getBoundingClientRect()
-    
-    document.body.removeChild(tempDiv)
-    
+
+    tempDiv.remove()
+
     // 計算相對於 textarea 的位置
-    const lineHeight = parseInt(window.getComputedStyle(textarea).lineHeight) || 20
+    const lineHeight = Number.parseInt(globalThis.getComputedStyle(textarea).lineHeight) || 20
     return {
       top: textRect.height + lineHeight,
       left: 0
@@ -105,31 +106,29 @@ export class ObsidianSyntaxService {
 
     // 找到當前輸入模式的開始位置
     let startPos = cursorPosition
-    
+
     // 檢查不同的模式 (圖片模式要先檢查，因為它包含 [[)
-    if (beforeCursor.match(/!\[\[([^\]]*?)$/)) {
+    const imagePatternMatch = /!\[\[([^\]]*?)$/.exec(beforeCursor)
+    if (imagePatternMatch) {
       // 圖片模式
-      const match = beforeCursor.match(/!\[\[([^\]]*?)$/)
-      if (match && match.index !== undefined) {
-        startPos = match.index
-      }
-    } else if (beforeCursor.match(/\[\[([^\]]*?)$/)) {
-      // Wiki 連結模式
-      const match = beforeCursor.match(/\[\[([^\]]*?)$/)
-      if (match && match.index !== undefined) {
-        startPos = match.index
-      }
-    } else if (beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)) {
-      // 標籤模式
-      const match = beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)
-      if (match && match.index !== undefined) {
-        startPos = match.index
+      startPos = imagePatternMatch.index ?? startPos
+    } else {
+      const wikiLinkPatternMatch = /\[\[([^\]]*?)$/.exec(beforeCursor)
+      if (wikiLinkPatternMatch) {
+        // Wiki 連結模式
+        startPos = wikiLinkPatternMatch.index ?? startPos
+      } else {
+        const tagPatternMatch = /#([a-zA-Z0-9一-鿿]*?)$/.exec(beforeCursor)
+        if (tagPatternMatch) {
+          // 標籤模式
+          startPos = tagPatternMatch.index ?? startPos
+        }
       }
     }
 
     // 替換文字
     const newText = text.substring(0, startPos) + suggestion.text + afterCursor
-    
+
     // 設定新的游標位置
     const newCursorPos = startPos + suggestion.text.length
     setTimeout(() => {
@@ -148,23 +147,23 @@ export class ObsidianSyntaxService {
   getAutocompleteSuggestions(context: AutocompleteContext): SuggestionItem[] {
     const { text, cursorPosition } = context
     const beforeCursor = text.substring(0, cursorPosition)
-    
+
     // 檢查圖片引用模式 ![[  (移到前面，因為它包含 [[)
-    const imageMatch = beforeCursor.match(/!\[\[([^\]]*?)$/)
+    const imageMatch = /!\[\[([^\]]*?)$/.exec(beforeCursor)
     if (imageMatch) {
       const query = imageMatch[1].toLowerCase()
       return this.getImageSuggestions(query)
     }
-    
+
     // 檢查 Wiki 連結模式 [[
-    const wikiLinkMatch = beforeCursor.match(/\[\[([^\]]*?)$/)
+    const wikiLinkMatch = /\[\[([^\]]*?)$/.exec(beforeCursor)
     if (wikiLinkMatch) {
       const query = wikiLinkMatch[1].toLowerCase()
       return this.getWikiLinkSuggestions(query)
     }
 
     // 檢查標籤模式 #
-    const tagMatch = beforeCursor.match(/#([a-zA-Z0-9\u4e00-\u9fff]*?)$/)
+    const tagMatch = /#([a-zA-Z0-9一-鿿]*?)$/.exec(beforeCursor)
     if (tagMatch) {
       const query = tagMatch[1].toLowerCase()
       return this.getTagSuggestions(query)
@@ -180,17 +179,26 @@ export class ObsidianSyntaxService {
    */
   private getWikiLinkSuggestions(query: string): SuggestionItem[] {
     return this.articles
-      .filter(article => 
-        article.title.toLowerCase().includes(query) ||
-        article.slug.toLowerCase().includes(query)
-      )
-      .map(article => ({
-        text: `[[${article.title}]]`,
-        displayText: article.title,
-        type: 'wikilink' as const,
-        description: `${article.category} - ${article.status}`
-      }))
-      .slice(0, 10) // 限制建議數量
+      .filter(article => {
+        if (!article.frontmatter.title) { return false }
+        const q = query.toLowerCase()
+        return (
+          article.frontmatter.title.toLowerCase().includes(q) ||
+          article.slug.toLowerCase().includes(q)
+        )
+      })
+      .map(article => {
+        const fmTitle = article.frontmatter.title!
+        // ArticleStatus has two values: Published and Draft
+        const statusLabel = article.status === ArticleStatus.Published ? "Published" : "Draft"
+        return {
+          text: `[[${fmTitle}]]`,
+          displayText: fmTitle,
+          type: "wikilink" as const,
+          description: `${statusLabel} · ${article.category}`,
+        }
+      })
+      .slice(0, 10)
   }
 
   /**
@@ -204,8 +212,8 @@ export class ObsidianSyntaxService {
       .map(filename => ({
         text: `![[${filename}]]`,
         displayText: filename,
-        type: 'image' as const,
-        description: '圖片檔案'
+        type: "image" as const,
+        description: "圖片檔案"
       }))
       .slice(0, 10) // 限制建議數量
   }
@@ -221,8 +229,8 @@ export class ObsidianSyntaxService {
       .map(tag => ({
         text: `#${tag}`,
         displayText: tag,
-        type: 'tag' as const,
-        description: '標籤'
+        type: "tag" as const,
+        description: "標籤"
       }))
       .slice(0, 10) // 限制建議數量
   }
@@ -234,7 +242,7 @@ export class ObsidianSyntaxService {
    */
   validateSyntax(content: string): SyntaxError[] {
     const errors: SyntaxError[] = []
-    const lines = content.split('\n')
+    const lines = content.split("\n")
 
     lines.forEach((line, lineIndex) => {
       // 檢查無效的 Wiki 連結
@@ -246,7 +254,7 @@ export class ObsidianSyntaxService {
       errors.push(...invalidImages)
 
       // 檢查前置資料格式
-      if (lineIndex === 0 && line.trim() === '---') {
+      if (lineIndex === 0 && line.trim() === "---") {
         const frontmatterErrors = this.validateFrontmatter(lines)
         errors.push(...frontmatterErrors)
       }
@@ -263,25 +271,25 @@ export class ObsidianSyntaxService {
    */
   private validateWikiLinks(line: string, lineIndex: number): SyntaxError[] {
     const errors: SyntaxError[] = []
-    const wikiLinkRegex = /\[\[([^\]]+)\]\]/g
+    const wikiLinkRegex = /\[\[([^\]]+)]]/g
     let match
 
     while ((match = wikiLinkRegex.exec(line)) !== null) {
       const linkText = match[1]
-      const linkTitle = linkText.split('|')[0] // 處理別名格式 [[title|alias]]
-      
+      const linkTitle = linkText.split("|")[0] // 處理別名格式 [[title|alias]]
+
       // 檢查文章是否存在
-      const articleExists = this.articles.some(article => 
+      const articleExists = this.articles.some(article =>
         article.title === linkTitle || article.slug === linkTitle
       )
 
       if (!articleExists) {
         errors.push({
           line: lineIndex + 1,
-          column: match.index! + 1,
+          column: match.index + 1,
           message: `找不到文章: "${linkTitle}"`,
-          type: 'warning',
-          suggestion: `建議檢查文章標題是否正確，或建立新文章`
+          type: "warning",
+          suggestion: "建議檢查文章標題是否正確，或建立新文章"
         })
       }
     }
@@ -297,24 +305,24 @@ export class ObsidianSyntaxService {
    */
   private validateImageReferences(line: string, lineIndex: number): SyntaxError[] {
     const errors: SyntaxError[] = []
-    const imageRegex = /!\[\[([^\]]+)\]\]/g
+    const imageRegex = /!\[\[([^\]]+)]]/g
     let match
 
     while ((match = imageRegex.exec(line)) !== null) {
       const imageName = match[1]
-      
+
       // 檢查圖片檔案是否存在
-      const imageExists = this.imageFiles.some(filename => 
+      const imageExists = this.imageFiles.some(filename =>
         filename === imageName || filename.includes(imageName)
       )
 
       if (!imageExists) {
         errors.push({
           line: lineIndex + 1,
-          column: match.index! + 1,
+          column: match.index + 1,
           message: `找不到圖片檔案: "${imageName}"`,
-          type: 'error',
-          suggestion: `請確認圖片檔案存在於 Images 資料夾中`
+          type: "error",
+          suggestion: "請確認圖片檔案存在於 Images 資料夾中"
         })
       }
     }
@@ -329,11 +337,11 @@ export class ObsidianSyntaxService {
    */
   private validateFrontmatter(lines: string[]): SyntaxError[] {
     const errors: SyntaxError[] = []
-    
+
     // 找到前置資料結束位置
     let frontmatterEnd = -1
     for (let i = 1; i < lines.length; i++) {
-      if (lines[i].trim() === '---') {
+      if (lines[i].trim() === "---") {
         frontmatterEnd = i
         break
       }
@@ -343,26 +351,26 @@ export class ObsidianSyntaxService {
       errors.push({
         line: 1,
         column: 1,
-        message: '前置資料格式錯誤：缺少結束標記 ---',
-        type: 'error',
-        suggestion: '請在前置資料結尾加上 ---'
+        message: "前置資料格式錯誤：缺少結束標記 ---",
+        type: "error",
+        suggestion: "請在前置資料結尾加上 ---"
       })
       return errors
     }
 
     // 驗證 YAML 格式
-    const frontmatterContent = lines.slice(1, frontmatterEnd).join('\n')
+    const frontmatterContent = lines.slice(1, frontmatterEnd).join("\n")
     try {
       // 簡單的 YAML 格式檢查
-      const yamlLines = frontmatterContent.split('\n')
+      const yamlLines = frontmatterContent.split("\n")
       yamlLines.forEach((line, index) => {
-        if (line.trim() && !line.includes(':') && !line.startsWith('-')) {
+        if (line.trim() && !line.includes(":") && !line.startsWith("-")) {
           errors.push({
             line: index + 2, // +2 因為跳過第一個 ---
             column: 1,
-            message: `YAML 格式錯誤：缺少冒號分隔符`,
-            type: 'error',
-            suggestion: '請確保每行都有 key: value 格式'
+            message: "YAML 格式錯誤：缺少冒號分隔符",
+            type: "error",
+            suggestion: "請確保每行都有 key: value 格式"
           })
         }
       })
@@ -370,9 +378,9 @@ export class ObsidianSyntaxService {
       errors.push({
         line: 2,
         column: 1,
-        message: '前置資料 YAML 格式錯誤',
-        type: 'error',
-        suggestion: '請檢查 YAML 語法是否正確'
+        message: "前置資料 YAML 格式錯誤",
+        type: "error",
+        suggestion: "請檢查 YAML 語法是否正確"
       })
     }
 
@@ -424,8 +432,8 @@ export class ObsidianSyntaxService {
    * @returns {boolean} 連結是否有效
    */
   isValidWikiLink(linkText: string): boolean {
-    const title = linkText.split('|')[0] // 處理別名格式
-    return this.articles.some(article => 
+    const title = linkText.split("|")[0] // 處理別名格式
+    return this.articles.some(article =>
       article.title === title || article.slug === title
     )
   }
@@ -436,7 +444,7 @@ export class ObsidianSyntaxService {
    * @returns {boolean} 圖片引用是否有效
    */
   isValidImageReference(imageName: string): boolean {
-    return this.imageFiles.some(filename => 
+    return this.imageFiles.some(filename =>
       filename === imageName || filename.includes(imageName)
     )
   }

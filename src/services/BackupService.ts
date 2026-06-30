@@ -1,16 +1,17 @@
 import type { Article } from "@/types";
 import type { IFileSystem } from "@/types/IFileSystem";
 import { electronFileSystem } from "./ElectronFileSystem";
+import { fnv1aHash } from "@/utils/hash";
 
 /**
  * 備份服務
  * 負責檔案備份、衝突偵測和復原功能
  */
 export class BackupService {
-  private backups: Map<string, ArticleBackup> = new Map();
-  private static MAX_BACKUPS_PER_FILE = 5;
-  private static BACKUP_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
-  private fileSystem: IFileSystem;
+  private readonly backups: Map<string, ArticleBackup> = new Map();
+  private static readonly MAX_BACKUPS_PER_FILE = 5;
+  private static readonly BACKUP_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly fileSystem: IFileSystem;
 
   /**
    * 建構子 - 使用依賴注入
@@ -58,7 +59,7 @@ export class BackupService {
   /**
    * 從備份還原文章
    */
-  restoreFromBackup(filePath: string, backupId: string): { content: string; frontmatter: any } | null {
+  restoreFromBackup(filePath: string, backupId: string): { content: string; frontmatter: Record<string, unknown> } | null {
     const backup = this.backups.get(filePath);
     if (!backup) {
       return null;
@@ -78,22 +79,25 @@ export class BackupService {
   /**
    * 檢測衝突（檔案是否在外部被修改）
    */
-  async detectConflict(article: Article): Promise<ConflictResult> {
+  async detectConflict(filePath: string, baselineContent: string | undefined): Promise<ConflictResult> {
     try {
-      const stats = await this.fileSystem.getFileStats(article.filePath);
+      const stats = await this.fileSystem.getFileStats(filePath);
       if (!stats) {
         return { hasConflict: false };
       }
 
-      const fileModTime = new Date(stats.mtime);
-      const articleModTime = article.lastModified;
+      const currentContent = await this.fileSystem.readFile(filePath);
 
-      // 如果檔案修改時間比記錄的還要新，可能有衝突
-      if (fileModTime > articleModTime) {
-        const currentContent = await this.fileSystem.readFile(article.filePath);
+      // 基準內容未知時無法比對，視為無衝突（例如尚未載入過的新檔案）
+      if (baselineContent === undefined) {
+        return { hasConflict: false };
+      }
+
+      // 以內容 hash 比對，取代 mtime 比對：磁碟內容與基準內容不同即為外部修改
+      if (fnv1aHash(currentContent) !== fnv1aHash(baselineContent)) {
         return {
           hasConflict: true,
-          fileModifiedTime: fileModTime,
+          fileModifiedTime: new Date(stats.mtime),
           currentFileContent: currentContent,
         };
       }
@@ -126,7 +130,7 @@ export class BackupService {
    * 生成備份 ID
    */
   private generateBackupId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+    return Date.now().toString(36) + crypto.randomUUID().replaceAll("-", "").substring(0, 6);
   }
 
   /**

@@ -22,12 +22,12 @@ export type FileChangeCallback = (event: FileChangeEvent) => void;
 export class FileWatchService {
   private isWatching = false;
   private watchedPath: string | null = null;
-  private callbacks: Set<FileChangeCallback> = new Set();
+  private readonly callbacks: Set<FileChangeCallback> = new Set();
   private unsubscribeElectron: (() => void) | null = null;
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   // 去抖機制：記錄最近處理過的檔案事件
-  private recentEvents = new Map<string, { event: string; timestamp: number }>();
+  private readonly recentEvents = new Map<string, { event: string; timestamp: number }>();
   private readonly DEBOUNCE_MS = 1000; // 1 秒內的重複事件會被忽略
 
   constructor() {
@@ -42,7 +42,7 @@ export class FileWatchService {
    */
   async startWatching(path: string): Promise<void> {
     if (this.isWatching && this.watchedPath === path) {
-      console.log("Already watching this path:", path);
+      logger.info("Already watching this path:", path);
       return;
     }
 
@@ -50,14 +50,14 @@ export class FileWatchService {
       await this.stopWatching();
     }
 
-    if (!window.electronAPI) {
+    if (!globalThis.electronAPI) {
       throw new Error("Electron API not available");
     }
 
     try {
-      await window.electronAPI.startFileWatching(path);
+      await globalThis.electronAPI.startFileWatching(path);
 
-      this.unsubscribeElectron = window.electronAPI.onFileChange((data) => {
+      this.unsubscribeElectron = globalThis.electronAPI.onFileChange((data) => {
         this.handleFileChange(data.event, data.path);
       });
 
@@ -66,7 +66,7 @@ export class FileWatchService {
 
       logger.debug("FileWatchService: Started watching", path);
     } catch (error) {
-      console.error("Failed to start file watching:", error);
+      logger.error("Failed to start file watching:", error);
       throw error;
     }
   }
@@ -84,11 +84,11 @@ export class FileWatchService {
       this.unsubscribeElectron = null;
     }
 
-    if (window.electronAPI) {
+    if (globalThis.electronAPI) {
       try {
-        await window.electronAPI.stopFileWatching();
+        await globalThis.electronAPI.stopFileWatching();
       } catch (error) {
-        console.error("Failed to stop file watching:", error);
+        logger.error("Failed to stop file watching:", error);
       }
     }
 
@@ -140,9 +140,17 @@ export class FileWatchService {
    */
   private handleFileChange(event: string, path: string): void {
     const normalized = normalizePath(path);
+    const debounceKey = `${event}:${normalized}`;
 
-    // 去抖檢查
-    const recent = this.recentEvents.get(normalized);
+    // 路徑層級忽略（由 ignoreNextChange 設定）
+    const pathIgnore = this.recentEvents.get(normalized);
+    if (pathIgnore && Date.now() - pathIgnore.timestamp < this.DEBOUNCE_MS) {
+      logger.debug(`FileWatchService: Ignored ${event} for ${normalized} (ignoreNextChange active)`);
+      return;
+    }
+
+    // 去抖檢查（相同事件類型 + 路徑）
+    const recent = this.recentEvents.get(debounceKey);
     if (recent) {
       const timeSinceLastEvent = Date.now() - recent.timestamp;
 
@@ -152,8 +160,8 @@ export class FileWatchService {
       }
     }
 
-    // 記錄此事件
-    this.recentEvents.set(normalized, {
+    // 記錄此事件（以 event:path 為 key）
+    this.recentEvents.set(debounceKey, {
       event,
       timestamp: Date.now(),
     });
@@ -170,7 +178,7 @@ export class FileWatchService {
       try {
         callback(fileEvent);
       } catch (error) {
-        console.error("Error in file change callback:", error);
+        logger.error("Error in file change callback:", error);
       }
     });
   }

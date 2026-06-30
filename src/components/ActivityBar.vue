@@ -1,25 +1,19 @@
 <template>
   <div class="activity-bar">
     <div class="activity-items">
-      <button
-        v-for="item in items"
-        :key="item.id"
-        class="activity-item"
-        :class="{ active: modelValue === item.id }"
-        :title="`${item.label} (${item.shortcut})`"
-        @click="handleClick(item.id)"
-      >
+      <button v-for="item in items" :key="item.id" class="activity-item" :class="{ active: modelValue === item.id }"
+        :title="`${item.label} (${item.shortcut})`" @click="handleClick(item.id)">
         <component :is="item.icon" :size="24" />
       </button>
     </div>
 
     <!-- Bottom actions -->
     <div class="activity-bottom">
-      <button
-        class="activity-item"
-        title="設定"
-        @click="$emit('open-settings')"
-      >
+      <button class="activity-item" :class="{ active: props.aiPanelOpen }" title="AI 助手"
+        @click="$emit('toggle-ai-panel')">
+        <Sparkles :size="24" />
+      </button>
+      <button class="activity-item" data-testid="settings-button" title="設定" @click="$emit('open-settings')">
         <Settings :size="24" />
       </button>
     </div>
@@ -27,32 +21,38 @@
 </template>
 
 <script setup lang="ts">
-import { Edit3, LayoutDashboard, Settings } from 'lucide-vue-next'
-import { ViewMode } from '@/types'
+import type { Component } from "vue"
+import { Edit3, LayoutDashboard, Settings, Sparkles } from "@lucide/vue"
+import { ViewMode } from "@/types"
 
 interface ActivityItem {
   id: ViewMode
-  icon: any
+  icon: Component
   label: string
   shortcut: string
 }
 
 const items: ActivityItem[] = [
-  { id: ViewMode.Editor, icon: Edit3, label: '編輯模式', shortcut: 'Ctrl+Shift+E' },
-  { id: ViewMode.Management, icon: LayoutDashboard, label: '管理模式', shortcut: 'Ctrl+Shift+M' }
+  { id: ViewMode.Editor, icon: Edit3, label: "編輯模式", shortcut: "Ctrl+Shift+E" },
+  { id: ViewMode.Management, icon: LayoutDashboard, label: "管理模式", shortcut: "Ctrl+Shift+M" }
 ]
 
 const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
 
+const props = defineProps<{
+  aiPanelOpen?: boolean
+}>()
+
 const emit = defineEmits<{
-  'open-settings': []
-  'toggle-sidebar': []
+  "open-settings": []
+  "toggle-sidebar": []
+  "toggle-ai-panel": []
 }>()
 
 function handleClick(id: ViewMode) {
   if (modelValue.value === id) {
     // 點擊已選中的圖示 → 切換 sidebar（VSCode 行為）
-    emit('toggle-sidebar')
+    emit("toggle-sidebar")
   } else {
     modelValue.value = id
   }
@@ -60,6 +60,7 @@ function handleClick(id: ViewMode) {
 </script>
 
 <style scoped>
+/* noinspection CssUnresolvedCustomProperty */
 .activity-bar {
   width: 48px;
   background: oklch(var(--b2));
@@ -77,6 +78,7 @@ function handleClick(id: ViewMode) {
   flex: 1;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-bottom {
   display: flex;
   flex-direction: column;
@@ -84,6 +86,7 @@ function handleClick(id: ViewMode) {
   border-top: 1px solid oklch(var(--bc) / 0.1);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item {
   width: 48px;
   height: 48px;
@@ -98,15 +101,18 @@ function handleClick(id: ViewMode) {
   transition: all 0.15s ease;
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item:hover {
   color: oklch(var(--bc));
   background: oklch(var(--bc) / 0.05);
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item.active {
   color: oklch(var(--p));
 }
 
+/* noinspection CssUnresolvedCustomProperty */
 .activity-item.active::before {
   content: '';
   position: absolute;

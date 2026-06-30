@@ -1,0 +1,219 @@
+/**
+ * Article Store Actions 補強測試
+ * Q-05：補強 articleStore 主要 actions 覆蓋率
+ */
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { useArticleStore } from "@/stores/article";
+import { useConfigStore } from "@/stores/config";
+import type { Article } from "@/types";
+import { ArticleStatus, ArticleFilterStatus, ArticleFilterCategory } from "@/types";
+
+const mockElectronAPI = {
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  deleteFile: vi.fn(),
+  readDirectory: vi.fn(),
+  createDirectory: vi.fn(),
+  getFileStats: vi.fn(),
+  getConfig: vi.fn(),
+  setConfig: vi.fn(),
+};
+
+Object.defineProperty(window, "electronAPI", {
+  value: mockElectronAPI,
+  writable: true,
+});
+
+function makeArticle(overrides: Partial<Article> = {}): Article {
+  return {
+    id: "test-id",
+    title: "測試文章",
+    slug: "test-article",
+    content: "內容",
+    filePath: "/vault/Drafts/Software/test-article.md",
+    category: "Software",
+    status: ArticleStatus.Draft,
+    frontmatter: { title: "測試文章" },
+    lastModified: new Date(),
+    ...overrides,
+  };
+}
+
+describe("Article Store — Actions 補強", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+
+    // 設定 configStore
+    const configStore = useConfigStore();
+    configStore.config.paths.articlesDir = "/vault";
+
+    mockElectronAPI.writeFile.mockResolvedValue(undefined);
+    mockElectronAPI.createDirectory.mockResolvedValue(undefined);
+    mockElectronAPI.getFileStats.mockResolvedValue(null);
+    mockElectronAPI.getConfig.mockResolvedValue({
+      paths: { articlesDir: "/vault", targetDir: "", imagesDir: "" },
+      editorConfig: { autoSave: true, autoSaveInterval: 30000, theme: "light" },
+    });
+  });
+
+  describe("setCurrentArticle", () => {
+    it("設定當前文章後 currentArticle 更新", () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+
+      store.setCurrentArticle(article);
+
+      expect(store.currentArticle?.id).toBe("test-id");
+    });
+
+    it("設定 null 時 currentArticle 變為 null", () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.setCurrentArticle(article);
+
+      store.setCurrentArticle(null);
+
+      expect(store.currentArticle).toBeNull();
+    });
+
+    it("切換文章時不崩潰（前一篇文章自動儲存觸發）", () => {
+      const store = useArticleStore();
+      const article1 = makeArticle({ id: "a1", filePath: "/vault/Drafts/Software/a1.md" });
+      const article2 = makeArticle({ id: "a2", filePath: "/vault/Drafts/Software/a2.md" });
+      store.articles.push(article1, article2);
+
+      store.setCurrentArticle(article1);
+      // 不應拋出例外
+      expect(() => store.setCurrentArticle(article2)).not.toThrow();
+      expect(store.currentArticle?.id).toBe("a2");
+    });
+  });
+
+  describe("updateFilter", () => {
+    it("更新 status filter", () => {
+      const store = useArticleStore();
+
+      store.updateFilter({ status: ArticleFilterStatus.Published });
+
+      expect(store.filter.status).toBe(ArticleFilterStatus.Published);
+    });
+
+    it("部分更新 filter 時保留其他欄位", () => {
+      const store = useArticleStore();
+      // 先設定 category
+      store.updateFilter({ category: ArticleFilterCategory.Software });
+
+      // 只更新 status
+      store.updateFilter({ status: ArticleFilterStatus.Draft });
+
+      expect(store.filter.category).toBe(ArticleFilterCategory.Software);
+      expect(store.filter.status).toBe(ArticleFilterStatus.Draft);
+    });
+
+    it("更新 search 關鍵字", () => {
+      const store = useArticleStore();
+
+      store.updateFilter({ searchText: "關鍵字" });
+
+      expect(store.filter.searchText).toBe("關鍵字");
+    });
+  });
+
+  describe("儲存衝突處理（topic-020 Action Item #1）", () => {
+    it("磁碟內容與基準不一致時，設定 conflictState 並拋出錯誤", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+
+      // 第一次儲存成功，記錄目前寫入內容作為基準
+      await store.saveArticle(article);
+
+      // 模擬檔案在外部被修改
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      expect(store.conflictState).not.toBeNull();
+      expect(store.conflictState?.currentFileContent).toBe("外部程式改過的內容");
+      expect(store.conflictState?.article.id).toBe(article.id);
+    });
+
+    it("resolveConflictCancel 清除 conflictState 且不寫入檔案", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      mockElectronAPI.writeFile.mockClear();
+      store.resolveConflictCancel();
+
+      expect(store.conflictState).toBeNull();
+      expect(mockElectronAPI.writeFile).not.toHaveBeenCalled();
+    });
+
+    it("resolveConflictOverwrite 以編輯器內容覆寫磁碟並清除 conflictState", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      mockElectronAPI.writeFile.mockClear();
+      await store.resolveConflictOverwrite();
+
+      expect(store.conflictState).toBeNull();
+      expect(mockElectronAPI.writeFile).toHaveBeenCalledWith(article.filePath, expect.any(String));
+    });
+
+    it("resolveConflictReload 以磁碟內容重新載入並清除 conflictState", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+      await store.saveArticle(article);
+
+      mockElectronAPI.getFileStats.mockResolvedValue({ isDirectory: false, mtime: Date.now(), size: 100 });
+      mockElectronAPI.readFile.mockResolvedValue("外部程式改過的內容");
+      await expect(store.saveArticle(article)).rejects.toThrow();
+
+      await store.resolveConflictReload();
+
+      expect(store.conflictState).toBeNull();
+      expect(store.currentArticle?.content).toBe("外部程式改過的內容");
+    });
+  });
+
+  describe("saveCurrentArticle", () => {
+    it("無 currentArticle 時不拋出錯誤", async () => {
+      const store = useArticleStore();
+      expect(store.currentArticle).toBeNull();
+
+      await expect(store.saveCurrentArticle()).resolves.not.toThrow();
+    });
+
+    it("有 currentArticle 時呼叫 writeFile", async () => {
+      const store = useArticleStore();
+      const article = makeArticle();
+      store.articles.push(article);
+      store.setCurrentArticle(article);
+
+      await store.saveCurrentArticle();
+
+      expect(mockElectronAPI.writeFile).toHaveBeenCalledWith(article.filePath, expect.any(String));
+    });
+  });
+});

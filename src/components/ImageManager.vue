@@ -64,20 +64,20 @@
       <h4 class="text-sm font-semibold mb-3 text-base-content/70">目前文章中的圖片</h4>
       <div class="grid grid-cols-2 gap-2">
         <div
-          v-for="image in currentArticleImages"
-          :key="image.name"
+          v-for="img in currentArticleImages"
+          :key="img.name"
           class="card bg-base-100 shadow-sm border"
-          :class="{ 'border-error': !image.exists }"
+          :class="{ 'border-error': !img.exists }"
         >
           <div class="card-body p-3">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium truncate" :title="image.name">{{ image.name }}</span>
+              <span class="text-xs font-medium truncate" :title="img.name">{{ img.name }}</span>
               <div class="flex gap-1">
                 <div 
                   class="badge badge-xs"
-                  :class="image.exists ? 'badge-success' : 'badge-error'"
+                  :class="img.exists ? 'badge-success' : 'badge-error'"
                 >
-                  {{ image.exists ? '存在' : '缺失' }}
+                  {{ img.exists ? '存在' : '缺失' }}
                 </div>
               </div>
             </div>
@@ -85,11 +85,11 @@
             <!-- Image Preview -->
             <div class="aspect-video bg-base-200 rounded overflow-hidden mb-2">
               <img
-                v-if="image.exists && image.preview"
-                :src="image.preview"
-                :alt="image.name"
+                v-if="img.exists && img.preview"
+                :src="img.preview"
+                :alt="`檔案：${img.name}`"
                 class="w-full h-full object-cover"
-                @error="handleImageError(image)"
+                @error="handleImageError(img)"
               />
               <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,16 +101,16 @@
             <!-- Actions -->
             <div class="flex gap-1">
               <button
-                v-if="!image.exists"
+                v-if="!img.exists"
                 class="btn btn-xs btn-error flex-1"
-                @click="removeImageReference(image.name)"
+                @click="removeImageReference(img.name)"
               >
                 移除引用
               </button>
               <button
                 v-else
                 class="btn btn-xs btn-outline flex-1"
-                @click="copyImagePath(image.name)"
+                @click="copyImagePath(img.name)"
               >
                 複製路徑
               </button>
@@ -144,20 +144,20 @@
       
       <div v-else class="grid grid-cols-2 gap-3">
         <div
-          v-for="image in filteredImages"
-          :key="image.name"
+          v-for="img in filteredImages"
+          :key="img.name"
           class="card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-          @click="selectImage(image)"
+          @click="selectImage(img)"
         >
           <div class="card-body p-3">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-medium truncate" :title="image.name">{{ image.name }}</span>
+              <span class="text-xs font-medium truncate" :title="img.name">{{ img.name }}</span>
               <div class="flex gap-1">
                 <div 
                   class="badge badge-xs"
-                  :class="image.isUsed ? 'badge-info' : 'badge-ghost'"
+                  :class="img.isUsed ? 'badge-info' : 'badge-ghost'"
                 >
-                  {{ image.isUsed ? '已使用' : '未使用' }}
+                  {{ img.isUsed ? '已使用' : '未使用' }}
                 </div>
               </div>
             </div>
@@ -165,11 +165,11 @@
             <!-- Image Preview -->
             <div class="aspect-video bg-base-200 rounded overflow-hidden mb-2">
               <img
-                v-if="image.preview"
-                :src="image.preview"
-                :alt="image.name"
+                v-if="img.preview"
+                :src="img.preview"
+                :alt="`檔案：${img.name}`"
                 class="w-full h-full object-cover"
-                @error="handleImageError(image)"
+                @error="handleImageError(img)"
               />
               <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,22 +180,22 @@
             
             <!-- Image Info -->
             <div class="text-xs text-base-content/70 mb-2">
-              <div>{{ formatFileSize(image.size) }}</div>
-              <div>{{ formatDate(image.lastModified) }}</div>
+              <div>{{ formatFileSize(img.size) }}</div>
+              <div>{{ formatDate(img.lastModified) }}</div>
             </div>
             
             <!-- Actions -->
             <div class="flex gap-1">
               <button
                 class="btn btn-xs btn-primary flex-1"
-                @click.stop="insertImageReference(image.name)"
+                @click.stop="insertImageReference(img.name)"
               >
                 插入
               </button>
               <button
-                v-if="!image.isUsed"
+                v-if="!img.isUsed"
                 class="btn btn-xs btn-error"
-                @click.stop="deleteUnusedImage(image.name)"
+                @click.stop="deleteUnusedImage(img.name)"
               >
                 刪除
               </button>
@@ -244,18 +244,18 @@
         <!-- Image Grid -->
         <div class="grid grid-cols-4 gap-3 max-h-96 overflow-y-auto">
           <div
-            v-for="image in allImages"
-            :key="image.name"
+            v-for="img in allImages"
+            :key="img.name"
             class="card bg-base-100 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-            :class="{ 'ring-2 ring-primary': selectedImageForBrowser === image.name }"
-            @click="selectedImageForBrowser = image.name"
+            :class="{ 'ring-2 ring-primary': selectedImageForBrowser === img.name }"
+            @click="selectedImageForBrowser = img.name"
           >
             <div class="card-body p-2">
               <div class="aspect-square bg-base-200 rounded overflow-hidden mb-1">
                 <img
-                  v-if="image.preview"
-                  :src="image.preview"
-                  :alt="image.name"
+                  v-if="img.preview"
+                  :src="img.preview"
+                  :alt="`檔案：${img.name}`"
                   class="w-full h-full object-cover"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-base-content/50">
@@ -264,7 +264,7 @@
                   </svg>
                 </div>
               </div>
-              <div class="text-xs truncate" :title="image.name">{{ image.name }}</div>
+              <div class="text-xs truncate" :title="img.name">{{ img.name }}</div>
             </div>
           </div>
         </div>
@@ -285,11 +285,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { useArticleStore } from '@/stores/article'
-import { useConfigStore } from '@/stores/config'
-import { useImageService } from '@/composables/useServices'
-import type { ImageInfo } from '@/services/ImageService'
+import { ref, computed, onMounted, watch } from "vue"
+import { useArticleStore } from "@/stores/article"
+import { useConfigStore } from "@/stores/config"
+import { useImageService } from "@/composables/useServices"
+import type { ImageInfo } from "@/types/image"
+import { logger } from "@/utils/logger"
 
 // Props and Emits
 const emit = defineEmits<{
@@ -305,9 +306,9 @@ const imageService = useImageService()
 // Reactive data
 const loading = ref(false)
 const showImageBrowser = ref(false)
-const selectedImageForBrowser = ref<string>('')
-const searchQuery = ref('')
-const filterType = ref<'all' | 'used' | 'unused' | 'invalid'>('all')
+const selectedImageForBrowser = ref<string>("")
+const searchQuery = ref("")
+const filterType = ref<"all" | "used" | "unused" | "invalid">("all")
 const fileInput = ref<HTMLInputElement>()
 const isDragOver = ref(false)
 
@@ -349,7 +350,7 @@ const currentArticleImages = computed(() => {
   
   // Remove duplicates (same image referenced multiple times)
   const uniqueImages = images.filter((image, index, self) => 
-    index === self.findIndex(img => img.name === image.name)
+    index === self.findIndex(i => i.name === image.name)
   )
   
   return uniqueImages
@@ -375,7 +376,7 @@ async function loadImages() {
     filterImages()
   } catch (error) {
      
-    console.error('Failed to load images:', error)
+    logger.error("Failed to load images:", error)
     allImages.value = []
   } finally {
     loading.value = false
@@ -392,20 +393,20 @@ function filterImages() {
   // Apply search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(image => 
+    filtered = filtered.filter(image =>
       image.name.toLowerCase().includes(query)
     )
   }
   
   // Apply type filter
   switch (filterType.value) {
-    case 'used':
+    case "used":
       filtered = filtered.filter(image => image.isUsed)
       break
-    case 'unused':
+    case "unused":
       filtered = filtered.filter(image => !image.isUsed)
       break
-    case 'invalid':
+    case "invalid":
       // This would be images referenced but not found
       // For now, we don't have invalid images in allImages
       filtered = []
@@ -415,24 +416,24 @@ function filterImages() {
   filteredImages.value = filtered
 }
 
-function selectImage(image: ImageInfo) {
-  selectedImageForBrowser.value = image.name
+function selectImage(img: ImageInfo) {
+  selectedImageForBrowser.value = img.name
 }
 
 function insertImageReference(imageName: string) {
-  emit('insertImage', imageName)
+  emit("insertImage", imageName)
 }
 
 function insertSelectedImage() {
   if (selectedImageForBrowser.value) {
-    emit('insertImage', selectedImageForBrowser.value)
+    emit("insertImage", selectedImageForBrowser.value)
     showImageBrowser.value = false
-    selectedImageForBrowser.value = ''
+    selectedImageForBrowser.value = ""
   }
 }
 
 function removeImageReference(imageName: string) {
-  emit('removeImageReference', imageName)
+  emit("removeImageReference", imageName)
 }
 
 async function deleteUnusedImage(imageName: string) {
@@ -450,12 +451,12 @@ async function deleteUnusedImage(imageName: string) {
         filterImages()
       }
     } else {
-      alert('刪除圖片失敗')
+      alert("刪除圖片失敗")
     }
   } catch (error) {
      
-    console.error('Failed to delete image:', error)
-    alert('刪除圖片失敗: ' + (error as Error).message)
+    logger.error("Failed to delete image:", error)
+    alert("刪除圖片失敗: " + (error as Error).message)
   }
 }
 
@@ -471,7 +472,7 @@ async function handleFileUpload(event: Event) {
   try {
     const vaultPath = configStore.config.paths.obsidianVault
     if (!vaultPath) {
-      alert('請先設定 Obsidian Vault 路徑')
+      alert("請先設定 Obsidian Vault 路徑")
       return
     }
     
@@ -483,7 +484,7 @@ async function handleFileUpload(event: Event) {
         uploadResults.success.push(fileName)
       } catch (error) {
          
-        console.error('Failed to upload image:', error)
+        logger.error("Failed to upload image:", error)
         uploadResults.failed.push(file.name)
       }
     }
@@ -492,25 +493,25 @@ async function handleFileUpload(event: Event) {
     if (uploadResults.success.length > 0) {
       const successMessage = `成功上傳 ${uploadResults.success.length} 個圖片檔案`
       if (uploadResults.failed.length > 0) {
-        alert(`${successMessage}\n失敗: ${uploadResults.failed.join(', ')}`)
+        alert(`${successMessage}\n失敗: ${uploadResults.failed.join(", ")}`)
       } else {
         // Could show a toast notification here instead of alert
         // For now, we'll just refresh the list
       }
     } else if (uploadResults.failed.length > 0) {
-      alert(`上傳失敗: ${uploadResults.failed.join(', ')}`)
+      alert(`上傳失敗: ${uploadResults.failed.join(", ")}`)
     }
     
     // Refresh the image list
     await loadImages()
   } catch (error) {
      
-    console.error('Failed to handle file upload:', error)
-    alert('上傳圖片時發生錯誤')
+    logger.error("Failed to handle file upload:", error)
+    alert("上傳圖片時發生錯誤")
   } finally {
     loading.value = false
     // Clear the input
-    target.value = ''
+    target.value = ""
   }
 }
 
@@ -520,12 +521,12 @@ function copyImagePath(imageName: string) {
     // Could show a toast notification here
   }).catch(err => {
      
-    console.error('Failed to copy to clipboard:', err)
+    logger.error("Failed to copy to clipboard:", err)
   })
 }
 
-function handleImageError(image: ImageInfo | CurrentArticleImage) {
-  image.preview = undefined
+function handleImageError(img: ImageInfo | CurrentArticleImage) {
+  img.preview = undefined
 }
 
 function refreshImages() {
@@ -539,7 +540,7 @@ async function cleanupUnusedImages() {
     return
   }
   
-  const confirmMessage = `確定要刪除 ${unusedImages.length} 個未使用的圖片嗎？\n\n${unusedImages.map(img => img.name).join('\n')}\n\n此操作無法復原。`
+  const confirmMessage = `確定要刪除 ${unusedImages.length} 個未使用的圖片嗎？\n\n${unusedImages.map(img => img.name).join("\n")}\n\n此操作無法復原。`
   
   if (!confirm(confirmMessage)) {
     return
@@ -557,12 +558,12 @@ async function cleanupUnusedImages() {
       allImages.value = allImages.value.filter(img => !cleanedFiles.includes(img.name))
       filterImages()
     } else {
-      alert('沒有圖片被清理')
+      alert("沒有圖片被清理")
     }
   } catch (error) {
      
-    console.error('Failed to cleanup unused images:', error)
-    alert('清理圖片時發生錯誤: ' + (error as Error).message)
+    logger.error("Failed to cleanup unused images:", error)
+    alert("清理圖片時發生錯誤: " + (error as Error).message)
   } finally {
     loading.value = false
   }
@@ -570,21 +571,21 @@ async function cleanupUnusedImages() {
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) {
-    return '未知大小'
+    return "未知大小"
   }
   
   const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
+  const sizes = ["B", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
 }
 
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('zh-TW', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return new Intl.DateTimeFormat("zh-TW", {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
   }).format(date)
 }
 
@@ -614,11 +615,11 @@ async function handleDrop(event: DragEvent) {
   
   // Filter for image files only
   const imageFiles = Array.from(files).filter(file => 
-    file.type.startsWith('image/')
+    file.type.startsWith("image/")
   )
   
   if (imageFiles.length === 0) {
-    alert('請拖放圖片檔案')
+    alert("請拖放圖片檔案")
     return
   }
   
@@ -626,7 +627,7 @@ async function handleDrop(event: DragEvent) {
   const fakeEvent = {
     target: {
       files: imageFiles,
-      value: ''
+      value: ""
     }
   } as unknown as Event
   

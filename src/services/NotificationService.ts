@@ -1,9 +1,9 @@
-import { ref, type Ref } from 'vue'
+import { ref, type Ref } from "vue"
 
 /**
  * 通知類型
  */
-export type NotificationType = 'success' | 'error' | 'warning' | 'info'
+export type NotificationType = "success" | "error" | "warning" | "info"
 
 /**
  * 通知項目
@@ -27,14 +27,14 @@ export interface Notification {
  */
 export class NotificationService {
   public readonly notifications: Ref<Notification[]> = ref([])
-  private static DEFAULT_DURATION = 5000 // 5 seconds
+  private static readonly DEFAULT_DURATION = 5000 // 5 seconds
 
   /**
    * 顯示成功通知
    */
   success(title: string, message?: string, options?: NotificationOptions): string {
     return this.show({
-      type: 'success',
+      type: "success",
       title,
       message,
       ...options
@@ -46,7 +46,7 @@ export class NotificationService {
    */
   error(title: string, message?: string, options?: NotificationOptions): string {
     return this.show({
-      type: 'error',
+      type: "error",
       title,
       message,
       duration: 8000, // 錯誤通知顯示更久
@@ -59,7 +59,7 @@ export class NotificationService {
    */
   warning(title: string, message?: string, options?: NotificationOptions): string {
     return this.show({
-      type: 'warning',
+      type: "warning",
       title,
       message,
       ...options
@@ -71,7 +71,7 @@ export class NotificationService {
    */
   info(title: string, message?: string, options?: NotificationOptions): string {
     return this.show({
-      type: 'info',
+      type: "info",
       title,
       message,
       ...options
@@ -85,7 +85,7 @@ export class NotificationService {
     const id = this.generateId()
     const notification: Notification = {
       id,
-      type: options.type || 'info',
+      type: options.type || "info",
       title: options.title,
       message: options.message,
       duration: options.duration ?? NotificationService.DEFAULT_DURATION,
@@ -126,7 +126,7 @@ export class NotificationService {
    * 生成唯一 ID
    */
   private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2, 8)
+    return Date.now().toString(36) + crypto.randomUUID().replaceAll("-", "").substring(0, 6)
   }
 }
 

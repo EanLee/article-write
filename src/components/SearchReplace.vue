@@ -135,8 +135,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
-import { ChevronUp, ChevronDown, Replace, X } from 'lucide-vue-next'
+import { ref, watch, nextTick } from "vue"
+import { ChevronUp, ChevronDown, Replace, X } from "@lucide/vue"
+import { logger } from "@/utils/logger"
 
 interface Props {
   visible: boolean
@@ -155,8 +156,8 @@ const emit = defineEmits<{
 const searchInputRef = ref<HTMLInputElement>()
 
 // 搜尋狀態
-const searchText = ref('')
-const replaceText = ref('')
+const searchText = ref("")
+const replaceText = ref("")
 const showReplace = ref(false)
 const caseSensitive = ref(false)
 const useRegex = ref(false)
@@ -179,7 +180,7 @@ function handleSearch() {
   try {
     findMatches()
   } catch (error) {
-    console.error('搜尋錯誤:', error)
+    logger.error("搜尋錯誤:", error)
     matches.value = []
     matchCount.value = 0
   }
@@ -188,26 +189,26 @@ function handleSearch() {
 function findMatches() {
   matches.value = []
   
-  let pattern: string | RegExp = searchText.value
+  let pattern: string | RegExp
 
   // 構建搜尋模式
   if (useRegex.value) {
     try {
-      const flags = caseSensitive.value ? 'g' : 'gi'
+      const flags = caseSensitive.value ? "g" : "gi"
       pattern = new RegExp(searchText.value, flags)
     } catch {
       return // 無效的正則表達式
     }
   } else {
     // 轉義特殊字元
-    pattern = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    
+    pattern = searchText.value.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
+
     // 全字匹配
     if (wholeWord.value) {
-      pattern = `\\b${pattern}\\b`
+      pattern = String.raw`\b${pattern}\b`
     }
     
-    const flags = caseSensitive.value ? 'g' : 'gi'
+    const flags = caseSensitive.value ? "g" : "gi"
     pattern = new RegExp(pattern, flags)
   }
 
@@ -231,26 +232,26 @@ function findMatches() {
   currentMatchIndex.value = matchCount.value > 0 ? 1 : 0
 
   // 通知父組件高亮匹配結果
-  emit('highlight', matches.value, 0)
+  emit("highlight", matches.value, 0)
 }
 
 function findNext() {
   if (matchCount.value === 0) {return}
 
   currentMatchIndex.value = currentMatchIndex.value >= matchCount.value ? 1 : currentMatchIndex.value + 1
-  emit('highlight', matches.value, currentMatchIndex.value - 1)
+  emit("highlight", matches.value, currentMatchIndex.value - 1)
 }
 
 function findPrevious() {
   if (matchCount.value === 0) {return}
 
   currentMatchIndex.value = currentMatchIndex.value <= 1 ? matchCount.value : currentMatchIndex.value - 1
-  emit('highlight', matches.value, currentMatchIndex.value - 1)
+  emit("highlight", matches.value, currentMatchIndex.value - 1)
 }
 
 function replaceNext() {
   if (matchCount.value === 0) {return}
-  emit('replace', searchText.value, replaceText.value, false)
+  emit("replace", searchText.value, replaceText.value, false)
   
   // 重新搜尋
   nextTick(() => {
@@ -264,7 +265,7 @@ function replaceAll() {
   const confirmed = confirm(`確定要替換全部 ${matchCount.value} 個匹配項嗎？`)
   if (!confirmed) {return}
 
-  emit('replace', searchText.value, replaceText.value, true)
+  emit("replace", searchText.value, replaceText.value, true)
   
   // 重新搜尋
   nextTick(() => {
@@ -273,7 +274,7 @@ function replaceAll() {
 }
 
 function close() {
-  emit('close')
+  emit("close")
 }
 
 // 監聽搜尋選項變化

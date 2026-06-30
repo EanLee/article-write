@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, type Ref } from "vue"
 
 /**
  * Activity Bar 快捷鍵管理
@@ -11,42 +11,37 @@ import { onMounted, onUnmounted, type Ref } from 'vue'
  * - Ctrl+Shift+M: 切換文章管理
  * - Ctrl+B: 切換側邊欄
  */
+const SHIFT_KEY_TO_VIEW: Record<string, string> = {
+  E: "articles",
+  I: "frontmatter",
+  M: "manage",
+}
+
 export function useActivityBarShortcuts(activeView: Ref<string>) {
   function handleKeydown(e: KeyboardEvent) {
-    // Ctrl+Shift+E: 文章列表
-    if (e.ctrlKey && e.shiftKey && e.key === 'E') {
-      e.preventDefault()
-      activeView.value = activeView.value === 'articles' ? '' : 'articles'
-      return
-    }
+    if (!e.ctrlKey) {return}
 
-    // Ctrl+Shift+I: 文章資訊
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-      e.preventDefault()
-      activeView.value = activeView.value === 'frontmatter' ? '' : 'frontmatter'
-      return
-    }
-
-    // Ctrl+Shift+M: 文章管理
-    if (e.ctrlKey && e.shiftKey && e.key === 'M') {
-      e.preventDefault()
-      activeView.value = activeView.value === 'manage' ? '' : 'manage'
+    if (e.shiftKey) {
+      const view = SHIFT_KEY_TO_VIEW[e.key]
+      if (view) {
+        e.preventDefault()
+        activeView.value = activeView.value === view ? "" : view
+      }
       return
     }
 
     // Ctrl+B: 切換側邊欄（如果已開啟則關閉，如果關閉則開啟文章列表）
-    if (e.ctrlKey && e.key === 'b') {
+    if (e.key === "b") {
       e.preventDefault()
-      activeView.value = activeView.value ? '' : 'articles'
-      return
+      activeView.value = activeView.value ? "" : "articles"
     }
   }
 
   onMounted(() => {
-    window.addEventListener('keydown', handleKeydown)
+    globalThis.addEventListener("keydown", handleKeydown)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
+    globalThis.removeEventListener("keydown", handleKeydown)
   })
 }

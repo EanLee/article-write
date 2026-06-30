@@ -47,25 +47,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, onMounted, nextTick } from 'vue';
-import { useArticleStore } from '@/stores/article';
-import { useConfigStore } from '@/stores/config';
-import { debounce } from 'lodash-es';
-import EditorHeader from './EditorHeader.vue';
-import CodeMirrorEditor from './CodeMirrorEditor.vue';
-import PreviewPane from './PreviewPane.vue';
-import FrontmatterEditor from './FrontmatterEditor.vue';
-import SearchReplace from './SearchReplace.vue';
-import { useServices } from '@/composables/useServices';
-import { useAutocomplete } from '@/composables/useAutocomplete';
-import { useEditorShortcuts } from '@/composables/useEditorShortcuts';
-import { useEditorValidation } from '@/composables/useEditorValidation';
-import { useUndoRedo } from '@/composables/useUndoRedo';
-import { useSearchReplace } from '@/composables/useSearchReplace';
-import { useFocusMode } from '@/composables/useFocusMode';
-import { useSyncScroll } from '@/composables/useSyncScroll';
-import { getArticleService } from '@/services/ArticleService';
-import type { Article } from '@/types';
+import { ref, computed, watch, onUnmounted, onMounted, nextTick } from "vue";
+import { useArticleStore } from "@/stores/article";
+import { useConfigStore } from "@/stores/config";
+import { debounce } from "lodash-es";
+import EditorHeader from "./EditorHeader.vue";
+import CodeMirrorEditor from "./CodeMirrorEditor.vue";
+import PreviewPane from "./PreviewPane.vue";
+import FrontmatterEditor from "./FrontmatterEditor.vue";
+import SearchReplace from "./SearchReplace.vue";
+import { useServices } from "@/composables/useServices";
+import { useAutocomplete } from "@/composables/useAutocomplete";
+import { useEditorShortcuts } from "@/composables/useEditorShortcuts";
+import { useEditorValidation } from "@/composables/useEditorValidation";
+import { useUndoRedo } from "@/composables/useUndoRedo";
+import { useSearchReplace } from "@/composables/useSearchReplace";
+import { useFocusMode } from "@/composables/useFocusMode";
+import { useSyncScroll } from "@/composables/useSyncScroll";
+import { getArticleService } from "@/services/ArticleService";
+import { autoSaveService } from "@/services/AutoSaveService";
+import { logger } from "@/utils/logger";
+import type { Article } from "@/types";
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -75,15 +77,15 @@ const { markdownService, obsidianSyntaxService: obsidianSyntax, previewService, 
 const articleService = getArticleService();
 
 // Reactive data
-const content = ref('');
+const content = ref("");
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
-const renderedContent = ref('');
+const renderedContent = ref("");
 const autoSaveTimer = ref<number | null>(null);
-const editorMode = ref<'compose' | 'raw'>('compose');
-const rawContent = ref('');
+const editorMode = ref<"compose" | "raw">("compose");
+const rawContent = ref("");
 
 // 專注模式
 const { focusMode, toggleFocusMode } = useFocusMode();
@@ -202,8 +204,7 @@ const {
 
 // 其他狀態
 const imageFiles = ref<string[]>([])
-// 直接從 store 取得 allTags，不在組件中重複計算
-const allTags = computed(() => articleStore.allTags)
+
 
 // Preview statistics and validation
 const previewStats = ref({
@@ -246,7 +247,7 @@ watch(content, (newContent) => {
     handleContentChange();
 
     // 只在撰寫模式下記錄歷史（Raw 模式下 editorRef 不存在）
-    if (editorMode.value === 'compose') {
+    if (editorMode.value === "compose") {
         // 記錄歷史（防抖 500ms）
         if (historyTimeout) {
             clearTimeout(historyTimeout);
@@ -270,7 +271,7 @@ function scheduleAutoSave() {
 
     autoSaveTimer.value = setTimeout(() => {
         saveArticle();
-    }, 2000); // Auto-save after 2 seconds of inactivity
+    }, 2000) as unknown as number; // Auto-save after 2 seconds of inactivity
 }
 
 async function saveArticle() {
@@ -281,7 +282,7 @@ async function saveArticle() {
     try {
         let updatedArticle: Article;
 
-        if (editorMode.value === 'raw') {
+        if (editorMode.value === "raw") {
             // ✅ Raw 模式：解析完整內容並更新
             const parsed = articleService.parseRawContent(rawContent.value);
             updatedArticle = articleService.updateArticleData(
@@ -304,16 +305,17 @@ async function saveArticle() {
 
         if (result.success) {
             // 更新 store 中的資料（透過 store 的 action）
-            await articleStore.updateArticle(updatedArticle);
+            articleStore.updateArticleInMemory(updatedArticle);
+            autoSaveService.notifySaved(updatedArticle);
         } else if (result.conflict) {
-            console.warn('[Editor] File conflict detected during auto-save');
+            logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
         } else if (result.error) {
-            console.error('[Editor] Failed to save article:', result.error);
+            logger.error("[Editor] Failed to save article:", result.error);
         }
     } catch (error) {
         // 靜默處理錯誤，自動儲存失敗不需要通知用戶
-        console.error('[Editor] Auto-save error:', error);
+        logger.error("[Editor] Auto-save error:", error);
     }
 }
 
@@ -341,7 +343,7 @@ function toggleSyncScroll() {
 function toggleEditorMode() {
     // 防止重複切換
     if (isSwitchingMode.value) {
-        console.warn('[EditorMode] 正在切換模式中，請稍後再試');
+        logger.warn("[EditorMode] 正在切換模式中，請稍後再試");
         return;
     }
 
@@ -363,13 +365,13 @@ function toggleEditorMode() {
             autoSaveTimer.value = null;
         }
 
-        if (editorMode.value === 'compose') {
+        if (editorMode.value === "compose") {
             // ✅ 切換到 Raw 模式 - 使用 service 組合內容
             rawContent.value = articleService.combineToRawContent(
                 articleStore.currentArticle.frontmatter,
                 content.value  // 使用當前編輯中的內容
             );
-            editorMode.value = 'raw';
+            editorMode.value = "raw";
         } else {
             // ✅ 切換到撰寫模式 - 使用 service 解析內容
             const parsed = articleService.parseRawContent(rawContent.value);
@@ -380,10 +382,10 @@ function toggleEditorMode() {
             // 注意：這裡不直接修改 store，只有在儲存時才會更新
             // 如果需要立即反映到 store，應該調用 store 的 action
 
-            editorMode.value = 'compose';
+            editorMode.value = "compose";
         }
     } catch (error) {
-        console.error('[EditorMode] 模式切換失敗:', error);
+        logger.error("[EditorMode] 模式切換失敗:", error);
     } finally {
         // 延遲解除鎖定，確保所有副作用完成
         setTimeout(() => {
@@ -411,7 +413,7 @@ function handleRawContentChange() {
 
         // 檢查是否有解析錯誤
         if (parsed.errors.length > 0) {
-            console.warn('[RawMode] Frontmatter 解析警告:', parsed.errors);
+            logger.warn("[RawMode] Frontmatter 解析警告:", parsed.errors);
         }
 
         // 排程自動儲存（會通過 service 更新 store）
@@ -421,7 +423,7 @@ function handleRawContentChange() {
             updatePreview();
         }
     } catch (error) {
-        console.error('[RawMode] 解析 frontmatter 失敗:', error);
+        logger.error("[RawMode] 解析 frontmatter 失敗:", error);
         // 不拋出錯誤，避免中斷使用者輸入
     }
 }
@@ -430,7 +432,7 @@ function updatePreview() {
     // Use enhanced PreviewService for rendering Obsidian format content
     try {
         const vaultPath = configStore.config.paths.obsidianVault;
-        const imageBasePath = vaultPath ? `${vaultPath}/images` : './images';
+        const imageBasePath = vaultPath ? `${vaultPath}/images` : "./images";
 
         // Update preview service with current context
         previewService.updateArticles(articleStore.articles);
@@ -455,12 +457,12 @@ function updatePreview() {
         } catch {
             // Final fallback to simple HTML conversion
             renderedContent.value = content.value
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                .replace(/\n/gim, '<br>');
+                .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+                .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+                .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+                .replace(/\*\*(.*)\*\*/gim, "<strong>$1</strong>")
+                .replace(/\*(.*)\*/gim, "<em>$1</em>")
+                .replace(/\n/gim, "<br>");
         }
 
         // Reset stats on error
@@ -481,7 +483,7 @@ function updatePreview() {
 }
 
 function handleFrontmatterUpdate(updatedArticle: Article) {
-    articleStore.updateArticle(updatedArticle);
+    articleStore.updateArticleInMemory(updatedArticle);
 }
 
 // 搜尋高亮處理
@@ -504,10 +506,10 @@ function handleSearchHighlight(
 function scrollToSelection() {
     if (!editorRef.value) { return; }
 
-    const textarea = editorRef.value;
+    const textarea = editorRef.value as HTMLTextAreaElement;
     const selectionStart = textarea.selectionStart;
     const textBeforeSelection = textarea.value.substring(0, selectionStart);
-    const lines = textBeforeSelection.split('\n');
+    const lines = textBeforeSelection.split("\n");
     const lineHeight = 24; // 根據實際行高調整
     const scrollTop = (lines.length - 1) * lineHeight;
 
@@ -544,31 +546,21 @@ async function initializeObsidianSupport() {
         // 更新 ObsidianSyntaxService 的文章清單
         obsidianSyntax.updateArticles(articleStore.articles);
 
-        // Update tags from articles
-        const tagSet = new Set<string>();
-        articleStore.articles.forEach((article: Article) => {
-            // 防禦性檢查：確保 tags 存在且為陣列
-            if (article.frontmatter.tags && Array.isArray(article.frontmatter.tags)) {
-                article.frontmatter.tags.forEach((tag: string) => tagSet.add(tag));
-            }
-        });
-        allTags.value = Array.from(tagSet);
-
         // Update image files using Electron API
         const vaultPath = configStore.config.paths.obsidianVault;
-        if (vaultPath && window.electronAPI) {
+        if (vaultPath && globalThis.electronAPI) {
             // 設定 ImageService
             imageService.setVaultPath(vaultPath);
             imageService.updateArticles(articleStore.articles);
 
             const imagesPath = `${vaultPath}/images`;
             try {
-                const files = await window.electronAPI.readDirectory(imagesPath);
+                const files = await globalThis.electronAPI.readDirectory(imagesPath);
                 // Filter image files
-                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp'];
+                const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]);
                 imageFiles.value = files.filter((file) => {
-                    const ext = file.toLowerCase().substring(file.lastIndexOf('.'));
-                    return imageExtensions.includes(ext);
+                    const ext = file.toLowerCase().substring(file.lastIndexOf("."));
+                    return imageExtensions.has(ext);
                 });
 
                 // 更新 ObsidianSyntaxService 的圖片檔案清單
@@ -630,18 +622,18 @@ watch(
 watch(
     () => configStore.config.paths.obsidianVault,
     async (newPath) => {
-        if (newPath && window.electronAPI) {
+        if (newPath && globalThis.electronAPI) {
             // 更新 ImageService 的 vault 路徑
             imageService.setVaultPath(newPath);
 
             try {
                 const imagesPath = `${newPath}/images`;
-                const files = await window.electronAPI.readDirectory(imagesPath);
+                const files = await globalThis.electronAPI.readDirectory(imagesPath);
                 // Filter image files
-                const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp'];
+                const imageExtensions = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp"]);
                 imageFiles.value = files.filter((file) => {
-                    const ext = file.toLowerCase().substring(file.lastIndexOf('.'));
-                    return imageExtensions.includes(ext);
+                    const ext = file.toLowerCase().substring(file.lastIndexOf("."));
+                    return imageExtensions.has(ext);
                 });
 
                 // 更新 ObsidianSyntaxService 的圖片檔案清單
@@ -666,7 +658,10 @@ onMounted(() => {
     initializeHistory(content.value, 0);
 
     // Click outside to hide suggestions
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+
+    // 登記即時內容回呼：切換文章時 AutoSaveService 需要取得最新打字內容
+    autoSaveService.setEditorContentCallback(() => content.value);
 });
 
 // 處理點擊外部以隱藏建議
@@ -688,8 +683,16 @@ onUnmounted(() => {
         historyTimeout = null;
     }
     // 清理事件監聽器
-    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener("click", handleClickOutside);
     // 清理驗證
     cleanupValidation();
+    // 清除即時內容回呼
+    autoSaveService.setEditorContentCallback(null);
 });
+
+function scrollToLine(lineIndex: number) {
+    editorPaneRef.value?.scrollToLine(lineIndex)
+}
+
+defineExpose({ scrollToLine })
 </script>

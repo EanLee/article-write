@@ -40,54 +40,57 @@
 
     <!-- 轉換設定 -->
     <div class="collapse collapse-arrow bg-base-200 mb-6">
-      <input type="checkbox" />
+      <input type="checkbox" aria-label="展開轉換設定選項" />
       <div class="collapse-title text-xl font-medium">
         轉換設定選項
       </div>
       <div class="collapse-content">
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-source-dir">
             <span class="label-text">來源目錄 (Obsidian Vault)</span>
             <span class="label-text-alt" :class="config.sourceDir ? 'text-success' : 'text-error'">
               {{ config.sourceDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.sourceDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-source-dir"
+            type="text"
+            v-model="config.sourceDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/obsidian-vault"
             readonly
           />
         </div>
 
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-target-dir">
             <span class="label-text">目標目錄 (Astro Blog)</span>
             <span class="label-text-alt" :class="config.targetDir ? 'text-success' : 'text-error'">
               {{ config.targetDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.targetDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-target-dir"
+            type="text"
+            v-model="config.targetDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/astro-blog"
             readonly
           />
         </div>
 
         <div class="form-control mb-4">
-          <label class="label">
+          <label class="label" for="conversion-image-dir">
             <span class="label-text">圖片來源目錄</span>
             <span class="label-text-alt" :class="config.imageSourceDir ? 'text-success' : 'text-error'">
               {{ config.imageSourceDir ? '✓ 已設定' : '✗ 未設定' }}
             </span>
           </label>
-          <input 
-            type="text" 
-            v-model="config.imageSourceDir" 
-            class="input input-bordered input-sm" 
+          <input
+            id="conversion-image-dir"
+            type="text"
+            v-model="config.imageSourceDir"
+            class="input input-bordered input-sm"
             placeholder="/path/to/obsidian-vault/images"
             readonly
           />
@@ -230,7 +233,7 @@
 
       <!-- 錯誤詳情 -->
       <div v-if="conversionResult.errors.length > 0" class="collapse collapse-arrow bg-error/10 border border-error/20 mt-4">
-        <input type="checkbox" />
+        <input type="checkbox" aria-label="展開錯誤詳情" />
         <div class="collapse-title text-lg font-medium text-error">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -250,7 +253,7 @@
 
       <!-- 警告詳情 -->
       <div v-if="conversionResult.warnings.length > 0" class="collapse collapse-arrow bg-warning/10 border border-warning/20 mt-4">
-        <input type="checkbox" />
+        <input type="checkbox" aria-label="展開警告詳情" />
         <div class="collapse-title text-lg font-medium text-warning">
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -272,14 +275,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useConfigStore } from '@/stores/config'
-import { ConverterService, type ConversionResult } from '@/services/ConverterService'
-import type { ConversionConfig } from '@/types'
-import { getFileName } from '@/utils/formatters'
-import { notificationService } from '@/services/NotificationService'
-import { formatErrorMessage } from '@/utils/errorFormatter'
-import { calculateETA } from '@/utils/timeFormatter'
+import { ref, computed, onMounted } from "vue"
+import { useConfigStore } from "@/stores/config"
+import { ConverterService, type ConversionResult } from "@/services/ConverterService"
+import type { ConversionConfig } from "@/types"
+import { getFileName } from "@/utils/formatters"
+import { notificationService } from "@/services/NotificationService"
+import { formatErrorMessage } from "@/utils/errorFormatter"
+import { calculateETA } from "@/utils/timeFormatter"
+import { logger } from "@/utils/logger"
 
 const configStore = useConfigStore()
 const converterService = new ConverterService()
@@ -297,14 +301,14 @@ const conversionProgress = ref({
   total: 0
 })
 
-const currentProcessingFile = ref<string>('')
+const currentProcessingFile = ref<string>("")
 const conversionStartTime = ref<number>(0)
 
 // 轉換設定
 const config = computed<ConversionConfig>(() => ({
-  sourceDir: configStore.paths.obsidianVault,
-  targetDir: configStore.paths.targetBlog,
-  imageSourceDir: configStore.paths.imagesDir,
+  sourceDir: configStore.config.paths.articlesDir,
+  targetDir: configStore.config.paths.targetDir,
+  imageSourceDir: configStore.config.paths.imagesDir,
   preserveStructure: true
 }))
 
@@ -337,7 +341,7 @@ const loadStats = async () => {
     
     conversionStats.value = await converterService.getConversionStats(config.value.sourceDir)
   } catch (error) {
-    console.error('Failed to load conversion stats:', error)
+    logger.error("Failed to load conversion stats:", error)
   }
 }
 
@@ -347,8 +351,8 @@ const loadStats = async () => {
 const startConversion = async () => {
   if (!isConfigValid.value) {
     notificationService.error(
-      '設定錯誤',
-      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+      "設定錯誤",
+      "請先在設定面板中配置 Obsidian Vault 和目標部落格路徑"
     )
     return
   }
@@ -356,16 +360,14 @@ const startConversion = async () => {
   // 驗證批次轉換前置條件
   const validation = await converterService.validateBatchConversionPrerequisites(config.value)
   if (!validation.valid) {
-    notificationService.error(
-      '轉換前置條件檢查失敗',
-      `請檢查以下問題：\n${validation.issues.map(i => `• ${i}`).join('\n')}`
-    )
+    const issueList = validation.issues.map(i => `• ${i}`).join("\n")
+    notificationService.error("轉換前置條件檢查失敗", `請檢查以下問題：\n${issueList}`)
     return
   }
 
   isConverting.value = true
   conversionResult.value = null
-  currentProcessingFile.value = ''
+  currentProcessingFile.value = ""
   conversionStartTime.value = Date.now()
 
   // 重設進度
@@ -380,17 +382,15 @@ const startConversion = async () => {
       config.value,
       (processed: number, total: number, currentFile?: string) => {
         conversionProgress.value = { processed, total }
-        currentProcessingFile.value = currentFile || ''
+        currentProcessingFile.value = currentFile || ""
       }
     )
 
     // 添加完成時間
-    const resultWithTime = {
+    conversionResult.value = {
       ...result,
       completedAt: new Date()
     }
-
-    conversionResult.value = resultWithTime
 
     // 顯示成功通知
     if (result.success) {
@@ -400,20 +400,20 @@ const startConversion = async () => {
       if (!hasErrors && !hasWarnings) {
         // 完美成功：無錯誤、無警告
         notificationService.success(
-          '完美！轉換完成 🎉',
+          "完美！轉換完成 🎉",
           `成功轉換 ${result.processedFiles} 篇文章，無錯誤、無警告`
         )
       } else if (!hasErrors && hasWarnings) {
         // 成功但有警告
         notificationService.success(
-          '轉換完成',
+          "轉換完成",
           `成功轉換 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
         )
       }
     } else {
       // 轉換失敗
       notificationService.error(
-        '轉換失敗',
+        "轉換失敗",
         `處理了 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
       )
     }
@@ -422,7 +422,7 @@ const startConversion = async () => {
     await loadStats()
     
   } catch (error) {
-    console.error('Conversion failed:', error)
+    logger.error("Conversion failed:", error)
 
     // 格式化錯誤訊息
     const formatted = formatErrorMessage(error)
@@ -430,14 +430,14 @@ const startConversion = async () => {
     // 顯示友善的錯誤通知
     notificationService.error(
       formatted.friendlyMessage,
-      formatted.suggestions.slice(0, 2).join('\n')
+      formatted.suggestions.slice(0, 2).join("\n")
     )
 
     conversionResult.value = {
       success: false,
       processedFiles: 0,
       errors: [{
-        file: 'conversion process',
+        file: "conversion process",
         error: formatted.originalError
       }],
       warnings: [],
@@ -445,7 +445,7 @@ const startConversion = async () => {
     }
   } finally {
     isConverting.value = false
-    currentProcessingFile.value = ''
+    currentProcessingFile.value = ""
   }
 }
 
@@ -456,15 +456,15 @@ const startConversion = async () => {
 const convertCategory = async (category: string) => {
   if (!isConfigValid.value) {
     notificationService.error(
-      '設定錯誤',
-      '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+      "設定錯誤",
+      "請先在設定面板中配置 Obsidian Vault 和目標部落格路徑"
     )
     return
   }
 
   isConverting.value = true
   conversionResult.value = null
-  currentProcessingFile.value = ''
+  currentProcessingFile.value = ""
   conversionStartTime.value = Date.now()
 
   const categoryStats = conversionStats.value?.articlesByCategory[category] || 0
@@ -482,17 +482,15 @@ const convertCategory = async (category: string) => {
       category,
       (processed: number, total: number, currentFile?: string) => {
         conversionProgress.value = { processed, total }
-        currentProcessingFile.value = currentFile || ''
+        currentProcessingFile.value = currentFile || ""
       }
     )
 
     // 添加完成時間
-    const resultWithTime = {
+    conversionResult.value = {
       ...result,
       completedAt: new Date()
     }
-
-    conversionResult.value = resultWithTime
 
     // 顯示成功通知
     if (result.success) {
@@ -502,20 +500,20 @@ const convertCategory = async (category: string) => {
       if (!hasErrors && !hasWarnings) {
         // 完美成功：無錯誤、無警告
         notificationService.success(
-          '完美！轉換完成 🎉',
+          "完美！轉換完成 🎉",
           `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，無錯誤、無警告`
         )
       } else if (!hasErrors && hasWarnings) {
         // 成功但有警告
         notificationService.success(
-          '轉換完成',
+          "轉換完成",
           `成功轉換 ${category} 分類的 ${result.processedFiles} 篇文章，${result.warnings.length} 個警告`
         )
       }
     } else {
       // 轉換失敗
       notificationService.error(
-        '轉換失敗',
+        "轉換失敗",
         `處理了 ${category} 分類的 ${result.processedFiles} 篇文章，${result.errors.length} 個錯誤`
       )
     }
@@ -524,7 +522,7 @@ const convertCategory = async (category: string) => {
     await loadStats()
     
   } catch (error) {
-    console.error(`Category ${category} conversion failed:`, error)
+    logger.error(`Category ${category} conversion failed:`, error)
 
     // 格式化錯誤訊息
     const formatted = formatErrorMessage(error)
@@ -532,7 +530,7 @@ const convertCategory = async (category: string) => {
     // 顯示友善的錯誤通知
     notificationService.error(
       `${category} 分類轉換失敗`,
-      formatted.friendlyMessage + '\n\n' + formatted.suggestions.slice(0, 2).join('\n')
+      formatted.friendlyMessage + "\n\n" + formatted.suggestions.slice(0, 2).join("\n")
     )
 
     conversionResult.value = {
@@ -547,7 +545,7 @@ const convertCategory = async (category: string) => {
     }
   } finally {
     isConverting.value = false
-    currentProcessingFile.value = ''
+    currentProcessingFile.value = ""
   }
 }
 
@@ -558,15 +556,15 @@ const convertCategory = async (category: string) => {
  */
 const formatTime = (date?: Date): string => {
   if (!date) {
-    return ''
+    return ""
   }
-  return date.toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+  return date.toLocaleString("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
   })
 }
 

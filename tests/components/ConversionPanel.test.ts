@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import { notificationService } from '@/services/NotificationService'
+import { describe, it, expect, vi } from "vitest"
+import { notificationService } from "@/services/NotificationService"
 
 /**
  * ConversionPanel - Toast 通知替換測試
@@ -8,87 +8,87 @@ import { notificationService } from '@/services/NotificationService'
  * 由於 ConversionPanel 是複雜組件，需要許多依賴，我們採用更簡單的測試策略：
  * 直接測試 notificationService 的行為
  */
-describe('ConversionPanel - Toast 通知', () => {
-  describe('NotificationService 基本功能', () => {
-    it('應該能夠顯示錯誤通知', () => {
+describe("ConversionPanel - Toast 通知", () => {
+  describe("NotificationService 基本功能", () => {
+    it("應該能夠顯示錯誤通知", () => {
       // Arrange
-      const errorSpy = vi.spyOn(notificationService, 'error')
+      const errorSpy = vi.spyOn(notificationService, "error")
 
       // Act
-      notificationService.error('設定錯誤', '請先設定有效的路徑配置')
+      notificationService.error("設定錯誤", "請先設定有效的路徑配置")
 
       // Assert
-      expect(errorSpy).toHaveBeenCalledWith('設定錯誤', '請先設定有效的路徑配置')
+      expect(errorSpy).toHaveBeenCalledWith("設定錯誤", "請先設定有效的路徑配置")
       expect(notificationService.notifications.value).toHaveLength(1)
-      expect(notificationService.notifications.value[0].type).toBe('error')
-      expect(notificationService.notifications.value[0].title).toBe('設定錯誤')
+      expect(notificationService.notifications.value[0].type).toBe("error")
+      expect(notificationService.notifications.value[0].title).toBe("設定錯誤")
 
       // Cleanup
       notificationService.dismissAll()
     })
 
-    it('應該能夠顯示警告通知', () => {
+    it("應該能夠顯示警告通知", () => {
       // Arrange
-      const warningSpy = vi.spyOn(notificationService, 'warning')
+      const warningSpy = vi.spyOn(notificationService, "warning")
 
       // Act
-      notificationService.warning('前置條件不滿足', '請檢查來源目錄是否存在')
+      notificationService.warning("前置條件不滿足", "請檢查來源目錄是否存在")
 
       // Assert
       expect(warningSpy).toHaveBeenCalled()
       expect(notificationService.notifications.value).toHaveLength(1)
-      expect(notificationService.notifications.value[0].type).toBe('warning')
+      expect(notificationService.notifications.value[0].type).toBe("warning")
 
       // Cleanup
       notificationService.dismissAll()
     })
 
-    it('應該能夠顯示成功通知', () => {
+    it("應該能夠顯示成功通知", () => {
       // Arrange
-      const successSpy = vi.spyOn(notificationService, 'success')
+      const successSpy = vi.spyOn(notificationService, "success")
 
       // Act
-      notificationService.success('轉換完成', '成功轉換 10 篇文章')
+      notificationService.success("轉換完成", "成功轉換 10 篇文章")
 
       // Assert
       expect(successSpy).toHaveBeenCalled()
       expect(notificationService.notifications.value).toHaveLength(1)
-      expect(notificationService.notifications.value[0].type).toBe('success')
+      expect(notificationService.notifications.value[0].type).toBe("success")
 
       // Cleanup
       notificationService.dismissAll()
     })
   })
 
-  describe('友善的錯誤訊息', () => {
-    it('應該提供清楚的設定錯誤訊息', () => {
+  describe("友善的錯誤訊息", () => {
+    it("應該提供清楚的設定錯誤訊息", () => {
       // Act
       notificationService.error(
-        '設定錯誤',
-        '請先在設定面板中配置 Obsidian Vault 和目標部落格路徑'
+        "設定錯誤",
+        "請先在設定面板中配置 Obsidian Vault 和目標部落格路徑"
       )
 
       // Assert
       const notification = notificationService.notifications.value[0]
-      expect(notification.message).toContain('Obsidian Vault')
-      expect(notification.message).toContain('目標部落格路徑')
+      expect(notification.message).toContain("Obsidian Vault")
+      expect(notification.message).toContain("目標部落格路徑")
 
       // Cleanup
       notificationService.dismissAll()
     })
 
-    it('應該提供清楚的前置條件錯誤訊息', () => {
+    it("應該提供清楚的前置條件錯誤訊息", () => {
       // Act
-      const issues = ['來源目錄不存在', '目標目錄無寫入權限']
+      const issues = ["來源目錄不存在", "目標目錄無寫入權限"]
       notificationService.error(
-        '轉換前置條件檢查失敗',
-        `請檢查以下問題：\n${issues.map(i => `- ${i}`).join('\n')}`
+        "轉換前置條件檢查失敗",
+        `請檢查以下問題：\n${issues.map(i => `- ${i}`).join("\n")}`
       )
 
       // Assert
       const notification = notificationService.notifications.value[0]
-      expect(notification.message).toContain('來源目錄不存在')
-      expect(notification.message).toContain('目標目錄無寫入權限')
+      expect(notification.message).toContain("來源目錄不存在")
+      expect(notification.message).toContain("目標目錄無寫入權限")
 
       // Cleanup
       notificationService.dismissAll()

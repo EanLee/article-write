@@ -19,5 +19,5 @@
 export function getFileName(filePath: string): string {
   // 使用正則表達式分割路徑，支援 / 和 \ 分隔符
   // 返回最後一個部分（檔案名稱），如果不存在則返回空字串
-  return filePath.split(/[/\\]/).pop() || ''
+  return filePath.split(/[/\\]/).pop() || ""
 }
