@@ -101,7 +101,7 @@ const props = defineProps<Props>()
 // 使用 DOMPurify 消毒 markdown-it 輸出，防止 XSS 攻擊
 // 允許 local-file: 協定（自訂 Electron Protocol）與 file: 協定（生產模式 file:// 載入時）
 const ALLOWED_URI_REGEXP =
-  /^(?:https?:|ftps?:|mailto:|tel:|callto:|cid:|xmpp:|file:|local-file:|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i
+  /^(?:https?:|ftps?:|mailto:|tel:|callto:|cid:|xmpp:|file:|local-file:|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i // NOSONAR — DOMPurify 安全 URI 白名單不可簡化
 
 const sanitizedContent = computed(() =>
   DOMPurify.sanitize(props.renderedContent, {
@@ -198,7 +198,7 @@ defineExpose({
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-tag) {
   display: inline-block;
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: #eff6ff;
   color: #1e3a8a;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;

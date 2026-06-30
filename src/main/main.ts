@@ -158,7 +158,7 @@ app.on("before-quit", () => {
 
 // Electron 42（Chromium 130）ESM 主程序中，top-level await app.whenReady() 會造成
 // 模組評估暫停 → ready 事件等待模組完成 → 死鎖。改用 .then() 回呼避免此問題。
-app.whenReady().then(async () => {
+app.whenReady().then(async () => { // NOSONAR — top-level await 在 Electron 42 ESM 主程序會造成死鎖
   // 處理 local-file:// 請求，提供 vault 本地圖片給 renderer
   // 使用 net.fetch 轉發到 file:// 協定，繞過 http/file 跨來源限制
   protocol.handle("local-file", async (request) => {

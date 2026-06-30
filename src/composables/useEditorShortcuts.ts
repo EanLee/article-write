@@ -36,13 +36,11 @@ export function useEditorShortcuts(
         contentRef.value = text.slice(0, lineStart) + text.slice(lineStart + prefix.length)
         setTimeout(() => { textarea.setSelectionRange(Math.max(lineStart, pos - prefix.length), Math.max(lineStart, pos - prefix.length)) }, 0)
       }
+    } else if (textarea.replaceRange) {
+      textarea.replaceRange(lineStart, lineStart, prefix)
     } else {
-      if (textarea.replaceRange) {
-        textarea.replaceRange(lineStart, lineStart, prefix)
-      } else {
-        contentRef.value = text.slice(0, lineStart) + prefix + text.slice(lineStart)
-        setTimeout(() => { textarea.setSelectionRange(pos + prefix.length, pos + prefix.length) }, 0)
-      }
+      contentRef.value = text.slice(0, lineStart) + prefix + text.slice(lineStart)
+      setTimeout(() => { textarea.setSelectionRange(pos + prefix.length, pos + prefix.length) }, 0)
     }
   }
 
