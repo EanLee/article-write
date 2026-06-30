@@ -23,7 +23,8 @@
     "test:e2e:headed": "playwright test --headed",
     "lint": "eslint . --ext .js,.ts,.vue",
     "lint:fix": "eslint . --ext .js,.ts,.vue --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "sonar": "pnpm run test:coverage && node -e \"const {version}=require('./package.json');const {execSync}=require('child_process');execSync('npx sonar-scanner -Dsonar.projectVersion='+version,{stdio:'inherit'})\""
   },
   "keywords": [
     "electron",
