@@ -35,7 +35,9 @@ source_of_truth: false
 ### 標準掃描（建議，含 coverage + 自動帶版號）
 
 ```bash
-pnpm run sonar
+SONAR_TOKEN=squ_1dc90343e95af2813e09e18607ed8417c74dfa14 \
+  SONAR_HOST_URL=http://localhost:9000 \
+  pnpm run sonar
 ```
 
 `pnpm run sonar` 會自動：
@@ -45,11 +47,7 @@ pnpm run sonar
 
 版本與 `package.json` 同步，SonarQube New Code Period 以版本為基準正確追蹤。
 
-### 覆寫 token（CI 或不同環境）
-
-```bash
-SONAR_TOKEN=<your_token> pnpm run sonar
-```
+> `SONAR_TOKEN` 與 `SONAR_HOST_URL` 必須以環境變數提供；不再寫入任何設定檔，避免安全性掃描誤報。
 
 ---
 
@@ -83,13 +81,14 @@ curl -s -u "squ_1dc90343e95af2813e09e18607ed8417c74dfa14:" \
 
 ## 5. sonar-project.properties 設定
 
-`sonar.projectVersion` **不**寫在 properties 檔，由 `pnpm run sonar` 動態從 `package.json` 注入。
+`sonar.projectVersion` 與 `sonar.host.url`、`SONAR_TOKEN` **不**寫在 properties 檔：
+- `sonar.projectVersion` 由 `pnpm run sonar` 動態從 `package.json` 注入
+- `sonar.host.url` 透過 `SONAR_HOST_URL` 環境變數提供（避免本機 URL 污染 CI）
+- Token 透過 `SONAR_TOKEN` 環境變數提供（避免 SonarQube 安全熱點誤報）
 
 ```properties
 sonar.projectKey=writeflow
 sonar.projectName=WriteFlow
-
-sonar.host.url=http://localhost:9000
 
 sonar.sources=src
 sonar.exclusions=**/node_modules/**,**/dist/**,**/dist-electron/**,**/*.spec.ts,**/*.test.ts,**/tests/**

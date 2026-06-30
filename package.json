@@ -24,7 +24,7 @@
     "lint": "eslint . --ext .js,.ts,.vue",
     "lint:fix": "eslint . --ext .js,.ts,.vue --fix",
     "prepare": "husky",
-    "sonar": "pnpm run test:coverage && node -e \"const {version}=require('./package.json');const {execSync}=require('child_process');execSync('npx sonar-scanner -Dsonar.projectVersion='+version,{stdio:'inherit',env:{...process.env,SONAR_TOKEN:process.env.SONAR_TOKEN||'squ_1dc90343e95af2813e09e18607ed8417c74dfa14'}})\""
+    "sonar": "pnpm run test:coverage && node -e \"const {version}=require('./package.json');const {execSync}=require('child_process');execSync('npx sonar-scanner -Dsonar.projectVersion='+version,{stdio:'inherit'})\""
   },
   "keywords": [
     "electron",
