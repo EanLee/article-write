@@ -689,4 +689,10 @@ onUnmounted(() => {
     // 清除即時內容回呼
     autoSaveService.setEditorContentCallback(null);
 });
+
+function scrollToLine(lineIndex: number) {
+    editorPaneRef.value?.scrollToLine(lineIndex)
+}
+
+defineExpose({ scrollToLine })
 </script>

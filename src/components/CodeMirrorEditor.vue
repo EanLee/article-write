@@ -81,6 +81,12 @@ import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxServi
 import type { ImageValidationWarning } from "@/services/ImageService"
 import EditorStatusBar from "./EditorStatusBar.vue"
 
+export interface OutlineHeading {
+  level: number
+  text: string
+  line: number
+}
+
 // ─── Props & Emits ────────────────────────────────────────────────────────────
 
 interface Props {
@@ -407,10 +413,18 @@ const editorRef = computed(() => {
   }
 })
 
+function scrollToLine(lineIndex: number) {
+  const view = editorView.value
+  if (!view) {return}
+  const line = view.state.doc.line(Math.min(lineIndex + 1, view.state.doc.lines))
+  view.dispatch({ effects: EditorView.scrollIntoView(line.from, { y: "start" }) })
+}
+
 defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
+  scrollToLine,
 })
 </script>
 
