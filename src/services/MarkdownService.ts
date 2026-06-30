@@ -272,6 +272,20 @@ export class MarkdownService {
       }
     }
 
+    // Draft flag（保留供靜態框架讀取）
+    if (data.draft !== undefined) {
+      if (typeof data.draft === "boolean") {
+        frontmatter.draft = data.draft;
+      }
+    }
+
+    // Status（保留供靜態框架讀取）
+    if (data.status !== undefined) {
+      if (typeof data.status === "string") {
+        frontmatter.status = data.status;
+      }
+    }
+
     return frontmatter;
   }
 

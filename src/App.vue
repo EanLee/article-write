@@ -9,7 +9,7 @@
       <template v-if="currentMode === ViewMode.Editor">
         <div class="flex flex-1 overflow-hidden">
           <!-- Sidebar -->
-          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" />
+          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" :outline-headings="outlineHeadings" @scroll-to-outline-line="handleScrollToOutlineLine" />
 
           <!-- Editor Content -->
           <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
@@ -35,7 +35,7 @@
             </div>
 
             <div v-else class="h-full flex flex-col">
-              <MainEditor />
+              <MainEditor ref="mainEditorRef" />
             </div>
 
           </main>
@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
@@ -72,6 +72,7 @@ import { FileText } from "@lucide/vue";
 import ActivityBar from "@/components/ActivityBar.vue";
 import SideBarView from "@/components/SideBarView.vue";
 import MainEditor from "@/components/MainEditor.vue";
+import type { OutlineHeading } from "@/components/CodeMirrorEditor.vue";
 import SettingsPanel from "@/components/SettingsPanel.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
@@ -85,15 +86,32 @@ const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
 const sidebarView = ref<SidebarView>(SidebarView.Articles);
 const sidebarCollapsed = ref(false);
+const mainEditorRef = ref<InstanceType<typeof MainEditor>>();
+
+const outlineHeadings = computed<OutlineHeading[]>(() => {
+  const content = articleStore.currentArticle?.content ?? "";
+  return content.split("\n").flatMap((line, index) => {
+    const match = line.match(/^(#{1,6})\s+(.+)/);
+    if (!match) {return [];}
+    return [{ level: match[1].length, text: match[2].trim(), line: index }];
+  });
+});
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value;
 }
 
+function handleScrollToOutlineLine(line: number) {
+  mainEditorRef.value?.scrollToLine(line);
+}
+
 function handleGlobalKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === "b") {
-    e.preventDefault();
-    toggleSidebar();
+    // CM editor 自行處理 Ctrl+B（粗體），此時不 toggle sidebar
+    if (!(e.target as HTMLElement).closest?.(".cm-editor")) {
+      e.preventDefault();
+      toggleSidebar();
+    }
   } else if (e.ctrlKey && !e.shiftKey && e.key === "f") {
     e.preventDefault();
     searchStore.open();

@@ -20,13 +20,19 @@ const ARTICLE_FILE = "writing-baseline-main.md";
 const ARTICLE_TITLE = "寫作基線主文章";
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
 
-/** 從 fixtures 模板複製共用主文章（不在測試碼內生成內容） */
+/** 從 fixtures 模板複製共用主文章與切換目標文章（不在測試碼內生成內容） */
 function ensureTestArticle(vaultPath: string): string {
   const dir = path.join(vaultPath, "Drafts", "Software");
   fs.mkdirSync(dir, { recursive: true });
   const filePath = path.join(dir, ARTICLE_FILE);
   if (!fs.existsSync(filePath)) {
     fs.copyFileSync(path.join(FIXTURES_DIR, ARTICLE_FILE), filePath);
+  }
+  // 切換測試用文章：預先建立，確保 app reload 時初始掃描就能找到，
+  // 避免在 CI 上依賴 FileWatch 偵測新檔（Electron 42 Linux 下 inotify 延遲可能超過 15s）
+  const switchTargetPath = path.join(dir, "switch-target.md");
+  if (!fs.existsSync(switchTargetPath)) {
+    fs.copyFileSync(path.join(FIXTURES_DIR, "switch-target.md"), switchTargetPath);
   }
   return filePath;
 }

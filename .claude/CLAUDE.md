@@ -43,6 +43,12 @@ TypeScript / Vue / 命名 / Enum 規範 → [程式碼風格與型別規範](../
 **核心鐵則**：所有修改完成前必執行 `pnpm run test`，**0 failures** 才算完成；不可跳過、不可以「應該不影響」代替實際驗證。
 詳細規則與 Definition of Done → `testing-standards` skill
 
+**E2E 高危規則（新增或修改 E2E 測試時必檢查）**：
+- **全域 keydown handler**：與編輯器快捷鍵重疊（`b`/`f`/`z` 等）必加 `.closest(".cm-editor")` 判斷，否則 serial 測試的 sidebar 狀態會漂移
+- **FileWatch 不可靠**：需要 app 啟動就能看到的檔案 → 放 `beforeEach` fixture helper 預置；禁止在 test body 複製檔案後等 FileWatch（Linux CI inotify 延遲可能 > 15s）
+- **Electron 主程序 ESM**：禁止 top-level `await` 任何 Electron 非同步 API（Electron 42 會死鎖）
+- 完整規則與 7 個失敗模式 → `e2e-testing-rules` skill
+
 ## 技術文件與會議
 
 - CI/CD、架構決策、技術選型、基礎設施變更 → `tech-team-docs` skill

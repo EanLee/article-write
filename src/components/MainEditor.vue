@@ -65,6 +65,7 @@ import { useSearchReplace } from "@/composables/useSearchReplace";
 import { useFocusMode } from "@/composables/useFocusMode";
 import { useSyncScroll } from "@/composables/useSyncScroll";
 import { getArticleService } from "@/services/ArticleService";
+import { autoSaveService } from "@/services/AutoSaveService";
 import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
 
@@ -305,6 +306,7 @@ async function saveArticle() {
         if (result.success) {
             // 更新 store 中的資料（透過 store 的 action）
             articleStore.updateArticleInMemory(updatedArticle);
+            autoSaveService.notifySaved(updatedArticle);
         } else if (result.conflict) {
             logger.warn("[Editor] File conflict detected during auto-save");
             // 衝突時不強制儲存
@@ -657,6 +659,9 @@ onMounted(() => {
 
     // Click outside to hide suggestions
     document.addEventListener("click", handleClickOutside);
+
+    // 登記即時內容回呼：切換文章時 AutoSaveService 需要取得最新打字內容
+    autoSaveService.setEditorContentCallback(() => content.value);
 });
 
 // 處理點擊外部以隱藏建議
@@ -681,5 +686,13 @@ onUnmounted(() => {
     document.removeEventListener("click", handleClickOutside);
     // 清理驗證
     cleanupValidation();
+    // 清除即時內容回呼
+    autoSaveService.setEditorContentCallback(null);
 });
+
+function scrollToLine(lineIndex: number) {
+    editorPaneRef.value?.scrollToLine(lineIndex)
+}
+
+defineExpose({ scrollToLine })
 </script>
