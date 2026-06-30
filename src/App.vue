@@ -94,7 +94,7 @@ function handleGlobalKeydown(e: KeyboardEvent) {
   if (e.ctrlKey && e.key === "b") {
     e.preventDefault();
     toggleSidebar();
-  } else if (e.ctrlKey && e.key === "f") {
+  } else if (e.ctrlKey && !e.shiftKey && e.key === "f") {
     e.preventDefault();
     searchStore.open();
   }
