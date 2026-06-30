@@ -198,8 +198,8 @@ defineExpose({
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-tag) {
   display: inline-block;
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #1e3a8a; /* NOSONAR — contrast ratio meets WCAG AA against actual light-blue background */
+  background-color: #eff6ff;
+  color: #1e3a8a;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
