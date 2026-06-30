@@ -404,7 +404,10 @@ const editorRef = computed(() => {
     replaceRange(from: number, to: number, insert: string) {
       const cursorPos = view.state.selection.main.from
       const delta = insert.length - (to - from)
-      const newCursor = cursorPos > to ? cursorPos + delta : cursorPos > from ? from + insert.length : cursorPos
+      let newCursor: number
+      if (cursorPos > to) { newCursor = cursorPos + delta }
+      else if (cursorPos > from) { newCursor = from + insert.length }
+      else { newCursor = cursorPos }
       view.dispatch({
         changes: { from, to, insert },
         selection: { anchor: newCursor },

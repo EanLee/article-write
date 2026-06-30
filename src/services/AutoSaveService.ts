@@ -165,9 +165,9 @@ export class AutoSaveService {
     try {
       // 取得編輯器即時內容（比 store 快取更新），避免遺漏切換前最後一次打字
       const editorContent = this.getEditorContentCallback?.();
-      const articleToSave = editorContent !== undefined
-        ? { ...previousArticle, content: editorContent }
-        : previousArticle;
+      const articleToSave = editorContent === undefined
+        ? previousArticle
+        : { ...previousArticle, content: editorContent };
 
       // 檢查前一篇文章是否有變更
       const hasChanged = this.hasContentChanged(articleToSave);

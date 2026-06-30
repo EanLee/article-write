@@ -58,9 +58,7 @@ export const useServerStore = defineStore("server", () => {
   }
 
   function addLog(log: string) {
-    if (!status.value.logs) {
-      status.value.logs = []
-    }
+    status.value.logs ??= []
     status.value.logs.push(log)
     
     // Keep only last 100 log entries
