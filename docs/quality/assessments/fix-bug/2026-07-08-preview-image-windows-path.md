@@ -116,3 +116,52 @@ const resolved = new URL("../../images/photo.png", base)
 **測試**：新增 4 個單元測試（`resolveStandardMarkdownImagePaths - 標準 Markdown 圖片相對路徑解析`），覆蓋 Windows、Unix、http 路徑不變、無 articleFilePath 時原樣保留。
 
 **相關 commit**：`fix(preview): 修正標準 Markdown 圖片相對路徑無法在 Electron 中顯示`
+
+---
+
+## 追加修復 2 (2026-07-08)
+
+### 問題描述
+
+加入 source-level 轉換後，圖片在 app 中仍不顯示。
+
+### 原因分析
+
+Source-level 轉換（`resolveStandardMarkdownImagePaths`）有兩個致命弱點：
+
+1. **路徑含空格**：`new URL(src, base)` 中 `base` 含未編碼空格（如 `file:///C:/My Vault/`），URL 構建拋出 `TypeError`，被 catch 靜默返回原值，路徑未轉換。
+2. **`articleFilePath` 為 undefined**：若 `renderPreview` 呼叫時 `options.articleFilePath` 尚未設定（例如 `currentArticle` 剛切換、watcher 尚未觸發），整段邏輯跳過，相對路徑保留。
+
+```
+MainEditor.updatePreview()
+  → previewService.renderPreview(content, { articleFilePath: currentArticle?.filePath })
+    → resolveStandardMarkdownImagePaths()
+        → new URL(src, "file:///C:/My Vault/...")  ← TypeError: Invalid URL（空格未編碼）
+        → catch → return match（原相對路徑）
+    → markdownService.renderForPreview()
+        → <img src="../../images/...">  ← 相對路徑保留
+    → postProcessHtml()
+        → 未處理 <img> src
+  → <img src="../../images/...">
+  ← 瀏覽器以 http://localhost:3002 為 base 解析 → 404
+```
+
+### 修正方式
+
+**修改檔案**：`src/services/PreviewService.ts`、`src/components/MainEditor.vue`
+
+**兩項修正：**
+
+1. **`encodeURI` 修正 source-level**：`resolveStandardMarkdownImagePaths` 的 `base` 改用 `encodeURI()` 包裝，空格轉為 `%20`，`new URL()` 不再拋出。
+2. **HTML post-processing 防線**：新增 `setArticleFilePath(filePath)` 方法（同 `setImageBasePath` 的存活週期），在 `postProcessHtml` 中將殘留的相對 `<img src>` 轉換為 `local-file:///` 絕對 URL——source-level 失敗時的安全防線。
+
+```ts
+// MainEditor.updatePreview() 現在同時呼叫：
+previewService.setArticleFilePath(articleStore.currentArticle?.filePath ?? "")
+// → this.articleDir 持久化存儲文章目錄
+// postProcessHtml 使用 this.articleDir 修正殘留相對路徑
+```
+
+**測試**：新增 4 個單元測試（`setArticleFilePath + HTML post-processing`），覆蓋 Windows、Unix、空路徑、http 不動。
+
+**相關 commit**：`fix(preview): 補強圖片路徑解析：encodeURI + HTML 後處理防線`

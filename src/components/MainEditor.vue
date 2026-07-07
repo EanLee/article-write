@@ -437,6 +437,7 @@ function updatePreview() {
         // Update preview service with current context
         previewService.updateArticles(articleStore.articles);
         previewService.setImageBasePath(imageBasePath);
+        previewService.setArticleFilePath(articleStore.currentArticle?.filePath ?? "");
 
         // Render with full Obsidian syntax support
         renderedContent.value = previewService.renderPreview(content.value, {

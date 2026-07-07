@@ -22,6 +22,7 @@ export class PreviewService {
   private readonly markdownService: MarkdownService
   private articles: Article[] = []
   private imageBasePath: string = ""
+  private articleDir: string = ""
 
   /**
    * 建構子 - 初始化預覽服務
@@ -44,6 +45,16 @@ export class PreviewService {
    */
   setImageBasePath(basePath: string): void {
     this.imageBasePath = basePath
+  }
+
+  setArticleFilePath(filePath: string): void {
+    if (!filePath) {
+      this.articleDir = ""
+      return
+    }
+    const normalized = filePath.replace(/\\/g, "/")
+    const withSlash = normalized.startsWith("/") ? normalized : `/${normalized}`
+    this.articleDir = withSlash.substring(0, withSlash.lastIndexOf("/"))
   }
 
   /**
@@ -222,7 +233,7 @@ export class PreviewService {
     const normalized = articleFilePath.replace(/\\/g, "/")
     const withLeadingSlash = normalized.startsWith("/") ? normalized : `/${normalized}`
     const articleDir = withLeadingSlash.substring(0, withLeadingSlash.lastIndexOf("/"))
-    const base = `file://${articleDir}/`
+    const base = encodeURI(`file://${articleDir}/`)
 
     return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
       if (src.startsWith("http") || src.startsWith("local-file:") || src.startsWith("data:") || src.startsWith("file:") || src.startsWith("/")) {
@@ -256,6 +267,24 @@ export class PreviewService {
    */
   private postProcessHtml(html: string): string {
     let processed = html
+
+    // 將殘留的相對路徑 <img src="..."> 轉換為 local-file:/// 絕對 URL
+    // （source-level 轉換失敗時的安全防線，例如 vault 路徑含空格導致 URL 建構錯誤）
+    if (this.articleDir) {
+      const base = encodeURI(`file://${this.articleDir}/`)
+      processed = processed.replace(/<img\b([^>]*)\bsrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
+        if (src.startsWith("http") || src.startsWith("local-file:") || src.startsWith("data:") || src.startsWith("file:") || src.startsWith("/")) {
+          return match
+        }
+        try {
+          const resolved = new URL(src, base)
+          const resolvedPath = resolved.pathname.replace(/^\/+/, "")
+          return `<img${before}src="local-file:///${resolvedPath}"${after}>`
+        } catch {
+          return match
+        }
+      })
+    }
 
     // 為程式碼區塊添加複製按鈕
     processed = processed.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_, attrs, code) => {

@@ -268,6 +268,34 @@ More regular text.
     });
   });
 
+  describe("setArticleFilePath + HTML post-processing - 相對路徑安全防線", () => {
+    it("setArticleFilePath 後渲染時應在 HTML 層轉換相對 img src（Windows）", () => {
+      previewService.setArticleFilePath("C:/vault/Drafts/Engineering/article.md")
+      const html = previewService.renderPreview("![圖片](../../images/photo.png)")
+      expect(html).toContain("local-file:///C:/vault/images/photo.png")
+    })
+
+    it("setArticleFilePath 後渲染時應在 HTML 層轉換相對 img src（Unix）", () => {
+      previewService.setArticleFilePath("/home/vault/Drafts/Engineering/article.md")
+      const html = previewService.renderPreview("![圖片](../../images/photo.png)")
+      expect(html).toContain("local-file:///home/vault/images/photo.png")
+    })
+
+    it("setArticleFilePath 為空時不轉換 img src", () => {
+      previewService.setArticleFilePath("")
+      const html = previewService.renderPreview("![圖片](../../images/photo.png)")
+      expect(html).toContain("../../images/photo.png")
+      expect(html).not.toContain("local-file:")
+    })
+
+    it("http 圖片路徑不應被 HTML post-processing 修改", () => {
+      previewService.setArticleFilePath("C:/vault/article.md")
+      const html = previewService.renderPreview("![圖片](https://example.com/image.png)")
+      expect(html).toContain("https://example.com/image.png")
+      expect(html).not.toContain("local-file:")
+    })
+  })
+
   describe("resolveStandardMarkdownImagePaths - 標準 Markdown 圖片相對路徑解析", () => {
     it("相對路徑 ../../images/... 應解析為 local-file:/// 絕對路徑（Windows）", () => {
       const html = previewService.renderPreview(
