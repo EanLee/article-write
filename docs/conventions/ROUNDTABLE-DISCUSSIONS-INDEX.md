@@ -4,7 +4,7 @@ domain: conventions
 type: reference
 status: approved
 owner: tech-team
-updated: 2026-06-14
+updated: 2026-07-08
 source_of_truth: false
 ---
 
@@ -44,6 +44,7 @@ source_of_truth: false
 | 021 | ArticleListTree 在完整 E2E 套件中無法顯示新偵測文章 | 2026-06-13 | engineering | ✅ 已解決 | 技術會議結論 | [topic-021-2026-06-13-articlelisttree-reactivity](../engineering/discussions/topic-021-2026-06-13-articlelisttree-reactivity/) |
 | 022 | 進度回顧（原編號 topic-012，已重新編號） | 2026-02-28 | delivery | ✅ 已決策 | 全體一致 | [topic-022-2026-02-28-progress-review](../delivery/discussions/topic-022-2026-02-28-progress-review/) |
 | 023 | App 在有未儲存變更時關閉視窗會無聲卡住 | 2026-06-14 | engineering | ⚠️ 待排程 | - | [topic-023-2026-06-14-quit-with-unsaved-changes](../engineering/discussions/topic-023-2026-06-14-quit-with-unsaved-changes/) |
+| 024 | Tauri 底層遷移評估（Electron → Tauri + Rust） | 2026-07-08 | engineering | ✅ 已決策 | 全體一致 | [topic-024-2026-07-08-tauri-migration-evaluation](../engineering/discussions/topic-024-2026-07-08-tauri-migration-evaluation/) |
 
 ---
 
