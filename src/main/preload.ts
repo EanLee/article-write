@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC } from "./ipc-channels.js";
-import { exposeElectronLog } from "electron-log/preload";
+import "electron-log/preload";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // File operations
@@ -103,4 +103,3 @@ contextBridge.exposeInMainWorld("electronAPI", {
   aiGetActiveProvider: () => ipcRenderer.invoke(IPC.AI_GET_ACTIVE_PROVIDER),
 });
 
-exposeElectronLog();
