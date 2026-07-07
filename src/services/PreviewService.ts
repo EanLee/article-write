@@ -190,9 +190,13 @@ export class PreviewService {
       return imageName
     }
 
-    // 構建相對路徑
+    // 構建本地檔案 URL
+    // 必須用三斜線（local-file:///path）確保路徑成為 URL pathname。
+    // 若用兩斜線（local-file://C:/path），URL 規範會把 C 解析為 hostname，
+    // 磁碟代號在 protocol handler 取 url.pathname 時遺失。
     if (base) {
-      return `local-file://${base}/${imageName}`
+      const normalizedBase = base.replace(/\\/g, "/").replace(/^\/+/, "")
+      return `local-file:///${normalizedBase}/${imageName}`
     }
 
     // 預設使用相對路徑

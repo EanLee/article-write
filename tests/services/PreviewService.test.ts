@@ -237,7 +237,34 @@ More regular text.
         baseImagePath: basePath,
       });
 
-      expect(result).toContain(`src="local-file://${basePath}/test.png"`);
+      expect(result).toContain(`src="local-file:///${basePath.replace(/^\/+/, "")}/test.png"`);
+    });
+  });
+
+  describe("resolveImagePath - Windows 路徑相容性", () => {
+    it("Windows 絕對路徑應生成 local-file:/// 三斜線 URL，避免磁碟代號被解析為 hostname", () => {
+      previewService.setImageBasePath("C:/Users/user/vault/images");
+      const html = previewService.renderPreview("![[photo.png]]");
+      // local-file://C:/... 會把 C 解析為 hostname，protocol handler 收到的 pathname 遺失磁碟代號
+      expect(html).toContain('src="local-file:///C:/Users/user/vault/images/photo.png"');
+      expect(html).not.toContain("local-file://C:/");
+    });
+
+    it("Windows 反斜線路徑應正規化為正斜線", () => {
+      previewService.setImageBasePath("C:\\Users\\user\\vault\\images");
+      const html = previewService.renderPreview("![[photo.png]]");
+      expect(html).toContain('src="local-file:///C:/Users/user/vault/images/photo.png"');
+    });
+
+    it("Unix 絕對路徑應生成正確 local-file:/// URL", () => {
+      previewService.setImageBasePath("/home/user/vault/images");
+      const html = previewService.renderPreview("![[photo.png]]");
+      expect(html).toContain('src="local-file:///home/user/vault/images/photo.png"');
+    });
+
+    it("未設定 imageBasePath 時應 fallback 為相對路徑 ./images/", () => {
+      const html = previewService.renderPreview("![[photo.png]]");
+      expect(html).toContain("./images/photo.png");
     });
   });
 });
