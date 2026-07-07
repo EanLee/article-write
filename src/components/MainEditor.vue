@@ -444,7 +444,8 @@ function updatePreview() {
             enableImagePreview: true,
             enableWikiLinks: true,
             baseImagePath: imageBasePath,
-            articleList: articleStore.articles
+            articleList: articleStore.articles,
+            articleFilePath: articleStore.currentArticle?.filePath,
         });
 
         // Update preview statistics and validation

@@ -267,4 +267,49 @@ More regular text.
       expect(html).toContain("./images/photo.png");
     });
   });
+
+  describe("resolveStandardMarkdownImagePaths - 標準 Markdown 圖片相對路徑解析", () => {
+    it("相對路徑 ../../images/... 應解析為 local-file:/// 絕對路徑（Windows）", () => {
+      const html = previewService.renderPreview(
+        "![圖片](../../images/grafana_k6_dashboard_mock.png)",
+        {
+          enableObsidianSyntax: true,
+          enableImagePreview: true,
+          enableWikiLinks: true,
+          articleFilePath: "C:/vault/Drafts/Engineering/article.md",
+        }
+      );
+      expect(html).toContain("local-file:///C:/vault/images/grafana_k6_dashboard_mock.png");
+    });
+
+    it("相對路徑 ../../images/... 應解析為 local-file:/// 絕對路徑（Unix）", () => {
+      const html = previewService.renderPreview(
+        "![圖片](../../images/photo.png)",
+        {
+          enableObsidianSyntax: true,
+          enableImagePreview: true,
+          enableWikiLinks: true,
+          articleFilePath: "/home/vault/Drafts/Engineering/article.md",
+        }
+      );
+      expect(html).toContain("local-file:///home/vault/images/photo.png");
+    });
+
+    it("http 圖片路徑不應被修改", () => {
+      const html = previewService.renderPreview(
+        "![圖片](https://example.com/image.png)",
+        { enableObsidianSyntax: true, enableImagePreview: true, enableWikiLinks: true, articleFilePath: "C:/vault/article.md" }
+      );
+      expect(html).toContain("https://example.com/image.png");
+      expect(html).not.toContain("local-file:");
+    });
+
+    it("未提供 articleFilePath 時相對路徑保持原樣", () => {
+      const html = previewService.renderPreview(
+        "![圖片](../../images/photo.png)",
+        { enableObsidianSyntax: true, enableImagePreview: true, enableWikiLinks: true }
+      );
+      expect(html).toContain("../../images/photo.png");
+    });
+  });
 });

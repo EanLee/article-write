@@ -11,6 +11,7 @@ export interface PreviewOptions {
   enableWikiLinks: boolean
   baseImagePath?: string
   articleList?: Article[]
+  articleFilePath?: string
 }
 
 /**
@@ -77,6 +78,11 @@ export class PreviewService {
 
       if (options.enableImagePreview) {
         processedContent = this.processImageReferences(processedContent, options.baseImagePath || this.imageBasePath)
+      }
+
+      // 將標準 Markdown 圖片語法 ![alt](relative/path) 的相對路徑解析為 local-file:/// 絕對 URL
+      if (options.articleFilePath) {
+        processedContent = this.resolveStandardMarkdownImagePaths(processedContent, options.articleFilePath)
       }
 
       // 使用 MarkdownService 渲染
@@ -201,6 +207,35 @@ export class PreviewService {
 
     // 預設使用相對路徑
     return `./images/${imageName}`
+  }
+
+  /**
+   * 將標準 Markdown 圖片語法 ![alt](relative/path) 的相對路徑解析為 local-file:/// 絕對 URL。
+   * 使用瀏覽器原生 URL API 做相對路徑解析，不依賴 Node path 模組。
+   * @param {string} content - Markdown 內容
+   * @param {string} articleFilePath - 文章絕對路徑（用於計算相對路徑的 base）
+   * @returns {string} 圖片 src 已轉為 local-file:/// 的 Markdown 內容
+   */
+  private resolveStandardMarkdownImagePaths(content: string, articleFilePath: string): string {
+    if (!articleFilePath) {return content}
+
+    const normalized = articleFilePath.replace(/\\/g, "/")
+    const withLeadingSlash = normalized.startsWith("/") ? normalized : `/${normalized}`
+    const articleDir = withLeadingSlash.substring(0, withLeadingSlash.lastIndexOf("/"))
+    const base = `file://${articleDir}/`
+
+    return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      if (src.startsWith("http") || src.startsWith("local-file:") || src.startsWith("data:") || src.startsWith("file:") || src.startsWith("/")) {
+        return match
+      }
+      try {
+        const resolved = new URL(src, base)
+        const resolvedPath = resolved.pathname.replace(/^\/+/, "")
+        return `![${alt}](local-file:///${resolvedPath})`
+      } catch {
+        return match
+      }
+    })
   }
 
   /**
