@@ -158,6 +158,9 @@ export class AutoSaveService {
       logger.warn("AutoSaveService: Cannot save on article switch before initialization");
       return;
     }
+    if (!this.isEnabled) {
+      return;
+    }
     if (!this.saveCallback || !previousArticle) {
       return;
     }
