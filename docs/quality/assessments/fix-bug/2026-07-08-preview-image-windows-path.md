@@ -73,3 +73,46 @@ Electron main process protocol.handle("local-file"):
 **測試**：新增 4 個單元測試於 `tests/services/PreviewService.test.ts`（`resolveImagePath - Windows 路徑相容性`），覆蓋 Windows 正斜線、反斜線、Unix 路徑、無 basePath fallback。
 
 **相關 commit**：`fix(preview): 修正 Windows 路徑 local-file:// 磁碟代號遺失導致圖片無法顯示`
+
+---
+
+## 追加修復 (2026-07-08)
+
+### 問題描述
+
+標準 Markdown 圖片語法 `![alt](../../images/grafana_k6_dashboard_mock.png)` 在預覽中仍不顯示，即使上方 Obsidian `![[]]` 語法已修復。
+
+### 原因分析
+
+```
+MainEditor.updatePreview()
+  → previewService.renderPreview(content, options)
+    → preprocessObsidianSyntax()  // 只處理 ![[image.png]]
+    → markdownService.renderForPreview()
+        // 標準 Markdown ![alt](../../images/...) 的 src 原封不動輸出
+        → <img src="../../images/grafana_k6_dashboard_mock.png">
+    → postProcessHtml()  // 不處理 <img> src
+    ← 瀏覽器以 http://localhost:3002/ 為 base 解析相對路徑
+    ← 解析到 http://localhost:3002/images/... → 不存在 → 破圖
+```
+
+**根本原因**：`PreviewService` 只轉換 Obsidian `![[]]` 語法的路徑，對標準 Markdown `![alt](relative/path)` 完全沒有路徑解析。Electron renderer 的 document base URL 是 `http://localhost:3002`（dev）或 `file:///dist/renderer/index.html`（prod），都不是文章所在目錄，相對路徑解析結果錯誤。
+
+### 修正方式
+
+**修改檔案**：
+- `src/services/PreviewService.ts`：新增 `resolveStandardMarkdownImagePaths` 方法，在渲染前將相對路徑轉為 `local-file:///` 絕對 URL
+- `src/components/MainEditor.vue`：renderPreview 呼叫新增 `articleFilePath` 參數
+- `src/services/PreviewService.ts`：`PreviewOptions` 介面新增 `articleFilePath?: string`
+
+**核心邏輯**：利用瀏覽器原生 `URL` API（不需 Node `path` 模組）做相對路徑解析：
+```ts
+const base = `file://${articleDir}/`
+const resolved = new URL("../../images/photo.png", base)
+// → file:///C:/vault/images/photo.png
+// 再轉 local-file:///C:/vault/images/photo.png
+```
+
+**測試**：新增 4 個單元測試（`resolveStandardMarkdownImagePaths - 標準 Markdown 圖片相對路徑解析`），覆蓋 Windows、Unix、http 路徑不變、無 articleFilePath 時原樣保留。
+
+**相關 commit**：`fix(preview): 修正標準 Markdown 圖片相對路徑無法在 Electron 中顯示`
