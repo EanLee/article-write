@@ -1,40 +1,24 @@
 /**
- * Logger 工具
- * 在開發環境下輸出 debug/info 日誌，在生產環境只輸出 warn/error
+ * Renderer Process Logger
+ * Dev 模式：透過 electron-log IPC bridge 寫入與 main process 共用的 log 檔
+ * Prod 模式：僅輸出 warn/error 到 console
  */
+
+import log from "electron-log/renderer";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 export const logger = {
-  /**
-   * 除錯日誌（僅在開發環境輸出）
-   */
   debug: (...args: unknown[]): void => {
-    if (isDev) {
-      console.log("[DEBUG]", ...args);
-    }
+    if (isDev) {log.debug(...args);}
   },
-
-  /**
-   * 資訊日誌（僅在開發環境輸出）
-   */
   info: (...args: unknown[]): void => {
-    if (isDev) {
-      console.info("[INFO]", ...args);
-    }
+    if (isDev) {log.info(...args);}
   },
-
-  /**
-   * 警告日誌（總是輸出）
-   */
   warn: (...args: unknown[]): void => {
-    console.warn("[WARN]", ...args);
+    log.warn(...args);
   },
-
-  /**
-   * 錯誤日誌（總是輸出）
-   */
   error: (...args: unknown[]): void => {
-    console.error("[ERROR]", ...args);
+    log.error(...args);
   },
 };
