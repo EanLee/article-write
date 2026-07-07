@@ -44,7 +44,7 @@ interface SyncResult {
 interface AppConfigShape {
   paths: {
     articlesDir: string;
-    targetBlog: string;
+    targetDir: string;
     imagesDir: string;
   };
   editorConfig: {

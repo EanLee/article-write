@@ -34,11 +34,22 @@ export class ConfigService {
   async getConfig(): Promise<AppConfig> {
     try {
       const configData = await fs.readFile(this.configPath, "utf-8")
-      return JSON.parse(configData)
+      const raw = JSON.parse(configData)
+      return this.migrate(raw)
     } catch {
       // Return default config if file doesn"t exist
       return this.getDefaultConfig()
     }
+  }
+
+  /** 處理舊版 config 欄位名稱（targetBlog → targetDir） */
+  private migrate(raw: Record<string, unknown>): AppConfig {
+    const paths = (raw.paths ?? {}) as Record<string, unknown>
+    if ("targetBlog" in paths && !("targetDir" in paths)) {
+      paths.targetDir = paths.targetBlog
+      delete paths.targetBlog
+    }
+    return raw as unknown as AppConfig
   }
 
   async setConfig(config: AppConfig): Promise<void> {

@@ -137,7 +137,7 @@ const logPanelHeight = ref(200)
 const logContainerRef = ref<HTMLElement>()
 
 // Computed
-const hasTargetBlog = computed(() => !!configStore.config.paths.targetBlog)
+const hasTargetBlog = computed(() => !!configStore.config.paths.targetDir)
 
 const statusIndicatorClass = computed(() => {
   if (loading.value) {return "bg-warning animate-pulse"}
@@ -163,7 +163,7 @@ async function startServer() {
 
   loading.value = true
   try {
-    await globalThis.electronAPI.startDevServer(configStore.config.paths.targetBlog)
+    await globalThis.electronAPI.startDevServer(configStore.config.paths.targetDir)
     await updateStatus()
   } catch (error) {
     logger.error("啟動伺服器失敗:", error)
