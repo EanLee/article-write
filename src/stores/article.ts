@@ -573,13 +573,11 @@ export const useArticleStore = defineStore("article", () => {
     const interval = config.editorConfig.autoSaveInterval || 30000;
 
     autoSaveService.initialize(
-      saveArticle, // ✅ 使用新的 saveArticle 函數（會寫入檔案）
+      saveArticle,
       () => currentArticle.value,
       interval,
+      config.editorConfig.autoSave,
     );
-
-    // 根據設定啟用或停用自動儲存
-    autoSaveService.setEnabled(config.editorConfig.autoSave);
   }
 
   // 監聽設定變更以更新自動儲存

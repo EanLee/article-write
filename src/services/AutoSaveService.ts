@@ -55,12 +55,19 @@ export class AutoSaveService {
    * @param {(article: Article) => Promise<void>} saveCallback - 儲存文章的回調函數
    * @param {() => Article | null} getCurrentArticleCallback - 取得當前文章的回調函數
    * @param {number} interval - 自動儲存間隔（毫秒），預設 30 秒
+   * @param {boolean} enabled - 是否啟用，預設沿用當前狀態
    */
-  initialize(saveCallback: (article: Article) => Promise<void>, getCurrentArticleCallback: () => Article | null, interval: number = 30000): void {
+  initialize(
+    saveCallback: (article: Article) => Promise<void>,
+    getCurrentArticleCallback: () => Article | null,
+    interval: number = 30000,
+    enabled: boolean = this.isEnabled,
+  ): void {
     this.saveCallback = saveCallback;
     this.getCurrentArticleCallback = getCurrentArticleCallback;
     this.autoSaveInterval = interval;
-    this.initialized = true; // 標記為已初始化
+    this.isEnabled = enabled;
+    this.initialized = true;
 
     if (this.isEnabled) {
       this.startAutoSave();
@@ -271,11 +278,10 @@ export class AutoSaveService {
    * @param {boolean} enabled - 是否啟用
    */
   setEnabled(enabled: boolean): void {
+    if (this.isEnabled === enabled) {return;}
     this.isEnabled = enabled;
 
-    if (!this.initialized) {
-      return;
-    }
+    if (!this.initialized) {return;}
 
     if (enabled) {
       this.startAutoSave();
@@ -289,9 +295,9 @@ export class AutoSaveService {
    * @param {number} interval - 間隔時間（毫秒）
    */
   setInterval(interval: number): void {
+    if (this.autoSaveInterval === interval) {return;}
     this.autoSaveInterval = interval;
 
-    // 如果自動儲存正在運行，重新啟動以套用新間隔
     if (this.autoSaveTimer) {
       this.startAutoSave();
     }
