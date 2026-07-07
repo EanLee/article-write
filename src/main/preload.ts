@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC } from "./ipc-channels.js";
-import "electron-log/preload";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   // File operations
