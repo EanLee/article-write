@@ -618,6 +618,7 @@
 import { ref, computed, watch } from "vue"
 import { useConfigStore } from "@/stores/config"
 import { useArticleStore } from "@/stores/article"
+import { logger } from "@/utils/logger"
 import type { AppConfig } from "@/types"
 
 interface Props {
