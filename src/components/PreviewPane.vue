@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue"
 import DOMPurify from "dompurify"
+import { logger } from "@/utils/logger"
 
 interface PreviewStats {
   wordCount: number
@@ -135,12 +136,32 @@ function handleImageError(event: Event) {
   target.alt = `⚠ 圖片載入失敗：${target.alt}`
 }
 
+// 程式碼區塊複製按鈕：同樣因為 DOMPurify 會剝除 onclick，改用 addEventListener 事件代理。
+// click 事件會冒泡，不需要 capture phase。
+function handleCopyButtonClick(event: Event) {
+  const target = event.target
+  if (!(target instanceof Element)) {
+    return
+  }
+  const button = target.closest(".code-copy-btn")
+  if (!button) {
+    return
+  }
+  const codeBlock = button.parentElement?.nextElementSibling
+  const code = codeBlock?.textContent ?? ""
+  navigator.clipboard.writeText(code).catch((error: unknown) => {
+    logger.error("複製程式碼失敗：", error)
+  })
+}
+
 onMounted(() => {
   previewContainerRef.value?.addEventListener("error", handleImageError, true)
+  previewContainerRef.value?.addEventListener("click", handleCopyButtonClick)
 })
 
 onUnmounted(() => {
   previewContainerRef.value?.removeEventListener("error", handleImageError, true)
+  previewContainerRef.value?.removeEventListener("click", handleCopyButtonClick)
 })
 
 // Expose ref for parent component to access

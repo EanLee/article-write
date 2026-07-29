@@ -306,10 +306,13 @@ export class PreviewService {
     }
 
     // 為程式碼區塊添加複製按鈕
+    // 不用 inline onclick：DOMPurify.sanitize() 會剝除所有 on* 屬性（實測驗證，見
+    // docs/quality/assessments/fix-bug/2026-07-30-preview-image-broken-fallback-missing.md），
+    // 按鈕點擊改由 PreviewPane 用 addEventListener（event delegation）處理。
     processed = processed.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_, attrs, code) => {
       return `<div class="code-block-wrapper">
         <div class="code-block-header">
-          <button class="code-copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">
+          <button class="code-copy-btn">
             📋 複製
           </button>
         </div>

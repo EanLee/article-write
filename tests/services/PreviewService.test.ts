@@ -128,6 +128,14 @@ describe("PreviewService", () => {
       expect(result).toContain("#test-tag");
     });
 
+    it("程式碼區塊複製按鈕不應含 onclick（DOMPurify 會剝除 inline event handler，改由 PreviewPane 用 addEventListener 處理）", () => {
+      const content = "```js\nconsole.log('hi')\n```";
+      const result = previewService.renderPreview(content);
+
+      expect(result).toContain("code-copy-btn");
+      expect(result).not.toContain("onclick=");
+    });
+
     it("#tag 不應被 preprocessObsidianSyntax 重複處理成巢狀 span（renderPreview 內部管線只應跑一次 Obsidian 語法預處理）", () => {
       const content = "This has a #test-tag in it.";
       const result = previewService.renderPreview(content);
