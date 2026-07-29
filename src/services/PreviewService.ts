@@ -128,17 +128,21 @@ export class PreviewService {
     processed = processed.replace(/%%[^%]*%%/g, "")
 
     // 處理 Obsidian 標籤 #tag (支援中文和英文)
-    processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="obsidian-tag">#$1</span>')
+    processed = processed.replace(/#([a-zA-Z0-9一-鿿_-]+)/g, '<span class="obsidian-tag">#$1</span>')
 
-    // 處理 Obsidian 圖片語法 ![[image.png]] (必須在 wiki 連結之前處理)
-    processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
+    // 處理 Obsidian 圖片語法 ![[image.png]] 或 ![[image.png|300]] / ![[image.png|300x200]] (必須在 wiki 連結之前處理)
+    processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, raw) => {
+      const trimmed = raw.trim()
+      const { imageName, width, height } = this.parseImageEmbedTarget(trimmed)
+
       if (this.isImageFile(imageName)) {
         const imagePath = this.resolveImagePath(imageName)
-        return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" />`
+        const sizeAttrs = width ? ` width="${width}"${height ? ` height="${height}"` : ""}` : ""
+        return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}"${sizeAttrs} />`
       } else {
         // 處理 Obsidian 嵌入語法 ![[note]] (非圖片)
-        return `<div class="obsidian-embed" data-embed="${this.escapeHtml(imageName)}">
-          <div class="obsidian-embed-header">📄 ${this.escapeHtml(imageName)}</div>
+        return `<div class="obsidian-embed" data-embed="${this.escapeHtml(trimmed)}">
+          <div class="obsidian-embed-header">📄 ${this.escapeHtml(trimmed)}</div>
           <div class="obsidian-embed-content">嵌入內容預覽</div>
         </div>`
       }
@@ -157,6 +161,30 @@ export class PreviewService {
     })
 
     return processed
+  }
+
+  /**
+   * 解析 Obsidian 圖片 embed 目標，拆出檔名與縮圖尺寸（![[image.png|300]] / ![[image.png|300x200]]）。
+   * 只有當 `|` 之後的內容符合「數字」或「數字x數字」時才視為縮圖語法，
+   * 避免誤判筆記標題本身含有 `|` 字元的情況。
+   * @param {string} raw - `![[...]]` 內未經處理的原始文字
+   * @returns {{ imageName: string; width?: string; height?: string }} 解析結果
+   */
+  private parseImageEmbedTarget(raw: string): { imageName: string; width?: string; height?: string } {
+    const pipeIndex = raw.lastIndexOf("|")
+    if (pipeIndex === -1) {
+      return { imageName: raw }
+    }
+
+    const namePart = raw.substring(0, pipeIndex)
+    const sizePart = raw.substring(pipeIndex + 1)
+    const sizeMatch = /^(\d+)(?:[xX](\d+))?$/.exec(sizePart)
+
+    if (!sizeMatch) {
+      return { imageName: raw }
+    }
+
+    return { imageName: namePart, width: sizeMatch[1], height: sizeMatch[2] }
   }
 
   /**
@@ -309,6 +337,13 @@ export class PreviewService {
     return processed
   }
 
+  /**
+   * 為沒有 onerror 的 <img> 標籤加上載入失敗容錯處理。
+   * 圖片檔案遺失/改名/路徑打錯時，瀏覽器原生只會顯示破圖 icon、沒有任何提示；
+   * 加上 onerror 後改為套用 obsidian-image-broken 樣式並標記 alt 文字，讓使用者看得出「這張圖找不到」。
+   * @param {string} html - 已渲染的 HTML
+   * @returns {string} 補上 onerror 容錯後的 HTML
+   */
   /**
    * 產生標題 ID
    * @param {string} text - 標題文字

@@ -97,6 +97,29 @@ describe("PreviewService", () => {
       expect(result).toContain("test-image.png");
     });
 
+    it("![[image.png|300]] 應解析 Obsidian 縮圖語法為 width=300", () => {
+      const result = previewService.renderPreview("![[test-image.png|300]]");
+
+      expect(result).toContain("<img");
+      expect(result).toContain('width="300"');
+      expect(result).toContain("test-image.png");
+      expect(result).not.toContain("test-image.png|300");
+    });
+
+    it("![[image.png|300x200]] 應同時解析 width 與 height", () => {
+      const result = previewService.renderPreview("![[test-image.png|300x200]]");
+
+      expect(result).toContain('width="300"');
+      expect(result).toContain('height="200"');
+    });
+
+    it("沒有縮圖語法時不應產生 width/height 屬性", () => {
+      const result = previewService.renderPreview("![[test-image.png]]");
+
+      expect(result).not.toContain("width=");
+      expect(result).not.toContain("height=");
+    });
+
     it("should process Obsidian tags", () => {
       const content = "This has a #test-tag in it.";
       const result = previewService.renderPreview(content);
