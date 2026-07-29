@@ -79,6 +79,7 @@ import { indentOnInput, syntaxHighlighting, defaultHighlightStyle } from "@codem
 import { autoSaveService } from "@/services/AutoSaveService"
 import type { SuggestionItem, SyntaxError } from "@/services/ObsidianSyntaxService"
 import type { ImageValidationWarning } from "@/services/ImageService"
+import { logger } from "@/utils/logger"
 import EditorStatusBar from "./EditorStatusBar.vue"
 
 export interface OutlineHeading {
@@ -92,12 +93,8 @@ export interface OutlineHeading {
 interface Props {
   modelValue: string
   showPreview: boolean
-  suggestions: SuggestionItem[]
-  showSuggestions: boolean
-  selectedSuggestionIndex: number
   syntaxErrors: SyntaxError[]
   imageValidationWarnings: ImageValidationWarning[]
-  dropdownPosition: { top: number; left: number }
   syncScroll?: boolean
 }
 
@@ -110,8 +107,6 @@ const emit = defineEmits<{
   "insert-markdown": [before: string, after: string, placeholder: string]
   "insert-table": []
   "keydown": [event: KeyboardEvent]
-  "cursor-change": []
-  "apply-suggestion": [suggestion: SuggestionItem]
   "toggle-sync-scroll": []
   "toggle-line-numbers": []
   "toggle-word-wrap": []
@@ -138,8 +133,10 @@ let isInternalUpdate = false
  * 將 ObsidianSyntaxService.getAutocompleteSuggestions 包裝成 CM6 CompletionSource
  * 核心 regex 邏輯保留在 ObsidianSyntaxService，此處只做介面轉換（~30 行）
  */
-function createObsidianCompletionSource(getSuggestions: (text: string, pos: number) => SuggestionItem[]) {
+function createObsidianCompletionSource() {
   return (ctx: CompletionContext) => {
+    if (!_getSuggestions) { return null }
+
     const text = ctx.state.doc.toString()
     const pos = ctx.pos
     const beforeCursor = text.substring(0, pos)
@@ -152,7 +149,7 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
 
     if (!isTriggered && !ctx.explicit) { return null }
 
-    const items = getSuggestions(text, pos)
+    const items = _getSuggestions(text, pos)
     if (items.length === 0) { return null }
 
     const completions: Completion[] = items.map(item => {
@@ -233,7 +230,7 @@ const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert
 
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
-const buildExtensions = (getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
+const buildExtensions = (): Extension[] => [
   // Markdown 語法高亮
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   syntaxHighlighting(defaultHighlightStyle),
@@ -263,8 +260,9 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
   // 自訂：** 雙星號補全
   doubleStarExtension,
 
-  // Obsidian 自動完成（如果有 getSuggestions）
-  ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
+  // Obsidian 自動完成：CompletionSource 內部直接讀取 _getSuggestions 閉包變數，
+  // 不受 setSuggestionsProvider 呼叫時機影響（見 createObsidianCompletionSource 註解）
+  autocompletion({ override: [createObsidianCompletionSource()] }),
 
   // 鍵盤快捷鍵
   keymap.of([
@@ -287,15 +285,28 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
       cursorPos.value = sel.head
       selStart.value = sel.from
       selEnd.value = sel.to
-      // 發出游標變更（供父組件取得游標位置做自動完成）
-      emit("cursor-change")
     }
   }),
 
-  // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）
+  // 鍵盤事件（供 MainEditor 的 handleKeydown 攔截快捷鍵）+ 貼上/拖放圖片
   EditorView.domEventHandlers({
     keydown: (event) => { emit("keydown", event) },
     scroll: () => { emit("scroll") },
+    paste: (event, view) => {
+      const files = extractImageFiles(event.clipboardData)
+      if (files.length === 0) { return false }
+      event.preventDefault()
+      void insertPastedImages(view, files)
+      return true
+    },
+    drop: (event, view) => {
+      const files = extractImageFiles(event.dataTransfer)
+      if (files.length === 0) { return false }
+      event.preventDefault()
+      const pos = view.posAtCoords({ x: event.clientX, y: event.clientY }) ?? view.state.selection.main.from
+      void insertPastedImages(view, files, pos)
+      return true
+    },
   }),
 
   // 自動換行（預設開啟）
@@ -332,6 +343,46 @@ function setSuggestionsProvider(fn: (text: string, pos: number) => SuggestionIte
   _getSuggestions = fn
 }
 
+// ─── 貼上 / 拖放圖片 Provider 橋接 ─────────────────────────────────────────────
+
+/**
+ * 貼上或拖放圖片時呼叫此函式上傳圖片並取得檔名（由 MainEditor 注入，
+ * ImageService/vaultPath 依賴留在 MainEditor，CodeMirrorEditor 保持純粹）
+ */
+let _handleImageUpload: ((file: File) => Promise<string>) | null = null
+
+function setImagePasteHandler(fn: (file: File) => Promise<string>) {
+  _handleImageUpload = fn
+}
+
+function extractImageFiles(data: DataTransfer | null): File[] {
+  if (!data) { return [] }
+  return Array.from(data.files).filter(file => file.type.startsWith("image/"))
+}
+
+/**
+ * 依序上傳貼上/拖放的圖片，並在游標（或拖放座標）處插入 ![[檔名]]。
+ * 多張圖片時，每張各自插入一行，游標位置依插入長度累加。
+ */
+async function insertPastedImages(view: EditorView, files: File[], atPos?: number) {
+  if (!_handleImageUpload) { return }
+
+  let pos = atPos ?? view.state.selection.main.from
+  for (const file of files) {
+    try {
+      const fileName = await _handleImageUpload(file)
+      const insertText = `![[${fileName}]]`
+      view.dispatch({
+        changes: { from: pos, to: pos, insert: insertText },
+        selection: { anchor: pos + insertText.length },
+      })
+      pos += insertText.length + 1
+    } catch (error) {
+      logger.error("貼上圖片失敗：", error)
+    }
+  }
+}
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 onMounted(() => {
@@ -339,7 +390,7 @@ onMounted(() => {
 
   const state = EditorState.create({
     doc: props.modelValue,
-    extensions: buildExtensions(_getSuggestions),
+    extensions: buildExtensions(),
   })
 
   editorView.value = new EditorView({
@@ -427,6 +478,7 @@ defineExpose({
   editorRef,
   editorView,
   setSuggestionsProvider,
+  setImagePasteHandler,
   scrollToLine,
 })
 </script>

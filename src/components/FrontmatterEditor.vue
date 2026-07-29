@@ -314,8 +314,8 @@ watch(
   () => props.article,
   (newArticle) => {
     if (newArticle) {
-      // Create a deep copy to avoid mutating the original
-      localArticle.value = structuredClone(newArticle)
+      // JSON round-trip 繞過 Vue reactive Proxy 的 Symbol property（structuredClone 在 Electron/Chromium 下會丟 DataCloneError）
+      localArticle.value = JSON.parse(JSON.stringify(newArticle)) as Article
       publishDate.value = newArticle.frontmatter.date || new Date().toISOString().split("T")[0]
       
       // Ensure keywords array exists
@@ -332,8 +332,8 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen && props.article) {
-      // Reset local article when dialog opens
-      localArticle.value = structuredClone(props.article)
+      // JSON round-trip 繞過 Vue reactive Proxy 的 Symbol property（同上）
+      localArticle.value = JSON.parse(JSON.stringify(props.article)) as Article
       publishDate.value = props.article.frontmatter.date || new Date().toISOString().split("T")[0]
     }
   }

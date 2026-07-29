@@ -72,8 +72,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted, onUnmounted } from "vue"
 import DOMPurify from "dompurify"
+import { logger } from "@/utils/logger"
 
 interface PreviewStats {
   wordCount: number
@@ -119,6 +120,49 @@ const previewContainerRef = ref<HTMLElement>()
 function handleScroll() {
   emit("scroll")
 }
+
+// 圖片載入失敗容錯：DOMPurify 會剝除 <img onerror="..."> 這類 inline event handler，
+// 所以破圖偵測必須在這裡用 addEventListener 掛，而不是在渲染出的 HTML 字串裡內嵌 onerror。
+// error 事件不會冒泡，必須用 capture phase 掛在容器上才能攔截到子層 <img> 的錯誤。
+function handleImageError(event: Event) {
+  const target = event.target
+  if (!(target instanceof HTMLImageElement)) {
+    return
+  }
+  if (target.classList.contains("obsidian-image-broken")) {
+    return
+  }
+  target.classList.add("obsidian-image-broken")
+  target.alt = `⚠ 圖片載入失敗：${target.alt}`
+}
+
+// 程式碼區塊複製按鈕：同樣因為 DOMPurify 會剝除 onclick，改用 addEventListener 事件代理。
+// click 事件會冒泡，不需要 capture phase。
+function handleCopyButtonClick(event: Event) {
+  const target = event.target
+  if (!(target instanceof Element)) {
+    return
+  }
+  const button = target.closest(".code-copy-btn")
+  if (!button) {
+    return
+  }
+  const codeBlock = button.parentElement?.nextElementSibling
+  const code = codeBlock?.textContent ?? ""
+  navigator.clipboard.writeText(code).catch((error: unknown) => {
+    logger.error("複製程式碼失敗：", error)
+  })
+}
+
+onMounted(() => {
+  previewContainerRef.value?.addEventListener("error", handleImageError, true)
+  previewContainerRef.value?.addEventListener("click", handleCopyButtonClick)
+})
+
+onUnmounted(() => {
+  previewContainerRef.value?.removeEventListener("error", handleImageError, true)
+  previewContainerRef.value?.removeEventListener("click", handleCopyButtonClick)
+})
 
 // Expose ref for parent component to access
 defineExpose({
@@ -193,6 +237,20 @@ defineExpose({
 .obsidian-preview :deep(.obsidian-image:hover) {
   transform: scale(1.02);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* 圖片載入失敗時的破圖提示樣式（見 PreviewService.addImageErrorFallback） */
+/* noinspection CssUnusedSymbol */
+.obsidian-preview :deep(.obsidian-image-broken) {
+  display: inline-block;
+  min-width: 120px;
+  min-height: 80px;
+  border: 2px dashed #dc2626;
+  border-radius: 0.5rem;
+  background-color: rgba(220, 38, 38, 0.05);
+  color: #dc2626;
+  font-size: 0.875rem;
+  box-shadow: none;
 }
 
 /* noinspection CssUnusedSymbol */

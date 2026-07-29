@@ -7,10 +7,13 @@ import type { Article } from "@/types"
  */
 export interface PreviewOptions {
   enableObsidianSyntax: boolean
+  // 圖片 embed（![[image.png]]）已由 enableObsidianSyntax 的 preprocessObsidianSyntax 處理，
+  // 此旗標目前不觸發額外處理，保留供選項相容與未來需要獨立開關圖片渲染時使用。
   enableImagePreview: boolean
   enableWikiLinks: boolean
   baseImagePath?: string
   articleList?: Article[]
+  articleFilePath?: string
 }
 
 /**
@@ -21,6 +24,7 @@ export class PreviewService {
   private readonly markdownService: MarkdownService
   private articles: Article[] = []
   private imageBasePath: string = ""
+  private articleDir: string = ""
 
   /**
    * 建構子 - 初始化預覽服務
@@ -43,6 +47,16 @@ export class PreviewService {
    */
   setImageBasePath(basePath: string): void {
     this.imageBasePath = basePath
+  }
+
+  setArticleFilePath(filePath: string): void {
+    if (!filePath) {
+      this.articleDir = ""
+      return
+    }
+    const normalized = filePath.replace(/\\/g, "/")
+    const withSlash = normalized.startsWith("/") ? normalized : `/${normalized}`
+    this.articleDir = withSlash.substring(0, withSlash.lastIndexOf("/"))
   }
 
   /**
@@ -75,12 +89,13 @@ export class PreviewService {
         processedContent = this.processWikiLinks(processedContent, options.articleList || this.articles)
       }
 
-      if (options.enableImagePreview) {
-        processedContent = this.processImageReferences(processedContent, options.baseImagePath || this.imageBasePath)
+      // 將標準 Markdown 圖片語法 ![alt](relative/path) 的相對路徑解析為 local-file:/// 絕對 URL
+      if (options.articleFilePath) {
+        processedContent = this.resolveStandardMarkdownImagePaths(processedContent, options.articleFilePath)
       }
 
-      // 使用 MarkdownService 渲染
-      const html = this.markdownService.renderForPreview(processedContent, true)
+      // 使用 MarkdownService 渲染（內容已完成 Obsidian 語法預處理，改用 renderPreprocessed 避免重複處理造成 #tag 等語法被巢狀重複包裹）
+      const html = this.markdownService.renderPreprocessed(processedContent)
 
       // 後處理 HTML 以增強預覽效果
       return this.postProcessHtml(html)
@@ -113,17 +128,21 @@ export class PreviewService {
     processed = processed.replace(/%%[^%]*%%/g, "")
 
     // 處理 Obsidian 標籤 #tag (支援中文和英文)
-    processed = processed.replace(/#([a-zA-Z0-9\u4e00-\u9fff_-]+)/g, '<span class="obsidian-tag">#$1</span>')
+    processed = processed.replace(/#([a-zA-Z0-9一-鿿_-]+)/g, '<span class="obsidian-tag">#$1</span>')
 
-    // 處理 Obsidian 圖片語法 ![[image.png]] (必須在 wiki 連結之前處理)
-    processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
+    // 處理 Obsidian 圖片語法 ![[image.png]] 或 ![[image.png|300]] / ![[image.png|300x200]] (必須在 wiki 連結之前處理)
+    processed = processed.replace(/!\[\[([^\]]+)\]\]/g, (_, raw) => {
+      const trimmed = raw.trim()
+      const { imageName, width, height } = this.parseImageEmbedTarget(trimmed)
+
       if (this.isImageFile(imageName)) {
         const imagePath = this.resolveImagePath(imageName)
-        return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" />`
+        const sizeAttrs = width ? ` width="${width}"${height ? ` height="${height}"` : ""}` : ""
+        return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}"${sizeAttrs} />`
       } else {
         // 處理 Obsidian 嵌入語法 ![[note]] (非圖片)
-        return `<div class="obsidian-embed" data-embed="${this.escapeHtml(imageName)}">
-          <div class="obsidian-embed-header">📄 ${this.escapeHtml(imageName)}</div>
+        return `<div class="obsidian-embed" data-embed="${this.escapeHtml(trimmed)}">
+          <div class="obsidian-embed-header">📄 ${this.escapeHtml(trimmed)}</div>
           <div class="obsidian-embed-content">嵌入內容預覽</div>
         </div>`
       }
@@ -142,6 +161,30 @@ export class PreviewService {
     })
 
     return processed
+  }
+
+  /**
+   * 解析 Obsidian 圖片 embed 目標，拆出檔名與縮圖尺寸（![[image.png|300]] / ![[image.png|300x200]]）。
+   * 只有當 `|` 之後的內容符合「數字」或「數字x數字」時才視為縮圖語法，
+   * 避免誤判筆記標題本身含有 `|` 字元的情況。
+   * @param {string} raw - `![[...]]` 內未經處理的原始文字
+   * @returns {{ imageName: string; width?: string; height?: string }} 解析結果
+   */
+  private parseImageEmbedTarget(raw: string): { imageName: string; width?: string; height?: string } {
+    const pipeIndex = raw.lastIndexOf("|")
+    if (pipeIndex === -1) {
+      return { imageName: raw }
+    }
+
+    const namePart = raw.substring(0, pipeIndex)
+    const sizePart = raw.substring(pipeIndex + 1)
+    const sizeMatch = /^(\d+)(?:[xX](\d+))?$/.exec(sizePart)
+
+    if (!sizeMatch) {
+      return { imageName: raw }
+    }
+
+    return { imageName: namePart, width: sizeMatch[1], height: sizeMatch[2] }
   }
 
   /**
@@ -169,13 +212,6 @@ export class PreviewService {
    * @param {string} basePath - 圖片基礎路徑
    * @returns {string} 處理後的內容
    */
-  private processImageReferences(content: string, basePath: string): string {
-    return content.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
-      const imagePath = this.resolveImagePath(imageName, basePath)
-      return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" loading="lazy" />`
-    })
-  }
-
   /**
    * 解析圖片路徑
    * @param {string} imageName - 圖片名稱
@@ -190,13 +226,46 @@ export class PreviewService {
       return imageName
     }
 
-    // 構建相對路徑
+    // 構建本地檔案 URL
+    // 必須用三斜線（local-file:///path）確保路徑成為 URL pathname。
+    // 若用兩斜線（local-file://C:/path），URL 規範會把 C 解析為 hostname，
+    // 磁碟代號在 protocol handler 取 url.pathname 時遺失。
     if (base) {
-      return `local-file://${base}/${imageName}`
+      const normalizedBase = base.replace(/\\/g, "/").replace(/^\/+/, "")
+      return `local-file:///${normalizedBase}/${imageName}`
     }
 
     // 預設使用相對路徑
     return `./images/${imageName}`
+  }
+
+  /**
+   * 將標準 Markdown 圖片語法 ![alt](relative/path) 的相對路徑解析為 local-file:/// 絕對 URL。
+   * 使用瀏覽器原生 URL API 做相對路徑解析，不依賴 Node path 模組。
+   * @param {string} content - Markdown 內容
+   * @param {string} articleFilePath - 文章絕對路徑（用於計算相對路徑的 base）
+   * @returns {string} 圖片 src 已轉為 local-file:/// 的 Markdown 內容
+   */
+  private resolveStandardMarkdownImagePaths(content: string, articleFilePath: string): string {
+    if (!articleFilePath) {return content}
+
+    const normalized = articleFilePath.replace(/\\/g, "/")
+    const withLeadingSlash = normalized.startsWith("/") ? normalized : `/${normalized}`
+    const articleDir = withLeadingSlash.substring(0, withLeadingSlash.lastIndexOf("/"))
+    const base = encodeURI(`file://${articleDir}/`)
+
+    return content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+      if (src.startsWith("http") || src.startsWith("local-file:") || src.startsWith("data:") || src.startsWith("file:") || src.startsWith("/")) {
+        return match
+      }
+      try {
+        const resolved = new URL(src, base)
+        const resolvedPath = resolved.pathname.replace(/^\/+/, "")
+        return `![${alt}](local-file:///${resolvedPath})`
+      } catch {
+        return match
+      }
+    })
   }
 
   /**
@@ -218,11 +287,32 @@ export class PreviewService {
   private postProcessHtml(html: string): string {
     let processed = html
 
+    // 將殘留的相對路徑 <img src="..."> 轉換為 local-file:/// 絕對 URL
+    // （source-level 轉換失敗時的安全防線，例如 vault 路徑含空格導致 URL 建構錯誤）
+    if (this.articleDir) {
+      const base = encodeURI(`file://${this.articleDir}/`)
+      processed = processed.replace(/<img\b([^>]*)\bsrc="([^"]+)"([^>]*)>/g, (match, before, src, after) => {
+        if (src.startsWith("http") || src.startsWith("local-file:") || src.startsWith("data:") || src.startsWith("file:") || src.startsWith("/")) {
+          return match
+        }
+        try {
+          const resolved = new URL(src, base)
+          const resolvedPath = resolved.pathname.replace(/^\/+/, "")
+          return `<img${before}src="local-file:///${resolvedPath}"${after}>`
+        } catch {
+          return match
+        }
+      })
+    }
+
     // 為程式碼區塊添加複製按鈕
+    // 不用 inline onclick：DOMPurify.sanitize() 會剝除所有 on* 屬性（實測驗證，見
+    // docs/quality/assessments/fix-bug/2026-07-30-preview-image-broken-fallback-missing.md），
+    // 按鈕點擊改由 PreviewPane 用 addEventListener（event delegation）處理。
     processed = processed.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_, attrs, code) => {
       return `<div class="code-block-wrapper">
         <div class="code-block-header">
-          <button class="code-copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)">
+          <button class="code-copy-btn">
             📋 複製
           </button>
         </div>
@@ -250,6 +340,13 @@ export class PreviewService {
     return processed
   }
 
+  /**
+   * 為沒有 onerror 的 <img> 標籤加上載入失敗容錯處理。
+   * 圖片檔案遺失/改名/路徑打錯時，瀏覽器原生只會顯示破圖 icon、沒有任何提示；
+   * 加上 onerror 後改為套用 obsidian-image-broken 樣式並標記 alt 文字，讓使用者看得出「這張圖找不到」。
+   * @param {string} html - 已渲染的 HTML
+   * @returns {string} 補上 onerror 容錯後的 HTML
+   */
   /**
    * 產生標題 ID
    * @param {string} text - 標題文字
