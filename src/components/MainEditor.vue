@@ -100,6 +100,17 @@ const editorRef = computed(() => editorPaneRef.value?.editorRef);
 // Get preview container ref from PreviewPane component
 const previewRef = computed(() => previewPaneRef.value?.previewContainerRef);
 
+// 貼上/拖放圖片：上傳至 vault images 資料夾，回傳檔名供 CodeMirrorEditor 插入 ![[檔名]]
+async function handleImagePasteUpload(file: File): Promise<string> {
+    return imageService.uploadImageFile(file);
+}
+
+// editorPaneRef 因 v-if="editorMode === 'compose'" 條件渲染，掛載時機不固定，
+// 用 watch(immediate) 確保每次子元件（重新）掛載都會重新注入 provider
+watch(editorPaneRef, (instance) => {
+    instance?.setImagePasteHandler(handleImagePasteUpload);
+}, { immediate: true });
+
 // 同步滾動功能
 const {
     syncEnabled,
