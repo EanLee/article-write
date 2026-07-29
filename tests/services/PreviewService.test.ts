@@ -105,6 +105,15 @@ describe("PreviewService", () => {
       expect(result).toContain("#test-tag");
     });
 
+    it("#tag 不應被 preprocessObsidianSyntax 重複處理成巢狀 span（renderPreview 內部管線只應跑一次 Obsidian 語法預處理）", () => {
+      const content = "This has a #test-tag in it.";
+      const result = previewService.renderPreview(content);
+
+      const obsidianTagCount = (result.match(/class="obsidian-tag"/g) || []).length;
+      expect(obsidianTagCount).toBe(1);
+      expect(result).not.toContain('class="tag"');
+    });
+
     it("should remove Obsidian comments", () => {
       const content = "This is visible %%this is hidden%% text.";
       const result = previewService.renderPreview(content);

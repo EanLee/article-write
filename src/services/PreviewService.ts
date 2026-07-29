@@ -7,6 +7,8 @@ import type { Article } from "@/types"
  */
 export interface PreviewOptions {
   enableObsidianSyntax: boolean
+  // 圖片 embed（![[image.png]]）已由 enableObsidianSyntax 的 preprocessObsidianSyntax 處理，
+  // 此旗標目前不觸發額外處理，保留供選項相容與未來需要獨立開關圖片渲染時使用。
   enableImagePreview: boolean
   enableWikiLinks: boolean
   baseImagePath?: string
@@ -87,17 +89,13 @@ export class PreviewService {
         processedContent = this.processWikiLinks(processedContent, options.articleList || this.articles)
       }
 
-      if (options.enableImagePreview) {
-        processedContent = this.processImageReferences(processedContent, options.baseImagePath || this.imageBasePath)
-      }
-
       // 將標準 Markdown 圖片語法 ![alt](relative/path) 的相對路徑解析為 local-file:/// 絕對 URL
       if (options.articleFilePath) {
         processedContent = this.resolveStandardMarkdownImagePaths(processedContent, options.articleFilePath)
       }
 
-      // 使用 MarkdownService 渲染
-      const html = this.markdownService.renderForPreview(processedContent, true)
+      // 使用 MarkdownService 渲染（內容已完成 Obsidian 語法預處理，改用 renderPreprocessed 避免重複處理造成 #tag 等語法被巢狀重複包裹）
+      const html = this.markdownService.renderPreprocessed(processedContent)
 
       // 後處理 HTML 以增強預覽效果
       return this.postProcessHtml(html)
@@ -186,13 +184,6 @@ export class PreviewService {
    * @param {string} basePath - 圖片基礎路徑
    * @returns {string} 處理後的內容
    */
-  private processImageReferences(content: string, basePath: string): string {
-    return content.replace(/!\[\[([^\]]+)\]\]/g, (_, imageName) => {
-      const imagePath = this.resolveImagePath(imageName, basePath)
-      return `<img src="${imagePath}" alt="${this.escapeHtml(imageName)}" class="obsidian-image" title="圖片: ${this.escapeHtml(imageName)}" loading="lazy" />`
-    })
-  }
-
   /**
    * 解析圖片路徑
    * @param {string} imageName - 圖片名稱

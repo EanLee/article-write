@@ -99,6 +99,19 @@ export class MarkdownService {
     return this.md.render(processedContent);
   }
 
+
+  /**
+   * 渲染已完成 Obsidian 語法預處理的內容，不重複執行 preprocessObsidianSyntax。
+   * 供 PreviewService 使用：PreviewService 自己的 preprocessObsidianSyntax 已經處理過
+   * 高亮／標籤／圖片等語法，若再呼叫 renderForPreview 會讓同一段內容被處理兩次
+   * （例如 #tag 會被巢狀重複包成兩層 <span>）。
+   * @param {string} content - 已預處理過的 Markdown/HTML 混合內容
+   * @returns {string} 渲染後的 HTML
+   */
+  renderPreprocessed(content: string): string {
+    return this.md.render(content);
+  }
+
   /**
    * 從 Markdown 內容中解析前置資料，包含完整的錯誤處理
    * @param {string} content - Markdown 內容
