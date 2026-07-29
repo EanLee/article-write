@@ -139,8 +139,10 @@ let isInternalUpdate = false
  * 將 ObsidianSyntaxService.getAutocompleteSuggestions 包裝成 CM6 CompletionSource
  * 核心 regex 邏輯保留在 ObsidianSyntaxService，此處只做介面轉換（~30 行）
  */
-function createObsidianCompletionSource(getSuggestions: (text: string, pos: number) => SuggestionItem[]) {
+function createObsidianCompletionSource() {
   return (ctx: CompletionContext) => {
+    if (!_getSuggestions) { return null }
+
     const text = ctx.state.doc.toString()
     const pos = ctx.pos
     const beforeCursor = text.substring(0, pos)
@@ -153,7 +155,7 @@ function createObsidianCompletionSource(getSuggestions: (text: string, pos: numb
 
     if (!isTriggered && !ctx.explicit) { return null }
 
-    const items = getSuggestions(text, pos)
+    const items = _getSuggestions(text, pos)
     if (items.length === 0) { return null }
 
     const completions: Completion[] = items.map(item => {
@@ -234,7 +236,7 @@ const doubleStarExtension = EditorView.inputHandler.of((view, _from, _to, insert
 
 // ─── EditorView 初始化 ────────────────────────────────────────────────────────
 
-const buildExtensions = (getSuggestions: ((text: string, pos: number) => SuggestionItem[]) | null): Extension[] => [
+const buildExtensions = (): Extension[] => [
   // Markdown 語法高亮
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   syntaxHighlighting(defaultHighlightStyle),
@@ -264,8 +266,9 @@ const buildExtensions = (getSuggestions: ((text: string, pos: number) => Suggest
   // 自訂：** 雙星號補全
   doubleStarExtension,
 
-  // Obsidian 自動完成（如果有 getSuggestions）
-  ...(getSuggestions ? [autocompletion({ override: [createObsidianCompletionSource(getSuggestions)] })] : []),
+  // Obsidian 自動完成：CompletionSource 內部直接讀取 _getSuggestions 閉包變數，
+  // 不受 setSuggestionsProvider 呼叫時機影響（見 createObsidianCompletionSource 註解）
+  autocompletion({ override: [createObsidianCompletionSource()] }),
 
   // 鍵盤快捷鍵
   keymap.of([
@@ -395,7 +398,7 @@ onMounted(() => {
 
   const state = EditorState.create({
     doc: props.modelValue,
-    extensions: buildExtensions(_getSuggestions),
+    extensions: buildExtensions(),
   })
 
   editorView.value = new EditorView({

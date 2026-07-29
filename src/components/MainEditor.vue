@@ -68,6 +68,7 @@ import { getArticleService } from "@/services/ArticleService";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { logger } from "@/utils/logger";
 import type { Article } from "@/types";
+import type { SuggestionItem, AutocompleteContext } from "@/services/ObsidianSyntaxService";
 
 const articleStore = useArticleStore();
 const configStore = useConfigStore();
@@ -105,10 +106,23 @@ async function handleImagePasteUpload(file: File): Promise<string> {
     return imageService.uploadImageFile(file);
 }
 
+// Obsidian 自動完成（[[、![[、#tag 輸入時跳建議清單）：橋接 ObsidianSyntaxService
+// 依賴留在 MainEditor，CodeMirrorEditor 只認 (text, pos) => SuggestionItem[] 的介面
+function getObsidianSuggestions(text: string, pos: number): SuggestionItem[] {
+    const context: AutocompleteContext = {
+        text,
+        cursorPosition: pos,
+        lineNumber: text.substring(0, pos).split("\n").length,
+        columnNumber: pos - text.lastIndexOf("\n", pos - 1),
+    };
+    return obsidianSyntax.getAutocompleteSuggestions(context);
+}
+
 // editorPaneRef 因 v-if="editorMode === 'compose'" 條件渲染，掛載時機不固定，
 // 用 watch(immediate) 確保每次子元件（重新）掛載都會重新注入 provider
 watch(editorPaneRef, (instance) => {
     instance?.setImagePasteHandler(handleImagePasteUpload);
+    instance?.setSuggestionsProvider(getObsidianSuggestions);
 }, { immediate: true });
 
 // 同步滾動功能
