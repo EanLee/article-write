@@ -313,21 +313,28 @@ const buildExtensions = (): Extension[] => [
   EditorView.lineWrapping,
 
   // 基本樣式
+  // 顏色一律用 DaisyUI v5 的 --color-* 變數（完整 color 值，勿再包一層 oklch()／改用 v4 的 --bc/--b2/--p）
   EditorView.theme({
     "&": { height: "100%", fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace" },
     ".cm-scroller": { overflow: "auto", lineHeight: "1.6" },
     ".cm-content": { padding: "1rem", fontSize: "0.875rem" },
     ".cm-focused": { outline: "none" },
-    ".cm-gutters": { borderRight: "1px solid oklch(var(--bc) / 0.1)", background: "oklch(var(--b2))" },
+    ".cm-gutters": {
+      borderRight: "1px solid color-mix(in srgb, var(--color-base-content) 10%, transparent)",
+      background: "var(--color-base-200)",
+    },
     ".cm-lineNumbers .cm-gutterElement": {
-      color: "oklch(var(--bc) / 0.4)",
+      color: "color-mix(in srgb, var(--color-base-content) 40%, transparent)",
       fontSize: "0.875rem",
       padding: "0 8px",
       minWidth: "3rem",
       textAlign: "right",
     },
-    ".cm-activeLine": { backgroundColor: "oklch(var(--p) / 0.05)" },
-    ".cm-activeLineGutter": { backgroundColor: "oklch(var(--p) / 0.1)", color: "oklch(var(--p))" },
+    ".cm-activeLine": { backgroundColor: "color-mix(in srgb, var(--color-primary) 5%, transparent)" },
+    ".cm-activeLineGutter": {
+      backgroundColor: "color-mix(in srgb, var(--color-primary) 10%, transparent)",
+      color: "var(--color-primary)",
+    },
   }),
 ]
 
