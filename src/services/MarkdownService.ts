@@ -604,9 +604,12 @@ export class MarkdownService {
     lines.forEach((line, index) => {
       const lineNumber = index + 1;
 
-      // 檢查未閉合的 Wiki 連結
-      const openWikiLinks = (line.match(/\[\[/g) || []).length;
-      const closeWikiLinks = (line.match(/\]\]/g) || []).length;
+      // 檢查未閉合的 Wiki 連結：先移除完整的標準 Markdown 連結（連結文字內允許一層巢狀中括號，
+      // 例如中文寫作常見的 [[書名] 副標題](url)），避免連結文字裡的中括號被誤判為 Wiki 連結的一部分。
+      // 若不先移除，[[書名] 副標題](url) 裡的 "[[" 會被當成未閉合的 Wiki 連結開頭。
+      const lineWithoutMarkdownLinks = line.replace(/\[(?:[^[\]]|\[[^[\]]*\])*\]\([^)]*\)/g, "");
+      const openWikiLinks = (lineWithoutMarkdownLinks.match(/\[\[/g) || []).length;
+      const closeWikiLinks = (lineWithoutMarkdownLinks.match(/\]\]/g) || []).length;
       if (openWikiLinks !== closeWikiLinks) {
         errors.push({
           line: lineNumber,

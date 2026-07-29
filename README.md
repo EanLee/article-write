@@ -259,7 +259,7 @@ node node_modules/electron/install.js
 
 ### Port 占用問題
 
-開發模式預設使用 port 3002。如果被占用，Vite 會自動切換到其他 port，請確保 Electron 主進程使用相同的 port。
+開發模式預設使用 port 47821（`vite.config.ts` 設有 `strictPort: true`）。若該 port 已被占用，Vite 會直接啟動失敗並提示錯誤，不會自動切換到其他 port——因為 Electron 主進程（`src/main/main.ts`）的 `loadURL` 與 CSP 設定都寫死指向這個 port，兩邊必須一致。若要更換 port，須同時修改 `vite.config.ts` 的 `server.port` 與 `main.ts` 裡對應的所有 `http://localhost:47821`／`ws://localhost:47821` 出現處。
 
 ## 授權
 

@@ -39,11 +39,25 @@ describe("MarkdownService Enhanced Features", () => {
   it("should validate markdown syntax and return errors", () => {
     const content = "[[未閉合的連結\n==未閉合的高亮\n![[未閉合的圖片"
     const errors = markdownService.validateMarkdownSyntax(content)
-    
+
     expect(errors.length).toBeGreaterThanOrEqual(3)
     expect(errors.some(e => e.message.includes("未閉合的 Wiki 連結"))).toBe(true)
     expect(errors.some(e => e.message.includes("未閉合的高亮語法"))).toBe(true)
     expect(errors.some(e => e.message.includes("未閉合的圖片語法"))).toBe(true)
+  })
+
+  it("標準 Markdown 連結文字開頭含中括號引言（例如書名）不應誤判為未閉合的 Wiki 連結", () => {
+    const content = "Andrew Wu， [[架構師的修練] #2， SLO - 如何確保服務水準？](https://columns.chicken-house.net/2021/06/04/slo/)"
+    const errors = markdownService.validateMarkdownSyntax(content)
+
+    expect(errors.some(e => e.message.includes("未閉合的 Wiki 連結"))).toBe(false)
+  })
+
+  it("真正未閉合的 Wiki 連結仍應被偵測到（不因修正誤判而漏掉真正的錯誤）", () => {
+    const content = "這裡有一個 [[真的沒關閉的連結"
+    const errors = markdownService.validateMarkdownSyntax(content)
+
+    expect(errors.some(e => e.message.includes("未閉合的 Wiki 連結"))).toBe(true)
   })
 
   it("should extract image references correctly", () => {
