@@ -174,15 +174,15 @@ defineExpose({
 /* noinspection CssUnusedSymbol -- 所有 :deep() 選擇器均用於 Markdown 渲染器動態注入的 HTML 元素，IDE 靜態分析無法偵測到 */
 /* Syntax highlighting for code blocks */
 .markdown-preview :deep(pre) {
-  background-color: #f2f2f2;
+  background-color: var(--color-base-200);
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
 }
 
 .markdown-preview :deep(code) {
-  background-color: #f2f2f2;
-  color: #1f2937;
+  background-color: var(--color-base-200);
+  color: var(--color-base-content);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -197,7 +197,7 @@ defineExpose({
 /* Enhanced Obsidian-style elements（以下 :deep() 選擇器均用於渲染器動態注入的 HTML）*/
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink) {
-  color: #3b82f6;
+  color: var(--color-primary);
   text-decoration: underline;
   text-decoration-style: dotted;
   cursor: pointer;
@@ -207,21 +207,21 @@ defineExpose({
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink:hover) {
   text-decoration-style: solid;
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink-valid) {
-  color: #059669;
-  border-bottom: 1px solid #059669;
+  color: var(--color-success);
+  border-bottom: 1px solid var(--color-success);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-wikilink-invalid) {
-  color: #dc2626;
-  border-bottom: 1px dashed #dc2626;
+  color: var(--color-error);
+  border-bottom: 1px dashed var(--color-error);
 }
 
 /* noinspection CssUnusedSymbol */
@@ -229,26 +229,26 @@ defineExpose({
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 10%);
   transition: transform 0.2s ease;
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-image:hover) {
   transform: scale(1.02);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 15px rgb(0 0 0 / 15%);
 }
 
-/* 圖片載入失敗時的破圖提示樣式（見 PreviewService.addImageErrorFallback） */
+/* 圖片載入失敗時的破圖提示樣式（見 PreviewPane.vue 的 handleImageError） */
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-image-broken) {
   display: inline-block;
   min-width: 120px;
   min-height: 80px;
-  border: 2px dashed #dc2626;
+  border: 2px dashed var(--color-error);
   border-radius: 0.5rem;
-  background-color: rgba(220, 38, 38, 0.05);
-  color: #dc2626;
+  background-color: color-mix(in srgb, var(--color-error) 8%, transparent);
+  color: var(--color-error);
   font-size: 0.875rem;
   box-shadow: none;
 }
@@ -256,19 +256,19 @@ defineExpose({
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-tag) {
   display: inline-block;
-  background-color: #eff6ff;
-  color: #1e3a8a;
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
   margin: 0.125rem;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-highlight) {
-  background-color: rgba(251, 191, 36, 0.3);
+  background-color: color-mix(in srgb, var(--color-warning) 35%, transparent);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   box-decoration-break: clone;
@@ -277,34 +277,35 @@ defineExpose({
 /* Obsidian embed blocks */
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed) {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-base-300);
   border-radius: 0.5rem;
   margin: 1rem 0;
   overflow: hidden;
-  background-color: #f9fafb;
+  background-color: var(--color-base-200);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed-header) {
-  background-color: #f3f4f6;
+  background-color: var(--color-base-300);
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-base-300);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-embed-content) {
   padding: 0.75rem;
   font-style: italic;
-  color: #6b7280;
+  color: var(--color-base-content);
+  opacity: 0.7;
 }
 
 /* Obsidian callouts */
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout) {
-  border-left: 4px solid #3b82f6;
-  background-color: rgba(59, 130, 246, 0.05);
+  border-left: 4px solid var(--color-info);
+  background-color: color-mix(in srgb, var(--color-info) 6%, transparent);
   padding: 0.75rem;
   margin: 0.5rem 0;
   border-radius: 0 0.5rem 0.5rem 0;
@@ -312,26 +313,26 @@ defineExpose({
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-note) {
-  border-left-color: #3b82f6;
-  background-color: rgba(59, 130, 246, 0.05);
+  border-left-color: var(--color-info);
+  background-color: color-mix(in srgb, var(--color-info) 6%, transparent);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-warning) {
-  border-left-color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.05);
+  border-left-color: var(--color-warning);
+  background-color: color-mix(in srgb, var(--color-warning) 8%, transparent);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-error) {
-  border-left-color: #dc2626;
-  background-color: rgba(220, 38, 38, 0.05);
+  border-left-color: var(--color-error);
+  background-color: color-mix(in srgb, var(--color-error) 6%, transparent);
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.obsidian-callout-success) {
-  border-left-color: #059669;
-  background-color: rgba(5, 150, 105, 0.05);
+  border-left-color: var(--color-success);
+  background-color: color-mix(in srgb, var(--color-success) 6%, transparent);
 }
 
 /* Enhanced task lists */
@@ -350,7 +351,7 @@ defineExpose({
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-block-header) {
-  background-color: #374151;
+  background-color: var(--color-neutral);
   padding: 0.5rem;
   border-radius: 0.5rem 0.5rem 0 0;
   display: flex;
@@ -359,19 +360,19 @@ defineExpose({
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-copy-btn) {
-  background-color: #4b5563;
-  color: white;
+  background-color: var(--color-neutral-content);
+  color: var(--color-neutral);
   border: none;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: opacity 0.2s;
 }
 
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.code-copy-btn:hover) {
-  background-color: #6b7280;
+  opacity: 0.85;
 }
 
 /* Table enhancements */
@@ -380,7 +381,7 @@ defineExpose({
   overflow-x: auto;
   margin: 1rem 0;
   border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-base-300);
 }
 
 .obsidian-preview :deep(.table-wrapper table) {
@@ -391,7 +392,7 @@ defineExpose({
 /* External links */
 /* noinspection CssUnusedSymbol */
 .obsidian-preview :deep(.external-link) {
-  color: #059669;
+  color: var(--color-success);
   text-decoration: none;
 }
 
@@ -413,8 +414,8 @@ defineExpose({
 /* Table of contents */
 /* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.table-of-contents) {
-  background-color: #fff;
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -434,20 +435,20 @@ defineExpose({
 }
 
 .markdown-preview :deep(.table-of-contents a:hover) {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 /* Footnotes */
 /* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.footnote-ref) {
-  color: #3b82f6;
+  color: var(--color-primary);
   font-size: 0.75rem;
   vertical-align: super;
 }
 
 /* noinspection CssUnusedSymbol */
 .markdown-preview :deep(.footnotes) {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-base-300);
   margin-top: 2rem;
   padding-top: 1rem;
 }
