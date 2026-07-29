@@ -52,3 +52,19 @@ MainEditor（父元件，稍後才 mount 完成）
 **測試**：新增元件測試 `tests/components/CodeMirrorEditor.autocomplete.test.ts`，模擬「子元件掛載後才呼叫 setSuggestionsProvider」的真實時機，驗證輸入 `[[` 後透過 `startCompletion`/`currentCompletions`（`@codemirror/autocomplete` 提供的狀態查詢 API）確認真的能拿到建議項目；修復前用 `git stash` 暫時還原程式碼重新驗證過一次紅燈（同一份測試、同一個 2000ms 輪詢逾時，確認不是測試本身的等待邏輯造成誤判），修復後綠燈。`pnpm run test`：50 test files / 681 passed / 1 skipped；`pnpm run lint`：0 errors。
 
 **相關 commit**：`fix(editor): 修正 Obsidian 自動完成因擴充功能建立時機錯誤而從未生效`
+
+---
+
+## 追加清理 (2026-07-30)
+
+CM6 原生自動完成確認可用後，`useAutocomplete` composable 與 `MainEditor.vue`/`CodeMirrorEditor.vue` 裡配合它的一整組手刻下拉選單狀態（`suggestions`、`showSuggestions`、`selectedSuggestionIndex`、`dropdownPosition`、`updateAutocomplete`、`applySuggestion`、`hideSuggestions`、`handleAutocompleteKeydown`）確認完全沒有其他呼叫端，全數移除：
+
+- 刪除 `src/composables/useAutocomplete.ts`（全 repo 搜尋確認 `MainEditor.vue` 是唯一使用者，且無獨立測試檔）
+- `MainEditor.vue`：移除 `useAutocomplete` 匯入與解構、樣板上傳給 `CodeMirrorEditor` 的 4 個 props 與 2 個事件監聽、`handleContentChange` 裡的 `updateAutocomplete()` 呼叫、`handleKeydown` 裡的 `handleAutocompleteKeydown` 攔截、`handleClickOutside`（唯一用途是呼叫 `hideSuggestions()`，一併移除其註冊/清除）、過期註解
+- `CodeMirrorEditor.vue`：`Props`/`emit` 型別移除 `suggestions`/`showSuggestions`/`selectedSuggestionIndex`/`dropdownPosition`/`apply-suggestion`/`cursor-change`，`cursor-change` 的 emit 呼叫點一併移除（其唯一用途是觸發 `updateAutocomplete`）
+
+**未清理（刻意保留）**：`ObsidianSyntaxService.calculateDropdownPosition`、`applySuggestionToText` 這兩個原本供 `useAutocomplete` 呼叫的方法，因為 (a) 各自都有獨立的服務層單元測試（`applySuggestionToText` 在 `tests/services/ObsidianSyntaxService.test.ts` 已有 3 案），(b) 移除它們屬於「要不要精簡 `ObsidianSyntaxService`」的另一個範疇更大的決定，非本次「清掉 `useAutocomplete` 死碼」的範圍，故保留現狀。
+
+**測試**：既有測試檔的 `makeProps` 移除對應欄位，`pnpm run test`：50 test files / 681 passed / 1 skipped；`pnpm run lint`：0 errors。用 `git stash` 交叉比對確認這次清理沒有引入新的 `vue-tsc` 型別錯誤（`MainEditor.vue` 現存的 3 個 `editorRef` duck-type 型別不相容錯誤在清理前就已存在，與本次改動無關，不在本次處理範圍）。
+
+**相關 commit**：`refactor(editor): 移除已由 CM6 原生自動完成取代的 useAutocomplete 死碼`

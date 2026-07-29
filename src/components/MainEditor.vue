@@ -15,13 +15,10 @@
             <!-- 撰寫模式（CodeMirror 6）-->
             <template v-if="editorMode === 'compose'">
                 <CodeMirrorEditor ref="editorPaneRef" v-model="content" :show-preview="showPreview"
-                    :suggestions="suggestions" :show-suggestions="showSuggestions"
-                    :selected-suggestion-index="selectedSuggestionIndex"
                     :syntax-errors="syntaxErrors" :image-validation-warnings="imageValidationWarnings"
-                    :dropdown-position="dropdownPosition" :sync-scroll="syncEnabled"
+                    :sync-scroll="syncEnabled"
                     @insert-markdown="insertMarkdownSyntax" @insert-table="insertTable"
-                    @keydown="handleKeydown" @cursor-change="updateAutocomplete"
-                    @apply-suggestion="applySuggestion" @scroll="onEditorScroll"
+                    @keydown="handleKeydown" @scroll="onEditorScroll"
                     @toggle-sync-scroll="toggleSyncScroll" />
             </template>
 
@@ -57,7 +54,6 @@ import PreviewPane from "./PreviewPane.vue";
 import FrontmatterEditor from "./FrontmatterEditor.vue";
 import SearchReplace from "./SearchReplace.vue";
 import { useServices } from "@/composables/useServices";
-import { useAutocomplete } from "@/composables/useAutocomplete";
 import { useEditorShortcuts } from "@/composables/useEditorShortcuts";
 import { useEditorValidation } from "@/composables/useEditorValidation";
 import { useUndoRedo } from "@/composables/useUndoRedo";
@@ -132,18 +128,6 @@ const {
     onPreviewScroll,
     setSync
 } = useSyncScroll(editorRef, previewRef);
-
-// 使用 Composables
-const {
-    suggestions,
-    showSuggestions,
-    selectedSuggestionIndex,
-    dropdownPosition,
-    updateAutocomplete,
-    applySuggestion,
-    hideSuggestions,
-    handleAutocompleteKeydown
-} = useAutocomplete(editorRef, content);
 
 // Undo/Redo 系統
 const {
@@ -253,8 +237,7 @@ function handleContentChange() {
         updatePreview();
     }
 
-    // Trigger autocomplete and validation
-    updateAutocomplete();
+    // Trigger validation
     debounceValidation();
 
     // 排程自動儲存（會調用 service）
@@ -545,11 +528,6 @@ function scrollToSelection() {
 
 // 鍵盤事件處理（整合 composables）
 function handleKeydown(event: KeyboardEvent) {
-    // 先處理自動完成
-    if (handleAutocompleteKeydown(event)) {
-        return;
-    }
-
     // 處理快捷鍵
     if (handleShortcuts(event)) {
         return;
@@ -560,9 +538,6 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 // 注意：以下方法已移至 composables
-// - updateAutocomplete -> useAutocomplete
-// - applySuggestion -> useAutocomplete
-// - hideSuggestions -> useAutocomplete
 // - insertMarkdownSyntax -> useEditorShortcuts
 // - insertTable -> useEditorShortcuts
 // - validateSyntax -> useEditorValidation
@@ -684,19 +659,9 @@ onMounted(() => {
     // 初始化歷史記錄
     initializeHistory(content.value, 0);
 
-    // Click outside to hide suggestions
-    document.addEventListener("click", handleClickOutside);
-
     // 登記即時內容回呼：切換文章時 AutoSaveService 需要取得最新打字內容
     autoSaveService.setEditorContentCallback(() => content.value);
 });
-
-// 處理點擊外部以隱藏建議
-function handleClickOutside(event: MouseEvent) {
-    if (!editorRef.value?.contains(event.target as Node)) {
-        hideSuggestions();
-    }
-}
 
 // Cleanup
 onUnmounted(() => {
@@ -709,8 +674,6 @@ onUnmounted(() => {
         clearTimeout(historyTimeout);
         historyTimeout = null;
     }
-    // 清理事件監聽器
-    document.removeEventListener("click", handleClickOutside);
     // 清理驗證
     cleanupValidation();
     // 清除即時內容回呼

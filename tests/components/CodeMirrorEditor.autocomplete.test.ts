@@ -19,12 +19,8 @@ function makeProps(modelValue = "") {
   return {
     modelValue,
     showPreview: false,
-    suggestions: [],
-    showSuggestions: false,
-    selectedSuggestionIndex: -1,
     syntaxErrors: [],
     imageValidationWarnings: [],
-    dropdownPosition: { top: 0, left: 0 },
   }
 }
 

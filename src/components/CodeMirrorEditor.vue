@@ -93,12 +93,8 @@ export interface OutlineHeading {
 interface Props {
   modelValue: string
   showPreview: boolean
-  suggestions: SuggestionItem[]
-  showSuggestions: boolean
-  selectedSuggestionIndex: number
   syntaxErrors: SyntaxError[]
   imageValidationWarnings: ImageValidationWarning[]
-  dropdownPosition: { top: number; left: number }
   syncScroll?: boolean
 }
 
@@ -111,8 +107,6 @@ const emit = defineEmits<{
   "insert-markdown": [before: string, after: string, placeholder: string]
   "insert-table": []
   "keydown": [event: KeyboardEvent]
-  "cursor-change": []
-  "apply-suggestion": [suggestion: SuggestionItem]
   "toggle-sync-scroll": []
   "toggle-line-numbers": []
   "toggle-word-wrap": []
@@ -291,8 +285,6 @@ const buildExtensions = (): Extension[] => [
       cursorPos.value = sel.head
       selStart.value = sel.from
       selEnd.value = sel.to
-      // 發出游標變更（供父組件取得游標位置做自動完成）
-      emit("cursor-change")
     }
   }),
 
