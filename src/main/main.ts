@@ -30,7 +30,7 @@ app.commandLine.appendSwitch("disable-features", "AutofillServerCommunication");
 
 // 必須在 app.whenReady() 前宣告自訂 scheme（Electron 限制）
 // local-file:// 用於在 renderer 中安全載入 vault 內的本地圖片
-// 若 renderer 從 http://localhost:4567（開發模式）載入，瀏覽器同源政策會封鎖 file:// 請求
+// 若 renderer 從 http://localhost:47821（開發模式）載入，瀏覽器同源政策會封鎖 file:// 請求
 protocol.registerSchemesAsPrivileged([
   {
     scheme: "local-file",
@@ -77,10 +77,10 @@ function createWindow() {
           loadFromDevServer
             ? // 開發模式：允許 Vite 開發伺服器和熱更新
               "default-src 'self'; " +
-              "script-src 'self' 'unsafe-inline' http://localhost:4567; " +
-              "style-src 'self' 'unsafe-inline' http://localhost:4567; " +
-              "img-src 'self' data: file: local-file: http://localhost:4567; " +
-              "connect-src 'self' ws://localhost:4567 http://localhost:4567; " +
+              "script-src 'self' 'unsafe-inline' http://localhost:47821; " +
+              "style-src 'self' 'unsafe-inline' http://localhost:47821; " +
+              "img-src 'self' data: file: local-file: http://localhost:47821; " +
+              "connect-src 'self' ws://localhost:47821 http://localhost:47821; " +
               "font-src 'self' data:;"
             : // 生產模式：更嚴格的策略
               "default-src 'self'; " +
@@ -95,7 +95,7 @@ function createWindow() {
   });
 
   if (loadFromDevServer) {
-    mainWindow.loadURL("http://localhost:4567");
+    mainWindow.loadURL("http://localhost:47821");
     if (isDev) {
       mainWindow.webContents.openDevTools();
     }
