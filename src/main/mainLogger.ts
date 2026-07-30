@@ -14,21 +14,16 @@ const isDev = process.env.NODE_ENV !== "production";
 log.initialize();
 
 // resolvePathFn 在第一次寫 log 時才執行；variables.userData 由 electron-log 自動解析
-log.transports.file.resolvePathFn = (variables) => {
-  const p = join(variables.userData ?? app.getPath("userData"), "logs", "main.log");
-  console.log("[mainLogger] log file path:", p);
-  return p;
-};
+log.transports.file.resolvePathFn = (variables) =>
+  join(variables.userData ?? app.getPath("userData"), "logs", "main.log");
 
 if (isDev) {
   log.transports.file.level = "debug";
   log.transports.console.level = "debug";
   log.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}";
-  console.log("[mainLogger] isDev=true, file.level=debug");
 } else {
   log.transports.file.level = false;
   log.transports.console.level = "warn";
-  console.log("[mainLogger] isDev=false, file logging DISABLED");
 }
 
 export const logger = {
