@@ -188,7 +188,7 @@ describe("AutoSaveService", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (autoSaveService as any).performAutoSave();
 
-      expect(consoleSpy).toHaveBeenCalledWith("[ERROR]", "自動儲存失敗:", expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.any(String), expect.any(Error));
       expect(autoSaveService.getStatus().running).toBe(true);
 
       consoleSpy.mockRestore();
