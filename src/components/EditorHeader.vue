@@ -89,14 +89,17 @@
             </button>
           </div>
 
-          <!-- 文章狀態切換 -->
+          <!-- 文章狀態切換：僅變更 frontmatter 的 status 標籤，不會同步到部落格網站 -->
           <div
             class="tooltip tooltip-bottom"
-            :data-tip="article?.status === 'published' ? '改為草稿' : '標記為已發布'"
+            :data-tip="article?.status === 'published'
+              ? '改為草稿（僅變更狀態標籤，不影響已同步的內容）'
+              : '標記為已發布（僅變更狀態標籤；若要同步至部落格網站，請至管理模式點擊「同步到 Blog」）'"
           >
             <button
               class="btn btn-xs gap-1"
               :class="article?.status === 'published' ? 'btn-ghost' : 'btn-success'"
+              data-testid="publish-status-toggle-button"
               @click="$emit('toggle-status')"
             >
               <Upload v-if="article?.status === 'draft'" :size="14" />
