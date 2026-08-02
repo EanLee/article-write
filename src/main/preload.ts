@@ -101,3 +101,4 @@ contextBridge.exposeInMainWorld("electronAPI", {
   aiHasApiKey: (provider: string) => ipcRenderer.invoke(IPC.AI_GET_HAS_API_KEY, provider),
   aiGetActiveProvider: () => ipcRenderer.invoke(IPC.AI_GET_ACTIVE_PROVIDER),
 });
+

@@ -1,4 +1,4 @@
-import { logger } from "../../utils/logger.js"
+import { logger } from "../mainLogger.js"
 import { join } from "node:path"
 import { promises as fs } from "node:fs"
 import type { Article } from "../../types/index.js"

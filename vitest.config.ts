@@ -31,7 +31,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
+      '@': resolve(__dirname, 'src'),
+      // electron-log sub-paths hang in jsdom (no ipcRenderer) — redirect to console stub
+      'electron-log/renderer': resolve(__dirname, 'src/__mocks__/electron-log.ts'),
+      'electron-log/main': resolve(__dirname, 'src/__mocks__/electron-log.ts'),
+      'electron-log/preload': resolve(__dirname, 'src/__mocks__/electron-log.ts'),
     }
   }
 })
