@@ -158,14 +158,12 @@ export class AutoSaveService {
   /**
    * 文章切換時的自動儲存
    * 在切換到新文章前儲存當前文章
+   * 刻意不檢查 isEnabled：這是防止資料遺失的安全網，與使用者是否關閉定期自動儲存計時器無關
    * @param {Article | null} previousArticle - 前一篇文章
    */
   async saveOnArticleSwitch(previousArticle: Article | null): Promise<void> {
     if (!this.initialized) {
       logger.warn("AutoSaveService: Cannot save on article switch before initialization");
-      return;
-    }
-    if (!this.isEnabled) {
       return;
     }
     if (!this.saveCallback || !previousArticle) {
