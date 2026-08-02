@@ -103,7 +103,7 @@
                       class="input input-bordered join-item flex-1"
                       :class="{ 'input-error': localConfig.paths.articlesDir && !articlesValidation.valid }"
                     />
-                    <button class="btn btn-primary join-item" @click="selectArticlesPath">
+                    <button class="btn btn-primary join-item" :disabled="isSelectingPath" @click="selectArticlesPath">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                       </svg>
@@ -143,20 +143,20 @@
                   </p>
                   <div class="join w-full">
                     <input
-                      v-model="localConfig.paths.targetBlog"
+                      v-model="localConfig.paths.targetDir"
                       type="text"
                       placeholder="例如：C:\Users\你的名字\Projects\my-blog\src\content\blog"
                       class="input input-bordered join-item flex-1"
-                      :class="{ 'input-error': localConfig.paths.targetBlog && !blogValidation.valid && !blogValidation.warning }"
+                      :class="{ 'input-error': localConfig.paths.targetDir && !blogValidation.valid && !blogValidation.warning }"
                     />
-                    <button class="btn btn-primary join-item" @click="selectBlogPath">
+                    <button class="btn btn-primary join-item" :disabled="isSelectingPath" @click="selectBlogPath">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                       </svg>
                       選擇資料夾
                     </button>
                   </div>
-                  <div v-if="localConfig.paths.targetBlog" class="flex items-center gap-2 mt-2">
+                  <div v-if="localConfig.paths.targetDir" class="flex items-center gap-2 mt-2">
                     <div
                       class="w-3 h-3 rounded-full"
                       :class="blogValidation.valid && !blogValidation.warning ? 'bg-success' : blogValidation.warning ? 'bg-warning' : 'bg-error'"
@@ -194,7 +194,7 @@
                       placeholder="留空使用預設路徑"
                       class="input input-bordered join-item flex-1"
                     />
-                    <button class="btn btn-outline join-item" @click="selectImagesPath">
+                    <button class="btn btn-outline join-item" :disabled="isSelectingPath" @click="selectImagesPath">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                       </svg>
@@ -618,6 +618,7 @@
 import { ref, computed, watch } from "vue"
 import { useConfigStore } from "@/stores/config"
 import { useArticleStore } from "@/stores/article"
+import { logger } from "@/utils/logger"
 import type { AppConfig } from "@/types"
 
 interface Props {
@@ -670,7 +671,7 @@ async function saveAiApiKey(provider: string) {
 const localConfig = ref<AppConfig>({
   paths: {
     articlesDir: "",
-    targetBlog: "",
+    targetDir: "",
     imagesDir: ""
   },
   editorConfig: {
@@ -691,6 +692,7 @@ const autoSaveSeconds = computed({
 // Validation
 const articlesValidation = ref({ valid: false, message: "請選擇路徑" })
 const blogValidation = ref<{ valid: boolean; warning?: boolean; message: string }>({ valid: false, message: "請選擇路徑" })
+const isSelectingPath = ref(false)
 
 const canSave = computed(() => {
   // 只需要文章資料夾即可儲存，部落格路徑為選填
@@ -699,6 +701,8 @@ const canSave = computed(() => {
 
 // Methods
 async function selectArticlesPath() {
+  if (isSelectingPath.value) {return}
+  isSelectingPath.value = true
   try {
     if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
@@ -719,10 +723,14 @@ async function selectArticlesPath() {
     }
   } catch (error) {
     logger.error("選擇資料夾失敗:", error)
+  } finally {
+    isSelectingPath.value = false
   }
 }
 
 async function selectBlogPath() {
+  if (isSelectingPath.value) {return}
+  isSelectingPath.value = true
   try {
     if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
@@ -731,18 +739,22 @@ async function selectBlogPath() {
 
     const selectedPath = await globalThis.electronAPI.selectDirectory({
       title: "選擇部落格專案資料夾",
-      defaultPath: localConfig.value.paths.targetBlog
+      defaultPath: localConfig.value.paths.targetDir
     })
 
     if (selectedPath) {
-      localConfig.value.paths.targetBlog = selectedPath
+      localConfig.value.paths.targetDir = selectedPath
     }
   } catch (error) {
     logger.error("選擇資料夾失敗:", error)
+  } finally {
+    isSelectingPath.value = false
   }
 }
 
 async function selectImagesPath() {
+  if (isSelectingPath.value) {return}
+  isSelectingPath.value = true
   try {
     if (!globalThis.electronAPI) {
       logger.warn("瀏覽器模式下無法選擇資料夾")
@@ -759,6 +771,8 @@ async function selectImagesPath() {
     }
   } catch (error) {
     logger.error("選擇資料夾失敗:", error)
+  } finally {
+    isSelectingPath.value = false
   }
 }
 
@@ -776,9 +790,9 @@ async function validatePaths() {
   }
 
   // Validate Blog Directory
-  if (localConfig.value.paths.targetBlog) {
+  if (localConfig.value.paths.targetDir) {
     try {
-      const result = await configStore.validateAstroBlog(localConfig.value.paths.targetBlog)
+      const result = await configStore.validateAstroBlog(localConfig.value.paths.targetDir)
       blogValidation.value = result
     } catch {
       blogValidation.value = { valid: false, message: "驗證失敗" }
@@ -807,7 +821,7 @@ function resetToDefaults() {
   localConfig.value = {
     paths: {
       articlesDir: "",
-      targetBlog: "",
+      targetDir: "",
       imagesDir: ""
     },
     editorConfig: {
@@ -825,7 +839,7 @@ function handleClose() {
 
 // Watch for path changes to trigger validation
 watch(
-  () => [localConfig.value.paths.articlesDir, localConfig.value.paths.targetBlog],
+  () => [localConfig.value.paths.articlesDir, localConfig.value.paths.targetDir],
   async () => {
     await validatePaths()
   }
