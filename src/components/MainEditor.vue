@@ -80,7 +80,6 @@ const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
 const showFrontmatterEditor = ref(false);
 const renderedContent = ref("");
-const autoSaveTimer = ref<number | null>(null);
 const editorMode = ref<"compose" | "raw">("compose");
 const rawContent = ref("");
 
@@ -240,8 +239,7 @@ function handleContentChange() {
     // Trigger validation
     debounceValidation();
 
-    // 排程自動儲存（會調用 service）
-    scheduleAutoSave();
+    autoSaveService.markAsModified();
 }
 
 // Watch content changes
@@ -266,21 +264,6 @@ watch(content, (newContent) => {
         }, 500);
     }
 });
-
-function scheduleAutoSave() {
-    // 文章載入期間不觸發自動儲存（避免開啟文件即誤觸儲存）
-    if (isLoadingArticle.value) {
-        return;
-    }
-
-    if (autoSaveTimer.value) {
-        clearTimeout(autoSaveTimer.value);
-    }
-
-    autoSaveTimer.value = setTimeout(() => {
-        saveArticle();
-    }, 2000) as unknown as number; // Auto-save after 2 seconds of inactivity
-}
 
 async function saveArticle() {
     if (!articleStore.currentArticle) {
@@ -363,14 +346,10 @@ function toggleEditorMode() {
     isSwitchingMode.value = true;
 
     try {
-        // 清理所有定時器，防止在模式切換後訪問已卸載的 ref
+        // 清理歷史記錄定時器，防止在模式切換後訪問已卸載的 ref
         if (historyTimeout) {
             clearTimeout(historyTimeout);
             historyTimeout = null;
-        }
-        if (autoSaveTimer.value) {
-            clearTimeout(autoSaveTimer.value);
-            autoSaveTimer.value = null;
         }
 
         if (editorMode.value === "compose") {
@@ -424,8 +403,7 @@ function handleRawContentChange() {
             logger.warn("[RawMode] Frontmatter 解析警告:", parsed.errors);
         }
 
-        // 排程自動儲存（會通過 service 更新 store）
-        scheduleAutoSave();
+        autoSaveService.markAsModified();
 
         if (showPreview.value) {
             updatePreview();
@@ -665,10 +643,6 @@ onMounted(() => {
 
 // Cleanup
 onUnmounted(() => {
-    // 清理自動儲存定時器
-    if (autoSaveTimer.value) {
-        clearTimeout(autoSaveTimer.value);
-    }
     // 清理歷史記錄定時器
     if (historyTimeout) {
         clearTimeout(historyTimeout);

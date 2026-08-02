@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, watch, nextTick } from "vue";
+import { ref, watch } from "vue";
 import type { Article, SaveState } from "@/types";
 import { ArticleStatus, SaveStatus } from "@/types";
 import { autoSaveService } from "@/services/AutoSaveService";
@@ -573,16 +573,14 @@ export const useArticleStore = defineStore("article", () => {
     const interval = config.editorConfig.autoSaveInterval || 30000;
 
     autoSaveService.initialize(
-      saveArticle, // ✅ 使用新的 saveArticle 函數（會寫入檔案）
+      saveArticle,
       () => currentArticle.value,
       interval,
+      config.editorConfig.autoSave,
     );
-
-    // 根據設定啟用或停用自動儲存
-    autoSaveService.setEnabled(config.editorConfig.autoSave);
   }
 
-  // 監聽設定變更以更新自動儲存
+  // 監聽設定變更以更新自動儲存間隔與啟用狀態
   watch(
     () => configStore.config.editorConfig,
     (newConfig) => {
@@ -591,11 +589,18 @@ export const useArticleStore = defineStore("article", () => {
     },
     { deep: true },
   );
-  // 初始化自動儲存：使用 nextTick 取代任意 setTimeout(100ms)，
-  // 確保 Vue 響應式系統完成當前 tick 後再初始化，語意明確且可測試
-  nextTick(() => {
-    initializeAutoSave();
-  });
+  // 等 loadConfig() 完成（loading: true → false）後才初始化，確保拿到磁碟存的 config
+  // 避免 nextTick 比 IPC 回傳更早，導致以預設值（autoSave: true）啟動後又被 watch 停掉
+  let autoSaveReady = false;
+  watch(
+    () => configStore.loading,
+    (isLoading) => {
+      if (!isLoading && !autoSaveReady) {
+        autoSaveReady = true;
+        initializeAutoSave();
+      }
+    },
+  );
 
   return {
     // State

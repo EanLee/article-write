@@ -127,6 +127,15 @@ describe("AutoSaveService", () => {
       expect(mockSaveCallback).toHaveBeenCalledWith(modifiedArticle);
     });
 
+    it("即使使用者關閉定期自動儲存，切換文章仍應儲存前一篇（避免資料遺失）", async () => {
+      autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback, 30000, false);
+
+      const modifiedArticle = { ...mockArticle, content: "Modified content" };
+      await autoSaveService.saveOnArticleSwitch(modifiedArticle);
+
+      expect(mockSaveCallback).toHaveBeenCalledWith(modifiedArticle);
+    });
+
     it("應該能夠手動觸發儲存", async () => {
       autoSaveService.initialize(mockSaveCallback, mockGetCurrentArticleCallback);
 
