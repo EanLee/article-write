@@ -10,7 +10,7 @@
     <!-- Bottom actions -->
     <div class="activity-bottom">
       <button class="activity-item" :class="{ active: props.aiPanelOpen }" title="AI 助手"
-        @click="$emit('toggle-ai-panel')">
+        data-testid="ai-panel-toggle-button" @click="$emit('toggle-ai-panel')">
         <Sparkles :size="24" />
       </button>
       <button class="activity-item" data-testid="settings-button" title="設定" @click="$emit('open-settings')">

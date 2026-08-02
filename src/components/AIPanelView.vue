@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-panel bg-base-100 border-l border-base-300 flex flex-col overflow-hidden relative" :style="{ width: width + 'px' }">
+  <div class="ai-panel bg-base-100 border-l border-base-300 flex flex-col overflow-hidden relative" data-testid="ai-panel" :style="{ width: width + 'px' }">
     <!-- Resize Handle（左側） -->
     <div class="resize-handle" @mousedown="startResize"></div>
 
@@ -9,7 +9,7 @@
         <Sparkles :size="16" class="text-primary" />
         <span class="font-semibold text-sm">AI 助手</span>
       </div>
-      <button class="btn btn-ghost btn-xs btn-square" @click="aiPanelStore.close()">
+      <button class="btn btn-ghost btn-xs btn-square" data-testid="ai-panel-close-button" @click="aiPanelStore.close()">
         <X :size="14" />
       </button>
     </div>

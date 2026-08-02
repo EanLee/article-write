@@ -1,7 +1,14 @@
 <template>
   <div id="app" class="h-screen flex bg-base-100">
     <!-- Activity Bar (Mode Selector)：專注模式時隱藏 -->
-    <ActivityBar v-if="!focusMode" v-model="currentMode" @open-settings="showSettings = true" @toggle-sidebar="toggleSidebar" />
+    <ActivityBar
+      v-if="!focusMode"
+      v-model="currentMode"
+      :ai-panel-open="aiPanelStore.isOpen"
+      @open-settings="showSettings = true"
+      @toggle-sidebar="toggleSidebar"
+      @toggle-ai-panel="aiPanelStore.toggle()"
+    />
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -48,6 +55,13 @@
       </template>
     </div>
 
+    <!-- AI 助手面板：僅編輯模式顯示，右側可收合 dock -->
+    <AIPanelView
+      v-if="aiPanelStore.isOpen && currentMode === ViewMode.Editor"
+      :article="articleStore.currentArticle"
+      @open-settings="showSettings = true"
+    />
+
     <!-- Settings Modal -->
     <SettingsPanel v-model="showSettings" />
 
@@ -65,6 +79,7 @@ import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { useSearchStore } from "@/stores/search";
+import { useAIPanelStore } from "@/stores/aiPanel";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "@lucide/vue";
@@ -77,10 +92,12 @@ import SettingsPanel from "@/components/SettingsPanel.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
+import AIPanelView from "@/components/AIPanelView.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
 const searchStore = useSearchStore();
+const aiPanelStore = useAIPanelStore();
 const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
