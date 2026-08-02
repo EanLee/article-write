@@ -658,5 +658,9 @@ function scrollToLine(lineIndex: number) {
     editorPaneRef.value?.scrollToLine(lineIndex)
 }
 
-defineExpose({ scrollToLine })
+function openFrontmatterEditor() {
+    showFrontmatterEditor.value = true
+}
+
+defineExpose({ scrollToLine, openFrontmatterEditor })
 </script>

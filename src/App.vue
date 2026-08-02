@@ -16,7 +16,13 @@
       <template v-if="currentMode === ViewMode.Editor">
         <div class="flex flex-1 overflow-hidden">
           <!-- Sidebar -->
-          <SideBarView v-model="sidebarView" :is-collapsed="sidebarCollapsed" :outline-headings="outlineHeadings" @scroll-to-outline-line="handleScrollToOutlineLine" />
+          <SideBarView
+            v-model="sidebarView"
+            :is-collapsed="sidebarCollapsed"
+            :outline-headings="outlineHeadings"
+            @scroll-to-outline-line="handleScrollToOutlineLine"
+            @edit-frontmatter="mainEditorRef?.openFrontmatterEditor()"
+          />
 
           <!-- Editor Content -->
           <main class="flex-1 bg-base-100 overflow-hidden flex flex-col">
