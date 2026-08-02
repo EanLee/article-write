@@ -2,6 +2,15 @@
   <div class="h-full flex flex-col bg-base-100">
     <!-- Toolbar -->
     <div class="p-2 border-b border-base-300 flex items-center gap-2">
+      <button
+        class="btn btn-ghost btn-xs btn-square"
+        title="新增文章"
+        data-testid="sidebar-new-article-button"
+        @click="handleCreateArticle"
+      >
+        <FilePlus :size="14" />
+      </button>
+
       <div class="flex-1 relative">
         <input
           ref="searchInputRef"
@@ -143,7 +152,8 @@ import {
   ChevronRight,
   FolderOpen,
   FolderClosed,
-  FileQuestion
+  FileQuestion,
+  FilePlus
 } from "@lucide/vue"
 import ArticleTreeItem from "./ArticleTreeItem.vue"
 import type { Article } from "@/types"
@@ -273,6 +283,11 @@ function collapseAll() {
 
 function selectArticle(article: Article) {
   articleStore.setCurrentArticle(article)
+}
+
+async function handleCreateArticle() {
+  const newArticle = await articleStore.createArticle("未命名文章", "Software")
+  articleStore.setCurrentArticle(newArticle)
 }
 
 function handleKeydown(e: KeyboardEvent) {
