@@ -89,12 +89,15 @@
             </button>
           </div>
 
-          <!-- 文章狀態切換：僅變更 frontmatter 的 status 標籤，不會同步到部落格網站 -->
+          <!-- 文章狀態切換：僅變更 frontmatter 的 status 標籤，不會同步到部落格網站
+               tooltip 文案刻意精簡且靠左展開（tooltip-left）：這顆按鈕在 header 最右側，
+               靠右/置中展開的長文案在小螢幕會被視窗邊緣截斷 -->
           <div
-            class="tooltip tooltip-bottom"
+            class="tooltip tooltip-bottom tooltip-left"
+            data-testid="publish-status-tooltip"
             :data-tip="article?.status === 'published'
-              ? '改為草稿（僅變更狀態標籤，不影響已同步的內容）'
-              : '標記為已發布（僅變更狀態標籤；若要同步至部落格網站，請至管理模式點擊「同步到 Blog」）'"
+              ? '僅變更狀態標籤，不影響已同步內容'
+              : '僅變更狀態標籤；同步請至管理模式'"
           >
             <button
               class="btn btn-xs gap-1"

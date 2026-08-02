@@ -49,22 +49,22 @@ test.describe("發布狀態按鈕文案", () => {
 
   test("draft 狀態的 tooltip 說明僅變更標籤，並指向管理模式的同步入口", async ({ window }) => {
     const button = window.getByTestId("publish-status-toggle-button");
-    const tooltip = button.locator("xpath=..");
+    const tooltip = window.getByTestId("publish-status-tooltip");
     await expect(button).toBeVisible({ timeout: 5000 });
     await expect(tooltip).toHaveAttribute("data-tip", /僅變更狀態標籤/);
-    await expect(tooltip).toHaveAttribute("data-tip", /同步到 Blog/);
+    await expect(tooltip).toHaveAttribute("data-tip", /管理模式/);
   });
 
   test("切換為已發布後 tooltip 改為說明不影響已同步內容", async ({ window }) => {
     const button = window.getByTestId("publish-status-toggle-button");
-    const tooltip = button.locator("xpath=..");
+    const tooltip = window.getByTestId("publish-status-tooltip");
     await button.click();
 
-    await expect(tooltip).toHaveAttribute("data-tip", /改為草稿/);
-    await expect(tooltip).toHaveAttribute("data-tip", /不影響已同步的內容/);
+    await expect(tooltip).toHaveAttribute("data-tip", /僅變更狀態標籤/);
+    await expect(tooltip).toHaveAttribute("data-tip", /不影響已同步內容/);
 
     // 還原狀態，避免影響共用 worker 內的其他測試
     await button.click();
-    await expect(tooltip).toHaveAttribute("data-tip", /僅變更狀態標籤/);
+    await expect(tooltip).toHaveAttribute("data-tip", /同步請至管理模式/);
   });
 });
