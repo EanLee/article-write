@@ -36,4 +36,18 @@ test.describe("AI 助手面板", () => {
     await window.getByTestId("ai-panel-close-button").click();
     await expect(panel).not.toBeVisible();
   });
+
+  test("管理模式下點擊也能正常開啟面板（按鈕不分模式都可點，避免 active 卻沒反應）", async ({ window }) => {
+    await window.locator('button[title^="管理模式"]').click();
+
+    const toggleButton = window.getByTestId("ai-panel-toggle-button");
+    const panel = window.getByTestId("ai-panel");
+
+    await toggleButton.click();
+    await expect(panel).toBeVisible({ timeout: 5000 });
+
+    // 還原狀態與模式，避免影響共用 worker 內的其他測試
+    await window.getByTestId("ai-panel-close-button").click();
+    await window.locator('button[title^="編輯模式"]').click();
+  });
 });

@@ -61,9 +61,10 @@
       </template>
     </div>
 
-    <!-- AI 助手面板：僅編輯模式顯示，右側可收合 dock -->
+    <!-- AI 助手面板：右側可收合 dock，任何模式都能開關（ActivityBar 按鈕不分模式都可點，
+         若面板只在編輯模式渲染，管理模式點擊會出現「按鈕變 active 但畫面沒反應」的不一致） -->
     <AIPanelView
-      v-if="aiPanelStore.isOpen && currentMode === ViewMode.Editor"
+      v-if="aiPanelStore.isOpen"
       :article="articleStore.currentArticle"
       @open-settings="showSettings = true"
     />
