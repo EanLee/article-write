@@ -146,6 +146,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue"
 import { useArticleStore } from "@/stores/article"
+import { notificationService } from "@/services/NotificationService"
 import {
   Search,
   SlidersHorizontal,
@@ -286,8 +287,14 @@ function selectArticle(article: Article) {
 }
 
 async function handleCreateArticle() {
-  const newArticle = await articleStore.createArticle("未命名文章", "Software")
-  articleStore.setCurrentArticle(newArticle)
+  try {
+    const newArticle = await articleStore.createArticle("未命名文章", "Software")
+    articleStore.setCurrentArticle(newArticle)
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "建立文章失敗"
+    logger.error("[ArticleListTree] 建立文章失敗:", e)
+    notificationService.error("建立文章失敗", message)
+  }
 }
 
 function handleKeydown(e: KeyboardEvent) {
