@@ -1,5 +1,5 @@
 <template>
-  <div class="server-control-panel">
+  <div class="server-control-panel" data-testid="server-control-panel">
     <!-- 控制列 -->
     <div class="flex items-center justify-between p-3 bg-base-200 border-b border-base-300">
       <div class="flex items-center gap-3">
@@ -42,6 +42,7 @@
         <!-- 折疊/展開按鈕 -->
         <button
           class="btn btn-ghost btn-sm"
+          data-testid="server-panel-toggle"
           @click="toggleExpanded"
           :title="expanded ? '收合' : '展開'"
         >
@@ -74,6 +75,7 @@
     <div
       v-if="expanded"
       class="log-panel bg-base-300 overflow-hidden"
+      data-testid="server-panel-log"
       :style="{ height: logPanelHeight + 'px' }"
     >
       <!-- 日誌內容 -->
