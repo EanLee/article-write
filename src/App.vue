@@ -59,6 +59,9 @@
       <template v-else-if="currentMode === ViewMode.Management">
         <ArticleManagement @edit-article="switchToEditorMode" />
       </template>
+
+      <!-- 開發伺服器底部控制台（IA 稽核 Phase 2 第一項）：橫跨側邊欄＋編輯區，只在編輯模式顯示 -->
+      <ServerControlPanel v-if="currentMode === ViewMode.Editor" />
     </div>
 
     <!-- AI 助手面板：右側可收合 dock，任何模式都能開關（ActivityBar 按鈕不分模式都可點，
@@ -100,6 +103,7 @@ import SearchPanel from "@/components/SearchPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
 import AIPanelView from "@/components/AIPanelView.vue";
+import ServerControlPanel from "@/components/ServerControlPanel.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
