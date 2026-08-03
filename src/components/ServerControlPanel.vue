@@ -114,6 +114,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue"
 import { useConfigStore } from "@/stores/config"
+import { logger } from "@/utils/logger"
 import {
   Play,
   Square,
@@ -132,7 +133,7 @@ const isRunning = ref(false)
 const loading = ref(false)
 const serverUrl = ref<string | undefined>()
 const logs = ref<ServerLogData[]>([])
-const expanded = ref(true)
+const expanded = ref(false)
 const logPanelHeight = ref(200)
 const logContainerRef = ref<HTMLElement>()
 
