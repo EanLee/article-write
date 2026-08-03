@@ -1,7 +1,7 @@
 /**
  * ServerControlPanel — 掛載進編輯模式前的兩個既有缺陷
  * 1. `expanded` 預設值需為 false（掛載進編輯模式時預設收合）
- * 2. startServer/stopServer 失敗時呼叫 logger.error，但檔案從未 import logger，
+ * 2. startServer/stopServer/updateStatus 失敗時呼叫 logger.error，但檔案從未 import logger，
  *    掛載後首次觸發錯誤路徑會直接 runtime crash（ReferenceError: logger is not defined）
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
@@ -93,6 +93,24 @@ describe("ServerControlPanel - logger 未 import 的 bug 修復", () => {
 
     try {
       await findButtonByText(wrapper, "停止").trigger("click")
+      await flushPromises()
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    } finally {
+      process.off("unhandledRejection", onRejection)
+    }
+
+    expect(rejections).toEqual([])
+  })
+
+  it("初始載入伺服器狀態失敗時不應觸發未捕捉的 Promise rejection", async () => {
+    setupElectronAPI({ getServerStatus: vi.fn().mockRejectedValue(new Error("取得狀態失敗")) })
+
+    const rejections: unknown[] = []
+    const onRejection = (reason: unknown) => { rejections.push(reason) }
+    process.on("unhandledRejection", onRejection)
+
+    try {
+      wrapper = mount(ServerControlPanel, { attachTo: document.body })
       await flushPromises()
       await new Promise((resolve) => setTimeout(resolve, 0))
     } finally {
