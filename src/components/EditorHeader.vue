@@ -89,14 +89,20 @@
             </button>
           </div>
 
-          <!-- 文章狀態切換 -->
+          <!-- 文章狀態切換：僅變更 frontmatter 的 status 標籤，不會同步到部落格網站
+               tooltip 文案刻意精簡且靠左展開（tooltip-left）：這顆按鈕在 header 最右側，
+               靠右/置中展開的長文案在小螢幕會被視窗邊緣截斷 -->
           <div
-            class="tooltip tooltip-bottom"
-            :data-tip="article?.status === 'published' ? '改為草稿' : '標記為已發布'"
+            class="tooltip tooltip-bottom tooltip-left"
+            data-testid="publish-status-tooltip"
+            :data-tip="article?.status === 'published'
+              ? '僅變更狀態標籤，不影響已同步內容'
+              : '僅變更狀態標籤；同步請至管理模式'"
           >
             <button
               class="btn btn-xs gap-1"
               :class="article?.status === 'published' ? 'btn-ghost' : 'btn-success'"
+              data-testid="publish-status-toggle-button"
               @click="$emit('toggle-status')"
             >
               <Upload v-if="article?.status === 'draft'" :size="14" />

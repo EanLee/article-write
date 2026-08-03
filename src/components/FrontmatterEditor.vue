@@ -1,5 +1,5 @@
 <template>
-  <div v-if="modelValue" class="modal modal-open">
+  <div v-if="modelValue" class="modal modal-open" data-testid="frontmatter-editor-modal">
     <div class="modal-box w-11/12 max-w-2xl">
       <h3 class="font-bold text-lg mb-4">編輯前置資料</h3>
       

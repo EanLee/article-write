@@ -8,7 +8,7 @@
     <div v-else class="frontmatter-content">
       <!-- 快速操作按鈕 -->
       <div class="actions">
-        <button class="btn btn-sm btn-ghost gap-1" @click="openEditor">
+        <button class="btn btn-sm btn-ghost gap-1" data-testid="frontmatter-edit-button" @click="openEditor">
           <Edit2 :size="14" />
           編輯
         </button>
@@ -110,15 +110,16 @@
 import { computed } from "vue"
 import { Info, Edit2 } from "@lucide/vue"
 import { useArticleStore } from "@/stores/article"
-import { logger } from "@/utils/logger"
 
 const articleStore = useArticleStore()
 const currentArticle = computed(() => articleStore.currentArticle)
 
+const emit = defineEmits<{
+  edit: []
+}>()
+
 function openEditor() {
-  // 待實作：開啟 Frontmatter 編輯 modal
-  // 可以 emit 事件或使用 store 管理 modal 狀態
-  logger.debug("Open Frontmatter Editor")
+  emit("edit")
 }
 
 function formatDate(dateString: string) {

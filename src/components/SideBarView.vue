@@ -40,7 +40,7 @@
       <!-- Content -->
       <div class="sidebar-content">
         <ArticleListTree v-if="modelValue === SidebarView.Articles" />
-        <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" />
+        <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" @edit="$emit('edit-frontmatter')" />
         <OutlinePanel
           v-else-if="modelValue === SidebarView.Outline"
           :headings="props.outlineHeadings"
@@ -72,6 +72,7 @@ const props = defineProps<{
 
 defineEmits<{
   "scroll-to-outline-line": [line: number]
+  "edit-frontmatter": []
 }>()
 
 const articleStore = useArticleStore()
