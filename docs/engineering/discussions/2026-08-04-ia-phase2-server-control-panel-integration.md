@@ -2,14 +2,15 @@
 title: "IA Phase 2 第一項：ServerControlPanel 掛載進編輯模式底部控制台"
 domain: engineering
 type: spec
-status: draft
+status: reviewing
 owner: tech-team
 updated: 2026-08-04
 source_of_truth: false
 tags:
   - ia-phase2
   - server-control-panel
-related_docs: []
+related_docs:
+  - docs/superpowers/plans/2026-08-04-ia-phase2-server-control-panel.md
 ---
 
 # IA Phase 2 第一項：ServerControlPanel 掛載進編輯模式底部控制台
