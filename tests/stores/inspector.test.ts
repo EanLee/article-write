@@ -12,9 +12,9 @@ describe("Inspector Store", () => {
   // ── 初始狀態 ──────────────────────────────────────────────────────────────
 
   describe("初始狀態", () => {
-    it("isOpen 應為 false", () => {
+    it("isOpen 應為 true（Inspector 常駐可見，不同於舊 AI 面板的預設關閉）", () => {
       const inspectorStore = useInspectorStore();
-      expect(inspectorStore.isOpen).toBe(false);
+      expect(inspectorStore.isOpen).toBe(true);
     });
   });
 
@@ -23,6 +23,7 @@ describe("Inspector Store", () => {
   describe("Panel 開關操作", () => {
     it("toggle()：false → true", () => {
       const inspectorStore = useInspectorStore();
+      inspectorStore.isOpen = false;
       inspectorStore.toggle();
       expect(inspectorStore.isOpen).toBe(true);
     });
@@ -56,6 +57,7 @@ describe("Inspector Store", () => {
 
     it("close() 在已關閉狀態呼叫：isOpen 仍為 false", () => {
       const inspectorStore = useInspectorStore();
+      inspectorStore.close();
       inspectorStore.close();
       expect(inspectorStore.isOpen).toBe(false);
     });
