@@ -4,24 +4,10 @@ import { useSeoStore } from "@/stores/seo";
 import type { Article } from "@/types";
 import type { SEOGenerationResult } from "@/main/services/AIProvider/types";
 
-export const useAIPanelStore = defineStore("aiPanel", () => {
-  const isOpen = ref(false);
-
+export const useSeoResultStore = defineStore("seoResult", () => {
   // SEO Section 狀態
   const seoResult = ref<SEOGenerationResult | null>(null);
   const seoError = ref<string | null>(null);
-
-  function toggle() {
-    isOpen.value = !isOpen.value;
-  }
-
-  function open() {
-    isOpen.value = true;
-  }
-
-  function close() {
-    isOpen.value = false;
-  }
 
   /**
    * 生成 SEO 資訊。
@@ -67,12 +53,8 @@ export const useAIPanelStore = defineStore("aiPanel", () => {
   }
 
   return {
-    isOpen,
     seoResult,
     seoError,
-    toggle,
-    open,
-    close,
     generateSEO,
     applySEOResult,
     clearSEO,
