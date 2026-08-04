@@ -17,13 +17,19 @@
  *   (c) 同一篇文章但 content 欄位本身真的變了（例如 FileWatch 偵測到外部檔案異動、或衝突
  *       解決時選擇保留磁碟版本，兩者都刻意保留原有 id），編輯器內容仍應同步更新——
  *       確認修法沒有把這個既有合法路徑也一併鎖死
+ *   (d) 【誤標記未儲存回歸】切換到不同文章（id 改變）時不應把 saveState 標成 modified。
+ *       currentArticle watcher 設定的 isLoadingArticle 旗標從未被 watch(content, ...) 讀取
+ *       （只查了 isSwitchingMode，那是模式切換用的旗標，跟切換文章無關），content.value
+ *       的程式化重設因此會被 watch(content, ...) 當成使用者編輯，呼叫 handleContentChange()
+ *       → autoSaveService.markAsModified()，導致單純換一篇文章就顯示「未儲存」
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
 import { useArticleStore } from "@/stores/article";
 import MainEditor from "@/components/MainEditor.vue";
+import { autoSaveService } from "@/services/AutoSaveService";
 import type { Article } from "@/types";
 import { ArticleStatus } from "@/types";
 
@@ -106,6 +112,10 @@ describe("MainEditor", () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    autoSaveService.destroy();
+  });
+
   it("(a) 只更新 frontmatter 的 updateArticleInMemory() 呼叫不應蓋掉使用者尚未儲存的編輯器內容", async () => {
     const articleStore = useArticleStore();
     const original = makeArticle();
@@ -161,5 +171,23 @@ describe("MainEditor", () => {
     await wrapper.vm.$nextTick();
 
     expect((cmStub.element as HTMLTextAreaElement).value).toBe("# 外部修改後的內容");
+  });
+
+  it("(d) 切換到不同文章（id 改變）不應把 saveState 誤標記為 modified", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle();
+    expect(autoSaveService.saveState.status).toBe("saved");
+
+    mount(MainEditor, mountOptions);
+
+    articleStore.currentArticle = makeArticle({
+      id: "article-2",
+      content: "# 另一篇文章的內容",
+    });
+
+    // markAsModified 有 100ms debounce，等過 debounce 視窗確認真的沒被排程觸發
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    expect(autoSaveService.saveState.status).toBe("saved");
   });
 });

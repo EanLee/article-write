@@ -242,6 +242,11 @@ watch(content, (newContent) => {
     if (isSwitchingMode.value) {
         return;
     }
+    // 文章載入/切換期間的程式化內容重設不是使用者編輯，不應誤觸 AutoSave
+    // （isLoadingArticle 由 currentArticle watcher 設定，見下方）
+    if (isLoadingArticle.value) {
+        return;
+    }
 
     handleContentChange();
 
