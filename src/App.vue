@@ -4,10 +4,10 @@
     <ActivityBar
       v-if="!focusMode"
       v-model="currentMode"
-      :ai-panel-open="aiPanelStore.isOpen"
+      :ai-panel-open="inspectorStore.isOpen"
       @open-settings="showSettings = true"
       @toggle-sidebar="toggleSidebar"
-      @toggle-ai-panel="aiPanelStore.toggle()"
+      @toggle-ai-panel="inspectorStore.toggle()"
     />
 
     <!-- Main Content Area -->
@@ -67,7 +67,7 @@
     <!-- AI 助手面板：右側可收合 dock，任何模式都能開關（ActivityBar 按鈕不分模式都可點，
          若面板只在編輯模式渲染，管理模式點擊會出現「按鈕變 active 但畫面沒反應」的不一致） -->
     <AIPanelView
-      v-if="aiPanelStore.isOpen"
+      v-if="inspectorStore.isOpen"
       :article="articleStore.currentArticle"
       @open-settings="showSettings = true"
     />
@@ -89,7 +89,7 @@ import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { useSearchStore } from "@/stores/search";
-import { useAIPanelStore } from "@/stores/aiPanel";
+import { useInspectorStore } from "@/stores/inspector";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "@lucide/vue";
@@ -108,7 +108,7 @@ import ServerControlPanel from "@/components/ServerControlPanel.vue";
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
 const searchStore = useSearchStore();
-const aiPanelStore = useAIPanelStore();
+const inspectorStore = useInspectorStore();
 const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);
