@@ -293,13 +293,19 @@ function commitTitle() {
   commit("title", (draft) => {
     draft.title = title
     draft.frontmatter.title = title
-    // 只在使用者沒有同時正在編輯 slug 欄位時才自動代入，避免蓋掉使用者正在輸入的網址代稱
-    if (title && !dirtyFields.has("slug")) {
+    // 只有在文章「還沒有真正的 slug」（frontmatter.slug 未設定）且使用者沒有同時在編輯
+    // slug 欄位時，才自動代入標題產生的 slug —— 這兩個條件都要擋住整段自動帶入，
+    // 不能只擋 frontmatter.slug 的寫入。
+    //
+    // 一旦 frontmatter.slug 已經有值，代表這是使用者刻意設定過的網址代稱：
+    // 改標題絕對不能連動改掉 slugDraft／draft.slug，否則畫面上的網址代稱欄位會悄悄
+    // 顯示成一個「還沒被存檔」的新值，使用者之後只要讓 slug 欄位失焦一次（例如 Tab 過去），
+    // commitSlug() 就會把這個自動產生的值寫回 frontmatter.slug，等同於在使用者不知情的
+    // 情況下悄悄改掉文章已經發布的網址。
+    if (title && !draft.frontmatter.slug && !dirtyFields.has("slug")) {
       const slug = generateSlug(title)
       draft.slug = slug
-      if (!draft.frontmatter.slug) {
-        draft.frontmatter.slug = slug
-      }
+      draft.frontmatter.slug = slug
       autoSlug = slug
     }
   })

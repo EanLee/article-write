@@ -16,6 +16,11 @@
  *   (f) 描述／系列名稱／系列順序（FrontmatterEditor.vue 原有但先前遺漏的 3 個欄位）blur 後寫回
  *   (g) 【資料遺失防護】在標題欄位輸入尚未 blur 時，若其他欄位觸發 commit（例如新增標籤），
  *       不應該讓 watch(currentArticle) 把使用者尚未送出的草稿蓋回舊值
+ *   (h) 【悄悄改網址防護】文章已經有 frontmatter.slug 時，修改標題不應該自動覆蓋 slugDraft／
+ *       frontmatter.slug——否則使用者之後讓 slug 欄位失焦一次，就會把自動產生的新值寫回
+ *       frontmatter.slug，等同於悄悄改掉文章已發布的網址
+ *   (i) 文章原本沒有 frontmatter.slug 時，修改標題仍應自動產生並寫回 slug（確認沒有把自動產生
+ *       功能整個關掉）
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -204,5 +209,51 @@ describe("PropertiesTab", () => {
     // 最終 blur 時，應該把使用者剛剛輸入的標題寫回，而不是被回退的舊值
     await titleInput.trigger("blur");
     expect(articleStore.currentArticle?.frontmatter.title).toBe("使用者正在輸入的新標題");
+  });
+
+  it("(h) 文章已有 frontmatter.slug 時，修改標題並 blur 不應自動覆蓋既有 slug", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle({
+      slug: "existing-slug",
+      frontmatter: {
+        title: "原始標題",
+        slug: "existing-slug",
+      },
+    });
+
+    const wrapper = mount(PropertiesTab);
+    const titleInput = wrapper.find("#properties-title-input");
+    await titleInput.setValue("全新的標題文字");
+    await titleInput.trigger("blur");
+
+    // 畫面上的網址代稱欄位不應該被悄悄換成標題自動產生的新值
+    expect((wrapper.find("#properties-slug-input").element as HTMLInputElement).value).toBe("existing-slug");
+    expect(articleStore.currentArticle?.slug).toBe("existing-slug");
+    expect(articleStore.currentArticle?.frontmatter.slug).toBe("existing-slug");
+
+    // 即使使用者之後讓 slug 欄位失焦一次（例如 Tab 過去，沒有實際修改內容），
+    // 也不應該把任何自動產生的值寫回 frontmatter.slug —— 這是這個問題實際會造成
+    // 「悄悄改掉已發布網址」的完整鏈路，光看第一次 blur 之後的狀態還不夠。
+    await wrapper.find("#properties-slug-input").trigger("blur");
+    expect(articleStore.currentArticle?.frontmatter.slug).toBe("existing-slug");
+  });
+
+  it("(i) 文章原本沒有 frontmatter.slug 時，修改標題並 blur 仍應自動產生並寫回 slug", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle({
+      slug: "",
+      frontmatter: {
+        title: "原始標題",
+      },
+    });
+
+    const wrapper = mount(PropertiesTab);
+    const titleInput = wrapper.find("#properties-title-input");
+    await titleInput.setValue("Hello World");
+    await titleInput.trigger("blur");
+
+    expect(articleStore.currentArticle?.slug).toBe("hello-world");
+    expect(articleStore.currentArticle?.frontmatter.slug).toBe("hello-world");
+    expect((wrapper.find("#properties-slug-input").element as HTMLInputElement).value).toBe("hello-world");
   });
 });
