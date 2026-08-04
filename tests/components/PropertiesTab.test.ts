@@ -1,7 +1,8 @@
 /**
  * PropertiesTab 組件測試
  *
- * PropertiesTab.vue 改寫自 FrontmatterEditor.vue 的表單欄位邏輯（標題/slug/日期/分類/標籤/關鍵字），
+ * PropertiesTab.vue 改寫自 FrontmatterEditor.vue 的表單欄位邏輯
+ * （標題/slug/描述/日期/分類/系列/系列順序/標籤/關鍵字），
  * 但拿掉 Modal 外殼與「儲存」按鈕：欄位 blur／change 時即直接呼叫 articleStore.updateArticleInMemory()
  * 寫回記憶體（比照 MainEditor.vue 既有的 handleFrontmatterUpdate 寫回路徑）。
  *
@@ -10,6 +11,11 @@
  *   (b) 修改標題欄位（blur）觸發 articleStore 更新
  *   (c) 新增／移除標籤
  *   (d) 無文章時顯示空狀態
+ *   (e) 修改網址代稱（slug）欄位應同步寫入 frontmatter.slug（不只是頂層 slug，否則不會被存進檔案，
+ *       因為 ArticleService.performSave 是用 article.frontmatter 序列化 YAML，見 combineContent 呼叫）
+ *   (f) 描述／系列名稱／系列順序（FrontmatterEditor.vue 原有但先前遺漏的 3 個欄位）blur 後寫回
+ *   (g) 【資料遺失防護】在標題欄位輸入尚未 blur 時，若其他欄位觸發 commit（例如新增標籤），
+ *       不應該讓 watch(currentArticle) 把使用者尚未送出的草稿蓋回舊值
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -54,11 +60,14 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     status: ArticleStatus.Draft,
     frontmatter: {
       title: "原始標題",
+      description: "原始描述",
       date: "2026-01-01",
       tags: ["tag1", "tag2"],
       keywords: ["kw1"],
       categories: ["Software"],
       slug: "original-slug",
+      series: "原始系列",
+      seriesOrder: 1,
     },
     content: "# 內容",
     lastModified: new Date("2026-01-01"),
@@ -83,6 +92,9 @@ describe("PropertiesTab", () => {
     expect((wrapper.find("#properties-slug-input").element as HTMLInputElement).value).toBe("original-slug");
     expect((wrapper.find("#properties-date-input").element as HTMLInputElement).value).toBe("2026-01-01");
     expect((wrapper.find("#properties-category-input").element as HTMLSelectElement).value).toBe("Software");
+    expect((wrapper.find("#properties-description-input").element as HTMLTextAreaElement).value).toBe("原始描述");
+    expect((wrapper.find("#properties-series-input").element as HTMLInputElement).value).toBe("原始系列");
+    expect((wrapper.find("#properties-series-order-input").element as HTMLInputElement).value).toBe("1");
     expect(wrapper.text()).toContain("tag1");
     expect(wrapper.text()).toContain("tag2");
     expect(wrapper.text()).toContain("kw1");
@@ -133,5 +145,64 @@ describe("PropertiesTab", () => {
 
     expect(wrapper.find(".empty-state").exists()).toBe(true);
     expect(wrapper.find("#properties-title-input").exists()).toBe(false);
+  });
+
+  it("(e) 修改網址代稱欄位並 blur 後，應同步寫入 frontmatter.slug（存檔序列化用的是 frontmatter，不是頂層 slug）", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle();
+
+    const wrapper = mount(PropertiesTab);
+    const slugInput = wrapper.find("#properties-slug-input");
+    await slugInput.setValue("manually-edited-slug");
+    await slugInput.trigger("blur");
+
+    expect(articleStore.currentArticle?.slug).toBe("manually-edited-slug");
+    expect(articleStore.currentArticle?.frontmatter.slug).toBe("manually-edited-slug");
+  });
+
+  it("(f) 修改描述／系列名稱／系列順序欄位並 blur 後，應寫回對應的 frontmatter 欄位", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle();
+
+    const wrapper = mount(PropertiesTab);
+
+    const descriptionInput = wrapper.find("#properties-description-input");
+    await descriptionInput.setValue("新描述");
+    await descriptionInput.trigger("blur");
+    expect(articleStore.currentArticle?.frontmatter.description).toBe("新描述");
+
+    const seriesInput = wrapper.find("#properties-series-input");
+    await seriesInput.setValue("新系列");
+    await seriesInput.trigger("blur");
+    expect(articleStore.currentArticle?.frontmatter.series).toBe("新系列");
+
+    const seriesOrderInput = wrapper.find("#properties-series-order-input");
+    await seriesOrderInput.setValue("3");
+    await seriesOrderInput.trigger("blur");
+    expect(articleStore.currentArticle?.frontmatter.seriesOrder).toBe(3);
+  });
+
+  it("(g) 標題欄位輸入尚未 blur 時，其他欄位觸發 commit 不應覆蓋標題草稿（防止資料遺失）", async () => {
+    const articleStore = useArticleStore();
+    articleStore.currentArticle = makeArticle();
+
+    const wrapper = mount(PropertiesTab);
+    const titleInput = wrapper.find("#properties-title-input");
+
+    // 使用者正在輸入標題，但尚未 blur（草稿只存在本地，還沒送回 store）
+    await titleInput.setValue("使用者正在輸入的新標題");
+
+    // 這時候另一個欄位觸發了一次獨立的 commit（例如新增標籤），
+    // 這會讓 articleStore.currentArticle 指向一個新物件，觸發 watch(currentArticle, ...)
+    const tagInput = wrapper.find("#properties-tags-input");
+    await tagInput.setValue("race-tag");
+    await tagInput.trigger("keyup.enter");
+
+    // 標題草稿不應該被 watch 回填成 store 裡的舊標題
+    expect((titleInput.element as HTMLInputElement).value).toBe("使用者正在輸入的新標題");
+
+    // 最終 blur 時，應該把使用者剛剛輸入的標題寫回，而不是被回退的舊值
+    await titleInput.trigger("blur");
+    expect(articleStore.currentArticle?.frontmatter.title).toBe("使用者正在輸入的新標題");
   });
 });
