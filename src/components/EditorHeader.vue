@@ -79,16 +79,6 @@
             </div>
           </div>
 
-          <!-- Frontmatter 編輯 -->
-          <div v-if="editorMode === 'compose'" class="tooltip tooltip-bottom" data-tip="編輯前置資料">
-            <button
-              class="btn btn-xs btn-ghost btn-square"
-              @click="$emit('edit-frontmatter')"
-            >
-              <Edit3 :size="14" />
-            </button>
-          </div>
-
           <!-- 文章狀態切換：僅變更 frontmatter 的 status 標籤，不會同步到部落格網站
                tooltip 文案刻意精簡且靠左展開（tooltip-left）：這顆按鈕在 header 最右側，
                靠右/置中展開的長文案在小螢幕會被視窗邊緣截斷 -->
@@ -134,7 +124,6 @@
 import { ref, computed } from "vue"
 import type { Article } from "@/types"
 import {
-  Edit3,
   Upload,
   Eye,
   EyeOff,
@@ -159,7 +148,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 defineEmits<{
   "toggle-preview": []
-  "edit-frontmatter": []
   "toggle-status": []
   "toggle-editor-mode": []
   "toggle-focus-mode": []

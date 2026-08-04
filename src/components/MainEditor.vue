@@ -2,7 +2,7 @@
     <div class="h-full flex flex-col relative">
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
-            :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
+            :focus-mode="focusMode" @toggle-preview="togglePreview"
             @toggle-status="toggleArticleStatus"
             @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
 
@@ -35,11 +35,6 @@
             <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
                 :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
         </div>
-
-        <!-- Frontmatter Editor Modal -->
-        <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
-            @update="handleFrontmatterUpdate" />
-
     </div>
 </template>
 
@@ -51,7 +46,6 @@ import { debounce } from "lodash-es";
 import EditorHeader from "./EditorHeader.vue";
 import CodeMirrorEditor from "./CodeMirrorEditor.vue";
 import PreviewPane from "./PreviewPane.vue";
-import FrontmatterEditor from "./FrontmatterEditor.vue";
 import SearchReplace from "./SearchReplace.vue";
 import { useServices } from "@/composables/useServices";
 import { useEditorShortcuts } from "@/composables/useEditorShortcuts";
@@ -78,7 +72,6 @@ const content = ref("");
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
-const showFrontmatterEditor = ref(false);
 const renderedContent = ref("");
 const editorMode = ref<"compose" | "raw">("compose");
 const rawContent = ref("");
@@ -470,10 +463,6 @@ function updatePreview() {
     }
 }
 
-function handleFrontmatterUpdate(updatedArticle: Article) {
-    articleStore.updateArticleInMemory(updatedArticle);
-}
-
 // 搜尋高亮處理
 function handleSearchHighlight(
     matches: Array<{ start: number; end: number }>,
@@ -658,9 +647,5 @@ function scrollToLine(lineIndex: number) {
     editorPaneRef.value?.scrollToLine(lineIndex)
 }
 
-function openFrontmatterEditor() {
-    showFrontmatterEditor.value = true
-}
-
-defineExpose({ scrollToLine, openFrontmatterEditor })
+defineExpose({ scrollToLine })
 </script>
