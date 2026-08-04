@@ -1,5 +1,5 @@
 <template>
-  <div class="server-control-panel" data-testid="server-control-panel">
+  <div class="publish-tab">
     <!-- 控制列 -->
     <div class="flex items-center justify-between p-3 bg-base-200 border-b border-base-300">
       <div class="flex items-center gap-3">
@@ -39,16 +39,6 @@
           <Trash2 :size="16" />
         </button>
 
-        <!-- 折疊/展開按鈕 -->
-        <button
-          class="btn btn-ghost btn-sm"
-          data-testid="server-panel-toggle"
-          @click="toggleExpanded"
-          :title="expanded ? '收合' : '展開'"
-        >
-          <component :is="expanded ? ChevronDown : ChevronUp" :size="16" />
-        </button>
-
         <!-- 啟動/停止按鈕 -->
         <button
           v-if="!isRunning"
@@ -71,9 +61,8 @@
       </div>
     </div>
 
-    <!-- 日誌面板 -->
+    <!-- 日誌面板（恆常渲染：折疊狀態已收斂進 InspectorView 外殼，這裡不再有獨立收合開關） -->
     <div
-      v-if="expanded"
       class="log-panel bg-base-300 overflow-hidden"
       data-testid="server-panel-log"
       :style="{ height: logPanelHeight + 'px' }"
@@ -106,7 +95,7 @@
     </div>
 
     <!-- 未設定目標部落格提示 -->
-    <div v-if="!hasTargetBlog && expanded" class="p-3 bg-warning/10 text-warning text-sm">
+    <div v-if="!hasTargetBlog" class="p-3 bg-warning/10 text-warning text-sm">
       <AlertTriangle :size="16" class="inline mr-1" />
       請先在設定中配置目標部落格路徑
     </div>
@@ -121,8 +110,6 @@ import {
   Play,
   Square,
   ExternalLink,
-  ChevronUp,
-  ChevronDown,
   Trash2,
   AlertTriangle
 } from "@lucide/vue"
@@ -135,7 +122,6 @@ const isRunning = ref(false)
 const loading = ref(false)
 const serverUrl = ref<string | undefined>()
 const logs = ref<ServerLogData[]>([])
-const expanded = ref(false)
 const logPanelHeight = ref(200)
 const logContainerRef = ref<HTMLElement>()
 
@@ -209,11 +195,6 @@ function clearLogs() {
   logs.value = []
 }
 
-function toggleExpanded() {
-  expanded.value = !expanded.value
-  localStorage.setItem("server-panel-expanded", expanded.value.toString())
-}
-
 function getLogClass(log: ServerLogData) {
   if (log.type === "stderr") {return "text-error"}
   if (log.log.includes("錯誤") || log.log.includes("Error")) {return "text-error"}
@@ -268,11 +249,6 @@ let unsubscribeLog: (() => void) | null = null
 
 onMounted(async () => {
   // 載入儲存的狀態
-  const savedExpanded = localStorage.getItem("server-panel-expanded")
-  if (savedExpanded !== null) {
-    expanded.value = savedExpanded === "true"
-  }
-
   const savedHeight = localStorage.getItem("server-panel-height")
   if (savedHeight !== null) {
     logPanelHeight.value = Number.parseInt(savedHeight, 10)
@@ -305,10 +281,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.server-control-panel {
-  border-top: 1px solid oklch(var(--b3));
-}
-
 .log-container {
   background: oklch(var(--b3));
 }

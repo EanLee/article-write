@@ -1,6 +1,7 @@
 /**
- * ServerControlPanel — 掛載進編輯模式前的兩個既有缺陷
- * 1. `expanded` 預設值需為 false（掛載進編輯模式時預設收合）
+ * ServerControlPanel（內容為 PublishTab.vue）
+ * 1. 日誌面板應恆常渲染（IA Phase 3 子專案 1：PublishTab 搬進 InspectorView 的「發布」頁籤後，
+ *    折疊狀態已收斂由 InspectorView 外殼統一負責，PublishTab 本身不再有獨立的收合開關）
  * 2. startServer/stopServer/updateStatus 失敗時呼叫 logger.error，但檔案從未 import logger，
  *    掛載後首次觸發錯誤路徑會直接 runtime crash（ReferenceError: logger is not defined）
  */
@@ -30,7 +31,7 @@ function findButtonByText(wrapper: VueWrapper, text: string) {
   return btn
 }
 
-describe("ServerControlPanel - 預設收合狀態", () => {
+describe("ServerControlPanel - 日誌面板恆常渲染", () => {
   let wrapper: VueWrapper | undefined
 
   beforeEach(() => {
@@ -44,10 +45,10 @@ describe("ServerControlPanel - 預設收合狀態", () => {
     wrapper = undefined
   })
 
-  it("首次掛載時日誌面板應為收合狀態（不可見）", async () => {
+  it("首次掛載時日誌面板應立即可見（無獨立折疊開關）", async () => {
     wrapper = mount(ServerControlPanel)
     await flushPromises()
-    expect(wrapper.find(".log-panel").exists()).toBe(false)
+    expect(wrapper.find(".log-panel").exists()).toBe(true)
   })
 })
 
@@ -71,8 +72,7 @@ describe("ServerControlPanel - logger 未 import 的 bug 修復", () => {
     wrapper = mount(ServerControlPanel, { attachTo: document.body })
     await flushPromises()
 
-    // 日誌預設收合，先展開才看得到錯誤訊息
-    await wrapper.find('button[title="展開"]').trigger("click")
+    // 日誌面板恆常渲染，不需要先展開
     await findButtonByText(wrapper, "啟動").trigger("click")
     await flushPromises()
 
