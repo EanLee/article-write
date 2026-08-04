@@ -4,10 +4,10 @@
     <ActivityBar
       v-if="!focusMode"
       v-model="currentMode"
-      :ai-panel-open="aiPanelStore.isOpen"
+      :inspector-open="inspectorStore.isOpen"
       @open-settings="showSettings = true"
       @toggle-sidebar="toggleSidebar"
-      @toggle-ai-panel="aiPanelStore.toggle()"
+      @toggle-inspector="inspectorStore.toggle()"
     />
 
     <!-- Main Content Area -->
@@ -21,7 +21,6 @@
             :is-collapsed="sidebarCollapsed"
             :outline-headings="outlineHeadings"
             @scroll-to-outline-line="handleScrollToOutlineLine"
-            @edit-frontmatter="mainEditorRef?.openFrontmatterEditor()"
           />
 
           <!-- Editor Content -->
@@ -59,16 +58,13 @@
       <template v-else-if="currentMode === ViewMode.Management">
         <ArticleManagement @edit-article="switchToEditorMode" />
       </template>
-
-      <!-- 開發伺服器底部控制台（IA 稽核 Phase 2 第一項）：橫跨側邊欄＋編輯區，只在編輯模式顯示 -->
-      <ServerControlPanel v-if="currentMode === ViewMode.Editor" />
     </div>
 
-    <!-- AI 助手面板：右側可收合 dock，任何模式都能開關（ActivityBar 按鈕不分模式都可點，
-         若面板只在編輯模式渲染，管理模式點擊會出現「按鈕變 active 但畫面沒反應」的不一致） -->
-    <AIPanelView
-      v-if="aiPanelStore.isOpen"
-      :article="articleStore.currentArticle"
+    <!-- Inspector 面板：右側可收合 dock（屬性／AI 助手／發布三頁籤），內部自行依
+         inspectorStore.isOpen 控制顯示；管理模式版面本次不動，只在編輯模式掛載
+         （IA Phase 3 子專案 1） -->
+    <InspectorView
+      v-if="currentMode === ViewMode.Editor"
       @open-settings="showSettings = true"
     />
 
@@ -89,7 +85,7 @@ import { useFocusMode } from "@/composables/useFocusMode";
 import { useConfigStore } from "@/stores/config";
 import { useArticleStore } from "@/stores/article";
 import { useSearchStore } from "@/stores/search";
-import { useAIPanelStore } from "@/stores/aiPanel";
+import { useInspectorStore } from "@/stores/inspector";
 import { autoSaveService } from "@/services/AutoSaveService";
 import { ViewMode, SidebarView } from "@/types";
 import { FileText } from "@lucide/vue";
@@ -102,13 +98,12 @@ import SettingsPanel from "@/components/SettingsPanel.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import ToastContainer from "@/components/ToastContainer.vue";
 import ArticleManagement from "@/components/ArticleManagement.vue";
-import AIPanelView from "@/components/AIPanelView.vue";
-import ServerControlPanel from "@/components/ServerControlPanel.vue";
+import InspectorView from "@/components/InspectorView.vue";
 
 const configStore = useConfigStore();
 const articleStore = useArticleStore();
 const searchStore = useSearchStore();
-const aiPanelStore = useAIPanelStore();
+const inspectorStore = useInspectorStore();
 const { focusMode } = useFocusMode();
 const showSettings = ref(false);
 const currentMode = ref<ViewMode>(ViewMode.Editor);

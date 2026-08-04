@@ -9,9 +9,9 @@
 
     <!-- Bottom actions -->
     <div class="activity-bottom">
-      <button class="activity-item" :class="{ active: props.aiPanelOpen }" title="AI 助手"
-        data-testid="ai-panel-toggle-button" @click="$emit('toggle-ai-panel')">
-        <Sparkles :size="24" />
+      <button class="activity-item" :class="{ active: props.inspectorOpen }" title="Inspector（屬性／AI 助手／發布）"
+        data-testid="inspector-toggle-button" @click="$emit('toggle-inspector')">
+        <PanelRight :size="24" />
       </button>
       <button class="activity-item" data-testid="settings-button" title="設定" @click="$emit('open-settings')">
         <Settings :size="24" />
@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import type { Component } from "vue"
-import { Edit3, LayoutDashboard, Settings, Sparkles } from "@lucide/vue"
+import { Edit3, LayoutDashboard, PanelRight, Settings } from "@lucide/vue"
 import { ViewMode } from "@/types"
 
 interface ActivityItem {
@@ -40,13 +40,13 @@ const items: ActivityItem[] = [
 const modelValue = defineModel<ViewMode>({ default: ViewMode.Editor })
 
 const props = defineProps<{
-  aiPanelOpen?: boolean
+  inspectorOpen?: boolean
 }>()
 
 const emit = defineEmits<{
   "open-settings": []
   "toggle-sidebar": []
-  "toggle-ai-panel": []
+  "toggle-inspector": []
 }>()
 
 function handleClick(id: ViewMode) {

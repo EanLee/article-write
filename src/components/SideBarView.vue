@@ -18,15 +18,6 @@
           </button>
           <button
             class="tab-btn"
-            :class="{ active: modelValue === SidebarView.Frontmatter }"
-            :disabled="!hasCurrentArticle"
-            @click="$emit('update:modelValue', SidebarView.Frontmatter)"
-          >
-            <Info :size="14" />
-            <span>文章資訊</span>
-          </button>
-          <button
-            class="tab-btn"
             :class="{ active: modelValue === SidebarView.Outline }"
             :disabled="!hasCurrentArticle"
             @click="$emit('update:modelValue', SidebarView.Outline)"
@@ -40,7 +31,6 @@
       <!-- Content -->
       <div class="sidebar-content">
         <ArticleListTree v-if="modelValue === SidebarView.Articles" />
-        <FrontmatterView v-else-if="modelValue === SidebarView.Frontmatter" @edit="$emit('edit-frontmatter')" />
         <OutlinePanel
           v-else-if="modelValue === SidebarView.Outline"
           :headings="props.outlineHeadings"
@@ -56,12 +46,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue"
-import { FileText, Info, List } from "@lucide/vue"
+import { FileText, List } from "@lucide/vue"
 import { SidebarView } from "@/types"
 import { useArticleStore } from "@/stores/article"
 import { useFocusMode } from "@/composables/useFocusMode"
 import ArticleListTree from "./ArticleListTree.vue"
-import FrontmatterView from "./FrontmatterView.vue"
 import OutlinePanel from "./OutlinePanel.vue"
 import type { OutlineHeading } from "@/components/CodeMirrorEditor.vue"
 
@@ -72,7 +61,6 @@ const props = defineProps<{
 
 defineEmits<{
   "scroll-to-outline-line": [line: number]
-  "edit-frontmatter": []
 }>()
 
 const articleStore = useArticleStore()

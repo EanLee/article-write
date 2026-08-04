@@ -2,7 +2,7 @@
     <div class="h-full flex flex-col relative">
         <!-- Editor Header -->
         <EditorHeader :article="articleStore.currentArticle" :show-preview="showPreview" :editor-mode="editorMode"
-            :focus-mode="focusMode" @toggle-preview="togglePreview" @edit-frontmatter="showFrontmatterEditor = true"
+            :focus-mode="focusMode" @toggle-preview="togglePreview"
             @toggle-status="toggleArticleStatus"
             @toggle-editor-mode="toggleEditorMode" @toggle-focus-mode="toggleFocusMode" />
 
@@ -35,11 +35,6 @@
             <PreviewPane ref="previewPaneRef" v-if="showPreview" :rendered-content="renderedContent"
                 :stats="previewStats" :validation="previewValidation" @scroll="onPreviewScroll" />
         </div>
-
-        <!-- Frontmatter Editor Modal -->
-        <FrontmatterEditor v-model="showFrontmatterEditor" :article="articleStore.currentArticle"
-            @update="handleFrontmatterUpdate" />
-
     </div>
 </template>
 
@@ -51,7 +46,6 @@ import { debounce } from "lodash-es";
 import EditorHeader from "./EditorHeader.vue";
 import CodeMirrorEditor from "./CodeMirrorEditor.vue";
 import PreviewPane from "./PreviewPane.vue";
-import FrontmatterEditor from "./FrontmatterEditor.vue";
 import SearchReplace from "./SearchReplace.vue";
 import { useServices } from "@/composables/useServices";
 import { useEditorShortcuts } from "@/composables/useEditorShortcuts";
@@ -78,7 +72,6 @@ const content = ref("");
 const isSwitchingMode = ref(false); // 防止模式切換期間的副作用
 const isLoadingArticle = ref(false); // 防止文章載入時誤觸 AutoSave
 const showPreview = ref(false);
-const showFrontmatterEditor = ref(false);
 const renderedContent = ref("");
 const editorMode = ref<"compose" | "raw">("compose");
 const rawContent = ref("");
@@ -470,10 +463,6 @@ function updatePreview() {
     }
 }
 
-function handleFrontmatterUpdate(updatedArticle: Article) {
-    articleStore.updateArticleInMemory(updatedArticle);
-}
-
 // 搜尋高亮處理
 function handleSearchHighlight(
     matches: Array<{ start: number; end: number }>,
@@ -557,26 +546,49 @@ async function initializeObsidianSupport() {
 }
 
 // Watch for article changes
+//
+// ⚠️ 資料遺失防呆（IA Phase 3 code review 發現）：articleStore.currentArticle 是物件參考，
+// PropertiesTab.vue／AIPanelContent.vue 等只更新 frontmatter 中繼資料的呼叫（透過
+// articleStore.updateArticleInMemory()）也會換新整個物件參考、觸發這個 watcher。這些呼叫
+// clone 的基底是 store 當下的 currentArticle，其 content 欄位可能落後於使用者正在編輯器裡
+// 打字中、尚未存檔的即時緩衝區（content.value）—— 若不分青紅皂白一律用 newArticle.content
+// 覆寫，就會用落後的內容蓋掉使用者尚未儲存的按鍵輸入（與 topic-020 同一類問題）。
+//
+// 因此只在下列任一情況才重置編輯器內容：
+// 1. switchedArticle：真正切換到不同文章（id 改變），包含從無到有／從有到無。
+// 2. contentChangedExternally：id 不變但 content 欄位本身真的變了 —— 對應 FileWatch 偵測到
+//    外部檔案異動（reloadArticleFromDisk）、或衝突解決時選擇「保留磁碟版本」（reloadArticle）。
+//    這兩個路徑都刻意保留原有 id（避免 UI 組件重新掛載），但確實需要讓編輯器同步新內容。
+// 只更新 frontmatter／不動 content 的呼叫（PropertiesTab、AIPanelContent 的 SEO 套用）不會
+// 觸發任何一個條件，因此不會誤蓋使用者的即時輸入。
 watch(
     () => articleStore.currentArticle,
-    (newArticle) => {
-        if (newArticle) {
-            // 設定載入旗標，防止 content watcher 在初始化時誤觸 AutoSave
-            isLoadingArticle.value = true;
-            content.value = newArticle.content;
-            // 更新 raw content
-            rawContent.value = markdownService.combineContent(
-                newArticle.frontmatter,
-                newArticle.content
-            );
-            if (showPreview.value) {
-                updatePreview();
-            }
-            // 使用 nextTick 確保 content watcher 執行完畢後才解除旗標
-            nextTick(() => {
-                isLoadingArticle.value = false;
-            });
+    (newArticle, previousArticle) => {
+        if (!newArticle) {
+            return;
         }
+
+        const switchedArticle = newArticle.id !== previousArticle?.id;
+        const contentChangedExternally = newArticle.content !== previousArticle?.content;
+        if (!switchedArticle && !contentChangedExternally) {
+            return;
+        }
+
+        // 設定載入旗標，防止 content watcher 在初始化時誤觸 AutoSave
+        isLoadingArticle.value = true;
+        content.value = newArticle.content;
+        // 更新 raw content
+        rawContent.value = markdownService.combineContent(
+            newArticle.frontmatter,
+            newArticle.content
+        );
+        if (showPreview.value) {
+            updatePreview();
+        }
+        // 使用 nextTick 確保 content watcher 執行完畢後才解除旗標
+        nextTick(() => {
+            isLoadingArticle.value = false;
+        });
     },
     { immediate: true }
 );
@@ -658,9 +670,5 @@ function scrollToLine(lineIndex: number) {
     editorPaneRef.value?.scrollToLine(lineIndex)
 }
 
-function openFrontmatterEditor() {
-    showFrontmatterEditor.value = true
-}
-
-defineExpose({ scrollToLine, openFrontmatterEditor })
+defineExpose({ scrollToLine })
 </script>
