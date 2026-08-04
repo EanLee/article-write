@@ -120,7 +120,7 @@
 **Files:**
 - （無新增/修改檔案，純驗證）
 
-- [ ] Step 1：執行完整單元測試 — `pnpm run test`，Expected: PASS（0 failures）
-- [ ] Step 2：執行完整 E2E 套件 — `pnpm run test:e2e`，Expected: PASS（0 failures）
-- [ ] Step 3：執行 Lint — `pnpm run lint`，Expected: 0 errors
-- [ ] Step 4：手動檢查 `git diff develop..HEAD --stat`，確認管理模式（`ArticleManagement.vue`、`ViewMode.Management`）與文章狀態模型（`ArticleStatus` enum）完全未被觸碰，符合子專案範圍界線
+- [x] Step 1：執行完整單元測試 — `pnpm run test`，Expected: PASS（0 failures）。實測：56 files，709 passed | 1 skipped，0 failures
+- [x] Step 2：執行完整 E2E 套件 — `pnpm run test:e2e`，Expected: PASS（0 failures）。實測：首次跑出現 1 個 `editor-flow.spec.ts` 失敗（`save-status-text` 逾時），單獨重跑該測試與重跑整套 E2E 皆為 30 passed/1 skipped/0 failed，判定為平行 worker 資源競爭造成的既有 flaky，非本次改動迴歸
+- [x] Step 3：執行 Lint — `pnpm run lint`，Expected: 0 errors。實測：0 errors, 23 warnings（皆既有檔案的既存警告）
+- [x] Step 4：手動檢查 `git diff develop..HEAD --stat`，確認管理模式（`ArticleManagement.vue`、`ViewMode.Management`）與文章狀態模型（`ArticleStatus` enum）完全未被觸碰，符合子專案範圍界線。實測：29 files changed，diff 內無 `ArticleManagement.vue`/`ViewMode.Management`/`ArticleStatus`，範圍界線正確
