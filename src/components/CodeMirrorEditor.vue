@@ -126,6 +126,9 @@ const selEnd = ref(0)
 
 // 防止 v-model 循環更新
 let isInternalUpdate = false
+// 標記「外部（modelValue prop）造成的內容變更」，與使用者實際編輯區分，
+// 避免切換文章等場景下的程式化內容重設被誤判為使用者編輯（autoSaveService.markAsModified）
+let isExternalUpdate = false
 
 // ─── ObsidianSyntaxService → CM6 CompletionSource ────────────────────────────
 
@@ -274,7 +277,7 @@ const buildExtensions = (): Extension[] => [
 
   // 同步 v-model
   EditorView.updateListener.of((update) => {
-    if (update.docChanged) {
+    if (update.docChanged && !isExternalUpdate) {
       isInternalUpdate = true
       emit("update:modelValue", update.state.doc.toString())
       autoSaveService.markAsModified()
@@ -420,9 +423,11 @@ watch(
     if (!view) { return }
     if (view.state.doc.toString() === newValue) { return }
 
+    isExternalUpdate = true
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: newValue },
     })
+    isExternalUpdate = false
   }
 )
 
