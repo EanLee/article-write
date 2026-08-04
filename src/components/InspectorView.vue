@@ -45,10 +45,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue"
+import { ref, computed } from "vue"
 import { PanelRightClose } from "@lucide/vue"
 import { useInspectorStore } from "@/stores/inspector"
 import { useArticleStore } from "@/stores/article"
+import { useResizablePanel } from "@/composables/useResizablePanel"
 import PropertiesTab from "@/components/PropertiesTab.vue"
 import AIPanelContent from "@/components/AIPanelContent.vue"
 import PublishTab from "@/components/PublishTab.vue"
@@ -71,50 +72,11 @@ const tabs: Array<{ id: InspectorTabId; label: string }> = [
 
 const activeTab = ref<InspectorTabId>("properties")
 
-// Resize（比照 AIPanelView.vue 現有實作，寬度以 localStorage 持久化）
-const MIN_WIDTH = 240
-const MAX_WIDTH = 600
-const DEFAULT_WIDTH = 300
-const STORAGE_KEY = "inspector-width"
-
-const width = ref(DEFAULT_WIDTH)
-const isResizing = ref(false)
-
-function startResize(e: MouseEvent) {
-  isResizing.value = true
-  e.preventDefault()
-}
-
-function handleMouseMove(e: MouseEvent) {
-  if (!isResizing.value) { return }
-  const newWidth = window.innerWidth - e.clientX
-  if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
-    width.value = newWidth
-  }
-}
-
-function stopResize() {
-  if (isResizing.value) {
-    isResizing.value = false
-    localStorage.setItem(STORAGE_KEY, width.value.toString())
-  }
-}
-
-onMounted(() => {
-  const savedWidth = localStorage.getItem(STORAGE_KEY)
-  if (savedWidth) {
-    const parsed = Number.parseInt(savedWidth, 10)
-    if (parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
-      width.value = parsed
-    }
-  }
-  document.addEventListener("mousemove", handleMouseMove)
-  document.addEventListener("mouseup", stopResize)
-})
-
-onUnmounted(() => {
-  document.removeEventListener("mousemove", handleMouseMove)
-  document.removeEventListener("mouseup", stopResize)
+// Resize（共用邏輯抽到 useResizablePanel，比照 AIPanelView.vue 現有實作，寬度以 localStorage 持久化）
+const { width, startResize } = useResizablePanel("inspector-width", {
+  min: 240,
+  max: 600,
+  default: 300,
 })
 </script>
 

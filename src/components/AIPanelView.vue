@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue"
 import { Sparkles, X } from "@lucide/vue"
 import { useInspectorStore } from "@/stores/inspector"
+import { useResizablePanel } from "@/composables/useResizablePanel"
 import AIPanelContent from "@/components/AIPanelContent.vue"
 import type { Article } from "@/types"
 
@@ -35,50 +35,11 @@ defineEmits<{
 
 const inspectorStore = useInspectorStore()
 
-// Resize
-const MIN_WIDTH = 240
-const MAX_WIDTH = 600
-const DEFAULT_WIDTH = 300
-const STORAGE_KEY = "ai-panel-width"
-
-const width = ref(DEFAULT_WIDTH)
-const isResizing = ref(false)
-
-function startResize(e: MouseEvent) {
-  isResizing.value = true
-  e.preventDefault()
-}
-
-function handleMouseMove(e: MouseEvent) {
-  if (!isResizing.value) { return }
-  const newWidth = window.innerWidth - e.clientX
-  if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
-    width.value = newWidth
-  }
-}
-
-function stopResize() {
-  if (isResizing.value) {
-    isResizing.value = false
-    localStorage.setItem(STORAGE_KEY, width.value.toString())
-  }
-}
-
-onMounted(() => {
-  const savedWidth = localStorage.getItem(STORAGE_KEY)
-  if (savedWidth) {
-    const parsed = Number.parseInt(savedWidth, 10)
-    if (parsed >= MIN_WIDTH && parsed <= MAX_WIDTH) {
-      width.value = parsed
-    }
-  }
-  document.addEventListener("mousemove", handleMouseMove)
-  document.addEventListener("mouseup", stopResize)
-})
-
-onUnmounted(() => {
-  document.removeEventListener("mousemove", handleMouseMove)
-  document.removeEventListener("mouseup", stopResize)
+// Resize（共用邏輯抽到 useResizablePanel，避免與 InspectorView.vue 各自複製一份）
+const { width, startResize } = useResizablePanel("ai-panel-width", {
+  min: 240,
+  max: 600,
+  default: 300,
 })
 </script>
 
